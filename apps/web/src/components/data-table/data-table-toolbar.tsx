@@ -1,13 +1,17 @@
 import { X } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from './data-table-view-options';
-
-import { priorities, statuses } from './data/data';
+import {
+        ClassOptions,
+        EduLevelOptions,
+        MilitaryRankOptions,
+        priorities,
+        statuses,
+} from './data/data';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import type { Table } from '@tanstack/react-table';
-
+import { ehtnicOptions } from '@/data/ethnics';
 interface DataTableToolbarProps<TData> {
         table: Table<TData>;
 }
@@ -38,22 +42,36 @@ export function DataTableToolbar<TData>({
                                         }
                                         className="h-8 w-[150px] lg:w-[250px]"
                                 />
-                                {table.getColumn('status') && (
+                                {table.getColumn('Lớp') && (
                                         <DataTableFacetedFilter
-                                                column={table.getColumn(
-                                                        'status'
-                                                )}
-                                                title="Status"
-                                                options={statuses}
+                                                column={table.getColumn('Lớp')}
+                                                title="Lớp"
+                                                options={ClassOptions}
                                         />
                                 )}
-                                {table.getColumn('priority') && (
+                                {table.getColumn('CB') && (
+                                        <DataTableFacetedFilter
+                                                column={table.getColumn('CB')}
+                                                title="Cấp bậc"
+                                                options={MilitaryRankOptions}
+                                        />
+                                )}
+                                {table.getColumn('Dân tộc') && (
                                         <DataTableFacetedFilter
                                                 column={table.getColumn(
-                                                        'priority'
+                                                        'Dân tộc'
                                                 )}
-                                                title="Priority"
-                                                options={priorities}
+                                                title="Dân tộc"
+                                                options={ehtnicOptions}
+                                        />
+                                )}
+                                {table.getColumn('Trình độ học vấn') && (
+                                        <DataTableFacetedFilter
+                                                column={table.getColumn(
+                                                        'Trình độ học vấn'
+                                                )}
+                                                title="Trình độ học vấn"
+                                                options={EduLevelOptions}
                                         />
                                 )}
                                 {isFiltered && (

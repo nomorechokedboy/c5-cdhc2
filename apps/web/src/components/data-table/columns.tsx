@@ -51,13 +51,16 @@ export const columns: ColumnDef<Student>[] = [
                 cell: ({ row }) => (
                         <div className="w-20">
                                 <Badge
-                                        className="bg-green-100"
+                                        className="bg-green-400 text-white font-bold"
                                         variant="secondary"
                                 >
                                         {row.getValue('Lớp')}
                                 </Badge>
                         </div>
                 ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
         },
         {
                 accessorKey: 'Họ và tên',
@@ -92,11 +95,15 @@ export const columns: ColumnDef<Student>[] = [
                 header: 'Cấp bậc',
                 cell: ({ row }) => (
                         <div className="min-w-20">
-                                <Badge className="bg-[#3A5F0B]">
+                                <Badge className="bg-[#3A5F0B] text-white font-bold">
                                         {row.getValue('CB')}
                                 </Badge>
                         </div>
                 ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
+                enableHiding: true,
         },
         {
                 accessorKey: 'CV',
@@ -104,6 +111,7 @@ export const columns: ColumnDef<Student>[] = [
                 cell: ({ row }) => (
                         <div className="min-w-20">{row.getValue('CV')}</div>
                 ),
+                enableHiding: true,
         },
         {
                 accessorKey: 'Đơn vị cũ',
@@ -116,17 +124,25 @@ export const columns: ColumnDef<Student>[] = [
                 accessorKey: 'Dân tộc',
                 header: 'Dân tộc',
                 cell: ({ row }) => (
-                        <div className="">{row.getValue('Dân tộc')}</div>
+                        <Badge className="bg-blue-500 dark:bg-blue-600 text-white font-bold">
+                                {row.getValue('Dân tộc')}
+                        </Badge>
                 ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
         },
         {
                 accessorKey: 'Trình độ học vấn',
                 header: 'Học vấn',
                 cell: ({ row }) => (
-                        <div className="">
+                        <Badge className="bg-blue-500 dark:bg-blue-600 text-white font-bold">
                                 {row.getValue('Trình độ học vấn')}
-                        </div>
+                        </Badge>
                 ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
         },
         {
                 accessorKey: 'Bố',
@@ -151,6 +167,38 @@ export const columns: ColumnDef<Student>[] = [
                 cell: ({ row }) => (
                         <div className="min-w-32">{row.getValue('Mẹ')}</div>
                 ),
+        },
+        {
+                accessorKey: 'Vợ',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Họ tên vợ"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-32">
+                                {row.getValue('Vợ') || <Badge>N/A</Badge>}
+                        </div>
+                ),
+                enableHiding: true,
+        },
+        {
+                accessorKey: 'Hộ khẩu thường trú',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Hộ khẩu thường trú"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-32">
+                                {row.getValue('Hộ khẩu thường trú') || (
+                                        <Badge>N/A</Badge>
+                                )}
+                        </div>
+                ),
+                enableHiding: true,
         },
         {
                 id: 'actions',

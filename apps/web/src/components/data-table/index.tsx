@@ -29,15 +29,17 @@ import { DataTableToolbar } from './data-table-toolbar';
 interface DataTableProps<TData, TValue> {
         columns: ColumnDef<TData, TValue>[];
         data: TData[];
+        defaultColumnVisibility?: VisibilityState;
 }
 
 export function DataTable<TData, TValue>({
         columns,
         data,
+        defaultColumnVisibility = {},
 }: DataTableProps<TData, TValue>) {
         const [rowSelection, setRowSelection] = React.useState({});
         const [columnVisibility, setColumnVisibility] =
-                React.useState<VisibilityState>({});
+                React.useState<VisibilityState>(defaultColumnVisibility);
         const [columnFilters, setColumnFilters] =
                 React.useState<ColumnFiltersState>([]);
         const [sorting, setSorting] = React.useState<SortingState>([]);

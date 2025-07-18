@@ -30,7 +30,15 @@ function TableTest() {
                                         </div>
                                 </div>
                                 {/* <DataTable data={tasks} columns={columns} /> */}
-                                <DataTable data={students} columns={columns} />
+                                <DataTable
+                                        data={students}
+                                        columns={columns}
+                                        defaultColumnVisibility={{
+                                                Vợ: false,
+                                                'Hộ khẩu thường trú': false,
+                                                CV: false,
+                                        }}
+                                />
                         </div>
                 </SidebarInset>
         );
