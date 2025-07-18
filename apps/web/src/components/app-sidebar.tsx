@@ -20,25 +20,22 @@ const data = {
         versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
         navMain: [
                 {
-                        title: 'Getting Started',
+                        title: 'Quản lý chung',
                         url: '#',
                         items: [
                                 {
-                                        title: 'Installation',
+                                        title: 'Tổng quan',
                                         url: '#',
                                 },
-                                {
-                                        title: 'Project Structure',
-                                        url: '#',
-                                },
+                                ,
                         ],
                 },
                 {
-                        title: 'Building Your Application',
+                        title: 'Quản lý đơn vị',
                         url: '#',
                         items: [
                                 {
-                                        title: 'Routing',
+                                        title: 'Lớp',
                                         url: '/demo/table',
                                 },
                                 {
@@ -47,100 +44,8 @@ const data = {
                                         isActive: true,
                                 },
                                 {
-                                        title: 'Rendering',
+                                        title: 'Học viên',
                                         url: '/demo/form/address',
-                                },
-                                {
-                                        title: 'Caching',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Styling',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Optimizing',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Configuring',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Testing',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Authentication',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Deploying',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Upgrading',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Examples',
-                                        url: '#',
-                                },
-                        ],
-                },
-                {
-                        title: 'API Reference',
-                        url: '#',
-                        items: [
-                                {
-                                        title: 'Components',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'File Conventions',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Functions',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'next.config.js Options',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'CLI',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Edge Runtime',
-                                        url: '#',
-                                },
-                        ],
-                },
-                {
-                        title: 'Architecture',
-                        url: '#',
-                        items: [
-                                {
-                                        title: 'Accessibility',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Fast Refresh',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Next.js Compiler',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Supported Browsers',
-                                        url: '#',
-                                },
-                                {
-                                        title: 'Turbopack',
-                                        url: '#',
                                 },
                         ],
                 },

@@ -23,7 +23,7 @@ export function SubscribeButton({ label }: { label: string }) {
         );
 }
 
-function ErrorMessages({
+export function ErrorMessages({
         errors,
 }: {
         errors: Array<string | { message: string }>;

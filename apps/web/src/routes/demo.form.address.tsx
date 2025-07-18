@@ -2,313 +2,213 @@ import { GetCities } from '@/api';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useMemo } from 'react';
-
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppForm } from '../hooks/demo.form';
+import PersonalStep from '@/components/personal-step';
+import FamilyStep from '@/components/family-step';
+import MilitaryStep from '@/components/military-step';
+import ReviewStep from '@/components/review-step';
+import StepIndicator from '@/components/form-indicator';
+import { STEPS } from '@/data';
 
 export const Route = createFileRoute('/demo/form/address')({
         component: AddressForm,
 });
 
 function AddressForm() {
+        const [currentStep, setCurrentStep] = useState(0);
+        const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
         const form = useAppForm({
                 defaultValues: {
                         fullName: '',
-                        email: '',
-                        address: {
-                                street: '',
-                                city: '',
-                                state: '',
-                                zipCode: '',
-                                country: '',
-                        },
+                        birthPlace: '',
+                        address: '',
+                        dob: '',
+                        rank: '',
+                        previousUnit: '',
+                        previousPosition: '',
+                        position: '',
+                        ethnic: '',
+                        religion: '',
+                        enlistmentPeriod: '',
+                        politicalOrg: '',
+                        cpvOfficialDate: '',
+                        cpvId: '',
+                        educationLevel: '',
+                        schoolName: '',
+                        major: '',
+                        isGraduated: false,
+                        talent: '',
+                        shortcoming: '',
+                        policyBeneficiaryGroup: '',
+                        fatherName: '',
+                        fatherPhoneNumber: '',
+                        fatherJob: '',
+                        fatherJobAdress: '',
+                        motherName: '',
+                        motherPhoneNumber: '',
+                        motherJob: '',
+                        motherJobAdress: '',
                         phone: '',
                 },
-                validators: {
-                        onBlur: ({ value }) => {
-                                const errors = {
-                                        fields: {},
-                                } as {
-                                        fields: Record<string, string>;
-                                };
-                                if (value.fullName.trim().length === 0) {
-                                        errors.fields.fullName =
-                                                'Full name is required';
-                                }
-                                return errors;
-                        },
-                },
-                onSubmit: ({ value }) => {
+                onSubmit: ({ value }: { value: any }) => {
                         console.log(value);
-                        // Show success message
                         alert('Form submitted successfully!');
                 },
         });
+
         const { data: cityData } = useQuery({
                 queryKey: ['city'],
                 queryFn: GetCities,
                 initialData: [],
         });
-        const citiesValues = useMemo(
-                () =>
-                        cityData.map(({ name }) => ({
-                                value: name,
-                                label: name,
-                        })),
-                [cityData]
-        );
+
+        const validateCurrentStep = () => {
+                const currentStepData = STEPS[currentStep];
+                const formState = form.state;
+                let isValid = true;
+
+                // Force validation on all current step fields
+                for (const fieldName of currentStepData.fields) {
+                        // Get the current field value
+                        const fieldValue = fieldName.includes('.')
+                                ? fieldName
+                                          .split('.')
+                                          .reduce(
+                                                  (obj, key) => obj?.[key],
+                                                  formState.values
+                                          )
+                                : formState.values[fieldName];
+
+                        // Check if required fields have values
+                        if (
+                                !fieldValue ||
+                                (typeof fieldValue === 'string' &&
+                                        fieldValue.trim().length === 0)
+                        ) {
+                                isValid = false;
+                                break;
+                        }
+
+                        // Check for existing validation errors
+                        const fieldState = formState.fieldMeta[fieldName];
+                        if (fieldState?.errors?.length > 0) {
+                                isValid = false;
+                                break;
+                        }
+                }
+
+                return isValid;
+        };
+
+        const handleNext = () => {
+                if (validateCurrentStep()) {
+                        setCompletedSteps((prev) => [
+                                ...prev.filter((step) => step !== currentStep),
+                                currentStep,
+                        ]);
+                        setCurrentStep((prev) =>
+                                Math.min(prev + 1, STEPS.length - 1)
+                        );
+                }
+        };
+
+        const handlePrevious = () => {
+                setCurrentStep((prev) => Math.max(prev - 1, 0));
+        };
+
+        const handleStepClick = (stepIndex: number) => {
+                if (
+                        stepIndex <= currentStep ||
+                        completedSteps.includes(stepIndex - 1)
+                ) {
+                        setCurrentStep(stepIndex);
+                }
+        };
+
+        const renderCurrentStep = () => {
+                switch (currentStep) {
+                        case 0:
+                                return <PersonalStep form={form} />;
+                        case 1:
+                                return <MilitaryStep form={form} />;
+                        case 2:
+                                return <FamilyStep form={form} />;
+                        case 3:
+                                return (
+                                        <ReviewStep
+                                                values={form.state.values}
+                                        />
+                                );
+                        default:
+                                return null;
+                }
+        };
 
         return (
                 <SidebarInset>
-                        <div
-                                className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-white"
-                                style={{
-                                        backgroundImage:
-                                                'radial-gradient(50% 50% at 5% 40%, #f4a460 0%, #8b4513 70%, #1a0f0a 100%)',
-                                }}
-                        >
-                                <div className="w-full max-w-2xl p-8 rounded-xl backdrop-blur-md bg-black/50 shadow-xl border-8 border-black/10">
+                        <div className="flex items-center justify-center min-h-screen bg-background p-4">
+                                <div className="w-full max-w-4xl p-8 rounded-lg border bg-card shadow-lg">
                                         <form
                                                 onSubmit={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        form.handleSubmit();
+                                                        if (
+                                                                currentStep ===
+                                                                STEPS.length - 1
+                                                        ) {
+                                                                form.handleSubmit();
+                                                        }
                                                 }}
                                                 className="space-y-6"
                                         >
-                                                <form.AppField name="fullName">
-                                                        {(field) => (
-                                                                <field.TextField label="Full Name" />
-                                                        )}
-                                                </form.AppField>
-
-                                                <form.AppField
-                                                        name="email"
-                                                        validators={{
-                                                                onBlur: ({
-                                                                        value,
-                                                                }) => {
-                                                                        if (
-                                                                                !value ||
-                                                                                value.trim()
-                                                                                        .length ===
-                                                                                        0
-                                                                        ) {
-                                                                                return 'Email is required';
-                                                                        }
-                                                                        if (
-                                                                                !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(
-                                                                                        value
-                                                                                )
-                                                                        ) {
-                                                                                return 'Invalid email address';
-                                                                        }
-                                                                        return undefined;
-                                                                },
-                                                        }}
-                                                >
-                                                        {(field) => (
-                                                                <field.TextField label="Email" />
-                                                        )}
-                                                </form.AppField>
-
-                                                <form.AppField
-                                                        name="address.street"
-                                                        validators={{
-                                                                onBlur: ({
-                                                                        value,
-                                                                }) => {
-                                                                        if (
-                                                                                !value ||
-                                                                                value.trim()
-                                                                                        .length ===
-                                                                                        0
-                                                                        ) {
-                                                                                return 'Street address is required';
-                                                                        }
-                                                                        return undefined;
-                                                                },
-                                                        }}
-                                                >
-                                                        {(field) => (
-                                                                <field.Select
-                                                                        label="Street Address"
-                                                                        values={
-                                                                                citiesValues
-                                                                        }
-                                                                />
-                                                        )}
-                                                </form.AppField>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                        <form.AppField
-                                                                name="address.city"
-                                                                validators={{
-                                                                        onBlur: ({
-                                                                                value,
-                                                                        }) => {
-                                                                                if (
-                                                                                        !value ||
-                                                                                        value.trim()
-                                                                                                .length ===
-                                                                                                0
-                                                                                ) {
-                                                                                        return 'City is required';
-                                                                                }
-                                                                                return undefined;
-                                                                        },
-                                                                }}
+                                                <StepIndicator
+                                                        STEPS={STEPS}
+                                                        completedSteps={
+                                                                completedSteps
+                                                        }
+                                                        currentStep={
+                                                                currentStep
+                                                        }
+                                                        handleStepClick={
+                                                                handleStepClick
+                                                        }
+                                                />
+                                                {renderCurrentStep()}
+                                                <div className="flex justify-between items-center mt-8">
+                                                        <button
+                                                                type="button"
+                                                                onClick={
+                                                                        handlePrevious
+                                                                }
+                                                                disabled={
+                                                                        currentStep ===
+                                                                        0
+                                                                }
+                                                                className="flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                         >
-                                                                {(field) => (
-                                                                        <field.TextField label="City" />
-                                                                )}
-                                                        </form.AppField>
-                                                        <form.AppField
-                                                                name="address.state"
-                                                                validators={{
-                                                                        onBlur: ({
-                                                                                value,
-                                                                        }) => {
-                                                                                if (
-                                                                                        !value ||
-                                                                                        value.trim()
-                                                                                                .length ===
-                                                                                                0
-                                                                                ) {
-                                                                                        return 'State is required';
-                                                                                }
-                                                                                return undefined;
-                                                                        },
-                                                                }}
-                                                        >
-                                                                {(field) => (
-                                                                        <field.TextField label="State" />
-                                                                )}
-                                                        </form.AppField>
-                                                        <form.AppField
-                                                                name="address.zipCode"
-                                                                validators={{
-                                                                        onBlur: ({
-                                                                                value,
-                                                                        }) => {
-                                                                                if (
-                                                                                        !value ||
-                                                                                        value.trim()
-                                                                                                .length ===
-                                                                                                0
-                                                                                ) {
-                                                                                        return 'Zip code is required';
-                                                                                }
-                                                                                if (
-                                                                                        !/^\d{5}(-\d{4})?$/.test(
-                                                                                                value
-                                                                                        )
-                                                                                ) {
-                                                                                        return 'Invalid zip code format';
-                                                                                }
-                                                                                return undefined;
-                                                                        },
-                                                                }}
-                                                        >
-                                                                {(field) => (
-                                                                        <field.TextField label="Zip Code" />
-                                                                )}
-                                                        </form.AppField>
-                                                </div>
-
-                                                <form.AppField
-                                                        name="address.country"
-                                                        validators={{
-                                                                onBlur: ({
-                                                                        value,
-                                                                }) => {
-                                                                        if (
-                                                                                !value ||
-                                                                                value.trim()
-                                                                                        .length ===
-                                                                                        0
-                                                                        ) {
-                                                                                return 'Country is required';
+                                                                <ChevronLeft className="w-4 h-4 mr-1" />
+                                                                Previous
+                                                        </button>
+                                                        {currentStep <
+                                                        STEPS.length - 1 ? (
+                                                                <button
+                                                                        type="button"
+                                                                        onClick={
+                                                                                handleNext
                                                                         }
-                                                                        return undefined;
-                                                                },
-                                                        }}
-                                                >
-                                                        {(field) => (
-                                                                <field.Select
-                                                                        label="Country"
-                                                                        values={[
-                                                                                {
-                                                                                        label: 'United States',
-                                                                                        value: 'US',
-                                                                                },
-                                                                                {
-                                                                                        label: 'Canada',
-                                                                                        value: 'CA',
-                                                                                },
-                                                                                {
-                                                                                        label: 'United Kingdom',
-                                                                                        value: 'UK',
-                                                                                },
-                                                                                {
-                                                                                        label: 'Australia',
-                                                                                        value: 'AU',
-                                                                                },
-                                                                                {
-                                                                                        label: 'Germany',
-                                                                                        value: 'DE',
-                                                                                },
-                                                                                {
-                                                                                        label: 'France',
-                                                                                        value: 'FR',
-                                                                                },
-                                                                                {
-                                                                                        label: 'Japan',
-                                                                                        value: 'JP',
-                                                                                },
-                                                                        ]}
-                                                                        placeholder="Select a country"
-                                                                />
+                                                                        className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                                                                >
+                                                                        Next
+                                                                        <ChevronRight className="w-4 h-4 ml-1" />
+                                                                </button>
+                                                        ) : (
+                                                                <form.AppForm>
+                                                                        <form.SubscribeButton label="Submit" />
+                                                                </form.AppForm>
                                                         )}
-                                                </form.AppField>
-
-                                                <form.AppField
-                                                        name="phone"
-                                                        validators={{
-                                                                onBlur: ({
-                                                                        value,
-                                                                }) => {
-                                                                        if (
-                                                                                !value ||
-                                                                                value.trim()
-                                                                                        .length ===
-                                                                                        0
-                                                                        ) {
-                                                                                return 'Phone number is required';
-                                                                        }
-                                                                        if (
-                                                                                !/^(\+\d{1,3})?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(
-                                                                                        value
-                                                                                )
-                                                                        ) {
-                                                                                return 'Invalid phone number format';
-                                                                        }
-                                                                        return undefined;
-                                                                },
-                                                        }}
-                                                >
-                                                        {(field) => (
-                                                                <field.TextField
-                                                                        label="Phone"
-                                                                        placeholder="123-456-7890"
-                                                                />
-                                                        )}
-                                                </form.AppField>
-
-                                                <div className="flex justify-end">
-                                                        <form.AppForm>
-                                                                <form.SubscribeButton label="Submit" />
-                                                        </form.AppForm>
                                                 </div>
                                         </form>
                                 </div>

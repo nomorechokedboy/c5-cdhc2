@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-type City = {
+export type City = {
         id: number;
         name: string;
         type: number;
@@ -8,7 +8,7 @@ type City = {
         slug: string;
 };
 
-type CitytResponse = {
+export type CitytResponse = {
         total: number;
         data: City[];
         code: 'success' | 'failed';
@@ -27,4 +27,19 @@ export function GetCities() {
                         'https://open.oapi.vn/location/provinces?size=63'
                 )
                 .then((res) => res.data.data);
+}
+
+export type Ethnic = {
+        id: number;
+        name: string;
+};
+
+export type EthnicsResponse = Ethnic[];
+
+export function GetEthnics() {
+        return axios
+                .get<EthnicsResponse>(
+                        'http://api.nosomovo.xyz/ethnic/getalllist?_gl=1*hsf3mt*_ga*MTI5MjcwNDAzOS4xNzUyODAyOTU3*_ga_XW6CMNCYH8*czE3NTI4MDI5NTckbzEkZzEkdDE3NTI4MDI5NjIkajU1JGwwJGgw'
+                )
+                .then((res) => res.data);
 }

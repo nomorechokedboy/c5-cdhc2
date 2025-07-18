@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { DataTable } from '@/components/data-table';
 
 export const Route = createFileRoute('/demo/tanstack-query')({
         component: TanStackQueryDemo,
@@ -29,6 +30,7 @@ function TanStackQueryDemo() {
                                         ))}
                                 </ul>
                         </div>
+                        {/* <DataTable columns={[]} data={[]} /> */}
                 </SidebarInset>
         );
 }
