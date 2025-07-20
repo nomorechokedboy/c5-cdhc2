@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
         type ColumnDef,
         type ColumnFiltersState,
@@ -13,7 +12,6 @@ import {
         getSortedRowModel,
         useReactTable,
 } from '@tanstack/react-table';
-
 import {
         Table,
         TableBody,
@@ -22,27 +20,37 @@ import {
         TableHeader,
         TableRow,
 } from '@/components/ui/table';
-
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
+import { ComponentType, useState } from 'react';
 
 interface DataTableProps<TData, TValue> {
+        cardClassName?: string;
+        cardComponent?: ComponentType<{ data: TData; index: number }>;
         columns: ColumnDef<TData, TValue>[];
         data: TData[];
         defaultColumnVisibility?: VisibilityState;
+        defaultViewMode?: ViewMode;
 }
 
+type ViewMode = 'table' | 'card';
+
 export function DataTable<TData, TValue>({
+        cardClassName = '',
+        cardComponent: CardComponent,
         columns,
         data,
         defaultColumnVisibility = {},
+        defaultViewMode = 'table',
 }: DataTableProps<TData, TValue>) {
-        const [rowSelection, setRowSelection] = React.useState({});
+        const [rowSelection, setRowSelection] = useState({});
         const [columnVisibility, setColumnVisibility] =
-                React.useState<VisibilityState>(defaultColumnVisibility);
-        const [columnFilters, setColumnFilters] =
-                React.useState<ColumnFiltersState>([]);
-        const [sorting, setSorting] = React.useState<SortingState>([]);
+                useState<VisibilityState>(defaultColumnVisibility);
+        const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+                []
+        );
+        const [sorting, setSorting] = useState<SortingState>([]);
+        const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode);
 
         const table = useReactTable({
                 data,
@@ -66,9 +74,8 @@ export function DataTable<TData, TValue>({
                 getFacetedUniqueValues: getFacetedUniqueValues(),
         });
 
-        return (
-                <div className="space-y-4">
-                        <DataTableToolbar table={table} />
+        const renderTableView = () => {
+                return (
                         <div className="rounded-md border">
                                 <Table>
                                         <TableHeader>
@@ -167,6 +174,49 @@ export function DataTable<TData, TValue>({
                                         </TableBody>
                                 </Table>
                         </div>
+                );
+        };
+
+        const renderCardView = () => {
+                if (!CardComponent) {
+                        return (
+                                <div className="text-center py-8 text-muted-foreground">
+                                        No card component provided
+                                </div>
+                        );
+                }
+
+                const rows = table.getRowModel().rows;
+
+                if (!rows?.length) {
+                        return (
+                                <div className="text-center py-8 text-muted-foreground">
+                                        No results.
+                                </div>
+                        );
+                }
+
+                return (
+                        <div
+                                className={`grid gap-4 ${cardClassName || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}
+                        >
+                                {rows.map((row, index) => (
+                                        <CardComponent
+                                                key={row.id}
+                                                data={row.original}
+                                                index={index}
+                                        />
+                                ))}
+                        </div>
+                );
+        };
+
+        return (
+                <div className="space-y-4">
+                        <DataTableToolbar table={table} />
+                        {viewMode === 'table'
+                                ? renderTableView()
+                                : renderCardView()}
                         <DataTablePagination table={table} />
                 </div>
         );
