@@ -1,0 +1,53 @@
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import * as sqlite from 'drizzle-orm/sqlite-core';
+import { customType } from 'drizzle-orm/sqlite-core';
+
+const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
+        dataType() {
+                return 'text';
+        },
+        toDriver(val: string) {
+                if (!['hcyu', 'cpv'].includes(val))
+                        throw Error('politicalOrg can be only hcyu or cpv');
+                return val;
+        },
+});
+
+export const students = sqlite.sqliteTable('students', {
+        id: sqlite.int().primaryKey({ autoIncrement: true }),
+        fullName: sqlite.text().default(''),
+        birthPlace: sqlite.text().default(''),
+        address: sqlite.text().default(''),
+        dob: sqlite.text().default(''),
+        rank: sqlite.text().default(''),
+        previousUnit: sqlite.text().default(''),
+        previousPosition: sqlite.text().default(''),
+        ethnic: sqlite.text().default(''),
+        religion: sqlite.text().default(''),
+        enlistmentPeriod: sqlite.text().default(''),
+        politicalOrg: PoliticalOrgEnum('politicalOrg')
+                .$type<'hcyu' | 'cpv'>()
+                .notNull(),
+        politicalOrgOfficialDate: sqlite.text().default(''),
+        cpvId: sqlite.text(),
+        educationLevel: sqlite.text().default(''),
+        schoolName: sqlite.text().default(''),
+        major: sqlite.text().default(''),
+        isGraduated: sqlite.integer({ mode: 'boolean' }).default(false),
+        talent: sqlite.text().default(''),
+        shortcoming: sqlite.text().default(''),
+        policyBeneficiaryGroup: sqlite.text().default(''),
+        fatherName: sqlite.text().default(''),
+        fatherPhoneNumber: sqlite.text().default(''),
+        fatherJob: sqlite.text().default(''),
+        fatherJobAddress: sqlite.text().default(''),
+        motherName: sqlite.text().default(''),
+        motherPhoneNumber: sqlite.text().default(''),
+        motherJob: sqlite.text().default(''),
+        motherJobAddress: sqlite.text().default(''),
+        phone: sqlite.text().default(''),
+});
+
+export type Student = InferSelectModel<typeof students>;
+
+export type StudentParam = InferInsertModel<typeof students>;

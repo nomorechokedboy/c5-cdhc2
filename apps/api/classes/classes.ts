@@ -21,18 +21,15 @@ export const CreateClass = api(
         { expose: true, method: 'POST', path: '/classes' },
         async (body: ClassBody): Promise<BulkClassResponse> => {
                 const classParam: ClassParam = {
-                        name: body.name,
-                        description: body.description,
+                        ...body,
                 };
 
                 const createdClass = await classController.create([classParam]);
 
                 const resp = createdClass.map(
-                        ({ description, id, name }) =>
+                        (c) =>
                                 ({
-                                        description,
-                                        id,
-                                        name,
+                                        ...c,
                                 }) as ClassResponse
                 );
 
@@ -47,11 +44,9 @@ export const GetClasses = api(
         async (): Promise<GetClassesResponse> => {
                 const classes = await classController.find();
                 const resp = classes.map(
-                        ({ description, id, name }) =>
+                        (c) =>
                                 ({
-                                        description,
-                                        id,
-                                        name,
+                                        ...c,
                                 }) as ClassResponse
                 );
 

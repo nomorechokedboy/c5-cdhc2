@@ -8,6 +8,34 @@
       "when": 1752668501663,
       "tag": "0000_wealthy_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1752672338110,
+      "tag": "0001_chubby_machine_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1752672892166,
+      "tag": "0002_overconfident_wither",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1752673178311,
+      "tag": "0003_purple_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1753012889558,
+      "tag": "0004_chubby_sauron",
+      "breakpoints": true
     }
   ]
 }

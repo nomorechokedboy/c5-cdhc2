@@ -1,6 +1,7 @@
 import { LibsqlError } from '@libsql/client';
 import { DrizzleQueryError } from 'drizzle-orm/errors';
 import { APIError } from 'encore.dev/api';
+import log from 'encore.dev/log';
 import { AppError } from '../errors/index.js';
 
 export type SQLiteErrorCode =
@@ -15,12 +16,16 @@ export type SQLiteErrorCode =
         | 'SQLITE_AUTH'
         | 'SQLITE_NOTADB'
         | 'SQLITE_RANGE'
-        | 'SQLITE_TOOBIG';
+        | 'SQLITE_TOOBIG'
+        | 'SQLITE_ERROR';
 
 function handleLibsqlError(code: SQLiteErrorCode): AppError {
         switch (code) {
                 case 'SQLITE_CONSTRAINT_UNIQUE':
                         return AppError.alreadyExists(`Duplicate name`);
+
+                case 'SQLITE_ERROR':
+                        return AppError.internal('Internal err');
 
                 case 'SQLITE_CONSTRAINT_NOTNULL':
                         return AppError.invalidArgument(
@@ -93,6 +98,8 @@ export function mapAppErrorToAPIError(error: AppError): APIError {
 }
 
 export function handleDatabaseErr(err: unknown): never {
+        log.error(err, 'handleDatabaseErr: ');
+
         if (!(err instanceof DrizzleQueryError)) {
                 throw AppError.internal('Internal error');
         }

@@ -1,0 +1,1 @@
+ALTER TABLE `classes` RENAME COLUMN "descrition" TO "description";
