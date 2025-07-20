@@ -36,15 +36,14 @@ const data = {
                         items: [
                                 {
                                         title: 'Lớp',
-                                        url: '/demo/table',
-                                },
-                                {
-                                        title: 'Data Fetching',
-                                        url: '/demo/tanstack-query',
-                                        isActive: true,
+                                        url: '/classes',
                                 },
                                 {
                                         title: 'Học viên',
+                                        url: '/table',
+                                },
+                                {
+                                        title: 'Học viên form',
                                         url: '/demo/form/address',
                                 },
                         ],

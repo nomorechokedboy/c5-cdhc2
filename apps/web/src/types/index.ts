@@ -1,3 +1,9 @@
+export interface Class {
+        id: number;
+        name: string;
+        description: string;
+}
+
 export interface Student {
         TT: number;
         'Họ và tên': string;
