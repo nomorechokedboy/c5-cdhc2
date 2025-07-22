@@ -70,7 +70,7 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                         <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
                                         <DialogTitle>
-                                                Biểu mẫu tạo lớp
+                                                Biểu mẫu thêm lớp
                                         </DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
