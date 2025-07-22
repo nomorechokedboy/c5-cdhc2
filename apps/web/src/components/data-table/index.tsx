@@ -21,8 +21,13 @@ import {
         TableRow,
 } from '@/components/ui/table';
 import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
+import {
+        DataTableToolbar,
+        type DataTableToolbarProps,
+} from './data-table-toolbar';
 import { ComponentType, useState } from 'react';
+
+type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>;
 
 interface DataTableProps<TData, TValue> {
         cardClassName?: string;
@@ -31,6 +36,7 @@ interface DataTableProps<TData, TValue> {
         data: TData[];
         defaultColumnVisibility?: VisibilityState;
         defaultViewMode?: ViewMode;
+        toolbarProps?: ToolbarProps<TData>;
 }
 
 type ViewMode = 'table' | 'card';
@@ -42,6 +48,7 @@ export function DataTable<TData, TValue>({
         data,
         defaultColumnVisibility = {},
         defaultViewMode = 'table',
+        toolbarProps,
 }: DataTableProps<TData, TValue>) {
         const [rowSelection, setRowSelection] = useState({});
         const [columnVisibility, setColumnVisibility] =
@@ -73,6 +80,7 @@ export function DataTable<TData, TValue>({
                 getFacetedRowModel: getFacetedRowModel(),
                 getFacetedUniqueValues: getFacetedUniqueValues(),
         });
+        console.log('DataTable', data, table.getRowModel().rows);
 
         const renderTableView = () => {
                 return (
@@ -213,7 +221,7 @@ export function DataTable<TData, TValue>({
 
         return (
                 <div className="space-y-4">
-                        <DataTableToolbar table={table} />
+                        <DataTableToolbar table={table} {...toolbarProps} />
                         {viewMode === 'table'
                                 ? renderTableView()
                                 : renderCardView()}

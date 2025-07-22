@@ -4,6 +4,11 @@ export interface Class {
         description: string;
 }
 
+export interface ClassBody {
+        name: string;
+        description?: string;
+}
+
 export interface Student {
         TT: number;
         'Họ và tên': string;

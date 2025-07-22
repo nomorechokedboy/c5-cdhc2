@@ -6,18 +6,22 @@ import {
         ClassOptions,
         EduLevelOptions,
         MilitaryRankOptions,
-        priorities,
-        statuses,
 } from './data/data';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import type { Table } from '@tanstack/react-table';
 import { ehtnicOptions } from '@/data/ethnics';
-interface DataTableToolbarProps<TData> {
+import { ReactNode } from 'react';
+
+export interface DataTableToolbarProps<TData> {
         table: Table<TData>;
+        leftSection?: ReactNode;
+        rightSection?: ReactNode;
 }
 
 export function DataTableToolbar<TData>({
         table,
+        leftSection: LeftSection,
+        rightSection: RightSection,
 }: DataTableToolbarProps<TData>) {
         const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -87,7 +91,10 @@ export function DataTableToolbar<TData>({
                                         </Button>
                                 )}
                         </div>
-                        <DataTableViewOptions table={table} />
+                        <div className="flex items-center gap-2">
+                                <DataTableViewOptions table={table} />
+                                {RightSection}
+                        </div>
                 </div>
         );
 }

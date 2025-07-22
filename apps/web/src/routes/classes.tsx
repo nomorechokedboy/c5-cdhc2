@@ -1,16 +1,35 @@
-import classes from '@/components/data-table/data/class.json';
 import { columns } from '@/components/class-table/columns';
 import { DataTable } from '@/components/data-table';
 import { UserNav } from '@/components/data-table/user-nav';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import ClassCard from '@/components/class-table/class-card';
+import ClassForm from '@/components/class-form';
+import { useQuery } from '@tanstack/react-query';
+import { GetClasses } from '@/api';
 
 export const Route = createFileRoute('/classes')({
         component: ClassTable,
 });
 
 function ClassTable() {
+        const {
+                data: classes = [],
+                isLoading: isLoadingClasses,
+                refetch: refetchClasses,
+        } = useQuery({
+                queryKey: ['classes'],
+                queryFn: GetClasses,
+        });
+
+        if (isLoadingClasses) {
+                return <div>Loading...</div>;
+        }
+
+        const handleFormSuccess = () => {
+                refetchClasses();
+        };
+
         return (
                 <SidebarInset>
                         <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
@@ -34,12 +53,16 @@ function ClassTable() {
                                         cardComponent={ClassCard}
                                         cardClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                                         data={classes}
-                                        defaultColumnVisibility={{
-                                                Vợ: false,
-                                                'Hộ khẩu thường trú': false,
-                                                CV: false,
-                                        }}
                                         defaultViewMode="card"
+                                        toolbarProps={{
+                                                rightSection: (
+                                                        <ClassForm
+                                                                onSuccess={
+                                                                        handleFormSuccess
+                                                                }
+                                                        />
+                                                ),
+                                        }}
                                 />
                         </div>
                 </SidebarInset>

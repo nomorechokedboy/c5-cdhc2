@@ -1,3 +1,4 @@
+import type { Class, ClassBody } from '@/types';
 import axios from 'axios';
 
 export type City = {
@@ -42,4 +43,18 @@ export function GetEthnics() {
                         'http://api.nosomovo.xyz/ethnic/getalllist?_gl=1*hsf3mt*_ga*MTI5MjcwNDAzOS4xNzUyODAyOTU3*_ga_XW6CMNCYH8*czE3NTI4MDI5NTckbzEkZzEkdDE3NTI4MDI5NjIkajU1JGwwJGgw'
                 )
                 .then((res) => res.data);
+}
+
+type ClassResponse = { data: Class[] };
+
+export function CreateClass(body: ClassBody) {
+        return axios
+                .post<Class[]>('http://localhost:4000/classes', body)
+                .then((resp) => resp.data);
+}
+
+export async function GetClasses(): Promise<Class[]> {
+        return axios
+                .get<ClassResponse>('http://localhost:4000/classes')
+                .then((resp) => resp.data.data);
 }
