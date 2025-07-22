@@ -64,7 +64,7 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                         <DialogTrigger asChild>
                                 <Button>
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Tạo lớp mới
+                                        Thêm lớp
                                 </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
