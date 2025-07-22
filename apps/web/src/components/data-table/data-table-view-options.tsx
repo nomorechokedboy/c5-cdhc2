@@ -57,7 +57,11 @@ export function DataTableViewOptions<TData>({
                                                                         )
                                                                 }
                                                         >
-                                                                {column.id}
+                                                                {column
+                                                                        .columnDef
+                                                                        .meta
+                                                                        ?.label ??
+                                                                        column.id}
                                                         </DropdownMenuCheckboxItem>
                                                 );
                                         })}

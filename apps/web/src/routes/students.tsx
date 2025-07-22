@@ -5,6 +5,7 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { GetStudents } from '@/api';
+import StudentForm from '@/components/student-form';
 
 export const Route = createFileRoute('/students')({
         component: StudentPage,
@@ -42,11 +43,11 @@ function StudentPage() {
                                 <DataTable
                                         data={students}
                                         columns={columns}
-                                        defaultColumnVisibility={{
-                                                Vợ: false,
-                                                'Hộ khẩu thường trú': false,
-                                                CV: false,
-                                        }}
+                                        toolbarProps={
+                                                {
+                                                        // rightSection: <StudentForm />,
+                                                }
+                                        }
                                 />
                         </div>
                 </SidebarInset>

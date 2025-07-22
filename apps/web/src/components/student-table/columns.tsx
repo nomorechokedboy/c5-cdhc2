@@ -37,7 +37,6 @@ export const columns: ColumnDef<Student>[] = [
                 enableHiding: false,
         },
         {
-                id: 'TT',
                 accessorKey: 'id',
                 header: ({ column }) => (
                         <DataTableColumnHeader column={column} title="TT" />
@@ -45,9 +44,11 @@ export const columns: ColumnDef<Student>[] = [
                 cell: ({ row }) => (
                         <div className="w-12 ">{row.getValue('id')}</div>
                 ),
+                meta: {
+                        label: 'TT',
+                },
         },
         {
-                id: 'Lớp',
                 accessorKey: 'className',
                 header: 'Lớp',
                 cell: ({ row }) => (
@@ -63,9 +64,11 @@ export const columns: ColumnDef<Student>[] = [
                 filterFn: (row, id, value) => {
                         return value.includes(row.getValue(id));
                 },
+                meta: {
+                        label: 'Lớp',
+                },
         },
         {
-                id: 'Họ và tên',
                 accessorKey: 'fullName',
                 header: ({ column }) => (
                         <DataTableColumnHeader
@@ -78,17 +81,21 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('fullName')}
                         </div>
                 ),
+                meta: {
+                        label: 'Họ và tên',
+                },
         },
         {
-                id: 'Năm sinh',
                 accessorKey: 'dob',
                 header: 'Năm sinh',
                 cell: ({ row }) => (
                         <div className="">{row.getValue('dob')}</div>
                 ),
+                meta: {
+                        label: 'Năm sinh',
+                },
         },
         {
-                id: 'Quê quán',
                 accessorKey: 'birthPlace',
                 header: 'Quê quán',
                 cell: ({ row }) => (
@@ -96,9 +103,11 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('birthPlace')}
                         </EllipsisText>
                 ),
+                meta: {
+                        label: 'Quê quán',
+                },
         },
         {
-                id: 'Trú quán',
                 accessorKey: 'address',
                 header: ({ column }) => (
                         <DataTableColumnHeader
@@ -106,15 +115,23 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Trú quán"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">
-                                {row.getValue('address') || <Badge>N/A</Badge>}
-                        </div>
-                ),
+                cell: ({ row }) => {
+                        console.log(row.getValue('address'));
+
+                        return (
+                                <div className="min-w-32">
+                                        {row.getValue('address') || (
+                                                <Badge>N/A</Badge>
+                                        )}
+                                </div>
+                        );
+                },
                 enableHiding: true,
+                meta: {
+                        label: 'Trú quán',
+                },
         },
         {
-                id: 'Cấp bậc',
                 accessorKey: 'rank',
                 header: 'Cấp bậc',
                 cell: ({ row }) => (
@@ -128,9 +145,11 @@ export const columns: ColumnDef<Student>[] = [
                         return value.includes(row.getValue(id));
                 },
                 enableHiding: true,
+                meta: {
+                        label: 'Cấp bậc',
+                },
         },
         {
-                id: 'Chức vụ',
                 accessorKey: 'position',
                 header: 'Chức vụ',
                 cell: ({ row }) => (
@@ -139,9 +158,11 @@ export const columns: ColumnDef<Student>[] = [
                         </div>
                 ),
                 enableHiding: true,
+                meta: {
+                        label: 'Chức vụ',
+                },
         },
         {
-                id: 'Đơn vị cũ',
                 accessorKey: 'previousUnit',
                 header: 'Đơn vị cũ',
                 cell: ({ row }) => (
@@ -149,9 +170,11 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('previousUnit')}
                         </EllipsisText>
                 ),
+                meta: {
+                        label: 'Đơn vị cũ',
+                },
         },
         {
-                id: 'Dân tộc',
                 accessorKey: 'ethnic',
                 header: 'Dân tộc',
                 cell: ({ row }) => (
@@ -162,9 +185,11 @@ export const columns: ColumnDef<Student>[] = [
                 filterFn: (row, id, value) => {
                         return value.includes(row.getValue(id));
                 },
+                meta: {
+                        label: 'Dân tộc',
+                },
         },
         {
-                id: 'Học vấn',
                 accessorKey: 'educationLevel',
                 header: 'Học vấn',
                 cell: ({ row }) => (
@@ -175,9 +200,11 @@ export const columns: ColumnDef<Student>[] = [
                 filterFn: (row, id, value) => {
                         return value.includes(row.getValue(id));
                 },
+                meta: {
+                        label: 'Học vấn',
+                },
         },
         {
-                id: 'Họ tên bố',
                 accessorKey: 'fatherName',
                 header: ({ column }) => (
                         <DataTableColumnHeader
@@ -190,9 +217,11 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('fatherName')}
                         </div>
                 ),
+                meta: {
+                        label: 'Họ tên bố',
+                },
         },
         {
-                id: 'Họ tên mẹ',
                 accessorKey: 'motherName',
                 header: ({ column }) => (
                         <DataTableColumnHeader
@@ -205,6 +234,9 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('motherName')}
                         </div>
                 ),
+                meta: {
+                        label: 'Họ tên mẹ',
+                },
         },
         // {
         //         accessorKey: 'Vợ',
