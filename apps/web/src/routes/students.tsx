@@ -22,6 +22,10 @@ function StudentPage() {
                 return <div>Loading...</div>;
         }
 
+        const handleFormSuccess = () => {
+                refetchStudent();
+        };
+
         return (
                 <SidebarInset>
                         <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
@@ -43,11 +47,15 @@ function StudentPage() {
                                 <DataTable
                                         data={students}
                                         columns={columns}
-                                        toolbarProps={
-                                                {
-                                                        // rightSection: <StudentForm />,
-                                                }
-                                        }
+                                        toolbarProps={{
+                                                rightSection: (
+                                                        <StudentForm
+                                                                onSuccess={
+                                                                        handleFormSuccess
+                                                                }
+                                                        />
+                                                ),
+                                        }}
                                 />
                         </div>
                 </SidebarInset>

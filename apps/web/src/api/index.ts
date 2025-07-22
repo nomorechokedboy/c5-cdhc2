@@ -3,6 +3,7 @@ import type {
         ClassBody,
         ClassResponse,
         Student,
+        StudentBody,
         StudentProto,
         StudentResponse,
 } from '@/types';
@@ -54,13 +55,19 @@ export function GetEthnics() {
 
 export function CreateClass(body: ClassBody) {
         return axios
-                .post<Class[]>('http://localhost:4000/classes', body)
-                .then((resp) => resp.data);
+                .post<ClassResponse>('http://localhost:4000/classes', body)
+                .then((resp) => resp.data.data);
 }
 
 export async function GetClasses(): Promise<Class[]> {
         return axios
                 .get<ClassResponse>('http://localhost:4000/classes')
+                .then((resp) => resp.data.data);
+}
+
+export function CreateStudent(body: StudentBody) {
+        return axios
+                .post<StudentResponse>('http://localhost:4000/students', body)
                 .then((resp) => resp.data.data);
 }
 

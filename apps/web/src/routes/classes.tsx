@@ -5,8 +5,7 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import ClassCard from '@/components/class-table/class-card';
 import ClassForm from '@/components/class-form';
-import { useQuery } from '@tanstack/react-query';
-import { GetClasses } from '@/api';
+import useClassData from '@/hooks/useClasses';
 
 export const Route = createFileRoute('/classes')({
         component: ClassPage,
@@ -17,10 +16,7 @@ function ClassPage() {
                 data: classes = [],
                 isLoading: isLoadingClasses,
                 refetch: refetchClasses,
-        } = useQuery({
-                queryKey: ['classes'],
-                queryFn: GetClasses,
-        });
+        } = useClassData();
 
         if (isLoadingClasses) {
                 return <div>Loading...</div>;

@@ -1,48 +1,94 @@
+import { useState } from 'react';
+
 export default function MilitaryStep({ form }: { form: any }) {
+        const [isCpv, setIsCpv] = useState(false);
+
         return (
                 <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-center mb-8">
-                                Military Information
-                        </h2>
-
-                        {/* Enlistment Period and Position - Two Columns */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <form.AppField name="enlistmentPeriod">
-                                        {(field: any) => (
-                                                <field.TextField label="Ngày nhập ngũ" />
-                                        )}
-                                </form.AppField>
-
-                                <form.AppField name="position">
-                                        {(field: any) => (
-                                                <field.TextField label="Chức vụ" />
-                                        )}
-                                </form.AppField>
-                        </div>
-
-                        {/* Previous Unit - Full Width */}
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-2 gap-6">
                                 <form.AppField name="previousUnit">
                                         {(field: any) => (
                                                 <field.TextField label="Đơn vị cũ" />
                                         )}
                                 </form.AppField>
-                        </div>
-
-                        {/* Previous Position - Full Width */}
-                        <div className="grid grid-cols-1 gap-6">
                                 <form.AppField name="previousPosition">
                                         {(field: any) => (
                                                 <field.TextField label="Chức vụ công tác tại đơn vị cũ" />
                                         )}
                                 </form.AppField>
                         </div>
-
-                        {/* Policy Beneficiary Group - Full Width */}
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <form.AppField name="enlistmentPeriod">
+                                        {(field: any) => (
+                                                <field.TextField label="Ngày nhập ngũ" />
+                                        )}
+                                </form.AppField>
                                 <form.AppField name="policyBeneficiaryGroup">
                                         {(field: any) => (
                                                 <field.TextField label="Diện chính sách" />
+                                        )}
+                                </form.AppField>
+                        </div>
+                        <div className="grid grid-cols-3 gap-6">
+                                <form.AppField name="politicalOrg">
+                                        {(field: any) => (
+                                                <field.Select
+                                                        label="Đoàn/Đảng"
+                                                        values={[
+                                                                {
+                                                                        label: 'Đoàn',
+                                                                        value: 'hcyu',
+                                                                },
+                                                                {
+                                                                        label: 'Đảng',
+                                                                        value: 'cpv',
+                                                                },
+                                                        ]}
+                                                        onChange={(
+                                                                val: string
+                                                        ) => {
+                                                                if (
+                                                                        val ===
+                                                                        'cpv'
+                                                                ) {
+                                                                        setIsCpv(
+                                                                                true
+                                                                        );
+                                                                        return;
+                                                                }
+
+                                                                setIsCpv(false);
+                                                        }}
+                                                ></field.Select>
+                                        )}
+                                </form.AppField>
+                                <form.AppField name="politicalOrgOfficialDate">
+                                        {(field: any) => (
+                                                <field.DatePicker
+                                                        className={`${!isCpv ? 'col-span-2' : ''}`}
+                                                        label="Ngày vào Đoàn/Đảng"
+                                                />
+                                        )}
+                                </form.AppField>
+                                {isCpv && (
+                                        <form.AppField name="cpvId">
+                                                {(field: any) => (
+                                                        <field.TextField label="Số thẻ Đảng" />
+                                                )}
+                                        </form.AppField>
+                                )}
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                                <form.AppField name="talent">
+                                        {(field: any) => (
+                                                <field.TextArea label="Sở trường" />
+                                        )}
+                                </form.AppField>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                                <form.AppField name="shortcoming">
+                                        {(field: any) => (
+                                                <field.TextArea label="Sở đoản" />
                                         )}
                                 </form.AppField>
                         </div>

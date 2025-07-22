@@ -131,11 +131,8 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
         };
 
         return (
-                <div className="flex flex-col gap-3">
-                        <Label
-                                htmlFor={label}
-                                className="mb-2 text-xl font-bold"
-                        >
+                <div className="flex flex-col gap-2">
+                        <Label htmlFor={label} className="text-xl font-bold">
                                 {label}
                         </Label>
                         <div className="relative flex gap-2">

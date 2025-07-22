@@ -14,7 +14,7 @@ export default function ({
         handleStepClick,
 }: StepIndicatorProps) {
         return (
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center">
                         {STEPS.map((step, index) => (
                                 <div
                                         key={step.id}

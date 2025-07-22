@@ -116,8 +116,6 @@ export const columns: ColumnDef<Student>[] = [
                         />
                 ),
                 cell: ({ row }) => {
-                        console.log(row.getValue('address'));
-
                         return (
                                 <div className="min-w-32">
                                         {row.getValue('address') || (

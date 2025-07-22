@@ -3,16 +3,24 @@ import {
         religionOptions,
         eduLevelOptions,
 } from '@/data/ethnics';
+import useClassData from '@/hooks/useClasses';
+import { useMemo } from 'react';
 
 export default function PersonalStep({ form }: { form: any }) {
+        const { data: classes = [], refetch } = useClassData();
+        const classOptions = useMemo(
+                () =>
+                        classes.map((c) => ({
+                                value: c.id.toString(),
+                                label: c.name,
+                        })),
+                [classes]
+        );
+
         return (
                 <div className="space-y-6">
-                        <h2 className="text-2xl font-bold text-center mb-8">
-                                Personal Information
-                        </h2>
-
                         {/* Full Name - Full Width */}
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-3 gap-6">
                                 <form.AppField
                                         name="fullName"
                                         validators={{
@@ -34,7 +42,23 @@ export default function PersonalStep({ form }: { form: any }) {
                                         }}
                                 >
                                         {(field: any) => (
-                                                <field.TextField label="Họ và tên" />
+                                                <field.TextField
+                                                        className="col-span-2"
+                                                        label="Họ và tên"
+                                                />
+                                        )}
+                                </form.AppField>
+
+                                <form.AppField name="classId">
+                                        {(field: any) => (
+                                                <field.Select
+                                                        values={classOptions}
+                                                        label="Lớp"
+                                                        // defaultValue={
+                                                        //         eduLevelOptions[0]
+                                                        //                 .value
+                                                        // }
+                                                />
                                         )}
                                 </form.AppField>
                         </div>
@@ -60,6 +84,10 @@ export default function PersonalStep({ form }: { form: any }) {
                                                 <field.Select
                                                         values={ehtnicOptions}
                                                         label="Dân tộc"
+                                                        defaultValue={
+                                                                eduLevelOptions[0]
+                                                                        .value
+                                                        }
                                                 />
                                         )}
                                 </form.AppField>
@@ -69,6 +97,10 @@ export default function PersonalStep({ form }: { form: any }) {
                                                 <field.Select
                                                         values={religionOptions}
                                                         label="Tôn giáo"
+                                                        defaultValue={
+                                                                religionOptions[0]
+                                                                        .value
+                                                        }
                                                 />
                                         )}
                                 </form.AppField>
@@ -81,6 +113,10 @@ export default function PersonalStep({ form }: { form: any }) {
                                                 <field.Select
                                                         label="Trình độ học vấn"
                                                         values={eduLevelOptions}
+                                                        defaultValue={
+                                                                eduLevelOptions[5]
+                                                                        .value
+                                                        }
                                                 />
                                         )}
                                 </form.AppField>

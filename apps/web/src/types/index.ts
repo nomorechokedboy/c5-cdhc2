@@ -11,6 +11,8 @@ export interface ClassBody {
 
 export type PoliticalOrg = 'hcyu' | 'cpv';
 
+export type StudentBody = Omit<Student, 'id'>;
+
 export interface Student {
         id: number;
         fullName: string;

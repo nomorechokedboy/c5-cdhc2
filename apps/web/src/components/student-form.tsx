@@ -1,0 +1,243 @@
+import { STEPS } from '@/data';
+import { useAppForm } from '@/hooks/demo.form';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useState } from 'react';
+import FamilyStep from '@/components/family-step';
+import PersonalStep from '@/components/personal-step';
+import ReviewStep from '@/components/review-step';
+import StepIndicator from '@/components/form-indicator';
+import {
+        Dialog,
+        DialogContent,
+        DialogHeader,
+        DialogTitle,
+        DialogTrigger,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { useMutation } from '@tanstack/react-query';
+import { CreateStudent } from '@/api';
+import type { Student, StudentBody } from '@/types';
+import MilitaryStep from './military-step';
+
+export interface StudentFormProps {
+        onSuccess: (
+                data: Student[],
+                variables: StudentBody,
+                context: unknown
+        ) => unknown;
+}
+
+export default function StudentForm({ onSuccess }: StudentFormProps) {
+        const [currentStep, setCurrentStep] = useState(0);
+        const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+        const [open, setOpen] = useState(false);
+        const { mutateAsync } = useMutation({
+                mutationFn: CreateStudent,
+                onSuccess,
+                onError: (error) => {
+                        console.error('Failed to create class:', error);
+                },
+        });
+
+        const form = useAppForm({
+                defaultValues: {
+                        fullName: '',
+                        birthPlace: '',
+                        address: '',
+                        dob: '',
+                        rank: '',
+                        previousUnit: '',
+                        previousPosition: '',
+                        position: '',
+                        ethnic: '',
+                        religion: '',
+                        enlistmentPeriod: '',
+                        politicalOrg: '',
+                        politicalOrgOfficialDate: '',
+                        cpvId: '',
+                        educationLevel: '',
+                        schoolName: '',
+                        major: '',
+                        isGraduated: false,
+                        talent: '',
+                        shortcoming: '',
+                        policyBeneficiaryGroup: '',
+                        fatherName: '',
+                        fatherPhoneNumber: '',
+                        fatherJob: '',
+                        fatherJobAddress: '',
+                        motherName: '',
+                        motherPhoneNumber: '',
+                        motherJob: '',
+                        motherJobAddress: '',
+                        phone: '',
+                        classId: 0,
+                },
+                onSubmit: async ({ value }: { value: any }) => {
+                        try {
+                                console.log(value);
+                                const classId = value.classId;
+                                value.classId = Number(classId);
+                                await mutateAsync(value);
+                                alert('Form submitted successfully!');
+                        } catch (err) {
+                                console.error(err);
+                                alert('Form submitted failed!');
+                        } finally {
+                                setOpen(false);
+                        }
+                },
+        });
+
+        const validateCurrentStep = () => {
+                const currentStepData = STEPS[currentStep];
+                const formState = form.state;
+                let isValid = true;
+
+                // Force validation on all current step fields
+                for (const fieldName of currentStepData.fields) {
+                        // Get the current field value
+                        const fieldValue = fieldName.includes('.')
+                                ? fieldName
+                                          .split('.')
+                                          .reduce(
+                                                  (obj, key) => obj?.[key],
+                                                  formState.values
+                                          )
+                                : formState.values[fieldName];
+
+                        // Check if required fields have values
+                        if (
+                                !fieldValue ||
+                                (typeof fieldValue === 'string' &&
+                                        fieldValue.trim().length === 0)
+                        ) {
+                                isValid = false;
+                                break;
+                        }
+
+                        // Check for existing validation errors
+                        const fieldState = formState.fieldMeta[fieldName];
+                        if (fieldState?.errors?.length > 0) {
+                                isValid = false;
+                                break;
+                        }
+                }
+
+                return isValid;
+        };
+
+        const handleNext = () => {
+                if (validateCurrentStep()) {
+                        setCompletedSteps((prev) => [
+                                ...prev.filter((step) => step !== currentStep),
+                                currentStep,
+                        ]);
+                        setCurrentStep((prev) =>
+                                Math.min(prev + 1, STEPS.length - 1)
+                        );
+                }
+        };
+
+        const handlePrevious = () => {
+                setCurrentStep((prev) => Math.max(prev - 1, 0));
+        };
+
+        const handleStepClick = (stepIndex: number) => {
+                if (
+                        stepIndex <= currentStep ||
+                        completedSteps.includes(stepIndex - 1)
+                ) {
+                        setCurrentStep(stepIndex);
+                }
+        };
+
+        const renderCurrentStep = () => {
+                switch (currentStep) {
+                        case 0:
+                                return <PersonalStep form={form} />;
+                        case 1:
+                                return <MilitaryStep form={form} />;
+                        case 2:
+                                return <FamilyStep form={form} />;
+                        case 3:
+                                return (
+                                        <ReviewStep
+                                                values={form.state.values}
+                                        />
+                                );
+                        default:
+                                return null;
+                }
+        };
+
+        return (
+                <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                                <Button>
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Thêm học viên
+                                </Button>
+                        </DialogTrigger>
+                        <DialogContent className="grid-rows-[auto_auto_1fr] lg:max-w-3xl lg:h-9/10">
+                                <DialogHeader>
+                                        <DialogTitle className="text-center">
+                                                Biểu mẫu thêm học viên
+                                        </DialogTitle>
+                                </DialogHeader>
+                                <StepIndicator
+                                        STEPS={STEPS}
+                                        completedSteps={completedSteps}
+                                        currentStep={currentStep}
+                                        handleStepClick={handleStepClick}
+                                />
+                                <form
+                                        onSubmit={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                if (
+                                                        currentStep ===
+                                                        STEPS.length - 1
+                                                ) {
+                                                        form.handleSubmit();
+                                                }
+                                        }}
+                                        className="flex flex-col flex-1 overflow-auto no-scrollbar"
+                                        id="studentForm"
+                                >
+                                        <div className="mb-auto">
+                                                {renderCurrentStep()}
+                                        </div>
+                                </form>
+                                <div className="flex justify-between items-center">
+                                        <button
+                                                type="button"
+                                                onClick={handlePrevious}
+                                                disabled={currentStep === 0}
+                                                className="flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                                <ChevronLeft className="w-4 h-4 mr-1" />
+                                                Previous
+                                        </button>
+                                        {currentStep < STEPS.length - 1 ? (
+                                                <button
+                                                        type="button"
+                                                        onClick={handleNext}
+                                                        className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                                                >
+                                                        Next
+                                                        <ChevronRight className="w-4 h-4 ml-1" />
+                                                </button>
+                                        ) : (
+                                                <form.AppForm>
+                                                        <form.SubscribeButton
+                                                                label="Submit"
+                                                                form="studentForm"
+                                                        />
+                                                </form.AppForm>
+                                        )}
+                                </div>
+                        </DialogContent>
+                </Dialog>
+        );
+}

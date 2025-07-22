@@ -80,7 +80,6 @@ export function DataTable<TData, TValue>({
                 getFacetedRowModel: getFacetedRowModel(),
                 getFacetedUniqueValues: getFacetedUniqueValues(),
         });
-        console.log('DataTable', data, table.getRowModel().rows);
 
         const renderTableView = () => {
                 return (

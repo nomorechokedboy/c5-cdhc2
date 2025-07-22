@@ -37,6 +37,7 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                         console.error('Failed to create class:', error);
                 },
         });
+        const [open, setOpen] = useState(false);
         const form = useAppForm({
                 defaultValues: {
                         name: '',
@@ -57,7 +58,6 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                         onBlur: schema,
                 },
         });
-        const [open, setOpen] = useState(false);
 
         return (
                 <Dialog open={open} onOpenChange={setOpen}>

@@ -91,12 +91,6 @@ export default function ReviewStep({ values }: { values: any }) {
                                                 </p>
                                                 <p>
                                                         <strong className="text-muted-foreground">
-                                                                Chức vụ:
-                                                        </strong>{' '}
-                                                        {values.position}
-                                                </p>
-                                                <p>
-                                                        <strong className="text-muted-foreground">
                                                                 Đơn vị cũ:
                                                         </strong>{' '}
                                                         {values.previousUnit}

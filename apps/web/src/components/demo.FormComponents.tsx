@@ -1,7 +1,5 @@
 import { useStore } from '@tanstack/react-form';
-
 import { useFieldContext, useFormContext } from '../hooks/demo.form-context';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea as ShadcnTextarea } from '@/components/ui/textarea';
@@ -10,12 +8,22 @@ import { Slider as ShadcnSlider } from '@/components/ui/slider';
 import { Switch as ShadcnSwitch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-export function SubscribeButton({ label }: { label: string }) {
+export function SubscribeButton({
+        label,
+        form: formProp,
+}: {
+        label: string;
+        form?: string;
+}) {
         const form = useFormContext();
         return (
                 <form.Subscribe selector={(state) => state.isSubmitting}>
                         {(isSubmitting) => (
-                                <Button type="submit" disabled={isSubmitting}>
+                                <Button
+                                        type="submit"
+                                        form={formProp}
+                                        disabled={isSubmitting}
+                                >
                                         {label}
                                 </Button>
                         )}
@@ -51,15 +59,17 @@ export function ErrorMessages({
 export function TextField({
         label,
         placeholder,
+        className,
 }: {
         label: string;
         placeholder?: string;
+        className?: string;
 }) {
         const field = useFieldContext<string>();
         const errors = useStore(field.store, (state) => state.meta.errors);
 
         return (
-                <div>
+                <div className={className}>
                         <Label
                                 htmlFor={label}
                                 className="mb-2 text-xl font-bold"
@@ -119,10 +129,14 @@ export function Select({
         label,
         values,
         placeholder,
+        defaultValue,
+        onChange,
 }: {
         label: string;
         values: Array<{ label: string; value: string }>;
         placeholder?: string;
+        defaultValue?: string;
+        onChange?: (value: string) => void;
 }) {
         const field = useFieldContext<string>();
         const errors = useStore(field.store, (state) => state.meta.errors);
@@ -138,9 +152,12 @@ export function Select({
                         <ShadcnSelect.Select
                                 name={field.name}
                                 value={field.state.value}
-                                onValueChange={(value) =>
-                                        field.handleChange(value)
-                                }
+                                onValueChange={(value) => {
+                                        field.handleChange(value);
+                                        onChange?.(value);
+                                }}
+                                // defaultValue={defaultValue}
+                                // defaultValue={values[0].value}
                         >
                                 <ShadcnSelect.SelectTrigger className="w-full">
                                         <ShadcnSelect.SelectValue

@@ -1,10 +1,6 @@
 export default function FamilyStep({ form }: { form: any }) {
         return (
                 <div className="space-y-8">
-                        <h2 className="text-2xl font-bold text-center mb-8">
-                                Family Information
-                        </h2>
-
                         {/* Father Information */}
                         <div className="space-y-6">
                                 <h3 className="text-lg font-semibold border-b border-border pb-2">
@@ -27,17 +23,13 @@ export default function FamilyStep({ form }: { form: any }) {
                                 </div>
 
                                 {/* Father Job - Full Width */}
-                                <div className="grid grid-cols-1 gap-6">
+                                <div className="grid grid-cols-2 gap-6">
                                         <form.AppField name="fatherJob">
                                                 {(field: any) => (
                                                         <field.TextField label="Nghề nghiệp cha" />
                                                 )}
                                         </form.AppField>
-                                </div>
-
-                                {/* Father Job Address - Full Width */}
-                                <div className="grid grid-cols-1 gap-6">
-                                        <form.AppField name="fatherJobAdress">
+                                        <form.AppField name="fatherJobAddress">
                                                 {(field: any) => (
                                                         <field.TextField label="Địa chỉ công việc cha" />
                                                 )}
@@ -67,17 +59,13 @@ export default function FamilyStep({ form }: { form: any }) {
                                 </div>
 
                                 {/* Mother Job - Full Width */}
-                                <div className="grid grid-cols-1 gap-6">
+                                <div className="grid grid-cols-2 gap-6">
                                         <form.AppField name="motherJob">
                                                 {(field: any) => (
                                                         <field.TextField label="Nghề nghiệp mẹ" />
                                                 )}
                                         </form.AppField>
-                                </div>
-
-                                {/* Mother Job Address - Full Width */}
-                                <div className="grid grid-cols-1 gap-6">
-                                        <form.AppField name="motherJobAdress">
+                                        <form.AppField name="motherJobAddress">
                                                 {(field: any) => (
                                                         <field.TextField label="Địa chỉ công việc mẹ" />
                                                 )}
