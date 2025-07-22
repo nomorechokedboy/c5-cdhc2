@@ -40,7 +40,7 @@ const data = {
                                 },
                                 {
                                         title: 'Học viên',
-                                        url: '/table',
+                                        url: '/students',
                                 },
                                 {
                                         title: 'Học viên form',

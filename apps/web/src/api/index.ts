@@ -1,4 +1,11 @@
-import type { Class, ClassBody } from '@/types';
+import type {
+        Class,
+        ClassBody,
+        ClassResponse,
+        Student,
+        StudentProto,
+        StudentResponse,
+} from '@/types';
 import axios from 'axios';
 
 export type City = {
@@ -45,8 +52,6 @@ export function GetEthnics() {
                 .then((res) => res.data);
 }
 
-type ClassResponse = { data: Class[] };
-
 export function CreateClass(body: ClassBody) {
         return axios
                 .post<Class[]>('http://localhost:4000/classes', body)
@@ -56,5 +61,11 @@ export function CreateClass(body: ClassBody) {
 export async function GetClasses(): Promise<Class[]> {
         return axios
                 .get<ClassResponse>('http://localhost:4000/classes')
+                .then((resp) => resp.data.data);
+}
+
+export function GetStudents(): Promise<Student[]> {
+        return axios
+                .get<StudentResponse>('http://localhost:4000/students')
                 .then((resp) => resp.data.data);
 }

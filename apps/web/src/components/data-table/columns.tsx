@@ -1,12 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import type { Student } from '@/types';
+import type { StudentProto } from '@/types';
 import { EllipsisText } from './ellipsis-text';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 
-export const columns: ColumnDef<Student>[] = [
+export const columns: ColumnDef<StudentProto>[] = [
         {
                 id: 'select',
                 header: ({ table }) => (

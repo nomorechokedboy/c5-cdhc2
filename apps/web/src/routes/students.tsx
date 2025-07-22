@@ -1,34 +1,25 @@
-import { columns } from '@/components/class-table/columns';
 import { DataTable } from '@/components/data-table';
+import { columns } from '@/components/student-table/columns';
 import { UserNav } from '@/components/data-table/user-nav';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
-import ClassCard from '@/components/class-table/class-card';
-import ClassForm from '@/components/class-form';
 import { useQuery } from '@tanstack/react-query';
-import { GetClasses } from '@/api';
+import { GetStudents } from '@/api';
 
-export const Route = createFileRoute('/classes')({
-        component: ClassPage,
+export const Route = createFileRoute('/students')({
+        component: StudentPage,
 });
 
-function ClassPage() {
+function StudentPage() {
         const {
-                data: classes = [],
-                isLoading: isLoadingClasses,
-                refetch: refetchClasses,
-        } = useQuery({
-                queryKey: ['classes'],
-                queryFn: GetClasses,
-        });
+                data: students = [],
+                isLoading: isLoadingStudents,
+                refetch: refetchStudent,
+        } = useQuery({ queryKey: ['students'], queryFn: GetStudents });
 
-        if (isLoadingClasses) {
+        if (isLoadingStudents) {
                 return <div>Loading...</div>;
         }
-
-        const handleFormSuccess = () => {
-                refetchClasses();
-        };
 
         return (
                 <SidebarInset>
@@ -49,19 +40,12 @@ function ClassPage() {
                                         </div>
                                 </div>
                                 <DataTable
+                                        data={students}
                                         columns={columns}
-                                        cardComponent={ClassCard}
-                                        cardClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                                        data={classes}
-                                        defaultViewMode="card"
-                                        toolbarProps={{
-                                                rightSection: (
-                                                        <ClassForm
-                                                                onSuccess={
-                                                                        handleFormSuccess
-                                                                }
-                                                        />
-                                                ),
+                                        defaultColumnVisibility={{
+                                                Vợ: false,
+                                                'Hộ khẩu thường trú': false,
+                                                CV: false,
                                         }}
                                 />
                         </div>

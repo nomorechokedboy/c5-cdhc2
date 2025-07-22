@@ -9,7 +9,44 @@ export interface ClassBody {
         description?: string;
 }
 
+export type PoliticalOrg = 'hcyu' | 'cpv';
+
 export interface Student {
+        id: number;
+        fullName: string;
+        birthPlace: string;
+        address: string;
+        className: string;
+        cpvId: string;
+        dob: string;
+        educationLevel: string;
+        enlistmentPeriod: string;
+        ethnic: string;
+        fatherJob: string;
+        fatherJobAddress: string;
+        fatherName: string;
+        fatherPhoneNumber: string;
+        isGraduated: boolean;
+        major: string;
+        motherJob: string;
+        motherJobAddress: string;
+        motherName: string;
+        motherPhoneNumber: string;
+        phone: string;
+        policyBeneficiaryGroup: string;
+        politicalOrg: PoliticalOrg;
+        politicalOrgOfficialDate: string;
+        position: string;
+        previousPosition: string;
+        previousUnit: string;
+        rank: string;
+        religion: string;
+        schoolName: string;
+        shortcoming: string;
+        talent: string;
+}
+
+export interface StudentProto {
         TT: number;
         'Họ và tên': string;
         'Năm sinh': number;
@@ -52,3 +89,7 @@ export interface Student {
         'Kỷ luật': string | null;
         Lớp: string;
 }
+
+export type ClassResponse = { data: Class[] };
+
+export type StudentResponse = { data: Student[] };
