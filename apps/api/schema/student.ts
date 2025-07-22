@@ -23,6 +23,7 @@ export const students = sqlite.sqliteTable('students', {
         rank: sqlite.text().default(''),
         previousUnit: sqlite.text().default(''),
         previousPosition: sqlite.text().default(''),
+        position: sqlite.text().default('Học viên'),
         ethnic: sqlite.text().default(''),
         religion: sqlite.text().default(''),
         enlistmentPeriod: sqlite.text().default(''),
