@@ -1,6 +1,7 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import * as sqlite from 'drizzle-orm/sqlite-core';
 import { customType } from 'drizzle-orm/sqlite-core';
+import { classes } from './classes';
 
 const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
         dataType() {
@@ -46,8 +47,11 @@ export const students = sqlite.sqliteTable('students', {
         motherJob: sqlite.text().default(''),
         motherJobAddress: sqlite.text().default(''),
         phone: sqlite.text().default(''),
+        classId: sqlite.integer().references(() => classes.id),
 });
 
-export type Student = InferSelectModel<typeof students>;
+export type StudentDB = InferSelectModel<typeof students>;
+
+export type Student = Omit<StudentDB, 'classId'> & { className: string };
 
 export type StudentParam = InferInsertModel<typeof students>;

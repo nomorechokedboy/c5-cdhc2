@@ -32,6 +32,7 @@ interface StudentBody {
         motherJob: string;
         motherJobAddress: string;
         phone: string;
+        classId: number;
 }
 
 interface StudentResponse extends StudentBody {

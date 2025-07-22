@@ -1,9 +1,15 @@
 import { Client } from '@libsql/client';
-import { inArray } from 'drizzle-orm';
+import { inArray, eq } from 'drizzle-orm';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import log from 'encore.dev/log';
 import orm from '../database.js';
-import { Student, StudentParam, students } from '../schema/student.js';
+import { classes } from '../schema/classes.js';
+import {
+        Student,
+        StudentDB,
+        StudentParam,
+        students,
+} from '../schema/student.js';
 import { handleDatabaseErr } from '../utils/index.js';
 import { Repository } from './index.js';
 
@@ -14,7 +20,7 @@ class StudentSqliteRepo implements Repository {
                 }
         ) {}
 
-        create(params: StudentParam[]): Promise<Student[]> {
+        create(params: StudentParam[]): Promise<StudentDB[]> {
                 log.info('StudentSqliteRepo.create params: ', { params });
                 return this.db
                         .insert(students)
@@ -23,7 +29,7 @@ class StudentSqliteRepo implements Repository {
                         .catch(handleDatabaseErr);
         }
 
-        delete(s: Student[]): Promise<Student[]> {
+        delete(s: StudentDB[]): Promise<StudentDB[]> {
                 const ids = s.map((student) => student.id);
                 return this.db
                         .delete(students)
@@ -33,14 +39,33 @@ class StudentSqliteRepo implements Repository {
         }
 
         find(): Promise<Student[]> {
-                return this.db.select().from(students).catch(handleDatabaseErr);
+                return this.db
+                        .select()
+                        .from(students)
+                        .leftJoin(classes, eq(classes.id, students.id))
+                        .then((resp) =>
+                                resp.map(
+                                        ({
+                                                classes,
+                                                students: {
+                                                        classId,
+                                                        ...students
+                                                },
+                                        }) =>
+                                                ({
+                                                        ...students,
+                                                        className: classes?.name,
+                                                }) as Student
+                                )
+                        )
+                        .catch(handleDatabaseErr);
         }
 
-        findOne(s: Student): Promise<Student> {
+        findOne(s: StudentDB): Promise<Student> {
                 throw new Error('Method not implemented');
         }
 
-        update(params: Student[]): Promise<Student[]> {
+        update(params: StudentDB[]): Promise<StudentDB[]> {
                 throw new Error('Method not implemented');
         }
 }
