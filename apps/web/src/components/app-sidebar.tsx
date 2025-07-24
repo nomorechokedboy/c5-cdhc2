@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { SearchForm } from '@/components/search-form';
 import { VersionSwitcher } from '@/components/version-switcher';
 import {
@@ -14,6 +13,7 @@ import {
         SidebarMenuItem,
         SidebarRail,
 } from '@/components/ui/sidebar';
+import { Link } from '@tanstack/react-router';
 
 // This is sample data.
 const data = {
@@ -41,10 +41,6 @@ const data = {
                                 {
                                         title: 'Học viên',
                                         url: '/students',
-                                },
-                                {
-                                        title: 'Học viên form',
-                                        url: '/demo/form/address',
                                 },
                         ],
                 },
@@ -85,15 +81,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                                                                                         item.isActive
                                                                                                 }
                                                                                         >
-                                                                                                <a
-                                                                                                        href={
-                                                                                                                item.url
+                                                                                                <Link
+                                                                                                        to={
+                                                                                                                item?.url
                                                                                                         }
                                                                                                 >
                                                                                                         {
-                                                                                                                item.title
+                                                                                                                item?.title
                                                                                                         }
-                                                                                                </a>
+                                                                                                </Link>
                                                                                         </SidebarMenuButton>
                                                                                 </SidebarMenuItem>
                                                                         )

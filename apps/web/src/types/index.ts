@@ -18,7 +18,7 @@ export interface Student {
         fullName: string;
         birthPlace: string;
         address: string;
-        className: string;
+        class: Class;
         cpvId: string;
         dob: string;
         educationLevel: string;
@@ -95,3 +95,19 @@ export interface StudentProto {
 export type ClassResponse = { data: Class[] };
 
 export type StudentResponse = { data: Student[] };
+
+export interface SearchInputConfig {
+        columnKey: string;
+        placeholder?: string;
+        className?: string;
+}
+
+export interface FacetedFilterConfig {
+        columnKey: string;
+        title: string;
+        options: {
+                label: string;
+                value: string;
+                icon?: React.ComponentType<{ className?: string }>;
+        }[];
+}

@@ -1,5 +1,5 @@
 import {
-        ehtnicOptions,
+        EhtnicOptions,
         religionOptions,
         eduLevelOptions,
 } from '@/data/ethnics';
@@ -82,7 +82,7 @@ export default function PersonalStep({ form }: { form: any }) {
                                 <form.AppField name="ethnic">
                                         {(field: any) => (
                                                 <field.Select
-                                                        values={ehtnicOptions}
+                                                        values={EhtnicOptions}
                                                         label="Dân tộc"
                                                         defaultValue={
                                                                 eduLevelOptions[0]

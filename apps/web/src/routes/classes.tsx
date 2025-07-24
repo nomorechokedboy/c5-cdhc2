@@ -6,6 +6,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import ClassCard from '@/components/class-table/class-card';
 import ClassForm from '@/components/class-form';
 import useClassData from '@/hooks/useClasses';
+import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig';
+import type { FacetedFilterConfig } from '@/types';
 
 export const Route = createFileRoute('/classes')({
         component: ClassPage,
@@ -17,6 +19,7 @@ function ClassPage() {
                 isLoading: isLoadingClasses,
                 refetch: refetchClasses,
         } = useClassData();
+        const { createSearchConfig } = useDataTableToolbarConfig();
 
         if (isLoadingClasses) {
                 return <div>Loading...</div>;
@@ -25,6 +28,11 @@ function ClassPage() {
         const handleFormSuccess = () => {
                 refetchClasses();
         };
+
+        const searchConfig = [
+                createSearchConfig('name', 'Tìm kiếm theo tên lớp...'),
+        ];
+        const facetedFilters: FacetedFilterConfig[] = [];
 
         return (
                 <SidebarInset>
@@ -58,6 +66,8 @@ function ClassPage() {
                                                                 }
                                                         />
                                                 ),
+                                                searchConfig,
+                                                facetedFilters,
                                         }}
                                 />
                         </div>

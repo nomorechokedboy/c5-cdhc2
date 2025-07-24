@@ -6,6 +6,11 @@ import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 import { EllipsisText } from '../data-table/ellipsis-text';
 import { DataTableRowActions } from '../data-table/data-table-row-actions';
 
+function isoToDdMmYyyy(isoDate: string): string {
+        const [year, month, day] = isoDate.split('-');
+        return `${day}/${month}/${year}`;
+}
+
 export const columns: ColumnDef<Student>[] = [
         {
                 id: 'select',
@@ -49,7 +54,8 @@ export const columns: ColumnDef<Student>[] = [
                 },
         },
         {
-                accessorKey: 'className',
+                id: 'class.name',
+                accessorFn: (row) => row.class.name,
                 header: 'Lớp',
                 cell: ({ row }) => (
                         <div className="w-20">
@@ -57,7 +63,7 @@ export const columns: ColumnDef<Student>[] = [
                                         className="bg-green-400 text-white font-bold"
                                         variant="secondary"
                                 >
-                                        {row.getValue('className')}
+                                        {row.getValue('class.name')}
                                 </Badge>
                         </div>
                 ),

@@ -15,6 +15,7 @@ import { CreateClass } from '@/api';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type { Class, ClassBody } from '@/types';
+import { toast } from 'sonner';
 
 const schema = z.object({
         name: z.string().min(1, 'Tên lớp không được bỏ trống'),
@@ -43,13 +44,20 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                         name: '',
                         description: '',
                 },
-                onSubmit: async ({ value }: { value: any }) => {
+                onSubmit: async ({
+                        value,
+                        formApi,
+                }: {
+                        value: any;
+                        formApi: any;
+                }) => {
                         try {
                                 await mutateAsync(value);
-                                alert('Form submitted successfully!');
+                                toast.success('Thêm mới lớp thành công');
+                                formApi.reset();
                         } catch (err) {
                                 console.error(err);
-                                alert('Form submitted failed!');
+                                toast.error('Thêm mới lớp thất bại');
                         } finally {
                                 setOpen(false);
                         }

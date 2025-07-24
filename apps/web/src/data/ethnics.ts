@@ -56,7 +56,7 @@ const ethnicsData = [
         { id: '56', name: 'H\u00e1n' },
 ];
 
-export const ehtnicOptions = ethnicsData
+export const EhtnicOptions = ethnicsData
         .filter(({ name }) => name !== '-')
         .map(({ name }) => {
                 return {

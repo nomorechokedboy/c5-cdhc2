@@ -220,7 +220,11 @@ export function DataTable<TData, TValue>({
 
         return (
                 <div className="space-y-4">
-                        <DataTableToolbar table={table} {...toolbarProps} />
+                        <DataTableToolbar
+                                table={table}
+                                onViewModeChange={setViewMode}
+                                {...toolbarProps}
+                        />
                         {viewMode === 'table'
                                 ? renderTableView()
                                 : renderCardView()}

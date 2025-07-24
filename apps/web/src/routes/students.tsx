@@ -6,6 +6,13 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { GetStudents } from '@/api';
 import StudentForm from '@/components/student-form';
+import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig';
+import {
+        MilitaryRankOptions,
+        EduLevelOptions,
+} from '@/components/data-table/data/data';
+import { EhtnicOptions } from '@/data/ethnics';
+import useClassData from '@/hooks/useClasses';
 
 export const Route = createFileRoute('/students')({
         component: StudentPage,
@@ -17,6 +24,15 @@ function StudentPage() {
                 isLoading: isLoadingStudents,
                 refetch: refetchStudent,
         } = useQuery({ queryKey: ['students'], queryFn: GetStudents });
+        const { data: classes, refetch } = useClassData();
+        const classOptions = classes
+                ? classes.map((c) => ({
+                          label: c.name,
+                          value: c.name,
+                  }))
+                : [];
+        const { createFacetedFilter, createSearchConfig } =
+                useDataTableToolbarConfig();
 
         if (isLoadingStudents) {
                 return <div>Loading...</div>;
@@ -25,6 +41,19 @@ function StudentPage() {
         const handleFormSuccess = () => {
                 refetchStudent();
         };
+        const searchConfig = [
+                createSearchConfig('fullName', 'Tìm kiếm theo tên...'),
+        ];
+        const facetedFilters = [
+                createFacetedFilter('className', 'Lớp', classOptions),
+                createFacetedFilter('rank', 'Cấp bậc', MilitaryRankOptions),
+                createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
+                createFacetedFilter(
+                        'educationLevel',
+                        'Trình độ học vấn',
+                        EduLevelOptions
+                ),
+        ];
 
         return (
                 <SidebarInset>
@@ -55,6 +84,8 @@ function StudentPage() {
                                                                 }
                                                         />
                                                 ),
+                                                searchConfig,
+                                                facetedFilters,
                                         }}
                                 />
                         </div>

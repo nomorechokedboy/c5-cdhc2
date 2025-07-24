@@ -18,6 +18,7 @@ import { useMutation } from '@tanstack/react-query';
 import { CreateStudent } from '@/api';
 import type { Student, StudentBody } from '@/types';
 import MilitaryStep from './military-step';
+import { toast } from 'sonner';
 
 export interface StudentFormProps {
         onSuccess: (
@@ -25,6 +26,11 @@ export interface StudentFormProps {
                 variables: StudentBody,
                 context: unknown
         ) => unknown;
+}
+
+function convertToIso(dateStr: string): string {
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
 }
 
 export default function StudentForm({ onSuccess }: StudentFormProps) {
@@ -78,11 +84,18 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                                 console.log(value);
                                 const classId = value.classId;
                                 value.classId = Number(classId);
+
+                                const dob = value.dob;
+                                value.dob = convertToIso(dob);
+
                                 await mutateAsync(value);
-                                alert('Form submitted successfully!');
+                                toast.success(
+                                        'Thêm mới học viên thành công!',
+                                        {}
+                                );
                         } catch (err) {
                                 console.error(err);
-                                alert('Form submitted failed!');
+                                toast.error('Thêm mới học viên thất bại!');
                         } finally {
                                 setOpen(false);
                         }
