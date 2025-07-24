@@ -1,4 +1,5 @@
 import { api } from 'encore.dev/api';
+import log from 'encore.dev/log';
 import { StudentParam, StudentQuery } from '../schema/student.js';
 import studentController from './controller.js';
 
@@ -53,6 +54,7 @@ export const CreateStudent = api(
                 const studentParam: StudentParam = {
                         ...body,
                 };
+                log.trace('students.CreateStudents body', { studentParam });
 
                 const createdStudent = await studentController.create([
                         studentParam,
@@ -94,6 +96,7 @@ export const GetStudents = api(
         { expose: true, method: 'GET', path: '/students' },
         async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
                 const q: StudentQuery = { ...query };
+                log.trace('students.GetStudents query params', { params: q });
                 const students = await studentController.find(q);
                 const resp = students.map(
                         (s) => ({ ...s }) as unknown as StudentResponse

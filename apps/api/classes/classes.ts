@@ -1,4 +1,5 @@
 import { api } from 'encore.dev/api';
+import log from 'encore.dev/log';
 import { ClassParam } from '../schema/classes.js';
 import classController from './controller.js';
 
@@ -23,6 +24,7 @@ export const CreateClass = api(
                 const classParam: ClassParam = {
                         ...body,
                 };
+                log.trace('classes.CreateClass body', { classParam });
 
                 const createdClass = await classController.create([classParam]);
 
