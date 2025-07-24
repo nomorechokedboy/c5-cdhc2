@@ -1,69 +1,117 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import {
-        Breadcrumb,
-        BreadcrumbList,
-        BreadcrumbItem,
-        BreadcrumbLink,
-        BreadcrumbSeparator,
-        BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import {
-        Sidebar,
-        SidebarInset,
-        SidebarProvider,
-        SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@radix-ui/react-select';
+import { DataTable } from '@/components/data-table';
+import { baseStudentsColumns } from '@/components/student-table/columns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SidebarInset } from '@/components/ui/sidebar';
+import useStudentData from '@/hooks/useStudents';
 import { createFileRoute } from '@tanstack/react-router';
-import logo from '../logo.svg';
+import { CalendarDays } from 'lucide-react';
+import dayjs from 'dayjs';
+import type { Month, Student } from '@/types';
+import { ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
 
 export const Route = createFileRoute('/')({
         component: App,
 });
 
 function App() {
+        const {
+                data: studentWithBirthdayInWeek = [],
+                isLoading: isLoadingStudentBirthdayInWeek,
+                refetch: refetchStudentBirthdayInWeek,
+        } = useStudentData({
+                birthdayInWeek: true,
+        });
+        const thisMonth = dayjs().format('MM') as Month;
+
+        const {
+                data: studentWithBrithdayInMonth = [],
+                isLoading: isLoadingStudentBirthdayInMonth,
+                refetch: refetchStudentBirthdayInMonth,
+        } = useStudentData({
+                birthdayInMonth: thisMonth,
+        });
+
+        const {
+                data: cpvStudents = [],
+                isLoading: isLoadingCpvStudents,
+                refetch: refetchCpvStudents,
+        } = useStudentData({
+                politicalOrg: 'cpv',
+        });
+
+        const {
+                data: hcyuStudents = [],
+                isLoading: isLoadingHcyuStudents,
+                refetch: refetchHcyuStudents,
+        } = useStudentData({
+                politicalOrg: 'hcyu',
+        });
+
+        const tablesProps: {
+                title: ReactNode;
+                data: Student[];
+                columns: ColumnDef<Student>[];
+        }[] = [
+                {
+                        columns: baseStudentsColumns,
+                        data: studentWithBirthdayInWeek,
+                        title: 'Học viên có sinh nhật trong tuần',
+                },
+                {
+                        columns: baseStudentsColumns,
+                        data: studentWithBrithdayInMonth,
+                        title: 'Học viên có sinh nhật trong tháng',
+                },
+                {
+                        columns: baseStudentsColumns,
+                        data: hcyuStudents,
+                        title: 'Học viên là đoàn viên',
+                },
+                {
+                        columns: baseStudentsColumns,
+                        data: cpvStudents,
+                        title: 'Học viên là Đảng viên',
+                },
+        ];
+
         return (
                 <SidebarInset>
-                        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                                        <div className="bg-muted/50 aspect-video rounded-xl" />
-                                        <div className="bg-muted/50 aspect-video rounded-xl" />
-                                        <div className="bg-muted/50 aspect-video rounded-xl" />
-                                </div>
-                                <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-                        </div>
-
-                        <div className="text-center">
-                                <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
-                                        <img
-                                                src={logo}
-                                                className="h-[40vmin] pointer-events-none animate-[spin_20s_linear_infinite]"
-                                                alt="logo"
-                                        />
-                                        <p>
-                                                Edit{' '}
-                                                <code>
-                                                        src/routes/index.tsx
-                                                </code>{' '}
-                                                and save to reload.
-                                        </p>
-                                        <a
-                                                className="text-[#61dafb] hover:underline"
-                                                href="https://reactjs.org"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                        >
-                                                Learn React
-                                        </a>
-                                        <a
-                                                className="text-[#61dafb] hover:underline"
-                                                href="https://tanstack.com"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                        >
-                                                Learn TanStack
-                                        </a>
-                                </header>
+                        <div className="grid grid-cols-2 p-4 gap-4">
+                                {tablesProps.map(({ columns, data, title }) => (
+                                        <Card key={title?.toString()}>
+                                                <CardHeader>
+                                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                                                <CalendarDays className="h-5 w-5 text-blue-600" />
+                                                                {title}
+                                                                <Badge
+                                                                        variant="secondary"
+                                                                        className="ml-auto"
+                                                                >
+                                                                        {
+                                                                                data.length
+                                                                        }
+                                                                </Badge>
+                                                        </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                        <DataTable
+                                                                columns={
+                                                                        columns
+                                                                }
+                                                                data={data}
+                                                                toolbarVisible={
+                                                                        false
+                                                                }
+                                                                pagination={
+                                                                        data.length >
+                                                                        10
+                                                                }
+                                                        />
+                                                </CardContent>
+                                        </Card>
+                                ))}
                         </div>
                 </SidebarInset>
         );

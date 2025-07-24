@@ -4,7 +4,7 @@ import type {
         ClassResponse,
         Student,
         StudentBody,
-        StudentProto,
+        StudentQueryParams,
         StudentResponse,
 } from '@/types';
 import axios from 'axios';
@@ -71,8 +71,10 @@ export function CreateStudent(body: StudentBody) {
                 .then((resp) => resp.data.data);
 }
 
-export function GetStudents(): Promise<Student[]> {
+export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
         return axios
-                .get<StudentResponse>('http://localhost:4000/students')
+                .get<StudentResponse>('http://localhost:4000/students', {
+                        params,
+                })
                 .then((resp) => resp.data.data);
 }

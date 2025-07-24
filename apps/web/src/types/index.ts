@@ -18,7 +18,7 @@ export interface Student {
         fullName: string;
         birthPlace: string;
         address: string;
-        class: Class;
+        kkkclass: Class;
         cpvId: string;
         dob: string;
         educationLevel: string;
@@ -110,4 +110,26 @@ export interface FacetedFilterConfig {
                 value: string;
                 icon?: React.ComponentType<{ className?: string }>;
         }[];
+}
+
+export type Month =
+        | '01'
+        | '02'
+        | '03'
+        | '04'
+        | '05'
+        | '06'
+        | '07'
+        | '08'
+        | '09'
+        | '10'
+        | '11'
+        | '12';
+
+export interface StudentQueryParams {
+        classId?: number;
+        birthdayInMonth?: Month;
+        politicalOrg?: PoliticalOrg;
+        birthdayInWeek?: boolean;
+        isMarried?: boolean;
 }

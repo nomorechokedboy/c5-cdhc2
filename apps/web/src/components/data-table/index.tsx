@@ -25,7 +25,7 @@ import {
         DataTableToolbar,
         type DataTableToolbarProps,
 } from './data-table-toolbar';
-import { ComponentType, useState } from 'react';
+import { ComponentType, ReactNode, useState } from 'react';
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>;
 
@@ -37,6 +37,9 @@ interface DataTableProps<TData, TValue> {
         defaultColumnVisibility?: VisibilityState;
         defaultViewMode?: ViewMode;
         toolbarProps?: ToolbarProps<TData>;
+        tableClassName?: string;
+        pagination?: boolean;
+        toolbarVisible?: boolean;
 }
 
 type ViewMode = 'table' | 'card';
@@ -49,6 +52,9 @@ export function DataTable<TData, TValue>({
         defaultColumnVisibility = {},
         defaultViewMode = 'table',
         toolbarProps,
+        tableClassName,
+        pagination = true,
+        toolbarVisible = true,
 }: DataTableProps<TData, TValue>) {
         const [rowSelection, setRowSelection] = useState({});
         const [columnVisibility, setColumnVisibility] =
@@ -83,7 +89,7 @@ export function DataTable<TData, TValue>({
 
         const renderTableView = () => {
                 return (
-                        <div className="rounded-md border">
+                        <div className={`rounded-md border ${tableClassName}`}>
                                 <Table>
                                         <TableHeader>
                                                 {table
@@ -220,15 +226,17 @@ export function DataTable<TData, TValue>({
 
         return (
                 <div className="space-y-4">
-                        <DataTableToolbar
-                                table={table}
-                                onViewModeChange={setViewMode}
-                                {...toolbarProps}
-                        />
+                        {toolbarVisible && (
+                                <DataTableToolbar
+                                        table={table}
+                                        onViewModeChange={setViewMode}
+                                        {...toolbarProps}
+                                />
+                        )}
                         {viewMode === 'table'
                                 ? renderTableView()
                                 : renderCardView()}
-                        <DataTablePagination table={table} />
+                        {pagination && <DataTablePagination table={table} />}
                 </div>
         );
 }
