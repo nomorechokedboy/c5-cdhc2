@@ -1,29 +1,40 @@
-import { Link } from '@tanstack/react-router'
+import {
+        Breadcrumb,
+        BreadcrumbList,
+        BreadcrumbItem,
+        BreadcrumbLink,
+        BreadcrumbSeparator,
+        BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 
 export default function Header() {
-  return (
-    <header className="p-2 flex gap-2 bg-white text-black justify-between">
-      <nav className="flex flex-row">
-        <div className="px-2 font-bold">
-          <Link to="/">Home</Link>
-        </div>
-
-        <div className="px-2 font-bold">
-          <Link to="/demo/form/simple">Simple Form</Link>
-        </div>
-
-        <div className="px-2 font-bold">
-          <Link to="/demo/form/address">Address Form</Link>
-        </div>
-
-        <div className="px-2 font-bold">
-          <Link to="/demo/table">TanStack Table</Link>
-        </div>
-
-        <div className="px-2 font-bold">
-          <Link to="/demo/tanstack-query">TanStack Query</Link>
-        </div>
-      </nav>
-    </header>
-  )
+        return (
+                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                        <div className="flex items-center gap-2 px-4">
+                                <SidebarTrigger className="-ml-1" />
+                                <Separator
+                                        orientation="vertical"
+                                        className="mr-2 data-[orientation=vertical]:h-4"
+                                />
+                                <Breadcrumb>
+                                        <BreadcrumbList>
+                                                <BreadcrumbItem className="hidden md:block">
+                                                        <BreadcrumbLink href="#">
+                                                                Building Your
+                                                                Application
+                                                        </BreadcrumbLink>
+                                                </BreadcrumbItem>
+                                                <BreadcrumbSeparator className="hidden md:block" />
+                                                <BreadcrumbItem>
+                                                        <BreadcrumbPage>
+                                                                Data Fetching
+                                                        </BreadcrumbPage>
+                                                </BreadcrumbItem>
+                                        </BreadcrumbList>
+                                </Breadcrumb>
+                        </div>
+                </header>
+        );
 }

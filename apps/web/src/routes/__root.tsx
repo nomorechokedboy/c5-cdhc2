@@ -4,20 +4,7 @@ import Header from '../components/Header';
 import TanStackQueryLayout from '../integrations/tanstack-query/layout';
 import type { QueryClient } from '@tanstack/react-query';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-        Breadcrumb,
-        BreadcrumbList,
-        BreadcrumbItem,
-        BreadcrumbLink,
-        BreadcrumbSeparator,
-        BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import {
-        SidebarProvider,
-        SidebarInset,
-        SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@radix-ui/react-select';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 
 interface MyRouterContext {
@@ -29,8 +16,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
                 <>
                         <SidebarProvider>
                                 <AppSidebar />
+
                                 <Toaster richColors position="top-center" />
-                                <Outlet />
+                                <div className="flex flex-col w-full">
+                                        <Header />
+                                        <Outlet />
+                                </div>
                         </SidebarProvider>
                         <TanStackRouterDevtools />
 
