@@ -1,5 +1,5 @@
 import { api } from 'encore.dev/api';
-import { StudentParam } from '../schema/student.js';
+import { StudentParam, StudentQuery } from '../schema/student.js';
 import studentController from './controller.js';
 
 interface StudentBody {
@@ -35,12 +35,16 @@ interface StudentBody {
         classId: number;
 }
 
-interface StudentResponse extends StudentBody {
+interface StudentDBResponse extends StudentBody {
         id: number;
 }
 
+interface StudentResponse extends StudentDBResponse {
+        class: { id: number; description: string; name: string };
+}
+
 interface BulkStudentResponse {
-        data: StudentResponse[];
+        data: StudentDBResponse[];
 }
 
 export const CreateStudent = api(
@@ -55,20 +59,45 @@ export const CreateStudent = api(
                 ]);
 
                 const resp = createdStudent.map(
-                        (s) => ({ ...s }) as StudentResponse
+                        (s) => ({ ...s }) as StudentDBResponse
                 );
 
                 return { data: resp };
         }
 );
 
-interface GetStudentsResponse extends BulkStudentResponse {}
+interface GetStudentsResponse {
+        data: StudentResponse[];
+}
+
+interface GetStudentsQuery {
+        classId?: number;
+        birthdayInMonth?:
+                | '01'
+                | '02'
+                | '03'
+                | '04'
+                | '05'
+                | '06'
+                | '07'
+                | '08'
+                | '09'
+                | '10'
+                | '11'
+                | '12';
+        politicalOrg?: 'hcyu' | 'cpv';
+        birthdayInWeek?: boolean;
+        isMarried?: boolean;
+}
 
 export const GetStudents = api(
         { expose: true, method: 'GET', path: '/students' },
-        async (): Promise<GetStudentsResponse> => {
-                const students = await studentController.find();
-                const resp = students.map((s) => ({ ...s }) as StudentResponse);
+        async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
+                const q: StudentQuery = { ...query };
+                const students = await studentController.find(q);
+                const resp = students.map(
+                        (s) => ({ ...s }) as unknown as StudentResponse
+                );
 
                 return { data: resp };
         }

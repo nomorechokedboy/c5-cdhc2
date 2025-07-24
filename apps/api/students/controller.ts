@@ -1,5 +1,10 @@
 import { AppError } from '../errors/index.js';
-import { StudentDB, StudentParam } from '../schema/student.js';
+import {
+        StudentDB,
+        StudentParam,
+        StudentQuery,
+        Student,
+} from '../schema/student.js';
 import { Repository } from './index.js';
 import studentRepo from './repo.js';
 
@@ -14,9 +19,9 @@ export class Controller {
                 return createdStudent;
         }
 
-        async find(): Promise<StudentDB[]> {
+        async find(q: StudentQuery): Promise<Student[]> {
                 const resp = await await this.repo
-                        .find()
+                        .find(q)
                         .catch(AppError.handleAppErr);
 
                 return resp;

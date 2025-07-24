@@ -1,4 +1,4 @@
-import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import * as sqlite from 'drizzle-orm/sqlite-core';
 import { customType } from 'drizzle-orm/sqlite-core';
 import { classes } from './classes';
@@ -53,6 +53,30 @@ export const students = sqlite.sqliteTable('students', {
 
 export type StudentDB = InferSelectModel<typeof students>;
 
-export type Student = Omit<StudentDB, 'classId'> & { className: string };
+export type Student = Omit<StudentDB, 'classId'> & {
+        class: { id: number; name: string; description: string };
+};
 
 export type StudentParam = InferInsertModel<typeof students>;
+
+export type Month =
+        | '01'
+        | '02'
+        | '03'
+        | '04'
+        | '05'
+        | '06'
+        | '07'
+        | '08'
+        | '09'
+        | '10'
+        | '11'
+        | '12';
+
+export type StudentQuery = {
+        classId?: number;
+        birthdayInMonth?: Month;
+        politicalOrg?: 'hcyu' | 'cpv';
+        birthdayInWeek?: boolean;
+        isMarried?: boolean;
+};

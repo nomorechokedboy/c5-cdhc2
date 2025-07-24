@@ -1,13 +1,16 @@
 import { Client } from '@libsql/client';
-import { inArray, eq } from 'drizzle-orm';
+import { inArray, eq, sql, and } from 'drizzle-orm';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import log from 'encore.dev/log';
 import orm from '../database.js';
+import { AppError } from '../errors/index.js';
 import { classes } from '../schema/classes.js';
 import {
+        Month,
         Student,
         StudentDB,
         StudentParam,
+        StudentQuery,
         students,
 } from '../schema/student.js';
 import { handleDatabaseErr } from '../utils/index.js';
@@ -38,11 +41,62 @@ class StudentSqliteRepo implements Repository {
                         .catch(handleDatabaseErr);
         }
 
-        find(): Promise<Student[]> {
-                return this.db
+        private birthdayThisMonth(month?: Month) {
+                const now = "strftime('%m', 'now')";
+                return sql`strftime('%m', ${students.dob}) = ${month ?? now}`;
+        }
+
+        private birthdayThisWeek() {
+                return and(
+                        sql`strftime('%W', ${students.dob}) = strftime('%W', 'now')`,
+                        this.birthdayThisMonth()
+                );
+        }
+
+        find(q: StudentQuery): Promise<Student[]> {
+                const baseQuery = this.db
                         .select()
                         .from(students)
-                        .leftJoin(classes, eq(classes.id, students.id))
+                        .leftJoin(classes, eq(classes.id, students.classId));
+
+                const whereConds = [];
+                const isClassIdExist = q.classId !== undefined;
+                if (isClassIdExist) {
+                        whereConds.push(eq(students.classId, q.classId!));
+                }
+
+                const isPolicicalOrgExist = q.politicalOrg !== undefined;
+                if (isPolicicalOrgExist) {
+                        whereConds.push(
+                                eq(students.politicalOrg, q.politicalOrg!)
+                        );
+                }
+
+                const isBirthdayInMonthExist = q.birthdayInMonth !== undefined;
+                const isBirthdayInWeekExist = q.birthdayInWeek !== undefined;
+                if (isBirthdayInMonthExist && isBirthdayInWeekExist) {
+                        throw AppError.invalidArgument(
+                                "birthdayInMonth and birthdayInWeek can't be sent together"
+                        );
+                }
+
+                if (isBirthdayInMonthExist) {
+                        whereConds.push(
+                                this.birthdayThisMonth(q.birthdayInMonth)
+                        );
+                }
+
+                if (isBirthdayInWeekExist) {
+                        whereConds.push(this.birthdayThisWeek());
+                }
+
+                const isWhereCondEmpty = whereConds.length === 0;
+                if (!isWhereCondEmpty) {
+                        baseQuery.where(and(...whereConds));
+                }
+
+                return baseQuery
+                        .all()
                         .then((resp) =>
                                 resp.map(
                                         ({
@@ -54,7 +108,12 @@ class StudentSqliteRepo implements Repository {
                                         }) =>
                                                 ({
                                                         ...students,
-                                                        className: classes?.name,
+                                                        class: {
+                                                                description:
+                                                                        classes?.description,
+                                                                id: classes?.id,
+                                                                name: classes?.name,
+                                                        },
                                                 }) as Student
                                 )
                         )
