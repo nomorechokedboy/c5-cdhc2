@@ -1,5 +1,5 @@
 import { Client } from '@libsql/client';
-import { inArray, eq, sql, and } from 'drizzle-orm';
+import { inArray, eq, sql, and, between } from 'drizzle-orm';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import log from 'encore.dev/log';
 import orm from '../database.js';
@@ -42,14 +42,18 @@ class StudentSqliteRepo implements Repository {
         }
 
         private birthdayThisMonth(month?: Month) {
-                const now = "strftime('%m', 'now')";
-                return sql`strftime('%m', ${students.dob}) = ${month ?? now}`;
+                if (month === undefined) {
+                        return sql`strftime('%m', ${students.dob}) = strftime('%m', 'now')`;
+                }
+
+                return sql`strftime('%m', ${students.dob}) = ${month}`;
         }
 
         private birthdayThisWeek() {
-                return and(
-                        sql`strftime('%W', ${students.dob}) = strftime('%W', 'now')`,
-                        this.birthdayThisMonth()
+                return between(
+                        sql`strftime('%W', ${students.dob})`,
+                        sql`strftime('%m-%d', 'weekday 1', 'start of day')`,
+                        sql`strftime('%m-%d', 'weekday 0', 'start of day')`
                 );
         }
 
@@ -86,8 +90,11 @@ class StudentSqliteRepo implements Repository {
                         );
                 }
 
-                if (isBirthdayInWeekExist) {
-                        whereConds.push(this.birthdayThisWeek());
+                if (isBirthdayInWeekExist && q.birthdayInWeek === true) {
+                        whereConds.push(
+                                sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${students.dob})) 
+        BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
+                        );
                 }
 
                 const isWhereCondEmpty = whereConds.length === 0;
