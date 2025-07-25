@@ -93,7 +93,7 @@ interface StudentBulkBody {
 }
 
 export const CreateStudents = api(
-        { expose: true, method: 'POST', path: '/students/bulk' },
+        { expose: false, method: 'POST', path: '/students/bulk' },
         async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
                 const studentParams = body.data.map(
                         (b) => ({ ...b }) as StudentParam
