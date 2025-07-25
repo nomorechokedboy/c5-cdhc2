@@ -27,12 +27,15 @@ export function DataTableViewOptions<TData>({
                                         className="ml-auto hidden h-8 lg:flex"
                                 >
                                         <Settings2 />
-                                        View
+                                        Hiển thị các cột
                                 </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[150px]">
+                        <DropdownMenuContent
+                                align="end"
+                                className="w-[150px] no-scrollbar"
+                        >
                                 <DropdownMenuLabel>
-                                        Toggle columns
+                                        Đang được hiển thị
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 {table

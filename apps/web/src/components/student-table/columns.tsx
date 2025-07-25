@@ -54,7 +54,9 @@ export const baseStudentsColumns: ColumnDef<Student>[] = [
                 accessorKey: 'dob',
                 header: 'Năm sinh',
                 cell: ({ row }) => (
-                        <div className="">{row.getValue('dob')}</div>
+                        <div className="">
+                                {isoToDdMmYyyy(row.getValue('dob'))}
+                        </div>
                 ),
                 meta: {
                         label: 'Năm sinh',
@@ -115,16 +117,267 @@ export const columns: ColumnDef<Student>[] = [
                 ),
                 cell: ({ row }) => {
                         return (
-                                <div className="min-w-32">
+                                <EllipsisText>
                                         {row.getValue('address') || (
                                                 <Badge>N/A</Badge>
                                         )}
-                                </div>
+                                </EllipsisText>
                         );
                 },
                 enableHiding: true,
                 meta: {
                         label: 'Trú quán',
+                },
+        },
+        {
+                accessorKey: 'enlistmentPeriod',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Thời gian nhập ngũ"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-32">
+                                {row.getValue('enlistmentPeriod')}
+                        </div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Thời gian nhập ngũ',
+                },
+        },
+        {
+                accessorKey: 'isGraduated',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Đã tốt nghiệp"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <Badge
+                                className={
+                                        row.getValue('isGraduated')
+                                                ? 'bg-green-500'
+                                                : 'bg-red-500'
+                                }
+                        >
+                                {row.getValue('isGraduated') ? 'Có' : 'Không'}
+                        </Badge>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Đã tốt nghiệp',
+                },
+        },
+        {
+                accessorKey: 'major',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Chuyên ngành"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>{row.getValue('major')}</EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Chuyên ngành',
+                },
+        },
+        {
+                accessorKey: 'phone',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Số điện thoại"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">{row.getValue('phone')}</div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Số điện thoại',
+                },
+        },
+        {
+                accessorKey: 'policyBeneficiaryGroup',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Đối tượng chính sách"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>
+                                {row.getValue('policyBeneficiaryGroup')}
+                        </EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Đối tượng chính sách',
+                },
+        },
+        {
+                accessorKey: 'politicalOrg',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Đoàn/Đảng"
+                        />
+                ),
+                cell: ({ row }) => {
+                        const val = row.getValue('politicalOrg');
+                        const org =
+                                val === '' || val === undefined
+                                        ? 'N/A'
+                                        : val === 'cpv'
+                                          ? 'Đảng'
+                                          : 'Đoàn';
+
+                        return (
+                                <Badge className="bg-purple-500 text-white font-bold">
+                                        {org}
+                                </Badge>
+                        );
+                },
+                enableHiding: true,
+                meta: {
+                        label: 'Đoàn/Đảng',
+                },
+        },
+        {
+                accessorKey: 'politicalOrgOfficialDate',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Ngày chính thức vào Đoàn/Đảng"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">
+                                {row.getValue('politicalOrgOfficialDate')
+                                        ? isoToDdMmYyyy(
+                                                  row.getValue(
+                                                          'politicalOrgOfficialDate'
+                                                  )
+                                          )
+                                        : 'N/A'}
+                        </div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Ngày chính thức vào Đoàn/Đảng',
+                },
+        },
+        {
+                accessorKey: 'cpvId',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Số thẻ Đảng"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">{row.getValue('cpvId')}</div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Số thẻ Đảng',
+                },
+        },
+        {
+                accessorKey: 'previousPosition',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Chức vụ cũ"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>
+                                {row.getValue('previousPosition')}
+                        </EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Chức vụ cũ',
+                },
+        },
+        {
+                accessorKey: 'religion',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Tôn giáo"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <Badge className="bg-orange-500 text-white font-bold">
+                                {row.getValue('religion')}
+                        </Badge>
+                ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
+                enableHiding: true,
+                meta: {
+                        label: 'Tôn giáo',
+                },
+        },
+        {
+                accessorKey: 'schoolName',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Tên trường"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>
+                                {row.getValue('schoolName')}
+                        </EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Tên trường',
+                },
+        },
+        {
+                accessorKey: 'shortcoming',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Khuyết điểm"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>
+                                {row.getValue('shortcoming')}
+                        </EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Khuyết điểm',
+                },
+        },
+        {
+                accessorKey: 'talent',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Tài năng"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>{row.getValue('talent')}</EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Tài năng',
                 },
         },
         {
@@ -166,6 +419,9 @@ export const columns: ColumnDef<Student>[] = [
                                 {row.getValue('previousUnit')}
                         </EllipsisText>
                 ),
+                filterFn: (row, id, value) => {
+                        return value.includes(row.getValue(id));
+                },
                 meta: {
                         label: 'Đơn vị cũ',
                 },
@@ -218,6 +474,37 @@ export const columns: ColumnDef<Student>[] = [
                 },
         },
         {
+                accessorKey: 'fatherJob',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Nghề nghiệp của bố"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <EllipsisText>{row.getValue('fatherJob')}</EllipsisText>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Nghề nghiệp của bố',
+                },
+        },
+        {
+                accessorKey: 'fatherPhoneNumber',
+                header: ({ column }) => (
+                        <DataTableColumnHeader column={column} title="SĐT bố" />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">
+                                {row.getValue('fatherPhoneNumber')}
+                        </div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'SĐT bố',
+                },
+        },
+        {
                 accessorKey: 'motherName',
                 header: ({ column }) => (
                         <DataTableColumnHeader
@@ -234,21 +521,57 @@ export const columns: ColumnDef<Student>[] = [
                         label: 'Họ tên mẹ',
                 },
         },
+        {
+                accessorKey: 'motherJob',
+                header: ({ column }) => (
+                        <DataTableColumnHeader
+                                column={column}
+                                title="Nghề nghiệp của mẹ"
+                        />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">
+                                {row.getValue('motherJob')}
+                        </div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'Nghề nghiệp của mẹ',
+                },
+        },
         // {
-        //         accessorKey: 'Vợ',
+        //         accessorKey: 'motherJobAddress',
         //         header: ({ column }) => (
         //                 <DataTableColumnHeader
         //                         column={column}
-        //                         title="Họ tên vợ"
+        //                         title="Nơi làm việc của mẹ"
         //                 />
         //         ),
         //         cell: ({ row }) => (
-        //                 <div className="min-w-32">
-        //                         {row.getValue('Vợ') || <Badge>N/A</Badge>}
-        //                 </div>
+        //                 <EllipsisText>
+        //                         {row.getValue('motherJobAddress')}
+        //                 </EllipsisText>
         //         ),
         //         enableHiding: true,
+        //         meta: {
+        //                 label: 'Nơi làm việc của mẹ',
+        //         },
         // },
+        {
+                accessorKey: 'motherPhoneNumber',
+                header: ({ column }) => (
+                        <DataTableColumnHeader column={column} title="SĐT mẹ" />
+                ),
+                cell: ({ row }) => (
+                        <div className="min-w-28">
+                                {row.getValue('motherPhoneNumber')}
+                        </div>
+                ),
+                enableHiding: true,
+                meta: {
+                        label: 'SĐT mẹ',
+                },
+        },
         {
                 id: 'actions',
                 cell: ({ row }) => <DataTableRowActions row={row} />,

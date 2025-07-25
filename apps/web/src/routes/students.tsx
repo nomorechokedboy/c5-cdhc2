@@ -3,16 +3,12 @@ import { columns } from '@/components/student-table/columns';
 import { UserNav } from '@/components/data-table/user-nav';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { GetStudents } from '@/api';
 import StudentForm from '@/components/student-form';
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig';
-import {
-        MilitaryRankOptions,
-        EduLevelOptions,
-} from '@/components/data-table/data/data';
+import { EduLevelOptions } from '@/components/data-table/data/data';
 import { EhtnicOptions } from '@/data/ethnics';
 import useClassData from '@/hooks/useClasses';
+import useStudentData from '@/hooks/useStudents';
 
 export const Route = createFileRoute('/students')({
         component: StudentPage,
@@ -23,14 +19,8 @@ function StudentPage() {
                 data: students = [],
                 isLoading: isLoadingStudents,
                 refetch: refetchStudent,
-        } = useQuery({ queryKey: ['students'], queryFn: GetStudents });
+        } = useStudentData();
         const { data: classes, refetch } = useClassData();
-        const classOptions = classes
-                ? classes.map((c) => ({
-                          label: c.name,
-                          value: c.name,
-                  }))
-                : [];
         const { createFacetedFilter, createSearchConfig } =
                 useDataTableToolbarConfig();
 
@@ -44,9 +34,39 @@ function StudentPage() {
         const searchConfig = [
                 createSearchConfig('fullName', 'Tìm kiếm theo tên...'),
         ];
+
+        const militaryRankSet = new Set(
+                students.filter((s) => !!s.rank).map((s) => s.rank)
+        );
+        const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
+                label: rank,
+                value: rank,
+        }));
+        const classOptions = classes
+                ? classes.map((c) => ({
+                          label: c.name,
+                          value: c.name,
+                  }))
+                : [];
+
+        const previousUnitSet = new Set(
+                students
+                        .filter((s) => !!s.previousUnit)
+                        .map((s) => s.previousUnit)
+        );
+        const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
+                label: pu,
+                value: pu,
+        }));
+
         const facetedFilters = [
-                createFacetedFilter('className', 'Lớp', classOptions),
-                createFacetedFilter('rank', 'Cấp bậc', MilitaryRankOptions),
+                createFacetedFilter('class.name', 'Lớp', classOptions),
+                createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
+                createFacetedFilter(
+                        'previousUnit',
+                        'Đơn vị cũ',
+                        previousUnitOptions
+                ),
                 createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
                 createFacetedFilter(
                         'educationLevel',
@@ -61,12 +81,11 @@ function StudentPage() {
                                 <div className="flex items-center justify-between space-y-2">
                                         <div>
                                                 <h2 className="text-2xl font-bold tracking-tight">
-                                                        Welcome back!
+                                                        Danh sách học viên
                                                 </h2>
                                                 <p className="text-muted-foreground">
-                                                        Here&apos;s a list of
-                                                        your tasks for this
-                                                        month!
+                                                        Đây là danh sách học
+                                                        viên của đại đội
                                                 </p>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -75,6 +94,27 @@ function StudentPage() {
                                 </div>
                                 <DataTable
                                         data={students}
+                                        defaultColumnVisibility={{
+                                                enlistmentPeriod: false,
+                                                isGraduated: false,
+                                                major: false,
+                                                phone: false,
+                                                policyBeneficiaryGroup: false,
+                                                politicalOrg: false,
+                                                politicalOrgOfficialDate: false,
+                                                cpvId: false,
+                                                previousPosition: false,
+                                                religion: false,
+                                                schoolName: false,
+                                                shortcoming: false,
+                                                talent: false,
+                                                fatherName: false,
+                                                fatherJob: false,
+                                                fatherPhoneNumber: false,
+                                                motherName: false,
+                                                motherJob: false,
+                                                motherPhoneNumber: false,
+                                        }}
                                         columns={columns}
                                         toolbarProps={{
                                                 rightSection: (

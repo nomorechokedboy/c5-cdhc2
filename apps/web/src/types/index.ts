@@ -18,7 +18,7 @@ export interface Student {
         fullName: string;
         birthPlace: string;
         address: string;
-        kkkclass: Class;
+        class: Class;
         cpvId: string;
         dob: string;
         educationLevel: string;
