@@ -1,1 +1,0 @@
-ALTER TABLE `students` ADD `position` text DEFAULT 'Học viên';

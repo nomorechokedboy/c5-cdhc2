@@ -1,8 +1,9 @@
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import * as sqlite from 'drizzle-orm/sqlite-core';
+import { baseSchema } from './base';
 
 export const classes = sqlite.sqliteTable('classes', {
-        id: sqlite.int().primaryKey({ autoIncrement: true }),
+        ...baseSchema,
         name: sqlite.text().unique().notNull(),
         description: sqlite.text().default(''),
 });

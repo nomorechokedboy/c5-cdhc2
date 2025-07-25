@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `classes_name_unique` ON `classes` (`name`);

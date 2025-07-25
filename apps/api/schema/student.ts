@@ -1,6 +1,7 @@
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm';
 import * as sqlite from 'drizzle-orm/sqlite-core';
 import { customType } from 'drizzle-orm/sqlite-core';
+import { baseSchema } from './base';
 import { classes } from './classes';
 
 const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
@@ -15,7 +16,7 @@ const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
 });
 
 export const students = sqlite.sqliteTable('students', {
-        id: sqlite.int().primaryKey({ autoIncrement: true }),
+        ...baseSchema,
         fullName: sqlite.text().default(''),
         birthPlace: sqlite.text().default(''),
         address: sqlite.text().default(''),
@@ -25,7 +26,7 @@ export const students = sqlite.sqliteTable('students', {
         previousPosition: sqlite.text().default(''),
         position: sqlite.text().default('Học viên'),
         ethnic: sqlite.text().default(''),
-        religion: sqlite.text().default(''),
+        religion: sqlite.text().default('Không'),
         enlistmentPeriod: sqlite.text().default(''),
         politicalOrg: PoliticalOrgEnum('politicalOrg')
                 .$type<'hcyu' | 'cpv'>()
@@ -35,20 +36,36 @@ export const students = sqlite.sqliteTable('students', {
         educationLevel: sqlite.text().default(''),
         schoolName: sqlite.text().default(''),
         major: sqlite.text().default(''),
-        isGraduated: sqlite.integer({ mode: 'boolean' }).default(false),
-        talent: sqlite.text().default(''),
-        shortcoming: sqlite.text().default(''),
-        policyBeneficiaryGroup: sqlite.text().default(''),
+        isGraduated: sqlite.int({ mode: 'boolean' }).default(false),
+        talent: sqlite.text().default('Không'),
+        shortcoming: sqlite.text().default('Không'),
+        policyBeneficiaryGroup: sqlite.text().default('Không'),
         fatherName: sqlite.text().default(''),
+        fatherDob: sqlite.text().default(''),
         fatherPhoneNumber: sqlite.text().default(''),
         fatherJob: sqlite.text().default(''),
-        fatherJobAddress: sqlite.text().default(''),
+        // fatherJobAddress: sqlite.text().default(''),
         motherName: sqlite.text().default(''),
+        motherDob: sqlite.text().default(''),
         motherPhoneNumber: sqlite.text().default(''),
         motherJob: sqlite.text().default(''),
-        motherJobAddress: sqlite.text().default(''),
+        // motherJobAddress: sqlite.text().default(''),
+        isMarried: sqlite.int({ mode: 'boolean' }).default(false),
+        spouseName: sqlite.text().default(''),
+        spouseDob: sqlite.text().default(''),
+        spouseJob: sqlite.text().default(''),
+        spousePhoneNumber: sqlite.text().default(''),
+        childrenInfos: sqlite.text({ mode: 'json' }).default(sql`'[]'`),
+        familySize: sqlite.int(),
+        familyBackground: sqlite.text().default('Không'),
+        familyBirthOrder: sqlite.text().default(''),
+        achievement: sqlite.text().default('Không'),
+        disciplinaryHistory: sqlite.text().default('Không'),
         phone: sqlite.text().default(''),
-        classId: sqlite.integer().references(() => classes.id),
+        classId: sqlite
+                .integer()
+                .notNull()
+                .references(() => classes.id),
 });
 
 export type StudentDB = InferSelectModel<typeof students>;

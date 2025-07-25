@@ -1,5 +1,5 @@
 import { Client } from '@libsql/client';
-import { inArray, eq, sql, and, between } from 'drizzle-orm';
+import { inArray, eq, sql, and } from 'drizzle-orm';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import log from 'encore.dev/log';
 import orm from '../database.js';
@@ -47,14 +47,6 @@ class StudentSqliteRepo implements Repository {
                 }
 
                 return sql`strftime('%m', ${students.dob}) = ${month}`;
-        }
-
-        private birthdayThisWeek() {
-                return between(
-                        sql`strftime('%W', ${students.dob})`,
-                        sql`strftime('%m-%d', 'weekday 1', 'start of day')`,
-                        sql`strftime('%m-%d', 'weekday 0', 'start of day')`
-                );
         }
 
         find(q: StudentQuery): Promise<Student[]> {

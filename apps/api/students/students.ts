@@ -3,6 +3,11 @@ import log from 'encore.dev/log';
 import { StudentParam, StudentQuery } from '../schema/student.js';
 import studentController from './controller.js';
 
+interface ChildrenInfo {
+        fullName: string;
+        dob: string;
+}
+
 interface StudentBody {
         fullName: string;
         birthPlace: string;
@@ -25,19 +30,34 @@ interface StudentBody {
         shortcoming: string;
         policyBeneficiaryGroup: string;
         fatherName: string;
+        fatherDob: string;
         fatherPhoneNumber: string;
         fatherJob: string;
-        fatherJobAddress: string;
+        // fatherJobAddress: string;
         motherName: string;
+        motherDob: string;
         motherPhoneNumber: string;
         motherJob: string;
-        motherJobAddress: string;
+        // motherJobAddress: string;
+        isMarried: boolean;
+        spouseName: string;
+        spouseDob: string;
+        spouseJob: string;
+        spousePhoneNumber: string;
+        familySize: number;
+        familyBackground: string;
+        familyBirthOrder: string;
+        achievement: string;
+        disciplinaryHistory: string;
+        childrenInfos: ChildrenInfo[];
         phone: string;
         classId: number;
 }
 
 interface StudentDBResponse extends StudentBody {
         id: number;
+        createdAt: string;
+        updatedAt: string;
 }
 
 interface StudentResponse extends StudentDBResponse {
@@ -68,6 +88,27 @@ export const CreateStudent = api(
         }
 );
 
+interface StudentBulkBody {
+        data: StudentBody[];
+}
+
+export const CreateStudents = api(
+        { expose: true, method: 'POST', path: '/students/bulk' },
+        async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
+                const studentParams = body.data.map(
+                        (b) => ({ ...b }) as StudentParam
+                );
+
+                const createdStudent =
+                        await studentController.create(studentParams);
+
+                const resp = createdStudent.map(
+                        (s) => ({ ...s }) as StudentDBResponse
+                );
+
+                return { data: resp };
+        }
+);
 interface GetStudentsResponse {
         data: StudentResponse[];
 }
