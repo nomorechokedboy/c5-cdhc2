@@ -2,6 +2,7 @@ import { STEPS } from '@/data';
 import { useAppForm } from '@/hooks/demo.form';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
+import ParentInfoStep from '@/components/parent-info-step';
 import FamilyStep from '@/components/family-step';
 import PersonalStep from '@/components/personal-step';
 import ReviewStep from '@/components/review-step';
@@ -45,6 +46,10 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                 },
         });
 
+        const handleResetStep = () => {
+                setCurrentStep(0);
+                setCompletedSteps([]);
+        };
         const form = useAppForm({
                 defaultValues: {
                         fullName: '',
@@ -58,7 +63,7 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                         ethnic: '',
                         religion: '',
                         enlistmentPeriod: '',
-                        politicalOrg: '',
+                        politicalOrg: 'hcyu',
                         politicalOrgOfficialDate: '',
                         cpvId: '',
                         educationLevel: '',
@@ -69,17 +74,34 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                         shortcoming: '',
                         policyBeneficiaryGroup: '',
                         fatherName: '',
-                        fatherPhoneNumber: '',
+                        fatherDob: '',
                         fatherJob: '',
-                        fatherJobAddress: '',
+                        fatherPhoneNumber: '',
                         motherName: '',
-                        motherPhoneNumber: '',
+                        motherDob: '',
                         motherJob: '',
-                        motherJobAddress: '',
+                        motherPhoneNumber: '',
+                        isMarried: false,
+                        spouseName: '',
+                        spouseJob: '',
+                        spouseDob: '',
+                        spousePhoneNumber: '',
+                        childrenInfos: [],
+                        familySize: 0,
+                        familyBackground: '',
+                        familyBirthOrder: '',
+                        achievement: '',
+                        disciplinaryHistory: '',
                         phone: '',
                         classId: 0,
                 },
-                onSubmit: async ({ value }: { value: any }) => {
+                onSubmit: async ({
+                        value,
+                        formApi,
+                }: {
+                        value: any;
+                        formApi: any;
+                }) => {
                         try {
                                 console.log(value);
                                 const classId = value.classId;
@@ -87,17 +109,21 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
 
                                 const dob = value.dob;
                                 value.dob = convertToIso(dob);
+                                if (value.spouseName !== '') {
+                                        value.isMarried = true;
+                                }
 
                                 await mutateAsync(value);
+                                setOpen(false);
                                 toast.success(
                                         'Thêm mới học viên thành công!',
                                         {}
                                 );
+                                formApi.reset();
+                                handleResetStep();
                         } catch (err) {
                                 console.error(err);
                                 toast.error('Thêm mới học viên thất bại!');
-                        } finally {
-                                setOpen(false);
                         }
                 },
         });
@@ -172,8 +198,10 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                         case 1:
                                 return <MilitaryStep form={form} />;
                         case 2:
-                                return <FamilyStep form={form} />;
+                                return <ParentInfoStep form={form} />;
                         case 3:
+                                return <FamilyStep form={form} />;
+                        case 4:
                                 return (
                                         <ReviewStep
                                                 values={form.state.values}

@@ -5,19 +5,12 @@ export default function MilitaryStep({ form }: { form: any }) {
 
         return (
                 <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                                <form.AppField name="previousUnit">
+                        <div className="grid grid-cols-3 gap-6">
+                                <form.AppField name="rank">
                                         {(field: any) => (
-                                                <field.TextField label="Đơn vị cũ" />
+                                                <field.TextField label="Cấp bậc" />
                                         )}
                                 </form.AppField>
-                                <form.AppField name="previousPosition">
-                                        {(field: any) => (
-                                                <field.TextField label="Chức vụ công tác tại đơn vị cũ" />
-                                        )}
-                                </form.AppField>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <form.AppField name="enlistmentPeriod">
                                         {(field: any) => (
                                                 <field.TextField label="Ngày nhập ngũ" />
@@ -26,6 +19,18 @@ export default function MilitaryStep({ form }: { form: any }) {
                                 <form.AppField name="policyBeneficiaryGroup">
                                         {(field: any) => (
                                                 <field.TextField label="Diện chính sách" />
+                                        )}
+                                </form.AppField>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <form.AppField name="previousUnit">
+                                        {(field: any) => (
+                                                <field.TextField label="Đơn vị cũ" />
+                                        )}
+                                </form.AppField>
+                                <form.AppField name="previousPosition">
+                                        {(field: any) => (
+                                                <field.TextField label="Chức vụ công tác tại đơn vị cũ" />
                                         )}
                                 </form.AppField>
                         </div>
@@ -89,6 +94,20 @@ export default function MilitaryStep({ form }: { form: any }) {
                                 <form.AppField name="shortcoming">
                                         {(field: any) => (
                                                 <field.TextArea label="Sở đoản" />
+                                        )}
+                                </form.AppField>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                                <form.AppField name="achievement">
+                                        {(field: any) => (
+                                                <field.TextArea label="Thành tích" />
+                                        )}
+                                </form.AppField>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                                <form.AppField name="disciplinaryHistory">
+                                        {(field: any) => (
+                                                <field.TextArea label="Kỷ luật" />
                                         )}
                                 </form.AppField>
                         </div>

@@ -1,76 +1,48 @@
-export default function FamilyStep({ form }: { form: any }) {
+import ChildrenInfo from './children-info';
+
+export interface FamilyStepProps {
+        form: any;
+}
+
+export default function FamilyStep({ form }: FamilyStepProps) {
         return (
                 <div className="space-y-8">
-                        {/* Father Information */}
                         <div className="space-y-6">
                                 <h3 className="text-lg font-semibold border-b border-border pb-2">
-                                        Thông tin về cha
+                                        Thông tin về vợ/chồng
                                 </h3>
 
-                                {/* Father Name and Phone - Two Columns */}
+                                {/* Spouse Name and Phone - Two Columns */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <form.AppField name="fatherName">
+                                        <form.AppField name="spouseName">
                                                 {(field: any) => (
-                                                        <field.TextField label="Tên cha" />
+                                                        <field.TextField label="Tên vợ/chồng" />
                                                 )}
                                         </form.AppField>
-
-                                        <form.AppField name="fatherPhoneNumber">
+                                        <form.AppField name="spouseDob">
                                                 {(field: any) => (
-                                                        <field.TextField label="Số điện thoại cha" />
+                                                        <field.DatePicker label="Ngày sinh của vợ/chồng" />
                                                 )}
                                         </form.AppField>
                                 </div>
 
-                                {/* Father Job - Full Width */}
+                                {/* spouse Job - Full Width */}
                                 <div className="grid grid-cols-2 gap-6">
-                                        <form.AppField name="fatherJob">
+                                        <form.AppField name="spousePhoneNumber">
                                                 {(field: any) => (
-                                                        <field.TextField label="Nghề nghiệp cha" />
+                                                        <field.TextField label="Số điện thoại vợ/chồng" />
                                                 )}
                                         </form.AppField>
-                                        <form.AppField name="fatherJobAddress">
+                                        <form.AppField name="spouseJob">
                                                 {(field: any) => (
-                                                        <field.TextField label="Địa chỉ công việc cha" />
+                                                        <field.TextField label="Nghề nghiệp vợ/chồng" />
                                                 )}
                                         </form.AppField>
                                 </div>
                         </div>
 
-                        {/* Mother Information */}
                         <div className="space-y-6">
-                                <h3 className="text-lg font-semibold border-b border-border pb-2">
-                                        Thông tin về mẹ
-                                </h3>
-
-                                {/* Mother Name and Phone - Two Columns */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <form.AppField name="motherName">
-                                                {(field: any) => (
-                                                        <field.TextField label="Tên mẹ" />
-                                                )}
-                                        </form.AppField>
-
-                                        <form.AppField name="motherPhoneNumber">
-                                                {(field: any) => (
-                                                        <field.TextField label="Số điện thoại mẹ" />
-                                                )}
-                                        </form.AppField>
-                                </div>
-
-                                {/* Mother Job - Full Width */}
-                                <div className="grid grid-cols-2 gap-6">
-                                        <form.AppField name="motherJob">
-                                                {(field: any) => (
-                                                        <field.TextField label="Nghề nghiệp mẹ" />
-                                                )}
-                                        </form.AppField>
-                                        <form.AppField name="motherJobAddress">
-                                                {(field: any) => (
-                                                        <field.TextField label="Địa chỉ công việc mẹ" />
-                                                )}
-                                        </form.AppField>
-                                </div>
+                                <ChildrenInfo form={form} />
                         </div>
                 </div>
         );

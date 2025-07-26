@@ -133,3 +133,8 @@ export interface StudentQueryParams {
         birthdayInWeek?: boolean;
         isMarried?: boolean;
 }
+
+export type ChildrenInfo = {
+        fullName: string;
+        dob: string;
+};
