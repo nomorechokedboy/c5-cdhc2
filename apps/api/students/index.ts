@@ -3,6 +3,7 @@ import {
         StudentDB,
         StudentParam,
         StudentQuery,
+        UpdateStudentMap,
 } from '../schema/student.js';
 
 export interface Repository {
@@ -10,5 +11,5 @@ export interface Repository {
         delete(students: StudentDB[]): Promise<StudentDB[]>;
         find(q: StudentQuery): Promise<Student[]>;
         findOne(c: StudentDB): Promise<Student>;
-        update(params: StudentDB[]): Promise<StudentDB[]>;
+        update(params: UpdateStudentMap): Promise<StudentDB[]>;
 }

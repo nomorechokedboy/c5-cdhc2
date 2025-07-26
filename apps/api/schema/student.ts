@@ -97,3 +97,8 @@ export type StudentQuery = {
         birthdayInWeek?: boolean;
         isMarried?: boolean;
 };
+
+export type UpdateStudentMap = {
+        id: number;
+        updatePayload: { [k: string]: any };
+}[];
