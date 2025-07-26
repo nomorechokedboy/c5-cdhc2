@@ -49,6 +49,11 @@ class StudentSqliteRepo implements Repository {
                 return sql`strftime('%m', ${students.dob}) = ${month}`;
         }
 
+        private birthdayThisWeek() {
+                return sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${students.dob})) 
+        BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`;
+        }
+
         find(q: StudentQuery): Promise<Student[]> {
                 const baseQuery = this.db
                         .select()
@@ -83,10 +88,7 @@ class StudentSqliteRepo implements Repository {
                 }
 
                 if (isBirthdayInWeekExist && q.birthdayInWeek === true) {
-                        whereConds.push(
-                                sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${students.dob})) 
-        BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
-                        );
+                        whereConds.push(this.birthdayThisWeek());
                 }
 
                 const isWhereCondEmpty = whereConds.length === 0;
