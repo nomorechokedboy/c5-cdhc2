@@ -7,6 +7,7 @@ import * as ShadcnSelect from '@/components/ui/select';
 import { Slider as ShadcnSlider } from '@/components/ui/slider';
 import { Switch as ShadcnSwitch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { JSX } from 'react';
 
 export function SubscribeButton({
         label,
@@ -56,15 +57,11 @@ export function ErrorMessages({
         );
 }
 
-export function TextField({
-        label,
-        placeholder,
-        className,
-}: {
+export type TextFieldProps = JSX.IntrinsicElements['input'] & {
         label: string;
-        placeholder?: string;
-        className?: string;
-}) {
+};
+
+export function TextField({ label, className, ...inputProps }: TextFieldProps) {
         const field = useFieldContext<string>();
         const errors = useStore(field.store, (state) => state.meta.errors);
 
@@ -78,11 +75,11 @@ export function TextField({
                         </Label>
                         <Input
                                 value={field.state.value}
-                                placeholder={placeholder}
                                 onBlur={field.handleBlur}
                                 onChange={(e) =>
                                         field.handleChange(e.target.value)
                                 }
+                                {...inputProps}
                         />
                         {field.state.meta.isTouched && (
                                 <ErrorMessages errors={errors} />
