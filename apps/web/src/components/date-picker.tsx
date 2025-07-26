@@ -84,6 +84,75 @@ function parseDate(dateString: string): Date | undefined {
         return isValidDate(date) ? date : undefined;
 }
 
+// Function to apply date mask formatting
+function applyDateMask(value: string, previousValue: string = ''): string {
+        // Remove all non-digit characters
+        const digitsOnly = value.replace(/\D/g, '');
+
+        // Don't allow more than 8 digits
+        const truncated = digitsOnly.slice(0, 8);
+
+        // Apply formatting based on length
+        if (truncated.length === 0) return '';
+        if (truncated.length <= 2) return truncated;
+        if (truncated.length <= 4)
+                return `${truncated.slice(0, 2)}/${truncated.slice(2)}`;
+        return `${truncated.slice(0, 2)}/${truncated.slice(2, 4)}/${truncated.slice(4)}`;
+}
+
+// Function to get cursor position after mask is applied
+function getCursorPosition(
+        inputValue: string,
+        maskedValue: string,
+        currentCursor: number
+): number {
+        // Count digits before cursor position in input
+        const digitsBeforeCursor = inputValue
+                .slice(0, currentCursor)
+                .replace(/\D/g, '').length;
+
+        // Find position in masked value that corresponds to the same number of digits
+        let digitCount = 0;
+        let position = 0;
+
+        for (let i = 0; i < maskedValue.length; i++) {
+                if (/\d/.test(maskedValue[i])) {
+                        digitCount++;
+                        if (digitCount === digitsBeforeCursor) {
+                                position = i + 1;
+                                break;
+                        }
+                }
+                if (digitCount === 0) {
+                        position = i;
+                }
+        }
+
+        // If we're at the end, place cursor at the end
+        if (digitCount < digitsBeforeCursor) {
+                position = maskedValue.length;
+        }
+
+        return position;
+}
+
+// Function to validate if date format is complete and valid
+function validateDateFormat(value: string, label: string): string | null {
+        // Check if format is complete (should be exactly dd/mm/yyyy)
+        const ddmmyyyyRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!ddmmyyyyRegex.test(value)) {
+                return `Hãy nhập ${label} theo định dạng dd/mm/yyyy`;
+        }
+
+        // Check if it's a valid date
+        const date = parseDate(value);
+        if (!date) {
+                return 'Vui lòng nhập một ngày hợp lệ';
+        }
+
+        return null; // No error
+}
+
 export interface DatePickerProps {
         label: string;
         placeholder?: string;
@@ -93,6 +162,8 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
         const field = useFieldContext<string>();
         const errors = useStore(field.store, (state) => state.meta.errors);
         const [open, setOpen] = React.useState(false);
+        const inputRef = React.useRef<HTMLInputElement>(null);
+        const [localError, setLocalError] = React.useState<string | null>(null);
 
         // Parse the field value to get the current date
         const currentDate = React.useMemo(() => {
@@ -110,14 +181,95 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
                 }
         }, [currentDate]);
 
+        // Validate on blur or value change
+        const validateInput = React.useCallback((value: string) => {
+                const error = validateDateFormat(value, label);
+                setLocalError(error);
+                return error;
+        }, []);
+
         const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 const inputValue = e.target.value;
-                field.handleChange(inputValue);
+                const currentCursor = e.target.selectionStart || 0;
+                const previousValue = field.state.value;
+
+                // Apply mask formatting
+                const maskedValue = applyDateMask(inputValue, previousValue);
+
+                // Update field value
+                field.handleChange(maskedValue);
+
+                // Clear local error when user is typing (to avoid annoying real-time validation)
+                setLocalError(null);
 
                 // Update month if valid date is entered
-                const date = parseDate(inputValue);
+                const date = parseDate(maskedValue);
                 if (date) {
                         setMonth(date);
+                }
+
+                // Set cursor position after mask is applied
+                React.startTransition(() => {
+                        const newCursorPosition = getCursorPosition(
+                                inputValue,
+                                maskedValue,
+                                currentCursor
+                        );
+                        setTimeout(() => {
+                                if (inputRef.current) {
+                                        inputRef.current.setSelectionRange(
+                                                newCursorPosition,
+                                                newCursorPosition
+                                        );
+                                }
+                        }, 0);
+                });
+        };
+
+        const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+                field.handleBlur();
+                // Validate on blur
+                validateInput(field.state.value);
+        };
+
+        const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setOpen(true);
+                        return;
+                }
+
+                // Handle backspace to remove slashes properly
+                if (e.key === 'Backspace') {
+                        const input = e.target as HTMLInputElement;
+                        const cursorPosition = input.selectionStart || 0;
+                        const value = input.value;
+
+                        // If cursor is right after a slash, move cursor back to delete the digit before slash
+                        if (
+                                cursorPosition > 0 &&
+                                value[cursorPosition - 1] === '/'
+                        ) {
+                                e.preventDefault();
+                                const newValue =
+                                        value.slice(0, cursorPosition - 2) +
+                                        value.slice(cursorPosition);
+                                const maskedValue = applyDateMask(newValue);
+                                field.handleChange(maskedValue);
+
+                                setTimeout(() => {
+                                        if (inputRef.current) {
+                                                const newCursor = Math.max(
+                                                        0,
+                                                        cursorPosition - 2
+                                                );
+                                                inputRef.current.setSelectionRange(
+                                                        newCursor,
+                                                        newCursor
+                                                );
+                                        }
+                                }, 0);
+                        }
                 }
         };
 
@@ -126,9 +278,18 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
                         const formattedDate = formatDate(date);
                         field.handleChange(formattedDate);
                         setMonth(date);
+                        // Clear error when date is selected from calendar
+                        setLocalError(null);
                 }
                 setOpen(false);
         };
+
+        // Combine form errors with local validation errors
+        const allErrors = React.useMemo(() => {
+                const formErrors = Array.isArray(errors) ? errors : [];
+                const localErrors = localError ? [localError] : [];
+                return [...formErrors, ...localErrors];
+        }, [errors, localError]);
 
         return (
                 <div className="flex flex-col gap-2">
@@ -137,20 +298,17 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
                         </Label>
                         <div className="relative flex gap-2">
                                 <Input
+                                        ref={inputRef}
                                         id={label}
                                         value={field.state.value}
                                         placeholder={
                                                 placeholder || 'dd/mm/yyyy'
                                         }
                                         className="bg-background pr-10"
-                                        onBlur={field.handleBlur}
+                                        onBlur={handleBlur}
                                         onChange={handleInputChange}
-                                        onKeyDown={(e) => {
-                                                if (e.key === 'ArrowDown') {
-                                                        e.preventDefault();
-                                                        setOpen(true);
-                                                }
-                                        }}
+                                        onKeyDown={handleKeyDown}
+                                        maxLength={10} // dd/mm/yyyy = 10 characters
                                 />
                                 <Popover open={open} onOpenChange={setOpen}>
                                         <PopoverTrigger asChild>
@@ -184,8 +342,8 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
                                         </PopoverContent>
                                 </Popover>
                         </div>
-                        {field.state.meta.isTouched && (
-                                <ErrorMessages errors={errors} />
+                        {field.state.meta.isTouched && allErrors.length > 0 && (
+                                <ErrorMessages errors={allErrors} />
                         )}
                 </div>
         );
