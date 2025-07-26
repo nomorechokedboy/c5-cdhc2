@@ -12,6 +12,7 @@ import {
         StudentParam,
         StudentQuery,
         students,
+        UpdateStudentMap,
 } from '../schema/student.js';
 import { handleDatabaseErr } from '../utils/index.js';
 import { Repository } from './index.js';
@@ -125,8 +126,26 @@ class StudentSqliteRepo implements Repository {
                 throw new Error('Method not implemented');
         }
 
-        update(params: StudentDB[]): Promise<StudentDB[]> {
-                throw new Error('Method not implemented');
+        update(params: UpdateStudentMap): Promise<StudentDB[]> {
+                return this.db
+                        .transaction(async (tx) => {
+                                const updatedRecords = [];
+
+                                for (const { id, updatePayload } of params) {
+                                        const updated = await tx
+                                                .update(students)
+                                                .set(updatePayload)
+                                                .where(eq(students.id, id))
+                                                .returning();
+
+                                        if (updated.length > 0) {
+                                                updatedRecords.push(updated[0]);
+                                        }
+                                }
+
+                                return updatedRecords;
+                        })
+                        .catch(handleDatabaseErr);
         }
 }
 
