@@ -168,3 +168,24 @@ export const DeleteStudents = api(
                 return { ids: body.ids };
         }
 );
+
+interface UpdatePayload extends Partial<StudentBody> {
+        id: number;
+}
+
+interface UpdateStudentBody {
+        data: UpdatePayload[];
+}
+
+export const UpdateStudents = api(
+        { expose: true, method: 'PATCH', path: '/students' },
+        async (body: UpdateStudentBody) => {
+                const students: StudentDB[] = body.data.map(
+                        (s) => ({ ...s }) as StudentDB
+                );
+
+                await studentController.update(students);
+
+                return {};
+        }
+);
