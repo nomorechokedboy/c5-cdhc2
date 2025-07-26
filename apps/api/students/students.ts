@@ -1,6 +1,6 @@
 import { api } from 'encore.dev/api';
 import log from 'encore.dev/log';
-import { StudentParam, StudentQuery } from '../schema/student.js';
+import { StudentDB, StudentParam, StudentQuery } from '../schema/student.js';
 import studentController from './controller.js';
 
 interface ChildrenInfo {
@@ -144,5 +144,27 @@ export const GetStudents = api(
                 );
 
                 return { data: resp };
+        }
+);
+
+interface DeleteStudentRequest {
+        ids: number[];
+}
+
+interface DeleteStudentResponse {
+        ids: number[];
+}
+
+export const DeleteStudents = api(
+        { expose: true, method: 'DELETE', path: '/students' },
+        async (body: DeleteStudentRequest): Promise<DeleteStudentResponse> => {
+                log.trace('students.DeleteStudents body', { body });
+
+                const students: StudentDB[] = body.ids.map(
+                        (id) => ({ id }) as StudentDB
+                );
+                await studentController.delete(students);
+
+                return { ids: body.ids };
         }
 );

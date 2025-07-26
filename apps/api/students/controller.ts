@@ -19,6 +19,12 @@ export class Controller {
                 return createdStudent;
         }
 
+        async delete(students: StudentDB[]) {
+                return await this.repo
+                        .delete(students)
+                        .catch(AppError.handleAppErr);
+        }
+
         async find(q: StudentQuery): Promise<Student[]> {
                 const resp = await await this.repo
                         .find(q)
