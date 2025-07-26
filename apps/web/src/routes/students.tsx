@@ -1,6 +1,5 @@
 import { DataTable } from '@/components/data-table';
 import { columns } from '@/components/student-table/columns';
-import { UserNav } from '@/components/data-table/user-nav';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import StudentForm from '@/components/student-form';
@@ -87,9 +86,6 @@ function StudentPage() {
                                                         Đây là danh sách học
                                                         viên của đại đội
                                                 </p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                                <UserNav />
                                         </div>
                                 </div>
                                 <DataTable
