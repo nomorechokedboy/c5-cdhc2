@@ -2,10 +2,12 @@ import type {
         Class,
         ClassBody,
         ClassResponse,
+        DeleteStudentsBody,
         Student,
         StudentBody,
         StudentQueryParams,
         StudentResponse,
+        UpdateStudentsBody,
 } from '@/types';
 import axios from 'axios';
 
@@ -77,4 +79,14 @@ export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
                         params,
                 })
                 .then((resp) => resp.data.data);
+}
+
+export function DeleteStudents(params: DeleteStudentsBody) {
+        return axios.delete('http://localhost:4000/students', { params });
+}
+
+export function UpdateStudents(params: UpdateStudentsBody) {
+        return axios
+                .patch('http://localhost:4000/students', params)
+                .then((resp) => resp.data);
 }

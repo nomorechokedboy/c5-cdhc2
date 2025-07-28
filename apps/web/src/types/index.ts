@@ -1,5 +1,4 @@
-export interface Class {
-        id: number;
+export interface Class extends Base {
         name: string;
         description: string;
 }
@@ -11,10 +10,7 @@ export interface ClassBody {
 
 export type PoliticalOrg = 'hcyu' | 'cpv';
 
-export type StudentBody = Omit<Student, 'id'>;
-
-export interface Student {
-        id: number;
+export type StudentBody = {
         fullName: string;
         birthPlace: string;
         address: string;
@@ -25,13 +21,13 @@ export interface Student {
         enlistmentPeriod: string;
         ethnic: string;
         fatherJob: string;
-        fatherJobAddress: string;
+        fatherDob: string;
         fatherName: string;
         fatherPhoneNumber: string;
         isGraduated: boolean;
         major: string;
         motherJob: string;
-        motherJobAddress: string;
+        motherDob: string;
         motherName: string;
         motherPhoneNumber: string;
         phone: string;
@@ -46,7 +42,25 @@ export interface Student {
         schoolName: string;
         shortcoming: string;
         talent: string;
-}
+        isMarried: boolean;
+        spouseName: string;
+        spouseDob: string;
+        spousePhoneNumber: string;
+        childrenInfos: ChildrenInfo[];
+        familySize: number;
+        familyBackground: string;
+        familyBirthOrder: string;
+        achievement: string;
+        disciplinaryHistory: string;
+};
+
+type Base = {
+        id: number;
+        createdAt: string;
+        updatedAt: string;
+};
+
+export interface Student extends Base, StudentBody {}
 
 export interface StudentProto {
         TT: number;
@@ -137,4 +151,14 @@ export interface StudentQueryParams {
 export type ChildrenInfo = {
         fullName: string;
         dob: string;
+};
+
+export type DeleteStudentsBody = {
+        ids: number[];
+};
+
+export type UpdateStudentBody = Partial<StudentBody> & { id: number };
+
+export type UpdateStudentsBody = {
+        data: UpdateStudentBody[];
 };
