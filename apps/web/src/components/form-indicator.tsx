@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { EllipsisText } from './data-table/ellipsis-text';
 
 export interface StepIndicatorProps {
         STEPS: { id: string; title: string; fields: string[] }[];
@@ -52,9 +53,9 @@ export default function ({
                                                         />
                                                 )}
                                         </div>
-                                        <span className="text-xs mt-2 text-center font-medium text-muted-foreground">
+                                        <EllipsisText className="text-xs mt-2 text-center font-medium text-muted-foreground">
                                                 {step.title}
-                                        </span>
+                                        </EllipsisText>
                                 </div>
                         ))}
                 </div>
