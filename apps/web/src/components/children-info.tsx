@@ -36,7 +36,7 @@ export default function ChildrenInfo({ form }: ChildrenInfoProps) {
                                                                                                 .state
                                                                                                 .value
                                                                                                 .length >
-                                                                                                1 && (
+                                                                                                0 && (
                                                                                                 <Button
                                                                                                         type="button"
                                                                                                         variant="ghost"
@@ -163,7 +163,7 @@ export default function ChildrenInfo({ form }: ChildrenInfoProps) {
                                                         className="flex items-center gap-2 bg-transparent"
                                                 >
                                                         <Plus className="h-4 w-4" />
-                                                        Add Another Child
+                                                        Thêm thông tin con cái
                                                 </Button>
                                         </div>
 
