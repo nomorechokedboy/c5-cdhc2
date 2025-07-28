@@ -14,22 +14,23 @@ import {
         SidebarRail,
 } from '@/components/ui/sidebar';
 import { Link } from '@tanstack/react-router';
+import StudentForm from './student-form';
 
 // This is sample data.
 const data = {
         versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
         navMain: [
-                {
-                        title: 'Quản lý chung',
-                        url: '#',
-                        items: [
-                                {
-                                        title: 'Tổng quan',
-                                        url: '#',
-                                },
-                                ,
-                        ],
-                },
+                // {
+                //         title: 'Quản lý chung',
+                //         url: '#',
+                //         items: [
+                //                 {
+                //                         title: 'Tổng quan',
+                //                         url: '#',
+                //                 },
+                //                 ,
+                //         ],
+                // },
                 {
                         title: 'Quản lý đơn vị',
                         url: '#',
@@ -44,21 +45,52 @@ const data = {
                                 },
                         ],
                 },
+                {       
+                        title: 'Thống kê học viên',
+                        url: '#',
+                        items: [
+                                {
+                                        title: 'Đảng viên',
+                                        url: '/cpv',
+                                },
+                                {
+                                        title: 'Đoàn viên',
+                                        url: '/hcyu',
+                                },
+                        ],
+                },
+                {       
+                        title: 'Sinh nhật học viên',
+                        url: '#',
+                        items: [
+                                {
+                                        title: 'Trong tháng',
+                                        url: '/birthday',
+                                },
+                                {
+                                        title: 'Trong tuần',
+                                        url: '/birthday-week',
+                                },
+                        ],
+                },
         ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         return (
                 <Sidebar {...props}>
-                        <SidebarHeader>
+                        {/* <SidebarHeader>
                                 <VersionSwitcher
                                         versions={data.versions}
                                         defaultVersion={data.versions[0]}
                                 />
                                 <SearchForm />
-                        </SidebarHeader>
+                        </SidebarHeader> */}
                         <SidebarContent>
                                 {/* We create a SidebarGroup for each parent. */}
+                                <div className='p-4 w-full'>
+                                        <StudentForm onSuccess={() => {}} />
+                                </div>
                                 {data.navMain.map((item) => (
                                         <SidebarGroup key={item.title}>
                                                 <SidebarGroupLabel>

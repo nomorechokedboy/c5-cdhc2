@@ -11,10 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TableRouteImport } from './routes/table'
 import { Route as StudentsRouteImport } from './routes/students'
-import { Route as ClassesRouteImport } from './routes/classes'
+import { Route as HcyuRouteImport } from './routes/hcyu'
+import { Route as CpvRouteImport } from './routes/cpv'
+import { Route as BirthdayWeekRouteImport } from './routes/birthday-week'
+import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClassesIndexRouteImport } from './routes/classes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
+import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
 
@@ -28,14 +33,34 @@ const StudentsRoute = StudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClassesRoute = ClassesRouteImport.update({
-  id: '/classes',
-  path: '/classes',
+const HcyuRoute = HcyuRouteImport.update({
+  id: '/hcyu',
+  path: '/hcyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpvRoute = CpvRouteImport.update({
+  id: '/cpv',
+  path: '/cpv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BirthdayWeekRoute = BirthdayWeekRouteImport.update({
+  id: '/birthday-week',
+  path: '/birthday-week',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BirthdayRoute = BirthdayRouteImport.update({
+  id: '/birthday',
+  path: '/birthday',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesIndexRoute = ClassesIndexRouteImport.update({
+  id: '/classes/',
+  path: '/classes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -46,6 +71,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 const DemoTableRoute = DemoTableRouteImport.update({
   id: '/demo/table',
   path: '/demo/table',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
+  id: '/classes/$classId',
+  path: '/classes/$classId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
@@ -61,32 +91,47 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/classes': typeof ClassesRoute
+  '/birthday': typeof BirthdayRoute
+  '/birthday-week': typeof BirthdayWeekRoute
+  '/cpv': typeof CpvRoute
+  '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
+  '/classes/$classId': typeof ClassesClassIdRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/classes': typeof ClassesIndexRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/classes': typeof ClassesRoute
+  '/birthday': typeof BirthdayRoute
+  '/birthday-week': typeof BirthdayWeekRoute
+  '/cpv': typeof CpvRoute
+  '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
+  '/classes/$classId': typeof ClassesClassIdRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/classes': typeof ClassesIndexRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/classes': typeof ClassesRoute
+  '/birthday': typeof BirthdayRoute
+  '/birthday-week': typeof BirthdayWeekRoute
+  '/cpv': typeof CpvRoute
+  '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
+  '/classes/$classId': typeof ClassesClassIdRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/classes/': typeof ClassesIndexRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
@@ -94,42 +139,62 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/classes'
+    | '/birthday'
+    | '/birthday-week'
+    | '/cpv'
+    | '/hcyu'
     | '/students'
     | '/table'
+    | '/classes/$classId'
     | '/demo/table'
     | '/demo/tanstack-query'
+    | '/classes'
     | '/demo/form/address'
     | '/demo/form/simple'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/classes'
+    | '/birthday'
+    | '/birthday-week'
+    | '/cpv'
+    | '/hcyu'
     | '/students'
     | '/table'
+    | '/classes/$classId'
     | '/demo/table'
     | '/demo/tanstack-query'
+    | '/classes'
     | '/demo/form/address'
     | '/demo/form/simple'
   id:
     | '__root__'
     | '/'
-    | '/classes'
+    | '/birthday'
+    | '/birthday-week'
+    | '/cpv'
+    | '/hcyu'
     | '/students'
     | '/table'
+    | '/classes/$classId'
     | '/demo/table'
     | '/demo/tanstack-query'
+    | '/classes/'
     | '/demo/form/address'
     | '/demo/form/simple'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ClassesRoute: typeof ClassesRoute
+  BirthdayRoute: typeof BirthdayRoute
+  BirthdayWeekRoute: typeof BirthdayWeekRoute
+  CpvRoute: typeof CpvRoute
+  HcyuRoute: typeof HcyuRoute
   StudentsRoute: typeof StudentsRoute
   TableRoute: typeof TableRoute
+  ClassesClassIdRoute: typeof ClassesClassIdRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  ClassesIndexRoute: typeof ClassesIndexRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
 }
@@ -150,11 +215,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/classes': {
-      id: '/classes'
-      path: '/classes'
-      fullPath: '/classes'
-      preLoaderRoute: typeof ClassesRouteImport
+    '/hcyu': {
+      id: '/hcyu'
+      path: '/hcyu'
+      fullPath: '/hcyu'
+      preLoaderRoute: typeof HcyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cpv': {
+      id: '/cpv'
+      path: '/cpv'
+      fullPath: '/cpv'
+      preLoaderRoute: typeof CpvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/birthday-week': {
+      id: '/birthday-week'
+      path: '/birthday-week'
+      fullPath: '/birthday-week'
+      preLoaderRoute: typeof BirthdayWeekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/birthday': {
+      id: '/birthday'
+      path: '/birthday'
+      fullPath: '/birthday'
+      preLoaderRoute: typeof BirthdayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -162,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes/': {
+      id: '/classes/'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -176,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/demo/table'
       fullPath: '/demo/table'
       preLoaderRoute: typeof DemoTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes/$classId': {
+      id: '/classes/$classId'
+      path: '/classes/$classId'
+      fullPath: '/classes/$classId'
+      preLoaderRoute: typeof ClassesClassIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/form/simple': {
@@ -197,11 +297,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ClassesRoute: ClassesRoute,
+  BirthdayRoute: BirthdayRoute,
+  BirthdayWeekRoute: BirthdayWeekRoute,
+  CpvRoute: CpvRoute,
+  HcyuRoute: HcyuRoute,
   StudentsRoute: StudentsRoute,
   TableRoute: TableRoute,
+  ClassesClassIdRoute: ClassesClassIdRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  ClassesIndexRoute: ClassesIndexRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
 }
