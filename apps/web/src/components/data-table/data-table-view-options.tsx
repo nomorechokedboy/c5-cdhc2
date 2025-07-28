@@ -1,4 +1,4 @@
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Table } from '@tanstack/react-table';
 import { Settings2 } from 'lucide-react';
 
@@ -58,6 +58,9 @@ export function DataTableViewOptions<TData>({
                                                                         column.toggleVisibility(
                                                                                 !!value
                                                                         )
+                                                                }
+                                                                onSelect={(e) =>
+                                                                        e.preventDefault()
                                                                 }
                                                         >
                                                                 {column

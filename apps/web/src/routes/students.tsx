@@ -95,6 +95,7 @@ function StudentPage() {
                                                 isGraduated: false,
                                                 major: false,
                                                 phone: false,
+                                                position: false,
                                                 policyBeneficiaryGroup: false,
                                                 politicalOrg: false,
                                                 politicalOrgOfficialDate: false,

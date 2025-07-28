@@ -3,8 +3,8 @@ import type { Student } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '../data-table/data-table-column-header';
-import { EllipsisText } from '../data-table/ellipsis-text';
 import { DataTableRowActions } from '../data-table/data-table-row-actions';
+import EditableCell from '../data-table/editable-cell';
 
 function isoToDdMmYyyy(isoDate: string): string {
         const [year, month, day] = isoDate.split('-');
@@ -41,11 +41,7 @@ export const baseStudentsColumns: ColumnDef<Student>[] = [
                                 title="Họ và tên"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="font-medium min-w-32">
-                                {row.getValue('fullName')}
-                        </div>
-                ),
+                cell: EditableCell,
                 meta: {
                         label: 'Họ và tên',
                 },
@@ -98,11 +94,7 @@ export const columns: ColumnDef<Student>[] = [
         {
                 accessorKey: 'birthPlace',
                 header: 'Quê quán',
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('birthPlace')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 meta: {
                         label: 'Quê quán',
                 },
@@ -115,15 +107,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Trú quán"
                         />
                 ),
-                cell: ({ row }) => {
-                        return (
-                                <EllipsisText>
-                                        {row.getValue('address') || (
-                                                <Badge>N/A</Badge>
-                                        )}
-                                </EllipsisText>
-                        );
-                },
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Trú quán',
@@ -179,9 +163,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Chuyên ngành"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>{row.getValue('major')}</EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Chuyên ngành',
@@ -195,9 +177,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Số điện thoại"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-28">{row.getValue('phone')}</div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Số điện thoại',
@@ -211,11 +191,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Đối tượng chính sách"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('policyBeneficiaryGroup')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Đối tượng chính sách',
@@ -281,9 +257,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Số thẻ Đảng"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-28">{row.getValue('cpvId')}</div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Số thẻ Đảng',
@@ -297,11 +271,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Chức vụ cũ"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('previousPosition')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Chức vụ cũ',
@@ -336,11 +306,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Tên trường"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('schoolName')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Tên trường',
@@ -354,11 +320,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Khuyết điểm"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('shortcoming')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Khuyết điểm',
@@ -372,9 +334,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Tài năng"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>{row.getValue('talent')}</EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Tài năng',
@@ -401,11 +361,7 @@ export const columns: ColumnDef<Student>[] = [
         {
                 accessorKey: 'position',
                 header: 'Chức vụ',
-                cell: ({ row }) => (
-                        <div className="min-w-20">
-                                {row.getValue('position')}
-                        </div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Chức vụ',
@@ -414,11 +370,7 @@ export const columns: ColumnDef<Student>[] = [
         {
                 accessorKey: 'previousUnit',
                 header: 'Đơn vị cũ',
-                cell: ({ row }) => (
-                        <EllipsisText>
-                                {row.getValue('previousUnit')}
-                        </EllipsisText>
-                ),
+                cell: EditableCell,
                 filterFn: (row, id, value) => {
                         return value.includes(row.getValue(id));
                 },
@@ -464,11 +416,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Họ tên bố"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">
-                                {row.getValue('fatherName')}
-                        </div>
-                ),
+                cell: EditableCell,
                 meta: {
                         label: 'Họ tên bố',
                 },
@@ -481,9 +429,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Nghề nghiệp của bố"
                         />
                 ),
-                cell: ({ row }) => (
-                        <EllipsisText>{row.getValue('fatherJob')}</EllipsisText>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Nghề nghiệp của bố',
@@ -494,11 +440,7 @@ export const columns: ColumnDef<Student>[] = [
                 header: ({ column }) => (
                         <DataTableColumnHeader column={column} title="SĐT bố" />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-28">
-                                {row.getValue('fatherPhoneNumber')}
-                        </div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'SĐT bố',
@@ -512,11 +454,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Họ tên mẹ"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">
-                                {row.getValue('motherName')}
-                        </div>
-                ),
+                cell: EditableCell,
                 meta: {
                         label: 'Họ tên mẹ',
                 },
@@ -529,11 +467,7 @@ export const columns: ColumnDef<Student>[] = [
                                 title="Nghề nghiệp của mẹ"
                         />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-28">
-                                {row.getValue('motherJob')}
-                        </div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'Nghề nghiệp của mẹ',
@@ -562,11 +496,7 @@ export const columns: ColumnDef<Student>[] = [
                 header: ({ column }) => (
                         <DataTableColumnHeader column={column} title="SĐT mẹ" />
                 ),
-                cell: ({ row }) => (
-                        <div className="min-w-28">
-                                {row.getValue('motherPhoneNumber')}
-                        </div>
-                ),
+                cell: EditableCell,
                 enableHiding: true,
                 meta: {
                         label: 'SĐT mẹ',
