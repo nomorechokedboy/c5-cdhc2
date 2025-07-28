@@ -1,6 +1,7 @@
 export interface Class extends Base {
         name: string;
         description: string;
+        studentCount: number
 }
 
 export interface ClassBody {
