@@ -105,7 +105,7 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                                                                 {(
                                                                         field: any
                                                                 ) => (
-                                                                        <field.TextArea label="Description" />
+                                                                        <field.TextArea label="Mô tả về lớp" />
                                                                 )}
                                                         </form.AppField>
                                                 </div>
@@ -113,12 +113,12 @@ export default function ClassForm({ onSuccess }: ClassFormProps) {
                                                 <DialogFooter>
                                                         <DialogClose asChild>
                                                                 <Button variant="outline">
-                                                                        Cancel
+                                                                        Hủy
                                                                 </Button>
                                                         </DialogClose>
 
                                                         <form.AppForm>
-                                                                <form.SubscribeButton label="Submit" />
+                                                                <form.SubscribeButton label="Thêm" />
                                                         </form.AppForm>
                                                 </DialogFooter>
                                         </form>

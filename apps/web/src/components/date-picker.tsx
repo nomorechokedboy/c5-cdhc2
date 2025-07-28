@@ -302,7 +302,7 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
                                         id={label}
                                         value={field.state.value}
                                         placeholder={
-                                                placeholder || 'dd/mm/yyyy'
+                                                placeholder || 'Ngày/tháng/năm'
                                         }
                                         className="bg-background pr-10"
                                         onBlur={handleBlur}

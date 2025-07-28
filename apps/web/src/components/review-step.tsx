@@ -2,13 +2,13 @@ export default function ReviewStep({ values }: { values: any }) {
         return (
                 <div className="space-y-6">
                         <h2 className="text-2xl font-bold text-center mb-8">
-                                Review Your Information
+                                Xem lại thông tin nhập liệu
                         </h2>
                         <div className="space-y-6 bg-muted/50 p-6 rounded-lg border">
                                 {/* Personal Information */}
                                 <div>
                                         <h3 className="font-semibold mb-3 text-lg border-b border-border pb-2">
-                                                Personal Information
+                                                Thông tin cá nhân
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                                 <p>
@@ -118,13 +118,13 @@ export default function ReviewStep({ values }: { values: any }) {
                                 {/* Family Information */}
                                 <div>
                                         <h3 className="font-semibold mb-3 text-lg border-b border-border pb-2">
-                                                Family Information
+                                                Thông tin gia đình
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {/* Father */}
                                                 <div>
                                                         <h4 className="font-medium mb-2">
-                                                                Father
+                                                                Cha
                                                         </h4>
                                                         <div className="space-y-1 text-sm">
                                                                 <p>
@@ -151,7 +151,7 @@ export default function ReviewStep({ values }: { values: any }) {
                                                                                 values.fatherJob
                                                                         }
                                                                 </p>
-                                                                <p>
+                                                                {/* <p>
                                                                         <strong className="text-muted-foreground">
                                                                                 Địa
                                                                                 chỉ
@@ -160,14 +160,14 @@ export default function ReviewStep({ values }: { values: any }) {
                                                                         {
                                                                                 values.fatherJobAdress
                                                                         }
-                                                                </p>
+                                                                </p> */}
                                                         </div>
                                                 </div>
 
                                                 {/* Mother */}
                                                 <div>
                                                         <h4 className="font-medium mb-2">
-                                                                Mother
+                                                                Mẹ
                                                         </h4>
                                                         <div className="space-y-1 text-sm">
                                                                 <p>
@@ -194,7 +194,7 @@ export default function ReviewStep({ values }: { values: any }) {
                                                                                 values.motherJob
                                                                         }
                                                                 </p>
-                                                                <p>
+                                                                {/* <p>
                                                                         <strong className="text-muted-foreground">
                                                                                 Địa
                                                                                 chỉ
@@ -203,7 +203,7 @@ export default function ReviewStep({ values }: { values: any }) {
                                                                         {
                                                                                 values.motherJobAdress
                                                                         }
-                                                                </p>
+                                                                </p> */}
                                                         </div>
                                                 </div>
                                         </div>

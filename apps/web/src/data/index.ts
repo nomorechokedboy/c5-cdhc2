@@ -1,7 +1,7 @@
 export const STEPS = [
         {
                 id: 'personal',
-                title: 'Personal Information',
+                title: 'Thông tin cá nhân',
                 fields: [
                         'fullName',
                         'birthPlace',
@@ -29,13 +29,13 @@ export const STEPS = [
         },
         {
                 id: 'parent',
-                title: 'Parent Information',
+                title: 'Thông tin bố mẹ',
                 fields: [],
         },
         {
                 id: 'family',
-                title: 'Family Information',
+                title: 'Thông tin vợ/chồng và con',
                 fields: [],
         },
-        { id: 'review', title: 'Review & Submit', fields: [] },
+        { id: 'review', title: 'Xem lại thông tin', fields: [] },
 ];

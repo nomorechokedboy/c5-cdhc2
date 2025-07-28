@@ -56,7 +56,7 @@ export function DataTableColumnHeader<TData, TValue>({
                                                 }
                                         >
                                                 <ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" />
-                                                Asc
+                                                Từ A-Z
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                                 onClick={() =>
@@ -66,7 +66,7 @@ export function DataTableColumnHeader<TData, TValue>({
                                                 }
                                         >
                                                 <ArrowDown className="h-3.5 w-3.5 text-muted-foreground/70" />
-                                                Desc
+                                                Từ Z-A
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
