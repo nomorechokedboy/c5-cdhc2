@@ -107,6 +107,9 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                                 const classId = value.classId;
                                 value.classId = Number(classId);
 
+                                const familySize = value.familySize
+                                value.familySize = Number(familySize)
+
                                 const dob = value.dob;
                                 value.dob = convertToIso(dob);
                                 if (value.spouseName !== '') {
@@ -258,7 +261,7 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                                                 className="flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                                 <ChevronLeft className="w-4 h-4 mr-1" />
-                                                Previous
+                                                Quay lại
                                         </button>
                                         {currentStep < STEPS.length - 1 ? (
                                                 <button
@@ -266,13 +269,13 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
                                                         onClick={handleNext}
                                                         className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                                                 >
-                                                        Next
+                                                        Tiếp theo
                                                         <ChevronRight className="w-4 h-4 ml-1" />
                                                 </button>
                                         ) : (
                                                 <form.AppForm>
                                                         <form.SubscribeButton
-                                                                label="Submit"
+                                                                label="Thêm mới"
                                                                 form="studentForm"
                                                         />
                                                 </form.AppForm>
