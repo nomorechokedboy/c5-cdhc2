@@ -56,8 +56,6 @@ export type CreateNotificationParams = {
 	type: string
 	title: string
 	message?: string
-	notifiableType?: NotifiableType
-	notifiableId?: number
 	recipientId: number
 	actorId?: number
 	isBatch?: boolean
