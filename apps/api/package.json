@@ -25,7 +25,8 @@
 		"@libsql/client": "^0.15.9",
 		"drizzle-orm": "^0.44.2",
 		"encore.dev": "^1.48.11",
-		"node": "link:@libsql/client/node"
+		"node": "link:@libsql/client/node",
+		"uuid": "^11.1.0"
 	},
 	"optionalDependencies": {
 		"@rollup/rollup-linux-x64-gnu": "^4.13.0"
