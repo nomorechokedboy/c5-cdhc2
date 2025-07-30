@@ -11,7 +11,8 @@
 		"eslint": "^8.57.0",
 		"lint-staged": "^16.1.2",
 		"prettier": "^3.2.5",
-		"turbo": "^2.5.4"
+		"turbo": "^2.5.4",
+		"@repo/eslint-config": "workspace:0.0.0"
 	},
 	"packageManager": "pnpm@8.15.6",
 	"name": "with-vite-react",

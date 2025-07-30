@@ -7,6 +7,9 @@ settings:
 importers:
         .:
                 devDependencies:
+                        '@repo/eslint-config':
+                                specifier: workspace:0.0.0
+                                version: link:packages/eslint-config
                         eslint:
                                 specifier: ^8.57.0
                                 version: 8.57.1
