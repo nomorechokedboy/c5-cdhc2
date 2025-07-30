@@ -1,16 +1,27 @@
 {
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
-  },
-  "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.2.5",
-    "turbo": "^2.5.4"
-  },
-  "packageManager": "pnpm@8.15.6",
-  "name": "with-vite-react"
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "turbo run lint",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"eslint": "^8.57.0",
+		"lint-staged": "^16.1.2",
+		"prettier": "^3.2.5",
+		"turbo": "^2.5.4"
+	},
+	"packageManager": "pnpm@8.15.6",
+	"name": "with-vite-react",
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx}": [
+			"prettier --write",
+			"eslint --fix"
+		],
+		"*.{json,yaml,yml}": [
+			"prettier --write"
+		]
+	}
 }
