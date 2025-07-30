@@ -1,13 +1,13 @@
-import 'dotenv/config';
-import { defineConfig } from 'drizzle-kit';
+import 'dotenv/config'
+import { defineConfig } from 'drizzle-kit'
 
 const config: unknown = defineConfig({
-        out: 'migrations',
-        schema: './schema',
-        dialect: 'sqlite',
-        dbCredentials: {
-                url: 'file:./local.db',
-        },
-});
+	out: 'migrations',
+	schema: './schema',
+	dialect: 'sqlite',
+	dbCredentials: {
+		url: 'file:./local.db'
+	}
+})
 
-export default config;
+export default config
