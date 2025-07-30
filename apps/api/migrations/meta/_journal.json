@@ -1,13 +1,27 @@
 {
-  "version": "7",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1753407559701,
-      "tag": "0000_natural_tusk",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1753407559701,
+			"tag": "0000_natural_tusk",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1753878060810,
+			"tag": "0001_groovy_shape",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1753878080311,
+			"tag": "0002_moaning_wiccan",
+			"breakpoints": true
+		}
+	]
 }
