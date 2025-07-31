@@ -82,6 +82,6 @@ export type CreateBatchNotificationData = {
 }
 
 export type UpdateNotificationMap = {
-	id: number
+	id: string
 	updatePayload: { readAt: string }
 }[]
