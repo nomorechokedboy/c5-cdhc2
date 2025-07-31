@@ -23,7 +23,9 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.15.9",
+		"dayjs": "^1.11.13",
 		"drizzle-orm": "^0.44.2",
+		"duration": "link:dayjs/plugin/duration",
 		"encore.dev": "^1.48.11",
 		"node": "link:@libsql/client/node",
 		"uuid": "^11.1.0"
