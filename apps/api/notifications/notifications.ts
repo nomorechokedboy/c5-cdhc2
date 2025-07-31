@@ -52,3 +52,16 @@ export const GetNotifications = api(
 		return { data: resp }
 	}
 )
+
+interface MarkAsReadRequest {
+	ids: Array<string>
+}
+
+export const MarkAsRead = api(
+	{ expose: true, method: 'PATCH', path: '/notifications/mark-as-read' },
+	async ({ ids }: MarkAsReadRequest) => {
+		await notificationController.markAsRead(ids)
+
+		return {}
+	}
+)
