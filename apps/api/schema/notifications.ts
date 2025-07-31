@@ -3,6 +3,7 @@ import * as sqlite from 'drizzle-orm/sqlite-core'
 import { AppError } from '../errors/index'
 import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm'
 import { users } from './users'
+import { NotificationItem } from './notification-items'
 
 export const ResourcesEnum = customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -48,9 +49,11 @@ export type NotificationBody = InferInsertModel<typeof notifications>
 export type NotificationDB = InferSelectModel<typeof notifications>
 
 export type NotificationQuery = {
-	page?: number
-	pageSize?: number
+	page: number
+	pageSize: number
 }
+
+export type Notification = NotificationDB & { items: NotificationItem[] }
 
 export type CreateNotificationParams = {
 	type: string
@@ -63,20 +66,22 @@ export type CreateNotificationParams = {
 	totalCount?: number
 }
 
+export type CreateBatchNotificationItemData = Array<{
+	notifiableType: NotifiableType
+	notifiableId: number
+}>
+
 export type CreateBatchNotificationData = {
 	type: string
 	title: string
 	message: string
-	recipientId: number
+	recipientId?: number
 	actorId?: number
 	batchKey: string
-	items: Array<{
-		notifiableType: NotifiableType
-		notifiableId: number
-	}>
+	items: CreateBatchNotificationItemData
 }
 
 export type UpdateNotificationMap = {
-	id: number
+	id: string
 	updatePayload: { readAt: string }
 }[]

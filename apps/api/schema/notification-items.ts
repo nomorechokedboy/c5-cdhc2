@@ -2,6 +2,7 @@ import { index } from 'drizzle-orm/sqlite-core'
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 import { notifications, ResourcesEnum } from './notifications'
+import { InferSelectModel } from 'drizzle-orm'
 
 export const notificationItems = sqlite.sqliteTable(
 	'notification_items',
@@ -28,3 +29,5 @@ export const notificationItems = sqlite.sqliteTable(
 		)
 	]
 )
+
+export type NotificationItem = InferSelectModel<typeof notificationItems>

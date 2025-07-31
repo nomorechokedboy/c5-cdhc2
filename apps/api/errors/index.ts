@@ -30,6 +30,10 @@ export class AppError extends Error {
 		return new AppError('InternalError', msg)
 	}
 
+	public static umimplemented(msg: string) {
+		return new AppError('Unimplemented', msg)
+	}
+
 	public static handleAppErr(err: unknown): never {
 		log.error(err, 'Error from handleAppErr!')
 
@@ -48,3 +52,4 @@ export type AppErrorType =
 	| 'Unavailable'
 	| 'PermissionDenied'
 	| 'InternalError'
+	| 'Unimplemented'

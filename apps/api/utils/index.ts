@@ -89,6 +89,8 @@ export function mapAppErrorToAPIError(error: AppError): APIError {
 			return APIError.unavailable(error.message)
 		case 'PermissionDenied':
 			return APIError.permissionDenied(error.message)
+		case 'Unimplemented':
+			return APIError.unimplemented(error.message)
 		case 'InternalError':
 		default:
 			return APIError.internal(error.message)

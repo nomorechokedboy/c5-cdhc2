@@ -1,191 +1,238 @@
-import { api } from 'encore.dev/api';
-import log from 'encore.dev/log';
-import { StudentDB, StudentParam, StudentQuery } from '../schema/student.js';
-import studentController from './controller.js';
+import { api } from 'encore.dev/api'
+import { CronJob } from 'encore.dev/cron'
+import log from 'encore.dev/log'
+import { StudentDB, StudentParam, StudentQuery } from '../schema/student.js'
+import studentController from './controller.js'
+import notificationController from '../notifications/controller.js'
+import {
+	CreateBatchNotificationData,
+	CreateBatchNotificationItemData
+} from '../schema/notifications.js'
+import dayjs from 'dayjs'
 
 interface ChildrenInfo {
-        fullName: string;
-        dob: string;
+	fullName: string
+	dob: string
 }
 
 interface StudentBody {
-        fullName: string;
-        birthPlace: string;
-        address: string;
-        dob: string;
-        rank: string;
-        previousUnit: string;
-        previousPosition: string;
-        ethnic: string;
-        religion: string;
-        enlistmentPeriod: string;
-        politicalOrg: 'hcyu' | 'cpv';
-        politicalOrgOfficialDate: string;
-        cpvId: string | null;
-        educationLevel: string;
-        schoolName: string;
-        major: string;
-        isGraduated: boolean;
-        talent: string;
-        shortcoming: string;
-        policyBeneficiaryGroup: string;
-        fatherName: string;
-        fatherDob: string;
-        fatherPhoneNumber: string;
-        fatherJob: string;
-        // fatherJobAddress: string;
-        motherName: string;
-        motherDob: string;
-        motherPhoneNumber: string;
-        motherJob: string;
-        // motherJobAddress: string;
-        isMarried: boolean;
-        spouseName: string;
-        spouseDob: string;
-        spouseJob: string;
-        spousePhoneNumber: string;
-        familySize: number;
-        familyBackground: string;
-        familyBirthOrder: string;
-        achievement: string;
-        disciplinaryHistory: string;
-        childrenInfos: ChildrenInfo[];
-        phone: string;
-        classId: number;
+	fullName: string
+	birthPlace: string
+	address: string
+	dob: string
+	rank: string
+	previousUnit: string
+	previousPosition: string
+	ethnic: string
+	religion: string
+	enlistmentPeriod: string
+	politicalOrg: 'hcyu' | 'cpv'
+	politicalOrgOfficialDate: string
+	cpvId: string | null
+	educationLevel: string
+	schoolName: string
+	major: string
+	isGraduated: boolean
+	talent: string
+	shortcoming: string
+	policyBeneficiaryGroup: string
+	fatherName: string
+	fatherDob: string
+	fatherPhoneNumber: string
+	fatherJob: string
+	// fatherJobAddress: string;
+	motherName: string
+	motherDob: string
+	motherPhoneNumber: string
+	motherJob: string
+	// motherJobAddress: string;
+	isMarried: boolean
+	spouseName: string
+	spouseDob: string
+	spouseJob: string
+	spousePhoneNumber: string
+	familySize: number
+	familyBackground: string
+	familyBirthOrder: string
+	achievement: string
+	disciplinaryHistory: string
+	childrenInfos: ChildrenInfo[]
+	phone: string
+	classId: number
 }
 
 interface StudentDBResponse extends StudentBody {
-        id: number;
-        createdAt: string;
-        updatedAt: string;
+	id: number
+	createdAt: string
+	updatedAt: string
 }
 
 interface StudentResponse extends StudentDBResponse {
-        class: { id: number; description: string; name: string };
+	class: { id: number; description: string; name: string }
 }
 
 interface BulkStudentResponse {
-        data: StudentDBResponse[];
+	data: StudentDBResponse[]
 }
 
 export const CreateStudent = api(
-        { expose: true, method: 'POST', path: '/students' },
-        async (body: StudentBody): Promise<BulkStudentResponse> => {
-                const studentParam: StudentParam = {
-                        ...body,
-                };
-                log.trace('students.CreateStudents body', { studentParam });
+	{ expose: true, method: 'POST', path: '/students' },
+	async (body: StudentBody): Promise<BulkStudentResponse> => {
+		const studentParam: StudentParam = {
+			...body
+		}
+		log.trace('students.CreateStudents body', { studentParam })
 
-                const createdStudent = await studentController.create([
-                        studentParam,
-                ]);
+		const createdStudent = await studentController.create([
+			studentParam
+		])
 
-                const resp = createdStudent.map(
-                        (s) => ({ ...s }) as StudentDBResponse
-                );
+		const resp = createdStudent.map(
+			(s) => ({ ...s }) as StudentDBResponse
+		)
 
-                return { data: resp };
-        }
-);
+		return { data: resp }
+	}
+)
 
 interface StudentBulkBody {
-        data: StudentBody[];
+	data: StudentBody[]
 }
 
 export const CreateStudents = api(
-        { expose: false, method: 'POST', path: '/students/bulk' },
-        async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
-                const studentParams = body.data.map(
-                        (b) => ({ ...b }) as StudentParam
-                );
+	{ expose: false, method: 'POST', path: '/students/bulk' },
+	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
+		const studentParams = body.data.map(
+			(b) => ({ ...b }) as StudentParam
+		)
 
-                const createdStudent =
-                        await studentController.create(studentParams);
+		const createdStudent =
+			await studentController.create(studentParams)
 
-                const resp = createdStudent.map(
-                        (s) => ({ ...s }) as StudentDBResponse
-                );
+		const resp = createdStudent.map(
+			(s) => ({ ...s }) as StudentDBResponse
+		)
 
-                return { data: resp };
-        }
-);
+		return { data: resp }
+	}
+)
 interface GetStudentsResponse {
-        data: StudentResponse[];
+	data: StudentResponse[]
 }
 
 interface GetStudentsQuery {
-        classId?: number;
-        birthdayInMonth?:
-                | '01'
-                | '02'
-                | '03'
-                | '04'
-                | '05'
-                | '06'
-                | '07'
-                | '08'
-                | '09'
-                | '10'
-                | '11'
-                | '12';
-        politicalOrg?: 'hcyu' | 'cpv';
-        birthdayInWeek?: boolean;
-        isMarried?: boolean;
+	classId?: number
+	birthdayInMonth?:
+		| '01'
+		| '02'
+		| '03'
+		| '04'
+		| '05'
+		| '06'
+		| '07'
+		| '08'
+		| '09'
+		| '10'
+		| '11'
+		| '12'
+	politicalOrg?: 'hcyu' | 'cpv'
+	birthdayInWeek?: boolean
+	isMarried?: boolean
 }
 
 export const GetStudents = api(
-        { expose: true, method: 'GET', path: '/students' },
-        async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
-                const q: StudentQuery = { ...query };
-                log.trace('students.GetStudents query params', { params: q });
-                const students = await studentController.find(q);
-                const resp = students.map(
-                        (s) => ({ ...s }) as unknown as StudentResponse
-                );
+	{ expose: true, method: 'GET', path: '/students' },
+	async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
+		const q: StudentQuery = { ...query }
+		log.trace('students.GetStudents query params', { params: q })
+		const students = await studentController.find(q)
+		const resp = students.map(
+			(s) => ({ ...s }) as unknown as StudentResponse
+		)
 
-                return { data: resp };
-        }
-);
+		return { data: resp }
+	}
+)
 
 interface DeleteStudentRequest {
-        ids: number[];
+	ids: number[]
 }
 
 interface DeleteStudentResponse {
-        ids: number[];
+	ids: number[]
 }
 
 export const DeleteStudents = api(
-        { expose: true, method: 'DELETE', path: '/students' },
-        async (body: DeleteStudentRequest): Promise<DeleteStudentResponse> => {
-                log.trace('students.DeleteStudents body', { body });
+	{ expose: true, method: 'DELETE', path: '/students' },
+	async (body: DeleteStudentRequest): Promise<DeleteStudentResponse> => {
+		log.trace('students.DeleteStudents body', { body })
 
-                const students: StudentDB[] = body.ids.map(
-                        (id) => ({ id }) as StudentDB
-                );
-                await studentController.delete(students);
+		const students: StudentDB[] = body.ids.map(
+			(id) => ({ id }) as StudentDB
+		)
+		await studentController.delete(students)
 
-                return { ids: body.ids };
-        }
-);
+		return { ids: body.ids }
+	}
+)
 
 interface UpdatePayload extends Partial<StudentBody> {
-        id: number;
+	id: number
 }
 
 interface UpdateStudentBody {
-        data: UpdatePayload[];
+	data: UpdatePayload[]
 }
 
 export const UpdateStudents = api(
-        { expose: true, method: 'PATCH', path: '/students' },
-        async (body: UpdateStudentBody) => {
-                const students: StudentDB[] = body.data.map(
-                        (s) => ({ ...s }) as StudentDB
-                );
+	{ expose: true, method: 'PATCH', path: '/students' },
+	async (body: UpdateStudentBody) => {
+		const students: StudentDB[] = body.data.map(
+			(s) => ({ ...s }) as StudentDB
+		)
 
-                await studentController.update(students);
+		await studentController.update(students)
 
-                return {};
-        }
-);
+		return {}
+	}
+)
+
+export const GetStudentWithBirthdayInWeek = api(
+	{ expose: true, method: 'GET', path: '/students/birthday/week' },
+	async () => {
+		log.trace('students.GetStudentWithBirthdayInWeek running...')
+		const students = await studentController.find({
+			birthdayInMonth: '07'
+		})
+		log.trace(
+			'students.GetStudentWithBirthdayInWeek processing data',
+			{ students }
+		)
+
+		const items: CreateBatchNotificationItemData = students.map(
+			(s) => ({
+				notifiableId: s.id,
+				notifiableType: 'students'
+			})
+		)
+
+		const date = dayjs().format('DD/MM/YYYY')
+		const batchNotification: CreateBatchNotificationData = {
+			type: 'system',
+			title: 'Sinh nhật đồng đội',
+			message: '',
+			batchKey: `birthday_${date}`,
+			items
+		}
+		await notificationController.createBatch(batchNotification)
+
+		log.info('students.GetStudentWithBirthdayInWeek complete')
+	}
+)
+
+const _ = new CronJob('birthday-in-week', {
+	// schedule: '0 0 * * 1',
+	schedule: '* * * * *',
+	title: 'Birthday in week notification',
+	endpoint: GetStudentWithBirthdayInWeek
+})
