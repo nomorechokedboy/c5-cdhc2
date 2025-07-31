@@ -1,10 +1,12 @@
-import log from 'encore.dev/log'
+import dayjs from 'dayjs'
 import { AppError } from '../errors/index'
 import {
 	CreateBatchNotificationData,
 	CreateNotificationParams,
 	Notification,
-	NotificationQuery
+	NotificationDB,
+	NotificationQuery,
+	UpdateNotificationMap
 } from '../schema/notifications'
 import { Repository } from './index'
 import { GetNotificationsQuery } from './notifications'
@@ -12,14 +14,6 @@ import notificationRepo from './repo'
 
 export class Controller {
 	constructor(private readonly repo: Repository) {}
-
-	create(params: CreateNotificationParams[]) {
-		return this.repo.create(params).catch(AppError.handleAppErr)
-	}
-
-	createBatch(data: CreateBatchNotificationData) {
-		return this.repo.createBatch(data).catch(AppError.handleAppErr)
-	}
 
 	private convertToEntityQuery(
 		query: GetNotificationsQuery
@@ -40,9 +34,29 @@ export class Controller {
 		return { pageSize, page }
 	}
 
-	async find(query: GetNotificationsQuery): Promise<Notification[]> {
+	create(params: CreateNotificationParams[]) {
+		return this.repo.create(params).catch(AppError.handleAppErr)
+	}
+
+	createBatch(data: CreateBatchNotificationData) {
+		return this.repo.createBatch(data).catch(AppError.handleAppErr)
+	}
+
+	find(query: GetNotificationsQuery): Promise<Notification[]> {
 		const q: NotificationQuery = this.convertToEntityQuery(query)
 		return this.repo.find(q).catch(AppError.handleAppErr)
+	}
+
+	markAsRead(ids: Array<string>): Promise<Array<NotificationDB>> {
+		const updateNotiMap: UpdateNotificationMap = ids.map((id) => ({
+			id,
+			updatePayload: {
+				readAt: dayjs().format('YYYY-MM-DD HH:mm:ss')
+			}
+		}))
+		return this.repo
+			.update(updateNotiMap)
+			.catch(AppError.handleAppErr)
 	}
 }
 
