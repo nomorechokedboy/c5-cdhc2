@@ -28,9 +28,15 @@ importers:
                         '@libsql/client':
                                 specifier: ^0.15.9
                                 version: 0.15.9
+                        dayjs:
+                                specifier: ^1.11.13
+                                version: 1.11.13
                         drizzle-orm:
                                 specifier: ^0.44.2
                                 version: 0.44.2(@libsql/client@0.15.9)
+                        duration:
+                                specifier: link:dayjs/plugin/duration
+                                version: link:dayjs/plugin/duration
                         encore.dev:
                                 specifier: ^1.48.11
                                 version: 1.48.11
