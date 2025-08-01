@@ -35,6 +35,13 @@ class controller {
 			validParams.push(param)
 		}
 
+		const isValidParamsEmpty = validParams.length === 0
+		if (isValidParamsEmpty) {
+			throw AppError.handleAppErr(
+				AppError.invalidArgument(`Empty request data`)
+			)
+		}
+
 		return this.repo.create(validParams).catch(AppError.handleAppErr)
 	}
 
