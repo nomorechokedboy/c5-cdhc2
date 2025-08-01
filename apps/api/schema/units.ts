@@ -1,6 +1,7 @@
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 import { AppError } from '../errors'
+import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm'
 
 const UnitLevelEnum = sqlite.customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -37,3 +38,22 @@ export const units = sqlite.sqliteTable(
 		})
 	]
 )
+
+export const unitsRelations = relations(units, ({ one, many }) => ({
+	parent: one(units, {
+		fields: [units.parentId],
+		references: [units.id],
+		relationName: 'parentChild'
+	}),
+	children: many(units, {
+		relationName: 'parentChild'
+	})
+}))
+
+export type UnitDB = InferSelectModel<typeof units>
+
+export type UnitParams = InferInsertModel<typeof units>
+
+type unit = Omit<UnitDB, 'parentId'>
+
+export type Unit = unit & { parent?: Unit; children: Unit[] }
