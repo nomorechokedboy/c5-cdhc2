@@ -59,3 +59,7 @@ export type UnitParams = InferInsertModel<typeof units>
 type unit = Omit<UnitDB, 'parentId'>
 
 export type Unit = unit & { parent?: Unit; children: Unit[]; classes: Class[] }
+
+export type UnitQuery = {
+	level: 'battalion' | 'company'
+}
