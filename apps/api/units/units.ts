@@ -22,7 +22,7 @@ interface CreateUnitResponse {
 }
 
 export const CreateUnit = api(
-	{ expose: true, method: 'POST', path: '/units' },
+	{ expose: false, method: 'POST', path: '/units' },
 	async (body: CreateUnitRequest): Promise<CreateUnitResponse> => {
 		const unitParams: Array<UnitParams> = body.data.map((u) => ({
 			...u
