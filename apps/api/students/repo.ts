@@ -1,8 +1,6 @@
-import { Client } from '@libsql/client'
 import { inArray, eq, sql, and } from 'drizzle-orm'
-import { LibSQLDatabase } from 'drizzle-orm/libsql'
 import log from 'encore.dev/log'
-import orm from '../database'
+import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
 import { classes } from '../schema/classes'
 import {
@@ -18,11 +16,7 @@ import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
 
 class StudentSqliteRepo implements Repository {
-	constructor(
-		private db: LibSQLDatabase<Record<string, never>> & {
-			$client: Client
-		}
-	) {}
+	constructor(private db: DrizzleDatabase) {}
 
 	create(params: StudentParam[]): Promise<StudentDB[]> {
 		log.info('StudentSqliteRepo.create params: ', { params })
@@ -126,7 +120,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	findOne(s: StudentDB): Promise<Student> {
-		throw new Error('Method not implemented')
+		throw AppError.umimplemented('Method not implemented')
 	}
 
 	update(params: UpdateStudentMap): Promise<StudentDB[]> {

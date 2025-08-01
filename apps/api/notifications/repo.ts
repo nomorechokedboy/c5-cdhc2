@@ -1,7 +1,5 @@
-import { Client } from '@libsql/client'
-import { LibSQLDatabase } from 'drizzle-orm/libsql'
 import { AppError } from '../errors/index'
-import orm from '../database'
+import orm, { DrizzleDatabase } from '../database'
 import {
 	CreateBatchNotificationData,
 	CreateNotificationParams,
@@ -20,11 +18,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { notificationItems } from '../schema/notification-items'
 
 class NotificationSqliteRepo implements Repository {
-	constructor(
-		private db: LibSQLDatabase<Record<string, never>> & {
-			$client: Client
-		}
-	) {}
+	constructor(private db: DrizzleDatabase) {}
 
 	create(params: CreateNotificationParams[]): Promise<NotificationDB[]> {
 		const notificationBodies = params.map(
@@ -85,7 +79,7 @@ class NotificationSqliteRepo implements Repository {
 	}
 
 	delete(params: NotificationDB[]): Promise<NotificationDB[]> {
-		throw AppError.internal('Unimplemented method')
+		throw AppError.umimplemented('Unimplemented method')
 	}
 
 	async find(q: NotificationQuery): Promise<Notification[]> {

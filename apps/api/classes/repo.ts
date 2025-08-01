@@ -5,6 +5,7 @@ import { Class, ClassDB, classes, ClassParam } from '../schema/classes.js'
 import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
+import { AppError } from '../errors/index.js'
 
 class SqliteRepo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -20,6 +21,8 @@ class SqliteRepo implements Repository {
 
 	delete(c: ClassDB[]): Promise<ClassDB[]> {
 		const ids = c.map((cl) => cl.id)
+		log.info('ClassSqliteRepo.delete params: ', { params: ids })
+
 		return this.db
 			.delete(classes)
 			.where(inArray(classes.id, ids))
@@ -42,11 +45,11 @@ class SqliteRepo implements Repository {
 
 	findOne(_c: ClassDB): Promise<Class> {
 		// return this.db.select().from(classes).where()
-		throw new Error('Method not implemented.')
+		throw AppError.umimplemented('Method not implemented.')
 	}
 
 	update(_params: ClassDB[]): Promise<ClassDB[]> {
-		throw new Error('Method not implemented.')
+		throw AppError.umimplemented('Method not implemented.')
 	}
 }
 
