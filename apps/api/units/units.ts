@@ -1,6 +1,7 @@
 import { api } from 'encore.dev/api'
 import { UnitParams } from '../schema'
 import unitController from './controller'
+import { ClassResponse } from '../classes/classes'
 
 type UnitBody = {
 	alias: string
@@ -40,6 +41,7 @@ type unit = Omit<UnitBody, 'parentId'>
 type Unit = unit & {
 	parent: unit | null
 	children: Unit[]
+	classes: ClassResponse[]
 }
 
 interface GetUnitsResponse {
