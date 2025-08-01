@@ -27,6 +27,7 @@ class repo implements Repository {
 			.returning()
 			.catch(handleDatabaseErr)
 	}
+
 	async find(query: UnitQuery): Promise<Unit[]> {
 		const baseQuery = this.db.query.units
 		switch (query.level) {
@@ -51,6 +52,12 @@ class repo implements Repository {
 			default:
 				return []
 		}
+	}
+
+	findOne(params: { id: number }): Promise<UnitDB | undefined> {
+		return this.db.query.units
+			.findFirst({ where: eq(units.id, params.id) })
+			.catch(handleDatabaseErr)
 	}
 }
 
