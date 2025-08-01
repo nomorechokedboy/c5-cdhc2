@@ -85,7 +85,7 @@ class NotificationSqliteRepo implements Repository {
 	}
 
 	delete(params: NotificationDB[]): Promise<NotificationDB[]> {
-		throw AppError.internal('Unimplemented method')
+		throw AppError.umimplemented('Unimplemented method')
 	}
 
 	async find(q: NotificationQuery): Promise<Notification[]> {

@@ -126,7 +126,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	findOne(s: StudentDB): Promise<Student> {
-		throw new Error('Method not implemented')
+		throw AppError.umimplemented('Method not implemented')
 	}
 
 	update(params: UpdateStudentMap): Promise<StudentDB[]> {

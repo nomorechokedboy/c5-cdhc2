@@ -42,11 +42,11 @@ class SqliteRepo implements Repository {
 
 	findOne(_c: ClassDB): Promise<Class> {
 		// return this.db.select().from(classes).where()
-		throw new Error('Method not implemented.')
+		throw AppError.umimplemented('Method not implemented.')
 	}
 
 	update(_params: ClassDB[]): Promise<ClassDB[]> {
-		throw new Error('Method not implemented.')
+		throw AppError.umimplemented('Method not implemented.')
 	}
 }
 
