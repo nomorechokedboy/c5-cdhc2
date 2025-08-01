@@ -10,7 +10,7 @@ const UnitLevelEnum = sqlite.customType<{ data: string; driverData: string }>({
 	toDriver(val: string) {
 		if (!['battalion', 'company'].includes(val)) {
 			throw AppError.invalidArgument(
-				'resourceType can only be classes | students'
+				'unitLevel can only be battalion | company'
 			)
 		}
 		return val
