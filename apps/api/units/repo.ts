@@ -32,7 +32,7 @@ class repo implements Repository {
 			.findMany({
 				where: eq(units.level, 'battalion'),
 				with: {
-					children: true
+					children: { with: { classes: true } }
 				}
 			})
 			.catch(handleDatabaseErr)) as unknown as Array<Unit>
