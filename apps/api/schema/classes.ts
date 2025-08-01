@@ -18,23 +18,31 @@ const StatusEnum = sqlite.customType<{ data: string; driverData: string }>({
 	}
 })
 
-export const classes = sqlite.sqliteTable('classes', {
-	...baseSchema,
+export const classes = sqlite.sqliteTable(
+	'classes',
+	{
+		...baseSchema,
 
-	name: sqlite.text().unique().notNull(),
-	description: sqlite.text().default(''),
+		name: sqlite.text().notNull(),
+		description: sqlite.text().default(''),
 
-	graduatedAt: sqlite.text(),
-	status: StatusEnum('status')
-		.$type<'ongoing' | 'graduated'>()
-		.default('ongoing'),
+		graduatedAt: sqlite.text(),
+		status: StatusEnum('status')
+			.$type<'ongoing' | 'graduated'>()
+			.default('ongoing'),
 
-	unitId: sqlite
-		.int()
-		.notNull()
-		.default(7)
-		.references(() => units.id)
-})
+		unitId: sqlite
+			.int()
+			.notNull()
+			.default(7)
+			.references(() => units.id)
+	},
+	(t) => [
+		sqlite
+			.unique('class_unit_unique_constraint')
+			.on(t.name, t.unitId)
+	]
+)
 
 export const classesRelations = relations(classes, ({ one }) => ({
 	unit: one(units, { fields: [classes.unitId], references: [units.id] })
