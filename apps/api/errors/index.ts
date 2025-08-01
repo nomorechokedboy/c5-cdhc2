@@ -35,7 +35,7 @@ export class AppError extends Error {
 	}
 
 	public static handleAppErr(err: unknown): never {
-		log.error(err, 'Error from handleAppErr!')
+		log.error('Error from handleAppErr!', { err })
 
 		if (err instanceof AppError) {
 			throw mapAppErrorToAPIError(err)
