@@ -1,7 +1,7 @@
 import log from 'encore.dev/log'
 import { Repository } from '.'
 import orm, { DrizzleDatabase } from '../database'
-import { UnitParams, UnitDB, Unit, units } from '../schema/units'
+import { UnitParams, UnitDB, Unit, units, UnitQuery } from '../schema/units'
 import { handleDatabaseErr } from '../utils'
 import { eq, inArray } from 'drizzle-orm'
 
@@ -27,17 +27,30 @@ class repo implements Repository {
 			.returning()
 			.catch(handleDatabaseErr)
 	}
-	async find(): Promise<Unit[]> {
-		const resp = (await this.db.query.units
-			.findMany({
-				where: eq(units.level, 'battalion'),
-				with: {
-					children: { with: { classes: true } }
-				}
-			})
-			.catch(handleDatabaseErr)) as unknown as Array<Unit>
-
-		return resp
+	async find(query: UnitQuery): Promise<Unit[]> {
+		const baseQuery = this.db.query.units
+		switch (query.level) {
+			case 'battalion':
+				return baseQuery
+					.findMany({
+						where: eq(units.level, 'battalion'),
+						with: {
+							children: { with: { classes: true } }
+						}
+					})
+					.catch(handleDatabaseErr) as unknown as Array<Unit>
+			case 'company':
+				return baseQuery
+					.findMany({
+						where: eq(units.level, 'company'),
+						with: {
+							classes: true
+						}
+					})
+					.catch(handleDatabaseErr) as unknown as Array<Unit>
+			default:
+				return []
+		}
 	}
 }
 

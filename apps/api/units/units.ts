@@ -44,14 +44,18 @@ type Unit = unit & {
 	classes: ClassResponse[]
 }
 
+export interface GetUnitsQuery {
+	level: 'battalion' | 'company'
+}
+
 interface GetUnitsResponse {
 	data: Array<Unit>
 }
 
 export const GetUnits = api(
 	{ expose: true, method: 'GET', path: '/units' },
-	async (): Promise<GetUnitsResponse> => {
-		const resp = await unitController.find()
+	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
+		const resp = await unitController.find(q)
 		const data = resp.map((u) => ({ ...u }) as Unit)
 
 		return { data }

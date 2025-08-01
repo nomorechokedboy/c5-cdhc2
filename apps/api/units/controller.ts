@@ -1,7 +1,8 @@
 import { Repository } from '.'
 import { AppError } from '../errors'
-import { Unit, UnitParams } from '../schema'
+import { Unit, UnitParams, UnitQuery } from '../schema'
 import unitRepo from './repo'
+import { GetUnitsQuery } from './units'
 
 class controller {
 	constructor(private readonly repo: Repository) {}
@@ -10,8 +11,10 @@ class controller {
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	find(): Promise<Unit[]> {
-		return this.repo.find()
+	find(q: GetUnitsQuery): Promise<Unit[]> {
+		const unitQuery: UnitQuery = { level: q.level }
+
+		return this.repo.find(unitQuery)
 	}
 }
 
