@@ -4,43 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Loader2 } from 'lucide-react'
 import { Bell } from 'lucide-react' // Import Bell component
-
-interface Notification {
-	id: string
-	type: 'like' | 'comment' | 'follow' | 'mention'
-	user: {
-		name: string
-		avatar: string
-		username: string
-	}
-	message: string
-	timestamp: string
-	read: boolean
-}
-
-interface NotificationResponse {
-	notifications: Notification[]
-	nextCursor: string | null
-	hasMore: boolean
-}
-
-async function fetchNotifications({
-	pageParam = null
-}: {
-	pageParam?: string | null
-}): Promise<NotificationResponse> {
-	const url = new URL('/api/notifications', window.location.origin)
-	if (pageParam) {
-		url.searchParams.set('cursor', pageParam)
-	}
-
-	const response = await fetch(url.toString())
-	if (!response.ok) {
-		throw new Error('Failed to fetch notifications')
-	}
-
-	return response.json()
-}
+import { fetchNotifications } from '@/api'
 
 export function NotificationList() {
 	const scrollRef = useRef<HTMLDivElement>(null)

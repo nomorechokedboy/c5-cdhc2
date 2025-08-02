@@ -1,9 +1,9 @@
-import { generateMockNotifications } from '@/data'
 import type {
 	Class,
 	ClassBody,
 	ClassResponse,
 	DeleteStudentsBody,
+	NotificationResponse,
 	Student,
 	StudentBody,
 	StudentQueryParams,
@@ -14,7 +14,7 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios from 'axios'
-
+import { mockNotificationsAPI } from './mockApi'
 export function CreateClass(body: ClassBody) {
 	return axios
 		.post<ClassResponse>('http://localhost:4000/classes', body)
@@ -41,13 +41,31 @@ export function UpdateStudents(params: UpdateStudentsBody) {
 	return axios
 		.patch('http://localhost:4000/students', params)
 		.then((resp) => resp.data)
-}
+	export async function fetchNotifications({
+		pageParam = null
+	}: {
+		pageParam?: string | null
+	}): Promise<NotificationResponse> {
+		// In a real Vite app, you might use a different base URL or environment variable
+		// For development, you could use the mock API directly
+		if (import.meta.env.DEV) {
+			// Use mock API in development
+			return mockNotificationsAPI(pageParam)
+		}
 
-export async function GetNotifications(params: {
-	page: number
-	pageSize: number
-}) {
-	return generateMockNotifications(params.page, params.pageSize)
+		// In production, you would call your actual API endpoint
+		const url = new URL('/api/notifications', window.location.origin)
+		if (pageParam) {
+			url.searchParams.set('cursor', pageParam)
+		}
+
+		const response = await fetch(url.toString())
+		if (!response.ok) {
+			throw new Error('Failed to fetch notifications')
+		}
+
+		return response.json()
+	}
 }
 
 export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
