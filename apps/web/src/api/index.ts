@@ -3,6 +3,7 @@ import type {
 	ClassBody,
 	ClassResponse,
 	DeleteStudentsBody,
+	GetUnitQuery,
 	NotificationResponse,
 	Student,
 	StudentBody,
@@ -10,42 +11,40 @@ import type {
 	StudentResponse,
 	UpdateStudentsBody
 } from '@/types'
-import axios from 'axios'
 import { mockNotificationsAPI } from './mockApi'
+import axios from '@/lib/axios'
 export function CreateClass(body: ClassBody) {
 	return axios
-		.post<ClassResponse>('http://localhost:4000/classes', body)
+		.post<ClassResponse>('/classes', body)
 		.then((resp) => resp.data.data)
 }
 
 export async function GetClasses(): Promise<Class[]> {
-	return axios
-		.get<ClassResponse>('http://localhost:4000/classes')
-		.then((resp) => resp.data.data)
+	return axios.get<ClassResponse>('/classes').then((resp) => resp.data.data)
 }
 
 export function CreateStudent(body: StudentBody) {
 	return axios
-		.post<StudentResponse>('http://localhost:4000/students', body)
+		.post<StudentResponse>('/students', body)
 		.then((resp) => resp.data.data)
 }
 
 export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
 	return axios
-		.get<StudentResponse>('http://localhost:4000/students', {
+		.get<StudentResponse>('/students', {
 			params
 		})
 		.then((resp) => resp.data.data)
 }
 
 export function DeleteStudents(params: DeleteStudentsBody) {
-	return axios.delete('http://localhost:4000/students', { params })
+	return axios.delete('/students', { params })
 }
 
 export function UpdateStudents(params: UpdateStudentsBody) {
-	return axios
-		.patch('http://localhost:4000/students', params)
-		.then((resp) => resp.data)
+	return axios.patch('/students', params).then((resp) => resp.data)
+}
+
 	export async function fetchNotifications({
 		pageParam = null
 	}: {
@@ -72,3 +71,5 @@ export function UpdateStudents(params: UpdateStudentsBody) {
 		return response.json()
 	}
 }
+export function GetUnits(params?: GetUnitQuery) {
+	return axios.get('/units', { params }).then((resp) => resp.data)
