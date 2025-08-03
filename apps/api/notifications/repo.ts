@@ -12,7 +12,7 @@ import {
 } from '../schema/notifications'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
-import { eq, inArray } from 'drizzle-orm'
+import { desc, eq, inArray } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import { v4 as uuidv4 } from 'uuid'
 import { notificationItems } from '../schema/notification-items'
@@ -59,18 +59,13 @@ class NotificationSqliteRepo implements Repository {
 
 				// Create notification items
 				if (items.length > 0) {
-					await tx
-						.insert(notificationItems)
-						.values(
-							items.map((item) => ({
-								notificationId:
-									notification.id,
-								notifiableType:
-									item.notifiableType,
-								notifiableId:
-									item.notifiableId
-							}))
-						)
+					await tx.insert(notificationItems).values(
+						items.map((item) => ({
+							notificationId: notification.id,
+							notifiableType: item.notifiableType,
+							notifiableId: item.notifiableId
+						}))
+					)
 				}
 
 				return notification
@@ -90,6 +85,7 @@ class NotificationSqliteRepo implements Repository {
 			.from(notifications)
 			.limit(q.pageSize)
 			.offset(q.page * q.pageSize)
+			.orderBy(desc(notifications.createdAt))
 			.catch(handleDatabaseErr)
 
 		const notificationMap: Record<string, Notification> = {}
@@ -101,20 +97,12 @@ class NotificationSqliteRepo implements Repository {
 		const items = await this.db
 			.select()
 			.from(notificationItems)
-			.where(
-				inArray(
-					notificationItems.notificationId,
-					notificationIds
-				)
-			)
+			.where(inArray(notificationItems.notificationId, notificationIds))
 
 		for (const item of items) {
-			const notification =
-				notificationMap[item.notificationId]
+			const notification = notificationMap[item.notificationId]
 			if (notification !== undefined) {
-				notificationMap[item.notificationId].items.push(
-					item
-				)
+				notificationMap[item.notificationId].items.push(item)
 			}
 		}
 
