@@ -1,10 +1,10 @@
-import type { NotificationResponse, Notification } from '@/types'
+import type { NotificationProtoResponse, NotificationProto } from '@/types'
 
 const generateMockNotifications = (
 	page: number,
 	limit = 10
-): Notification[] => {
-	const types = ['like', 'comment', 'follow', 'mention'] as const
+): NotificationProto[] => {
+	const types = ['like', 'comment', 'follow', 'mention', 'birthday'] as const
 	const users = [
 		{
 			name: 'Alice Johnson',
@@ -59,10 +59,11 @@ const generateMockNotifications = (
 			'mentioned you in a post',
 			'tagged you in a photo',
 			'mentioned you in a story'
-		]
+		],
+		birthday: ['birthday lol', 'birthday lmao']
 	}
 
-	const notifications: Notification[] = []
+	const notifications: NotificationProto[] = []
 	const startIndex = page * limit
 
 	for (let i = 0; i < limit; i++) {
@@ -93,7 +94,7 @@ const generateMockNotifications = (
 // Mock API function that simulates the Next.js API route
 export const mockNotificationsAPI = async (
 	cursor?: string | null
-): Promise<NotificationResponse> => {
+): Promise<NotificationProtoResponse> => {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500))
 

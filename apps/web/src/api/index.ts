@@ -1,10 +1,15 @@
 import type {
+	AppNotification,
+	AppNotificationQuery,
+	AppNotificationResponse,
 	Class,
 	ClassBody,
 	ClassResponse,
 	DeleteStudentsBody,
 	GetUnitQuery,
-	NotificationResponse,
+	GetUnitResponse,
+	MarkAsReadNotificationParams,
+	NotificationProtoResponse,
 	Student,
 	StudentBody,
 	StudentQueryParams,
@@ -49,11 +54,23 @@ export function UpdateStudents(params: UpdateStudentsBody) {
 	return axios.patch('/students', params).then((resp) => resp.data)
 }
 
+export function GetNotifications(
+	params?: AppNotificationQuery
+): Promise<AppNotification[]> {
+	return axios
+		.get<AppNotificationResponse>('/notifications', { params })
+		.then((resp) => resp.data.data)
+}
+
+export function MarkAsRead(params: MarkAsReadNotificationParams) {
+	return axios.patch('/notifications/mark-as-read', params)
+}
+
 export async function fetchNotifications({
 	pageParam = null
 }: {
 	pageParam?: string | null
-}): Promise<NotificationResponse> {
+}): Promise<NotificationProtoResponse> {
 	// In a real Vite app, you might use a different base URL or environment variable
 	// For development, you could use the mock API directly
 	if (import.meta.env.DEV) {

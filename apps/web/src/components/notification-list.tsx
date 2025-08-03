@@ -1,10 +1,23 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2 } from 'lucide-react'
-import { Bell } from 'lucide-react' // Import Bell component
-import { fetchNotifications } from '@/api'
+import { Cake, Loader2 } from 'lucide-react'
+import { Bell } from 'lucide-react'
+import { GetNotifications } from '@/api'
+import { formatTimestamp } from '@/lib/utils'
+import dayjs from 'dayjs'
+import type { AppNotification } from '@/types'
+
+const PAGE_SIZE = 10
+
+async function FetchNotifications({ pageParam }: { pageParam: number }) {
+	const resp = await GetNotifications({
+		page: pageParam,
+		pageSize: PAGE_SIZE
+	})
+
+	return { data: resp, page: pageParam }
+}
 
 export function NotificationList() {
 	const scrollRef = useRef<HTMLDivElement>(null)
@@ -18,9 +31,13 @@ export function NotificationList() {
 		error
 	} = useInfiniteQuery({
 		queryKey: ['notifications'],
-		queryFn: fetchNotifications,
-		getNextPageParam: (lastPage) => lastPage.nextCursor,
-		initialPageParam: null
+		queryFn: FetchNotifications,
+		getNextPageParam: (lastPage) => {
+			return lastPage.data.length < PAGE_SIZE
+				? undefined
+				: lastPage.page + 1
+		},
+		initialPageParam: 0
 	})
 
 	useEffect(() => {
@@ -52,23 +69,44 @@ export function NotificationList() {
 				return '👤'
 			case 'mention':
 				return '@'
+			case 'birthday':
+				return <Cake size={16} />
 			default:
 				return '🔔'
 		}
 	}
 
-	const formatTimestamp = (timestamp: string) => {
-		const date = new Date(timestamp)
-		const now = new Date()
-		const diffInMinutes = Math.floor(
-			(now.getTime() - date.getTime()) / (1000 * 60)
-		)
+	// Group notifications by date
+	const groupNotificationsByDate = (notifications: AppNotification[]) => {
+		const groups: Record<string, AppNotification[]> = {}
 
-		if (diffInMinutes < 1) return 'Just now'
-		if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-		if (diffInMinutes < 1440)
-			return `${Math.floor(diffInMinutes / 60)}h ago`
-		return `${Math.floor(diffInMinutes / 1440)}d ago`
+		notifications.forEach((notification) => {
+			const date = dayjs(notification.createdAt).format('YYYY-MM-DD')
+
+			if (!groups[date]) {
+				groups[date] = []
+			}
+			groups[date].push(notification)
+		})
+
+		return groups
+	}
+
+	// Format date for display
+	const formatDateHeader = (dateString: string) => {
+		const date = dayjs(dateString)
+		const today = dayjs()
+		const yesterday = today.subtract(1, 'day')
+
+		if (date.isSame(today, 'day')) {
+			return 'Hôm nay'
+		} else if (date.isSame(yesterday, 'day')) {
+			return 'Hôm qua'
+		} else if (date.isSame(today, 'year')) {
+			return date.format('DD/MM')
+		} else {
+			return date.format('DD/MM/YYYY')
+		}
 	}
 
 	if (isLoading) {
@@ -87,56 +125,73 @@ export function NotificationList() {
 		)
 	}
 
-	const allNotifications =
-		data?.pages.flatMap((page) => page.notifications) ?? []
+	const allNotifications = data?.pages.flatMap((page) => page.data) ?? []
+	const groupedNotifications = groupNotificationsByDate(allNotifications)
+
+	// Sort dates in descending order (most recent first)
+	const sortedDates = Object.keys(groupedNotifications).sort(
+		(a, b) => dayjs(b).valueOf() - dayjs(a).valueOf()
+	)
 
 	return (
 		<ScrollArea className='h-96' ref={scrollRef}>
-			<div className='divide-y'>
-				{allNotifications.map((notification) => (
-					<div
-						key={notification.id}
-						className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-							!notification.read ? 'bg-blue-50' : ''
-						}`}
-					>
-						<div className='flex items-start space-x-3'>
-							<div className='relative'>
-								<Avatar className='h-10 w-10'>
-									<AvatarImage
-										src={
-											notification.user.avatar ||
-											'/placeholder.svg'
-										}
-										alt={notification.user.name}
-									/>
-									<AvatarFallback>
-										{notification.user.name
-											.split(' ')
-											.map((n) => n[0])
-											.join('')}
-									</AvatarFallback>
-								</Avatar>
-								<div className='absolute -bottom-1 -right-1 bg-white rounded-full p-1'>
-									<span className='text-xs'>
-										{getNotificationIcon(notification.type)}
-									</span>
-								</div>
-							</div>
-							<div className='flex-1 min-w-0'>
-								<p className='text-sm'>
-									<span className='font-medium'>
-										{notification.user.name}
-									</span>{' '}
-									{notification.message}
-								</p>
-								<p className='text-xs text-gray-500 mt-1'>
-									{formatTimestamp(notification.timestamp)}
-								</p>
-							</div>
-							{!notification.read && (
-								<div className='w-2 h-2 bg-blue-500 rounded-full mt-2' />
-							)}
+			<div>
+				{sortedDates.map((date) => (
+					<div key={date} className='mb-4'>
+						{/* Date Header */}
+						<div className='sticky top-0 bg-gray-100 px-4 py-2 text-xs font-medium text-gray-600 uppercase tracking-wide border-b'>
+							{formatDateHeader(date)}
+						</div>
+
+						{/* Notifications for this date */}
+						<div className='divide-y'>
+							{groupedNotifications[date].map((notification) => {
+								const birthdayMsg =
+									'Tuần này có sinh nhật của đồng chí'
+								const notificationMsg =
+									notification.totalCount === 1
+										? `${birthdayMsg} X.`
+										: `${birthdayMsg} X và ${notification.totalCount} đồng chí khác.`
+
+								return (
+									<div
+										key={notification.id}
+										className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+											!notification.readAt === null
+												? 'bg-blue-50'
+												: ''
+										}`}
+									>
+										<div className='flex flex-col gap-2 space-x-3'>
+											<div className='flex gap-2'>
+												<div className='bg-white rounded-full p-1'>
+													<span className='text-xs'>
+														{getNotificationIcon(
+															notification.notificationType
+														)}
+													</span>
+												</div>
+												{notification.title}
+											</div>
+											<div className='flex-1 min-w-0'>
+												<p className='text-sm'>
+													<span className='font-medium'>
+														{notificationMsg}
+													</span>
+												</p>
+												<p className='text-xs text-gray-500 mt-1'>
+													{formatTimestamp(
+														notification.createdAt
+													)}
+												</p>
+											</div>
+											{!notification.readAt && (
+												<div className='w-2 h-2 bg-blue-500 rounded-full mt-2' />
+											)}
+										</div>
+									</div>
+								)
+							})}
 						</div>
 					</div>
 				))}
@@ -145,21 +200,21 @@ export function NotificationList() {
 					<div className='flex items-center justify-center p-4'>
 						<Loader2 className='h-4 w-4 animate-spin mr-2' />
 						<span className='text-sm text-gray-500'>
-							Loading more...
+							Đang tải...
 						</span>
 					</div>
 				)}
 
 				{!hasNextPage && allNotifications.length > 0 && (
 					<div className='p-4 text-center text-gray-500 text-sm'>
-						{"You're all caught up!"}
+						Không còn thông báo mới
 					</div>
 				)}
 
 				{allNotifications.length === 0 && (
 					<div className='p-8 text-center text-gray-500'>
 						<Bell className='h-12 w-12 mx-auto mb-4 opacity-50' />
-						<p>No notifications yet</p>
+						<p>Chưa có thông báo nào</p>
 					</div>
 				)}
 			</div>

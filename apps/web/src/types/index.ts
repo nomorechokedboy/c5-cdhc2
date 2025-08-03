@@ -63,50 +63,6 @@ type Base = {
 
 export interface Student extends Base, StudentBody {}
 
-export interface StudentProto {
-	TT: number
-	'Họ và tên': string
-	'Năm sinh': number
-	'Quê quán': string
-	'Hộ khẩu thường trú': string
-	CB: string
-	CV: string
-	'Đơn vị cũ': string
-	'Dân tộc': string
-	'Tôn giáo': string
-	'Nhập ngũ': number
-	Đoàn: number
-	Đảng: number | null
-	'Chính thức': number | null
-	'Số thẻ Đảng (Nếu có)': string | null
-	'Trình độ học vấn': string
-	'Tên trường': string | null
-	'Ngành nghề đào tạo': string | null
-	'Chức vụ công tác đơn vị cũ - chuyên ngành': string
-	'Diện chính sách': string | null
-	'Năng khiếu': string | null
-	'Sở đoản': string | null
-	Bố: string
-	'Năm sinh bố': number
-	'Nghề nghiệp bố': string
-	'SĐT Bố': number
-	Mẹ: string
-	'Năm sinh mẹ': number
-	'Nghề nghiệp mẹ': string
-	'SĐT mẹ': number
-	Vợ: string | null
-	'Năm sinh vợ': number | null
-	'Nghề nghiệp vợ': string | null
-	'SĐT vợ': number | null
-	'Con _ Năm sinh': string | null
-	'Gia đình có mấy thành viên': number | null
-	'Là con thứ mấy': number
-	'Sơ lược hoàn cảnh gia đình': string | null
-	'Thành tích': string | null
-	'Kỷ luật': string | null
-	Lớp: string
-}
-
 export type ClassResponse = { data: Class[] }
 
 export type StudentResponse = { data: Student[] }
@@ -209,9 +165,9 @@ export const defaultStudentColumnVisibility = {
 	birthPlace: false
 }
 
-export interface Notification {
+export interface NotificationProto {
 	id: string
-	type: 'like' | 'comment' | 'follow' | 'mention'
+	type: 'like' | 'comment' | 'follow' | 'mention' | 'birthday'
 	user: {
 		name: string
 		avatar: string
@@ -222,12 +178,59 @@ export interface Notification {
 	read: boolean
 }
 
-export interface NotificationResponse {
-	notifications: Notification[]
+export interface NotificationProtoResponse {
+	notifications: NotificationProto[]
 	nextCursor: string | null
 	hasMore: boolean
 }
 
+export interface AppNotificationItem extends Base {
+	notifiableId: number
+	notifiableType: 'classes' | 'students'
+}
+
+export interface AppNotification {
+	id: string
+	createdAt: string
+	readAt: string | null
+
+	message: string
+	notificationType: 'birthday' | 'officialCpv'
+	title: string
+	totalCount: number
+
+	items: AppNotificationItem[]
+}
+
+export interface AppNotificationResponse {
+	data: AppNotification[]
+}
+
+export interface AppNotificationQuery {
+	page?: number
+	pageSize?: number
+}
+
+export interface MarkAsReadNotificationParams {
+	ids: string[]
+}
+
+export type UnitLevel = 'battalion' | 'company'
+
 export interface GetUnitQuery {
-	level: 'battalion' | 'company'
+	level: UnitLevel
+}
+
+export interface Unit extends Base {
+	alias: string
+	name: string
+	level: UnitLevel
+
+	parent?: Unit | null
+	children: Unit[]
+	classes?: Class[]
+}
+
+export interface GetUnitResponse {
+	data: Unit[]
 }
