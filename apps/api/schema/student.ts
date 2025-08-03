@@ -36,6 +36,7 @@ export const students = sqlite.sqliteTable('students', {
 		.$type<'hcyu' | 'cpv'>()
 		.notNull(),
 	politicalOrgOfficialDate: sqlite.text().default(''),
+	cpvOfficialDate: sqlite.text().default(''),
 	cpvId: sqlite.text(),
 	educationLevel: sqlite.text().default(''),
 	schoolName: sqlite.text().default(''),
