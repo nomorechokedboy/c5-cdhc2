@@ -19,6 +19,23 @@ export const ResourcesEnum = customType<{ data: string; driverData: string }>({
 	}
 })
 
+export const NotificationTypeEnum = customType<{
+	data: string
+	driverData: string
+}>({
+	dataType() {
+		return 'text'
+	},
+	toDriver(val: string) {
+		if (!['birthday', 'officialCpv'].includes(val)) {
+			throw AppError.invalidArgument(
+				'notification type can only be birthday or officialCpv'
+			)
+		}
+		return val
+	}
+})
+
 export const notifications = sqlite.sqliteTable(
 	'notifications',
 	{
@@ -26,6 +43,10 @@ export const notifications = sqlite.sqliteTable(
 		createdAt: sqlite.text().default(sql`CURRENT_TIMESTAMP`),
 		readAt: sqlite.text(),
 
+		notificationType: NotificationTypeEnum('notificationType')
+			.$type<'birthday' | 'officialCpv'>()
+			.default('birthday')
+			.notNull(),
 		title: sqlite.text().notNull(),
 		message: sqlite.text().notNull(),
 
@@ -56,7 +77,7 @@ export type NotificationQuery = {
 export type Notification = NotificationDB & { items: NotificationItem[] }
 
 export type CreateNotificationParams = {
-	type: string
+	notificationType: string
 	title: string
 	message?: string
 	recipientId: number
@@ -72,7 +93,7 @@ export type CreateBatchNotificationItemData = Array<{
 }>
 
 export type CreateBatchNotificationData = {
-	type: string
+	notificationType: 'birthday' | 'officialCpv'
 	title: string
 	message: string
 	recipientId?: number

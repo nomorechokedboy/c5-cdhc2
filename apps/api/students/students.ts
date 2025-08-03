@@ -83,13 +83,9 @@ export const CreateStudent = api(
 		}
 		log.trace('students.CreateStudents body', { studentParam })
 
-		const createdStudent = await studentController.create([
-			studentParam
-		])
+		const createdStudent = await studentController.create([studentParam])
 
-		const resp = createdStudent.map(
-			(s) => ({ ...s }) as StudentDBResponse
-		)
+		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
 		return { data: resp }
 	}
@@ -102,16 +98,11 @@ interface StudentBulkBody {
 export const CreateStudents = api(
 	{ expose: false, method: 'POST', path: '/students/bulk' },
 	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
-		const studentParams = body.data.map(
-			(b) => ({ ...b }) as StudentParam
-		)
+		const studentParams = body.data.map((b) => ({ ...b }) as StudentParam)
 
-		const createdStudent =
-			await studentController.create(studentParams)
+		const createdStudent = await studentController.create(studentParams)
 
-		const resp = createdStudent.map(
-			(s) => ({ ...s }) as StudentDBResponse
-		)
+		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
 		return { data: resp }
 	}
@@ -204,23 +195,20 @@ export const GetStudentWithBirthdayInWeek = api(
 		const students = await studentController.find({
 			birthdayInMonth: '07'
 		})
-		log.trace(
-			'students.GetStudentWithBirthdayInWeek processing data',
-			{ students }
-		)
+		log.trace('students.GetStudentWithBirthdayInWeek processing data', {
+			students
+		})
 
-		const items: CreateBatchNotificationItemData = students.map(
-			(s) => ({
-				notifiableId: s.id,
-				notifiableType: 'students'
-			})
-		)
+		const items: CreateBatchNotificationItemData = students.map((s) => ({
+			notifiableId: s.id,
+			notifiableType: 'students'
+		}))
 
 		const date = dayjs().format('DD/MM/YYYY')
 		const batchNotification: CreateBatchNotificationData = {
-			type: 'system',
+			notificationType: 'birthday',
 			title: 'Sinh nhật đồng đội',
-			message: '',
+			message: 'Tuần này có sinh nhật của đồng chí',
 			batchKey: `birthday_${date}`,
 			items
 		}

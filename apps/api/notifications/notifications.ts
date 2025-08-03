@@ -23,6 +23,7 @@ interface NotificationResponse {
 	createdAt: string
 	readAt: string
 
+	notificationType: 'birthday' | 'officialCpv'
 	title: string
 	message: string
 
