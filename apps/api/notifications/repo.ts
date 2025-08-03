@@ -16,6 +16,7 @@ import { desc, eq, inArray } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import { v4 as uuidv4 } from 'uuid'
 import { notificationItems } from '../schema/notification-items'
+import { classes, students } from '../schema'
 
 class NotificationSqliteRepo implements Repository {
 	constructor(private db: DrizzleDatabase) {}
@@ -80,33 +81,42 @@ class NotificationSqliteRepo implements Repository {
 	async find(q: NotificationQuery): Promise<Notification[]> {
 		log.info('notifications.find query: ', { q })
 
-		const rows = await this.db
-			.select()
-			.from(notifications)
-			.limit(q.pageSize)
-			.offset(q.page * q.pageSize)
-			.orderBy(desc(notifications.createdAt))
+		const notis = await this.db.query.notifications
+			.findMany({
+				with: {
+					items: true
+				},
+				limit: q.pageSize,
+				offset: q.page * q.pageSize,
+				orderBy: (notifications, { desc }) => [
+					desc(notifications.createdAt)
+				]
+			})
 			.catch(handleDatabaseErr)
 
-		const notificationMap: Record<string, Notification> = {}
-		const notificationIds = rows.map((n) => {
-			notificationMap[n.id] = { ...n, items: [] }
-			return n.id
-		})
-
-		const items = await this.db
-			.select()
-			.from(notificationItems)
-			.where(inArray(notificationItems.notificationId, notificationIds))
-
-		for (const item of items) {
-			const notification = notificationMap[item.notificationId]
-			if (notification !== undefined) {
-				notificationMap[item.notificationId].items.push(item)
-			}
+		if (!notis || notis.length === 0) {
+			return []
 		}
 
-		return Object.values(notificationMap)
+		const allItems = notis.flatMap((noti) => noti.items || [])
+
+		// Load polymorphic data for all items at once (more efficient)
+		const enrichedItems = await this.loadPolymorphicData(allItems)
+
+		// Create a lookup map for enriched items by their ID
+		const enrichedItemsMap = new Map(
+			enrichedItems.map((item) => [item.id, item])
+		)
+
+		// Map notifications with their enriched items
+		const enrichedNotifications: Notification[] = notis.map((noti) => ({
+			...noti,
+			items: (noti.items || []).map(
+				(item) => enrichedItemsMap.get(item.id) || item
+			)
+		}))
+
+		return enrichedNotifications
 	}
 
 	update(params: UpdateNotificationMap): Promise<NotificationDB[]> {
@@ -131,6 +141,70 @@ class NotificationSqliteRepo implements Repository {
 				return updatedRows
 			})
 			.catch(handleDatabaseErr)
+	}
+
+	async loadPolymorphicData<
+		T extends { notifiableType: string; notifiableId: number }
+	>(items: T[]): Promise<(T & { relatedData: any })[]> {
+		if (items.length === 0) return []
+
+		// Group items by type
+		const itemsByType = items.reduce(
+			(acc, item) => {
+				if (!acc[item.notifiableType]) {
+					acc[item.notifiableType] = []
+				}
+				acc[item.notifiableType].push(item)
+				return acc
+			},
+			{} as Record<string, T[]>
+		)
+
+		// Load data for each type
+		const loadPromises = Object.entries(itemsByType).map(
+			async ([type, typeItems]) => {
+				const ids = typeItems.map((item) => item.notifiableId)
+
+				switch (type) {
+					case 'classes':
+						return {
+							type,
+							data: await this.db
+								.select()
+								.from(classes)
+								.where(inArray(classes.id, ids))
+						}
+					case 'students':
+						return {
+							type,
+							data: await this.db
+								.select()
+								.from(students)
+								.where(inArray(students.id, ids))
+						}
+					default:
+						return { type, data: [] }
+				}
+			}
+		)
+
+		const loadedData = await Promise.all(loadPromises)
+
+		// Create lookup maps
+		const dataLookup = loadedData.reduce(
+			(acc, { type, data }) => {
+				acc[type] = new Map(data.map((item) => [item.id, item]))
+				return acc
+			},
+			{} as Record<string, Map<number, any>>
+		)
+
+		// Enrich items with related data
+		return items.map((item) => ({
+			...item,
+			relatedData:
+				dataLookup[item.notifiableType]?.get(item.notifiableId) || null
+		}))
 	}
 }
 
