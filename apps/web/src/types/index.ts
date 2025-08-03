@@ -111,6 +111,8 @@ export type ClassResponse = { data: Class[] };
 
 export type StudentResponse = { data: Student[] };
 
+export type UnitResponse = { data: Unit[] };
+
 export interface SearchInputConfig {
         columnKey: string;
         placeholder?: string;
@@ -163,3 +165,46 @@ export type UpdateStudentBody = Partial<StudentBody> & { id: number };
 export type UpdateStudentsBody = {
         data: UpdateStudentBody[];
 };
+
+export type UnitLevel = {
+        name: 'battalion' | 'company';
+};
+
+// Unit type based on backend Unit type
+export interface Unit  {
+        id: number;
+        alias: string;
+        name: string;
+        level: 'battalion' | 'company';
+        createdAt: string;
+        updatedAt: string;
+        parentId?: number;
+        parent?: Unit;
+        children: Unit[];
+        classes: Class[];
+};
+
+export const defaultStudentColumnVisibility = {
+        dob: false,
+        enlistmentPeriod: false,
+        isGraduated: false,
+        major: false,
+        phone: false,
+        position: false,
+        policyBeneficiaryGroup: false,
+        politicalOrgOfficialDate: false,
+        cpvId: false,
+        previousPosition: false,
+        religion: false,
+        schoolName: false,
+        shortcoming: false,
+        talent: false,
+        fatherName: false,
+        fatherJob: false,
+        fatherPhoneNumber: false,
+        motherName: false,
+        motherJob: false,
+        motherPhoneNumber: false,
+        address: false,
+        birthPlace: false,
+}

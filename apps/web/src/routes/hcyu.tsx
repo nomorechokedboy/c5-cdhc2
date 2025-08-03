@@ -1,258 +1,154 @@
+import React from 'react'
+import useGetStudentsByLevel from '@/hooks/useGetSutdentsByLevel'
 import { createFileRoute } from '@tanstack/react-router'
-import { DataTable } from '@/components/data-table'
-import { columns } from '@/components/student-table/columns'
 import { SidebarInset } from '@/components/ui/sidebar'
-import StudentForm from '@/components/student-form'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
-import useStudentData from '@/hooks/useStudents'
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger
-} from '@/components/ui/accordion'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge, badgeVariants } from '@/components/ui/badge'
 
+import StudentTable from '@/components/student-table'
+import type { StudentQueryParams } from '@/types'
 export const Route = createFileRoute('/hcyu')({
 	component: RouteComponent
 })
 
 function RouteComponent() {
-	const {
-		data: students = [],
-		isLoading: isLoadingStudents,
-		refetch: refetchStudent
-	} = useStudentData({ politicalOrg: 'hcyu' })
-	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
-
-	if (isLoadingStudents) {
-		return <div>Loading...</div>
+	const filter: StudentQueryParams = {
+		politicalOrg: 'hcyu'
 	}
-
-	const handleFormSuccess = () => {
-		refetchStudent()
-	}
-	const searchConfig = [createSearchConfig('fullName', 'Tìm kiếm theo tên...')]
-
-	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
+	// Fetch units with level 'battalion', data type is Unit[]
+	const { data: battalions = [], isLoading: isLoadingUnits } =
+		useGetStudentsByLevel({ name: 'battalion' })
+	const [selectedBattalionId, setSelectedBattalionId] = React.useState<
+		number | null
+	>(null)
+	const [selectedCompanyId, setSelectedCompanyId] = React.useState<
+		number | null
+	>(null)
+	const [selectedClassId, setSelectedClassId] = React.useState<number | null>(
+		null
 	)
-	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-		label: rank,
-		value: rank
-	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: c.name,
-				value: c.name
-			}))
-		: []
 
-	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	)
-	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-		label: pu,
-		value: pu
-	}))
+	// Find selected battalion, company, class
+	const selectedBattalion =
+		battalions.find((b) => b.id === selectedBattalionId) || null
+	const companies = selectedBattalion ? selectedBattalion.children : []
+	const selectedCompany =
+		companies.find((c) => c.id === selectedCompanyId) || null
+	const classes = selectedCompany ? selectedCompany.classes : []
+	const selectedClass =
+		classes.find((cls) => cls.id === selectedClassId) || null
 
-	const facetedFilters = [
-		// createFacetedFilter('class.name', 'Lớp', classOptions),
-		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-		createFacetedFilter('educationLevel', 'Trình độ học vấn', EduLevelOptions)
-	]
-	const defaultColumnVisibility = {
-		dob: false,
-		enlistmentPeriod: false,
-		isGraduated: false,
-		major: false,
-		phone: false,
-		position: false,
-		policyBeneficiaryGroup: false,
-		politicalOrgOfficialDate: false,
-		cpvId: false,
-		previousPosition: false,
-		religion: false,
-		schoolName: false,
-		shortcoming: false,
-		talent: false,
-		fatherName: false,
-		fatherJob: false,
-		fatherPhoneNumber: false,
-		motherName: false,
-		motherJob: false,
-		motherPhoneNumber: false
-	}
+	// Auto-select first available at each level
+	React.useEffect(() => {
+		if (!selectedBattalionId && battalions.length > 1) {
+			setSelectedBattalionId(battalions[1].id)
+		}
+	}, [battalions, selectedBattalionId])
+	React.useEffect(() => {
+		if (selectedBattalion && companies.length > 1 && !selectedCompanyId) {
+			setSelectedCompanyId(companies[1].id)
+		}
+	}, [selectedBattalion, companies, selectedCompanyId])
+	React.useEffect(() => {
+		if (selectedCompany && classes.length > 0 && !selectedClassId) {
+			setSelectedClassId(classes[0].id)
+		}
+	}, [selectedCompany, classes, selectedClassId])
 
-	const studentK1Class = students.filter(
-		(student) => student.class.name === 'K1'
-	)
-	const studentKCL1Class = students.filter(
-		(student) => student.class.name === 'KCL1'
-	)
-	const studentNVQYCk42Class = students.filter(
-		(student) => student.class.name === 'NVQYCk42'
-	)
 	return (
 		<SidebarInset>
 			<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
 				<div className='flex items-center justify-between space-y-2'>
 					<div>
 						<h2 className='text-2xl font-bold tracking-tight'>
-							Danh sách học viên là Đoàn viên
+							Danh sách học viên
 						</h2>
 						<p className='text-muted-foreground'>
-							Đây là danh sách học viên là Đoàn viên của đại đội
+							Chọn tiểu đoàn, đại đội, lớp để xem bảng học viên
 						</p>
 					</div>
 				</div>
-				{/* <DataTable
-                                        data={students}
-                                        defaultColumnVisibility={{
-                                                dob: false,
-                                                enlistmentPeriod: false,
-                                                isGraduated: false,
-                                                major: false,
-                                                phone: false,
-                                                position: false,
-                                                policyBeneficiaryGroup: false,
-                                                politicalOrgOfficialDate: false,
-                                                cpvId: false,
-                                                previousPosition: false,
-                                                religion: false,
-                                                schoolName: false,
-                                                shortcoming: false,
-                                                talent: false,
-                                                fatherName: false,
-                                                fatherJob: false,
-                                                fatherPhoneNumber: false,
-                                                motherName: false,
-                                                motherJob: false,
-                                                motherPhoneNumber: false,
-                                        }}
-                                        columns={columns}
-                                        toolbarProps={{
-                                                rightSection: (
-                                                        <StudentForm
-                                                                onSuccess={
-                                                                        handleFormSuccess
-                                                                }
-                                                        />
-                                                ),
-                                                searchConfig,
-                                                facetedFilters,
-                                        }}
-                                /> */}
-				<Accordion
-					type='multiple'
-					className='w-full'
-					defaultValue={['d2']}
-				>
-					
-
-					<AccordionItem value='d1'>
-						<AccordionTrigger>
-							<Badge variant='default'>Đại đội 4</Badge>
-						</AccordionTrigger>
-						<AccordionContent>
-							<DataTable
-								data={students}
-								defaultColumnVisibility={{
-									dob: false,
-									enlistmentPeriod: false,
-									isGraduated: false,
-									major: false,
-									phone: false,
-									position: false,
-									policyBeneficiaryGroup: false,
-									politicalOrgOfficialDate: false,
-									cpvId: false,
-									previousPosition: false,
-									religion: false,
-									schoolName: false,
-									shortcoming: false,
-									talent: false,
-									fatherName: false,
-									fatherJob: false,
-									fatherPhoneNumber: false,
-									motherName: false,
-									motherJob: false,
-									motherPhoneNumber: false
-								}}
-								columns={columns}
-								toolbarProps={{
-									rightSection: <StudentForm onSuccess={handleFormSuccess} />,
-									searchConfig,
-									facetedFilters
+				{/* Breadcrumb + Select navigation */}
+				<div className='flex items-center gap-4 mb-4'>
+					{/* Battalion select */}
+					<div>
+						<span className='font-medium'>Tiểu đoàn:</span>
+						<select
+							className='ml-2 border rounded px-2 py-1'
+							value={selectedBattalionId ?? ''}
+							onChange={(e) => {
+								const id = Number(e.target.value)
+								setSelectedBattalionId(id)
+								setSelectedCompanyId(null)
+								setSelectedClassId(null)
+							}}
+						>
+							{battalions.map((b) => (
+								<option key={b.id} value={b.id}>
+									{b.name}
+								</option>
+							))}
+						</select>
+					</div>
+					<span className='mx-2'>/</span>
+					{/* Company select */}
+					<div>
+						<span className='font-medium'>Đại đội:</span>
+						<select
+							className='ml-2 border rounded px-2 py-1'
+							value={selectedCompanyId ?? ''}
+							onChange={(e) => {
+								const id = Number(e.target.value)
+								setSelectedCompanyId(id)
+								setSelectedClassId(null)
+							}}
+							disabled={companies.length === 0}
+						>
+							{companies.map((c) => (
+								<option key={c.id} value={c.id}>
+									{c.name}
+								</option>
+							))}
+						</select>
+					</div>
+					<span className='mx-2'>/</span>
+					{/* Class select */}
+					<div>
+						<span className='font-medium'>Lớp:</span>
+						<select
+							className='ml-2 border rounded px-2 py-1'
+							value={selectedClassId ?? ''}
+							onChange={(e) =>
+								setSelectedClassId(Number(e.target.value))
+							}
+							disabled={classes.length === 0}
+						>
+							{classes.map((cls) => (
+								<option key={cls.id} value={cls.id}>
+									{cls.name}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
+				{/* Student table for selected class */}
+				<div className='mt-4'>
+					{selectedClass ? (
+						<div>
+							<h1 className='text-xl font-bold text-center mb-4'>
+								Danh sách học viên lớp {selectedClass.name}
+							</h1>
+							<StudentTable
+								params={{
+									...filter,
+									classId: selectedClass.id
 								}}
 							/>
-						</AccordionContent>
-					</AccordionItem>
-                                        <AccordionItem value='d2'>
-						<AccordionTrigger>
-							<Badge variant='default'>Đại đội 5</Badge>
-						</AccordionTrigger>
-						<AccordionContent>
-							<Tabs defaultValue='account' className='w-full'>
-								<TabsList>
-									<TabsTrigger value='k1'>Lớp K1</TabsTrigger>
-									<TabsTrigger value='kcl1'>Lớp KCL1</TabsTrigger>
-									<TabsTrigger value='nvqyck42'>Lớp NVQYCk42</TabsTrigger>
-								</TabsList>
-								<TabsContent value='k1'>
-									<DataTable
-										data={studentK1Class}
-										defaultColumnVisibility={defaultColumnVisibility}
-										columns={columns}
-										toolbarProps={{
-											rightSection: (
-												<StudentForm onSuccess={handleFormSuccess} />
-											),
-											searchConfig,
-											facetedFilters
-										}}
-									/>
-								</TabsContent>
-								<TabsContent value='kcl1'>
-									<DataTable
-										data={studentKCL1Class}
-										defaultColumnVisibility={defaultColumnVisibility}
-										columns={columns}
-										toolbarProps={{
-											rightSection: (
-												<StudentForm onSuccess={handleFormSuccess} />
-											),
-											searchConfig,
-											facetedFilters
-										}}
-									/>
-								</TabsContent>
-								<TabsContent value='ncqyck42'>
-									<DataTable
-										data={studentNVQYCk42Class}
-										defaultColumnVisibility={defaultColumnVisibility}
-										columns={columns}
-										toolbarProps={{
-											rightSection: (
-												<StudentForm onSuccess={handleFormSuccess} />
-											),
-											searchConfig,
-											facetedFilters
-										}}
-									/>
-								</TabsContent>
-							</Tabs>
-						</AccordionContent>
-					</AccordionItem>
-				</Accordion>
+						</div>
+					) : (
+						<div className='text-muted-foreground'>
+							Chọn lớp để xem danh sách học viên
+						</div>
+					)}
+				</div>
 			</div>
 		</SidebarInset>
 	)
