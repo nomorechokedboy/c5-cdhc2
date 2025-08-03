@@ -1,23 +1,9 @@
 import { customType, index } from 'drizzle-orm/sqlite-core'
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { AppError } from '../errors/index'
-import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm'
+import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
 import { users } from './users'
-import { NotificationItem } from './notification-items'
-
-export const ResourcesEnum = customType<{ data: string; driverData: string }>({
-	dataType() {
-		return 'text'
-	},
-	toDriver(val: string) {
-		if (!['classes', 'students'].includes(val)) {
-			throw AppError.invalidArgument(
-				'resourceType can only be classes | students'
-			)
-		}
-		return val
-	}
-})
+import { NotificationItem, notificationItems } from './notification-items'
 
 export const NotificationTypeEnum = customType<{
 	data: string
@@ -62,6 +48,10 @@ export const notifications = sqlite.sqliteTable(
 		index('batch_idx').on(table.batchKey)
 	]
 )
+
+export const notificationsRelations = relations(notifications, ({ many }) => ({
+	items: many(notificationItems)
+}))
 
 export type NotifiableType = 'students' | 'classes'
 

@@ -1,5 +1,6 @@
 export * from './base'
 export * from './classes'
+export * from './notification-items'
 export * from './notifications'
 export * from './student'
 export * from './units'
