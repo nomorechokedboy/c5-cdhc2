@@ -31,7 +31,7 @@ services:
               apk add --no-cache curl &&
 
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
-              echo '0 0 * * 0 ./scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 * * 1 ./scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 * * /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 */3 * /scripts/quarterly_birthday.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
               echo 'Cron jobs installed:' &&
