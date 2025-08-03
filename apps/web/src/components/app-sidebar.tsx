@@ -54,7 +54,7 @@ const data = {
                                         url: '/cpv',
                                 },
                                 {
-                                        title: 'Đoàn viên tiểu đoàn 2',
+                                        title: 'Đoàn viên',
                                         url: '/hcyu',
                                 },
                         ],

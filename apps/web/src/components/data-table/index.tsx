@@ -204,7 +204,7 @@ export function DataTable<TData, TValue>({
                 if (!rows?.length) {
                         return (
                                 <div className="text-center py-8 text-muted-foreground">
-                                        No results.
+                                        Không có học sinh nào!
                                 </div>
                         );
                 }

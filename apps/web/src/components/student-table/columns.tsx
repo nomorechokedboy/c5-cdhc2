@@ -85,6 +85,7 @@ export const columns: ColumnDef<Student>[] = [
 		accessorKey: 'birthPlace',
 		header: 'Quê quán',
 		cell: EditableCell,
+		enableHiding: true,
 		meta: {
 			label: 'Quê quán'
 		}
