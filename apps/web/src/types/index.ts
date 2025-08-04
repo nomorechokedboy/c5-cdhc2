@@ -151,25 +151,6 @@ export const defaultStudentColumnVisibility = {
 	birthPlace: false
 }
 
-export interface NotificationProto {
-	id: string
-	type: 'like' | 'comment' | 'follow' | 'mention' | 'birthday'
-	user: {
-		name: string
-		avatar: string
-		username: string
-	}
-	message: string
-	timestamp: string
-	read: boolean
-}
-
-export interface NotificationProtoResponse {
-	notifications: NotificationProto[]
-	nextCursor: string | null
-	hasMore: boolean
-}
-
 export interface AppNotificationItem extends Base {
 	notifiableId: number
 	notifiableType: 'classes' | 'students'
