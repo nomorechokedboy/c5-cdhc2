@@ -53,7 +53,12 @@ function RouteComponent() {
 				data={company?.classes ?? []}
 				defaultViewMode='card'
 				toolbarProps={{
-					rightSection: <ClassForm onSuccess={handleFormSuccess} />,
+					rightSection: (
+						<ClassForm
+							onSuccess={handleFormSuccess}
+							unitId={company?.id}
+						/>
+					),
 					searchConfig,
 					facetedFilters
 				}}
