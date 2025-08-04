@@ -1,28 +1,20 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { NotificationList } from './notification-list'
+import { useClickAway, useKey } from 'react-use'
 
 export function NotificationBell() {
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 
-	useEffect(() => {
-		function handleClickOutside(event: MouseEvent) {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node)
-			) {
-				setIsOpen(false)
-			}
-		}
+	function handleCloseDropdown() {
+		setIsOpen(false)
+	}
 
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [])
+	useClickAway(dropdownRef, handleCloseDropdown)
+	useKey(isOpen ? 'Escape' : null, handleCloseDropdown)
 
 	return (
 		<div className='relative' ref={dropdownRef}>
