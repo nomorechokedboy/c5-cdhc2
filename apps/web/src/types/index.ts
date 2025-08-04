@@ -187,6 +187,7 @@ export interface NotificationProtoResponse {
 export interface AppNotificationItem extends Base {
 	notifiableId: number
 	notifiableType: 'classes' | 'students'
+	relatedData: Student | Class
 }
 
 export interface AppNotification {
@@ -214,8 +215,6 @@ export interface AppNotificationQuery {
 export interface MarkAsReadNotificationParams {
 	ids: string[]
 }
-
-export type UnitLevel = 'battalion' | 'company'
 
 export interface GetUnitQuery {
 	level: UnitLevel
