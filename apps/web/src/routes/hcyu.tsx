@@ -1,10 +1,10 @@
 import React from 'react'
-import useGetStudentsByLevel from '@/hooks/useGetSutdentsByLevel'
 import { createFileRoute } from '@tanstack/react-router'
 import { SidebarInset } from '@/components/ui/sidebar'
-
 import StudentTable from '@/components/student-table'
 import type { StudentQueryParams } from '@/types'
+import useUnitsData from '@/hooks/useUnitsData'
+
 export const Route = createFileRoute('/hcyu')({
 	component: RouteComponent
 })
@@ -14,8 +14,9 @@ function RouteComponent() {
 		politicalOrg: 'hcyu'
 	}
 	// Fetch units with level 'battalion', data type is Unit[]
-	const { data: battalions = [], isLoading: isLoadingUnits } =
-		useGetStudentsByLevel({ name: 'battalion' })
+	const { data: battalions = [], isLoading: isLoadingUnits } = useUnitsData({
+		level: 'battalion'
+	})
 	const [selectedBattalionId, setSelectedBattalionId] = React.useState<
 		number | null
 	>(null)
