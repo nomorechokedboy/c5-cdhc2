@@ -66,3 +66,16 @@ export const MarkAsRead = api(
 		return {}
 	}
 )
+
+interface GetUnreadCountResponse {
+	data: { count: number }
+}
+
+export const GetUnreadCount = api(
+	{ expose: true, method: 'GET', path: '/notifications/unread' },
+	async (): Promise<GetUnreadCountResponse> => {
+		const count = await notificationController.getUnreadCount()
+
+		return { data: { count } }
+	}
+)
