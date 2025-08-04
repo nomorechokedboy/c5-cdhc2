@@ -7,10 +7,8 @@ import type {
 	ClassResponse,
 	DeleteStudentsBody,
 	GetUnitQuery,
-	GetUnitResponse,
 	GetUnreadNotificationCountResponse,
 	MarkAsReadNotificationParams,
-	NotificationProtoResponse,
 	Student,
 	StudentBody,
 	StudentQueryParams,
@@ -20,7 +18,6 @@ import type {
 	UnitResponse,
 	UpdateStudentsBody
 } from '@/types'
-import { mockNotificationsAPI } from './mockApi'
 import axios from '@/lib/axios'
 
 export function CreateClass(body: ClassBody) {
@@ -65,32 +62,6 @@ export function GetNotifications(
 
 export function MarkAsRead(params: MarkAsReadNotificationParams) {
 	return axios.patch('/notifications/mark-as-read', params)
-}
-
-export async function fetchNotifications({
-	pageParam = null
-}: {
-	pageParam?: string | null
-}): Promise<NotificationProtoResponse> {
-	// In a real Vite app, you might use a different base URL or environment variable
-	// For development, you could use the mock API directly
-	if (import.meta.env.DEV) {
-		// Use mock API in development
-		return mockNotificationsAPI(pageParam)
-	}
-
-	// In production, you would call your actual API endpoint
-	const url = new URL('/api/notifications', window.location.origin)
-	if (pageParam) {
-		url.searchParams.set('cursor', pageParam)
-	}
-
-	const response = await fetch(url.toString())
-	if (!response.ok) {
-		throw new Error('Failed to fetch notifications')
-	}
-
-	return response.json()
 }
 
 export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
