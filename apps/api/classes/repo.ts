@@ -1,7 +1,13 @@
-import { count, eq, getTableColumns, inArray } from 'drizzle-orm'
+import { and, count, eq, getTableColumns, inArray } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database.js'
-import { Class, ClassDB, classes, ClassParam } from '../schema/classes.js'
+import {
+	Class,
+	ClassDB,
+	classes,
+	ClassParam,
+	ClassQuery
+} from '../schema/classes.js'
 import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
@@ -30,8 +36,8 @@ class SqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	find(): Promise<Class[]> {
-		return this.db
+	find(q: ClassQuery): Promise<Class[]> {
+		const baseQuery = this.db
 			.select({
 				...getTableColumns(classes),
 				studentCount: count(students.classId)
@@ -39,8 +45,20 @@ class SqliteRepo implements Repository {
 			.from(classes)
 			.leftJoin(students, eq(classes.id, students.classId))
 			.groupBy(classes.id)
-			.all()
-			.catch(handleDatabaseErr)
+		log.info('ClassRepo.find query: ', { query: q })
+
+		const whereConds = []
+		const isIdsExist = q.ids !== undefined
+		if (isIdsExist) {
+			whereConds.push(inArray(classes.id, q.ids!))
+		}
+
+		const isWhereCondEmpty = whereConds.length === 0
+		if (!isWhereCondEmpty) {
+			baseQuery.where(and(...whereConds))
+		}
+
+		return baseQuery.all().catch(handleDatabaseErr)
 	}
 
 	findOne(_c: ClassDB): Promise<Class> {
