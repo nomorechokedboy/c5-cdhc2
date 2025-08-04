@@ -12,7 +12,7 @@ import {
 } from '../schema/notifications'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
-import { desc, eq, inArray } from 'drizzle-orm'
+import { desc, eq, inArray, isNull } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import { v4 as uuidv4 } from 'uuid'
 import { notificationItems } from '../schema/notification-items'
@@ -81,6 +81,19 @@ class NotificationSqliteRepo implements Repository {
 	async find(q: NotificationQuery): Promise<Notification[]> {
 		log.info('notifications.find query: ', { q })
 
+		/* return this.db.query.notifications
+            .findMany({
+                with: {
+                    items: true
+                },
+                limit: q.pageSize,
+                offset: q.page * q.pageSize,
+                orderBy: (notifications, { desc }) => [
+                    desc(notifications.createdAt)
+                ]
+            })
+            .catch(handleDatabaseErr) */
+
 		const notis = await this.db.query.notifications
 			.findMany({
 				with: {
@@ -143,7 +156,7 @@ class NotificationSqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	async loadPolymorphicData<
+	private async loadPolymorphicData<
 		T extends { notifiableType: string; notifiableId: number }
 	>(items: T[]): Promise<(T & { relatedData: any })[]> {
 		if (items.length === 0) return []
@@ -205,6 +218,10 @@ class NotificationSqliteRepo implements Repository {
 			relatedData:
 				dataLookup[item.notifiableType]?.get(item.notifiableId) || null
 		}))
+	}
+
+	unreadCount(): Promise<number> {
+		return this.db.$count(notifications, isNull(notifications.readAt))
 	}
 }
 
