@@ -1,12 +1,11 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Cake, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Bell } from 'lucide-react'
 import { GetNotifications } from '@/api'
-import { formatTimestamp } from '@/lib/utils'
 import dayjs from 'dayjs'
-import type { AppNotification, Student } from '@/types'
+import type { AppNotification } from '@/types'
 import Notification from './notification'
 
 const PAGE_SIZE = 10
@@ -20,7 +19,11 @@ async function FetchNotifications({ pageParam }: { pageParam: number }) {
 	return { data: resp, page: pageParam }
 }
 
-export function NotificationList() {
+export type NotificationListProps = {
+	onItemClick?: () => void
+}
+
+export function NotificationList({ onItemClick }: NotificationListProps) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const {
@@ -59,23 +62,6 @@ export function NotificationList() {
 		scrollElement.addEventListener('scroll', handleScroll)
 		return () => scrollElement.removeEventListener('scroll', handleScroll)
 	}, [fetchNextPage, hasNextPage, isFetchingNextPage])
-
-	const getNotificationIcon = (type: string) => {
-		switch (type) {
-			case 'like':
-				return '❤️'
-			case 'comment':
-				return '💬'
-			case 'follow':
-				return '👤'
-			case 'mention':
-				return '@'
-			case 'birthday':
-				return <Cake size={16} />
-			default:
-				return '🔔'
-		}
-	}
 
 	// Group notifications by date
 	const groupNotificationsByDate = (notifications: AppNotification[]) => {
@@ -148,7 +134,11 @@ export function NotificationList() {
 						<div className='divide-y'>
 							{groupedNotifications[date].map((notification) => {
 								return (
-									<Notification notification={notification} />
+									<Notification
+										key={notification.id}
+										notification={notification}
+										onClick={onItemClick}
+									/>
 								)
 							})}
 						</div>

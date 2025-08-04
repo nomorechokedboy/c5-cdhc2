@@ -1,10 +1,14 @@
+import { MarkAsRead } from '@/api'
+import useUnreadNotificationCount from '@/hooks/useUnreadNotificationCount'
 import { formatTimestamp } from '@/lib/utils'
 import type { AppNotification, Student } from '@/types'
+import { useMutation } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Cake } from 'lucide-react'
 
 export type NotificationProps = {
 	notification: AppNotification
+	onClick?: () => void
 }
 
 const getNotificationIcon = (type: string) => {
@@ -24,18 +28,47 @@ const getNotificationIcon = (type: string) => {
 	}
 }
 
-export default function Notification({ notification }: NotificationProps) {
+export default function Notification({
+	notification,
+	onClick
+}: NotificationProps) {
+	const { refetch: refetchUnreadNotification } = useUnreadNotificationCount()
+	const { mutate } = useMutation({
+		mutationFn: MarkAsRead,
+		onSuccess: () => {
+			refetchUnreadNotification()
+		},
+		onError: (err) => {
+			console.error('MarkAsRead error: ', err)
+		}
+	})
 	const birthdayMsg = 'Tuần này có sinh nhật của đồng chí'
 	const notificationMsg =
 		notification.totalCount === 1
 			? `${birthdayMsg} ${(notification.items[0].relatedData as Student).fullName}.`
 			: `${birthdayMsg} ${(notification.items[0].relatedData as Student).fullName} và ${notification.totalCount} đồng chí khác.`
 
+	function handleReadNotification() {
+		if (notification.readAt !== null) {
+			onClick?.()
+			return
+		}
+
+		if (notification.id === undefined) {
+			console.log(
+				'Notification.handleReadNotification: Notification id is undefined'
+			)
+		} else {
+			mutate({ ids: [notification.id] })
+		}
+
+		onClick?.()
+	}
+
 	return (
-		<Link to='/birthday'>
+		<Link to='/birthday' onClick={handleReadNotification}>
 			<div
-				key={notification.id}
-				className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+				className={`p-4 hover:bg-gray-50 transition-colors ${
 					!notification.readAt === null ? 'bg-blue-50' : ''
 				}`}
 			>
