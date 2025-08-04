@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesIndexRouteImport } from './routes/classes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
+import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
@@ -67,6 +68,11 @@ const DemoTableRoute = DemoTableRouteImport.update({
   path: '/demo/table',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
+  id: '/dai-doi/$companyAlias',
+  path: '/dai-doi/$companyAlias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
   id: '/classes/$classId',
   path: '/classes/$classId',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
+  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes': typeof ClassesIndexRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
+  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes': typeof ClassesIndexRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
+  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes/': typeof ClassesIndexRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/table'
     | '/classes/$classId'
+    | '/dai-doi/$companyAlias'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/classes'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/table'
     | '/classes/$classId'
+    | '/dai-doi/$companyAlias'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/classes'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/table'
     | '/classes/$classId'
+    | '/dai-doi/$companyAlias'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/classes/'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   StudentsRoute: typeof StudentsRoute
   TableRoute: typeof TableRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
+  DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ClassesIndexRoute: typeof ClassesIndexRoute
@@ -251,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dai-doi/$companyAlias': {
+      id: '/dai-doi/$companyAlias'
+      path: '/dai-doi/$companyAlias'
+      fullPath: '/dai-doi/$companyAlias'
+      preLoaderRoute: typeof DaiDoiCompanyAliasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/classes/$classId': {
       id: '/classes/$classId'
       path: '/classes/$classId'
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudentsRoute: StudentsRoute,
   TableRoute: TableRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
+  DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ClassesIndexRoute: ClassesIndexRoute,
