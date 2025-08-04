@@ -11,7 +11,7 @@ class Controller {
 	}
 
 	find(): Promise<ClassDB[]> {
-		return this.repo.find().catch(AppError.handleAppErr)
+		return this.repo.find({}).catch(AppError.handleAppErr)
 	}
 }
 

@@ -66,9 +66,7 @@ class StudentSqliteRepo implements Repository {
 
 		const isPolicicalOrgExist = q.politicalOrg !== undefined
 		if (isPolicicalOrgExist) {
-			whereConds.push(
-				eq(students.politicalOrg, q.politicalOrg!)
-			)
+			whereConds.push(eq(students.politicalOrg, q.politicalOrg!))
 		}
 
 		const isBirthdayInMonthExist = q.birthdayInMonth !== undefined
@@ -80,13 +78,16 @@ class StudentSqliteRepo implements Repository {
 		}
 
 		if (isBirthdayInMonthExist) {
-			whereConds.push(
-				this.birthdayThisMonth(q.birthdayInMonth)
-			)
+			whereConds.push(this.birthdayThisMonth(q.birthdayInMonth))
 		}
 
 		if (isBirthdayInWeekExist && q.birthdayInWeek === true) {
 			whereConds.push(this.birthdayThisWeek())
+		}
+
+		const isIdsExist = q.ids !== undefined
+		if (isIdsExist) {
+			whereConds.push(inArray(classes.id, q.ids!))
 		}
 
 		const isWhereCondEmpty = whereConds.length === 0
@@ -98,18 +99,11 @@ class StudentSqliteRepo implements Repository {
 			.all()
 			.then((resp) =>
 				resp.map(
-					({
-						classes,
-						students: {
-							classId,
-							...students
-						}
-					}) =>
+					({ classes, students: { classId, ...students } }) =>
 						({
 							...students,
 							class: {
-								description:
-									classes?.description,
+								description: classes?.description,
 								id: classes?.id,
 								name: classes?.name
 							}
