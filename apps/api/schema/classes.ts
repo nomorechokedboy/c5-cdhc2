@@ -37,11 +37,7 @@ export const classes = sqlite.sqliteTable(
 			.default(7)
 			.references(() => units.id)
 	},
-	(t) => [
-		sqlite
-			.unique('class_unit_unique_constraint')
-			.on(t.name, t.unitId)
-	]
+	(t) => [sqlite.unique('class_unit_unique_constraint').on(t.name, t.unitId)]
 )
 
 export const classesRelations = relations(classes, ({ one }) => ({
@@ -53,3 +49,7 @@ export type ClassDB = InferSelectModel<typeof classes>
 export type Class = ClassDB & { studentCount: number }
 
 export type ClassParam = InferInsertModel<typeof classes>
+
+export type ClassQuery = {
+	ids?: Array<number>
+}

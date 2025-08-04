@@ -100,6 +100,7 @@ export type StudentQuery = {
 	politicalOrg?: 'hcyu' | 'cpv'
 	birthdayInWeek?: boolean
 	isMarried?: boolean
+	ids?: Array<number>
 }
 
 export type UpdateStudentMap = {
