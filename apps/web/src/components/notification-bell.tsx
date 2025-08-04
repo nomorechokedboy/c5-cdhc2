@@ -4,16 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { NotificationList } from './notification-list'
 import { useClickAway, useKey } from 'react-use'
-import { useQuery } from '@tanstack/react-query'
-import { GetUnreadNotificationsCount } from '@/api'
+import useUnreadNotificationCount from '@/hooks/useUnreadNotificationCount'
 
 export function NotificationBell() {
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const { data: unreadCount } = useQuery({
-		queryKey: ['notificationUnreadCount'],
-		queryFn: GetUnreadNotificationsCount
-	})
+	const { data: unreadCount } = useUnreadNotificationCount()
 
 	function handleCloseDropdown() {
 		setIsOpen(false)
@@ -44,7 +40,7 @@ export function NotificationBell() {
 					<div className='p-4 border-b'>
 						<h3 className='font-semibold text-lg'>Notifications</h3>
 					</div>
-					<NotificationList />
+					<NotificationList onItemClick={handleCloseDropdown} />
 				</div>
 			)}
 		</div>
