@@ -13,7 +13,6 @@ import { Route as TableRouteImport } from './routes/table'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as HcyuRouteImport } from './routes/hcyu'
 import { Route as CpvRouteImport } from './routes/cpv'
-import { Route as BirthdayWeekRouteImport } from './routes/birthday-week'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesIndexRouteImport } from './routes/classes/index'
@@ -41,11 +40,6 @@ const HcyuRoute = HcyuRouteImport.update({
 const CpvRoute = CpvRouteImport.update({
   id: '/cpv',
   path: '/cpv',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BirthdayWeekRoute = BirthdayWeekRouteImport.update({
-  id: '/birthday-week',
-  path: '/birthday-week',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BirthdayRoute = BirthdayRouteImport.update({
@@ -92,7 +86,6 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
-  '/birthday-week': typeof BirthdayWeekRoute
   '/cpv': typeof CpvRoute
   '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
@@ -107,7 +100,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
-  '/birthday-week': typeof BirthdayWeekRoute
   '/cpv': typeof CpvRoute
   '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
@@ -123,7 +115,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
-  '/birthday-week': typeof BirthdayWeekRoute
   '/cpv': typeof CpvRoute
   '/hcyu': typeof HcyuRoute
   '/students': typeof StudentsRoute
@@ -140,7 +131,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/birthday'
-    | '/birthday-week'
     | '/cpv'
     | '/hcyu'
     | '/students'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/birthday'
-    | '/birthday-week'
     | '/cpv'
     | '/hcyu'
     | '/students'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/birthday'
-    | '/birthday-week'
     | '/cpv'
     | '/hcyu'
     | '/students'
@@ -186,7 +174,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BirthdayRoute: typeof BirthdayRoute
-  BirthdayWeekRoute: typeof BirthdayWeekRoute
   CpvRoute: typeof CpvRoute
   HcyuRoute: typeof HcyuRoute
   StudentsRoute: typeof StudentsRoute
@@ -227,13 +214,6 @@ declare module '@tanstack/react-router' {
       path: '/cpv'
       fullPath: '/cpv'
       preLoaderRoute: typeof CpvRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/birthday-week': {
-      id: '/birthday-week'
-      path: '/birthday-week'
-      fullPath: '/birthday-week'
-      preLoaderRoute: typeof BirthdayWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/birthday': {
@@ -298,7 +278,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BirthdayRoute: BirthdayRoute,
-  BirthdayWeekRoute: BirthdayWeekRoute,
   CpvRoute: CpvRoute,
   HcyuRoute: HcyuRoute,
   StudentsRoute: StudentsRoute,
