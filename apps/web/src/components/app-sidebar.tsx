@@ -15,6 +15,12 @@ import {
 } from '@/components/ui/sidebar'
 import { Link } from '@tanstack/react-router'
 import StudentForm from './student-form'
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from './ui/collapsible'
+import { ChevronDown } from 'lucide-react'
 
 // This is sample data.
 const data = {
@@ -88,25 +94,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<StudentForm onSuccess={() => {}} />
 				</div>
 				{data.navMain.map((item) => (
-					<SidebarGroup key={item.title}>
-						<SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-						<SidebarGroupContent>
-							<SidebarMenu>
-								{item.items.map((item) => (
-									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton
-											asChild
-											isActive={item.isActive}
-										>
-											<Link to={item?.url}>
-												{item?.title}
-											</Link>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
-							</SidebarMenu>
-						</SidebarGroupContent>
-					</SidebarGroup>
+					<Collapsible
+						key={item.title}
+						className='group/collapsible'
+						defaultOpen
+					>
+						<SidebarGroup>
+							<SidebarGroupLabel asChild>
+								<CollapsibleTrigger>
+									{item.title}
+									<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
+								</CollapsibleTrigger>
+							</SidebarGroupLabel>
+							<CollapsibleContent>
+								<SidebarGroupContent>
+									<SidebarMenu>
+										{item.items.map((item) => (
+											<SidebarMenuItem key={item.title}>
+												<SidebarMenuButton
+													asChild
+													isActive={item.isActive}
+												>
+													<Link to={item?.url}>
+														{item?.title}
+													</Link>
+												</SidebarMenuButton>
+											</SidebarMenuItem>
+										))}
+									</SidebarMenu>
+								</SidebarGroupContent>
+							</CollapsibleContent>
+						</SidebarGroup>
+					</Collapsible>
 				))}
 			</SidebarContent>
 			<SidebarRail />
