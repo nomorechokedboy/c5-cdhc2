@@ -7,6 +7,7 @@ import type {
 	ClassResponse,
 	DeleteStudentsBody,
 	GetUnitQuery,
+	GetUnitResponse,
 	GetUnreadNotificationCountResponse,
 	MarkAsReadNotificationParams,
 	Student,
@@ -15,7 +16,6 @@ import type {
 	StudentResponse,
 	Unit,
 	UnitLevel,
-	UnitResponse,
 	UpdateStudentsBody
 } from '@/types'
 import axios from '@/lib/axios'
@@ -66,14 +66,16 @@ export function MarkAsRead(params: MarkAsReadNotificationParams) {
 
 export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
 	return axios
-		.get<UnitResponse>('/units', {
+		.get<GetUnitResponse>('/units', {
 			params: { level: level.name }
 		})
 		.then((resp) => resp.data.data)
 }
 
 export function GetUnits(params?: GetUnitQuery) {
-	return axios.get('/units', { params }).then((resp) => resp.data)
+	return axios
+		.get<GetUnitResponse>('/units', { params })
+		.then((resp) => resp.data.data)
 }
 
 export function GetUnreadNotificationsCount(): Promise<number> {

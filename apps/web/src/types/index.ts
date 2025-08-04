@@ -122,9 +122,7 @@ export type UpdateStudentsBody = {
 	data: UpdateStudentBody[]
 }
 
-export type UnitLevel = {
-	name: 'battalion' | 'company'
-}
+export type UnitLevel = 'battalion' | 'company'
 
 export const defaultStudentColumnVisibility = {
 	dob: false,
