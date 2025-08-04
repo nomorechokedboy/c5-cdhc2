@@ -126,20 +126,6 @@ export type UnitLevel = {
 	name: 'battalion' | 'company'
 }
 
-// Unit type based on backend Unit type
-export interface Unit {
-	id: number
-	alias: string
-	name: string
-	level: 'battalion' | 'company'
-	createdAt: string
-	updatedAt: string
-	parentId?: number
-	parent?: Unit
-	children: Unit[]
-	classes: Class[]
-}
-
 export const defaultStudentColumnVisibility = {
 	dob: false,
 	enlistmentPeriod: false,
@@ -232,4 +218,8 @@ export interface Unit extends Base {
 
 export interface GetUnitResponse {
 	data: Unit[]
+}
+
+export interface GetUnreadNotificationCountResponse {
+	data: { count: number }
 }

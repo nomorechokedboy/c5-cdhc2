@@ -8,6 +8,7 @@ import type {
 	DeleteStudentsBody,
 	GetUnitQuery,
 	GetUnitResponse,
+	GetUnreadNotificationCountResponse,
 	MarkAsReadNotificationParams,
 	NotificationProtoResponse,
 	Student,
@@ -102,4 +103,10 @@ export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
 
 export function GetUnits(params?: GetUnitQuery) {
 	return axios.get('/units', { params }).then((resp) => resp.data)
+}
+
+export function GetUnreadNotificationsCount(): Promise<number> {
+	return axios
+		.get<GetUnreadNotificationCountResponse>('/notifications/unread')
+		.then((resp) => resp.data.data.count)
 }
