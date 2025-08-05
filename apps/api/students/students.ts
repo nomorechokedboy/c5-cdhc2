@@ -129,6 +129,9 @@ interface GetStudentsQuery {
 	politicalOrg?: 'hcyu' | 'cpv'
 	birthdayInWeek?: boolean
 	isMarried?: boolean
+	ids?: Array<number>
+	isEthnicMinority?: boolean
+	hasReligion?: boolean
 }
 
 export const GetStudents = api(

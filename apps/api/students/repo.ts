@@ -1,4 +1,4 @@
-import { inArray, eq, sql, and } from 'drizzle-orm'
+import { inArray, eq, sql, and, ne } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
@@ -88,6 +88,16 @@ class StudentSqliteRepo implements Repository {
 		const isIdsExist = q.ids !== undefined
 		if (isIdsExist) {
 			whereConds.push(inArray(classes.id, q.ids!))
+		}
+
+		const isEthnicMinority = q.isEthnicMinority !== undefined
+		if (isEthnicMinority && q.isEthnicMinority === true) {
+			whereConds.push(ne(students.ethnic, 'Kinh'))
+		}
+
+		const hasReligionExist = q.hasReligion !== undefined
+		if (hasReligionExist && q.hasReligion) {
+			whereConds.push(ne(students.religion, 'Không'))
 		}
 
 		const isWhereCondEmpty = whereConds.length === 0
