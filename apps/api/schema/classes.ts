@@ -2,7 +2,7 @@ import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm'
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 import { AppError } from '../errors'
-import { units } from './units'
+import { Unit, units } from './units'
 
 const StatusEnum = sqlite.customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -46,7 +46,7 @@ export const classesRelations = relations(classes, ({ one }) => ({
 
 export type ClassDB = InferSelectModel<typeof classes>
 
-export type Class = ClassDB & { studentCount: number }
+export type Class = ClassDB & { studentCount: number; unit: Unit }
 
 export type ClassParam = InferInsertModel<typeof classes>
 
