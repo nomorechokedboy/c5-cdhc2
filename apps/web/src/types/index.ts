@@ -99,12 +99,15 @@ export type Month =
 	| '11'
 	| '12'
 
+export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
 export interface StudentQueryParams {
-	classId?: number
 	birthdayInMonth?: Month
-	politicalOrg?: PoliticalOrg
+	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
+	classId?: number
 	isMarried?: boolean
+	politicalOrg?: PoliticalOrg
 }
 
 export type ChildrenInfo = {
