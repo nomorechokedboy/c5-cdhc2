@@ -101,6 +101,8 @@ export type StudentQuery = {
 	birthdayInWeek?: boolean
 	isMarried?: boolean
 	ids?: Array<number>
+	isEthnicMinority?: boolean
+	hasReligion?: boolean
 }
 
 export type UpdateStudentMap = {
