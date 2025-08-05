@@ -12,6 +12,7 @@ import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
 import { AppError } from '../errors/index.js'
+import { units } from '../schema/units.js'
 
 class SqliteRepo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -40,11 +41,23 @@ class SqliteRepo implements Repository {
 		const baseQuery = this.db
 			.select({
 				...getTableColumns(classes),
-				studentCount: count(students.classId)
+				studentCount: count(students.classId),
+				unit: {
+					id: units.id,
+					createdAt: units.createdAt,
+					updatedAt: units.updatedAt,
+
+					alias: units.alias,
+					name: units.name,
+					level: units.level,
+
+					parentId: units.parentId
+				}
 			})
 			.from(classes)
 			.leftJoin(students, eq(classes.id, students.classId))
-			.groupBy(classes.id)
+			.leftJoin(units, eq(classes.unitId, units.id))
+			.groupBy(classes.id, units.id)
 		log.info('ClassRepo.find query: ', { query: q })
 
 		const whereConds = []
