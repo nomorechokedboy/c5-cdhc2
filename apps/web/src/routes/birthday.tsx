@@ -3,6 +3,7 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BirthdayByWeek from '@/components/birthday-by-week'
 import BirthdayByMonth from '@/components/birthday-by-month'
+import BirthdayByQuarter from '@/components/birthday-by-quater'
 
 export const Route = createFileRoute('/birthday')({
 	component: RouteComponent
@@ -16,6 +17,7 @@ function RouteComponent() {
 					<TabsList>
 						<TabsTrigger value='week'>Tuần</TabsTrigger>
 						<TabsTrigger value='month'>Tháng</TabsTrigger>
+						<TabsTrigger value='quarter'>Quý</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value='week'>
@@ -24,6 +26,10 @@ function RouteComponent() {
 
 					<TabsContent value='month'>
 						<BirthdayByMonth />
+					</TabsContent>
+
+					<TabsContent value='quarter'>
+						<BirthdayByQuarter />
 					</TabsContent>
 				</Tabs>
 			</div>
