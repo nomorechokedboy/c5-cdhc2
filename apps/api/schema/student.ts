@@ -94,15 +94,18 @@ export type Month =
 	| '11'
 	| '12'
 
+export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
 export type StudentQuery = {
-	classId?: number
 	birthdayInMonth?: Month
-	politicalOrg?: 'hcyu' | 'cpv'
+	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
-	isMarried?: boolean
+	classId?: number
+	hasReligion?: boolean
 	ids?: Array<number>
 	isEthnicMinority?: boolean
-	hasReligion?: boolean
+	isMarried?: boolean
+	politicalOrg?: 'hcyu' | 'cpv'
 }
 
 export type UpdateStudentMap = {

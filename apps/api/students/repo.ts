@@ -1,10 +1,11 @@
-import { inArray, eq, sql, and, ne } from 'drizzle-orm'
+import { inArray, eq, sql, and, ne, between } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
 import { classes } from '../schema/classes'
 import {
 	Month,
+	Quarter,
 	Student,
 	StudentDB,
 	StudentParam,
@@ -51,6 +52,31 @@ class StudentSqliteRepo implements Repository {
         BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
 	}
 
+	private birthdayInQuarter(quarter: Quarter) {
+		let start = '01'
+		let end = '03'
+
+		switch (quarter) {
+			case 'Q2':
+				start = '04'
+				end = '06'
+				break
+			case 'Q3':
+				start = '07'
+				end = '09'
+				break
+			case 'Q4':
+				start = '10'
+				end = '12'
+				break
+			case 'Q1':
+			default:
+				break
+		}
+
+		return between(sql`strftime('%m', ${students.dob})`, start, end)
+	}
+
 	find(q: StudentQuery): Promise<Student[]> {
 		const baseQuery = this.db
 			.select()
@@ -71,14 +97,23 @@ class StudentSqliteRepo implements Repository {
 
 		const isBirthdayInMonthExist = q.birthdayInMonth !== undefined
 		const isBirthdayInWeekExist = q.birthdayInWeek !== undefined
-		if (isBirthdayInMonthExist && isBirthdayInWeekExist) {
+		const isBirthdayInQuarterExist = q.birthdayInQuarter !== undefined
+		if (
+			isBirthdayInMonthExist &&
+			isBirthdayInWeekExist &&
+			isBirthdayInQuarterExist
+		) {
 			throw AppError.invalidArgument(
-				"birthdayInMonth and birthdayInWeek can't be sent together"
+				"birthdayInMonth, birthdayInQuarter and birthdayInWeek can't be sent together"
 			)
 		}
 
 		if (isBirthdayInMonthExist) {
 			whereConds.push(this.birthdayThisMonth(q.birthdayInMonth))
+		}
+
+		if (isBirthdayInQuarterExist) {
+			whereConds.push(this.birthdayInQuarter(q.birthdayInQuarter!))
 		}
 
 		if (isBirthdayInWeekExist && q.birthdayInWeek === true) {

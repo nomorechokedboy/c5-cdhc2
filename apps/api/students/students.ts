@@ -111,27 +111,32 @@ interface GetStudentsResponse {
 	data: StudentResponse[]
 }
 
+type Month =
+	| '01'
+	| '02'
+	| '03'
+	| '04'
+	| '05'
+	| '06'
+	| '07'
+	| '08'
+	| '09'
+	| '10'
+	| '11'
+	| '12'
+
+type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
+
 interface GetStudentsQuery {
-	classId?: number
-	birthdayInMonth?:
-		| '01'
-		| '02'
-		| '03'
-		| '04'
-		| '05'
-		| '06'
-		| '07'
-		| '08'
-		| '09'
-		| '10'
-		| '11'
-		| '12'
-	politicalOrg?: 'hcyu' | 'cpv'
+	birthdayInMonth?: Month
+	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
-	isMarried?: boolean
+	classId?: number
+	hasReligion?: boolean
 	ids?: Array<number>
 	isEthnicMinority?: boolean
-	hasReligion?: boolean
+	isMarried?: boolean
+	politicalOrg?: 'hcyu' | 'cpv'
 }
 
 export const GetStudents = api(
