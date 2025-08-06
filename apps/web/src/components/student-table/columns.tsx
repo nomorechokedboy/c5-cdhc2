@@ -320,7 +320,7 @@ export const columns: ColumnDef<Student>[] = [
 		accessorKey: 'ethnic',
 		header: 'Dân tộc',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
 			</Badge>
 		),
