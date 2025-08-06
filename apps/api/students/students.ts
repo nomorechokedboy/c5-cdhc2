@@ -227,8 +227,7 @@ export const GetStudentWithBirthdayInWeek = api(
 )
 
 const _ = new CronJob('birthday-in-week', {
-	// schedule: '0 0 * * 1',
-	schedule: '* * * * *',
+	schedule: '0 0 * * 1',
 	title: 'Birthday in week notification',
 	endpoint: GetStudentWithBirthdayInWeek
 })
