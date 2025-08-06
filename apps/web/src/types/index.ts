@@ -55,6 +55,7 @@ export type StudentBody = {
 	familyBirthOrder: string
 	achievement: string
 	disciplinaryHistory: string
+	cpvOfficialAt: string
 }
 
 type Base = {
