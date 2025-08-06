@@ -69,7 +69,8 @@ export const students = sqlite.sqliteTable('students', {
 	classId: sqlite
 		.integer()
 		.notNull()
-		.references(() => classes.id)
+		.references(() => classes.id),
+	cpvOfficialAt: sqlite.text()
 })
 
 export type StudentDB = InferSelectModel<typeof students>
