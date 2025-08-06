@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TableRouteImport } from './routes/table'
 import { Route as StudentsRouteImport } from './routes/students'
+import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as HcyuRouteImport } from './routes/hcyu'
+import { Route as EthnicMinorityRouteImport } from './routes/ethnic-minority'
 import { Route as CpvRouteImport } from './routes/cpv'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,9 +35,19 @@ const StudentsRoute = StudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReligionRoute = ReligionRouteImport.update({
+  id: '/religion',
+  path: '/religion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HcyuRoute = HcyuRouteImport.update({
   id: '/hcyu',
   path: '/hcyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EthnicMinorityRoute = EthnicMinorityRouteImport.update({
+  id: '/ethnic-minority',
+  path: '/ethnic-minority',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CpvRoute = CpvRouteImport.update({
@@ -93,7 +105,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
   '/cpv': typeof CpvRoute
+  '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
@@ -108,7 +122,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
   '/cpv': typeof CpvRoute
+  '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
@@ -124,7 +140,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
   '/cpv': typeof CpvRoute
+  '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
@@ -141,7 +159,9 @@ export interface FileRouteTypes {
     | '/'
     | '/birthday'
     | '/cpv'
+    | '/ethnic-minority'
     | '/hcyu'
+    | '/religion'
     | '/students'
     | '/table'
     | '/classes/$classId'
@@ -156,7 +176,9 @@ export interface FileRouteTypes {
     | '/'
     | '/birthday'
     | '/cpv'
+    | '/ethnic-minority'
     | '/hcyu'
+    | '/religion'
     | '/students'
     | '/table'
     | '/classes/$classId'
@@ -171,7 +193,9 @@ export interface FileRouteTypes {
     | '/'
     | '/birthday'
     | '/cpv'
+    | '/ethnic-minority'
     | '/hcyu'
+    | '/religion'
     | '/students'
     | '/table'
     | '/classes/$classId'
@@ -187,7 +211,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BirthdayRoute: typeof BirthdayRoute
   CpvRoute: typeof CpvRoute
+  EthnicMinorityRoute: typeof EthnicMinorityRoute
   HcyuRoute: typeof HcyuRoute
+  ReligionRoute: typeof ReligionRoute
   StudentsRoute: typeof StudentsRoute
   TableRoute: typeof TableRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
@@ -215,11 +241,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/religion': {
+      id: '/religion'
+      path: '/religion'
+      fullPath: '/religion'
+      preLoaderRoute: typeof ReligionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hcyu': {
       id: '/hcyu'
       path: '/hcyu'
       fullPath: '/hcyu'
       preLoaderRoute: typeof HcyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ethnic-minority': {
+      id: '/ethnic-minority'
+      path: '/ethnic-minority'
+      fullPath: '/ethnic-minority'
+      preLoaderRoute: typeof EthnicMinorityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cpv': {
@@ -299,7 +339,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BirthdayRoute: BirthdayRoute,
   CpvRoute: CpvRoute,
+  EthnicMinorityRoute: EthnicMinorityRoute,
   HcyuRoute: HcyuRoute,
+  ReligionRoute: ReligionRoute,
   StudentsRoute: StudentsRoute,
   TableRoute: TableRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,

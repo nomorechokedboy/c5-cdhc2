@@ -52,7 +52,15 @@ const data = {
 				{
 					title: 'Đoàn viên',
 					url: '/hcyu'
-				}
+				},
+				{
+					title: 'Dân tộc thiểu số',
+					url: '/ethnic-minority'
+				},
+				{
+					title: 'Tôn giáo',
+					url: '/religion'
+				},
 			]
 		},
 		{
