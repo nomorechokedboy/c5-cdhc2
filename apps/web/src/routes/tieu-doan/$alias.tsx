@@ -1,7 +1,7 @@
 import { DataTable } from '@/components/data-table'
 import { EduLevelOptions } from '@/components/data-table/data/data'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import { battalionStudentColumns } from '@/components/student-table/columns'
-import { SidebarInset } from '@/components/ui/sidebar'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
@@ -95,7 +95,7 @@ function RouteComponent() {
 	]
 
 	return (
-		<SidebarInset>
+		<ProtectedRoute>
 			<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
 				<div className='flex items-center justify-between space-y-2'>
 					<div>
@@ -139,6 +139,6 @@ function RouteComponent() {
 					placeholder='Chưa có thông tin học viên.'
 				/>
 			</div>
-		</SidebarInset>
+		</ProtectedRoute>
 	)
 }
