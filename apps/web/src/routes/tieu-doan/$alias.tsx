@@ -100,7 +100,7 @@ function RouteComponent() {
 				<div className='flex items-center justify-between space-y-2'>
 					<div>
 						<h2 className='text-2xl font-bold tracking-tight'>
-							Danh sách học viên tiểu đoàn
+							Danh sách học viên Tiểu đoàn
 						</h2>
 						<p className='text-muted-foreground'>
 							Đây là danh sách học viên của {unit?.name}
