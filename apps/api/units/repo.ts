@@ -3,7 +3,7 @@ import { Repository } from '.'
 import orm, { DrizzleDatabase } from '../database'
 import { UnitParams, UnitDB, Unit, units, UnitQuery } from '../schema/units'
 import { handleDatabaseErr } from '../utils'
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 
 class repo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -54,10 +54,42 @@ class repo implements Repository {
 		}
 	}
 
-	findOne(params: { id: number }): Promise<UnitDB | undefined> {
-		return this.db.query.units
-			.findFirst({ where: eq(units.id, params.id) })
-			.catch(handleDatabaseErr)
+	async findOne(params: {
+		alias: string
+		level: 'battalion' | 'company'
+	}): Promise<Unit | undefined> {
+		const baseQuery = this.db.query.units
+
+		switch (params.level) {
+			case 'battalion':
+				return baseQuery
+					.findFirst({
+						where: and(
+							eq(units.alias, params.alias),
+							eq(units.level, params.level)
+						),
+						with: {
+							children: { with: { classes: true } }
+						}
+					})
+					.catch(handleDatabaseErr) as unknown as Unit
+
+			case 'company':
+				return baseQuery
+					.findFirst({
+						where: and(
+							eq(units.alias, params.alias),
+							eq(units.level, params.level)
+						),
+						with: {
+							classes: true
+						}
+					})
+					.catch(handleDatabaseErr) as unknown as Unit
+
+			default:
+				return undefined
+		}
 	}
 }
 
