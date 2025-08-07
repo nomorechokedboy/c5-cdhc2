@@ -28,22 +28,16 @@ function handleLibsqlError(code: SQLiteErrorCode): AppError {
 			return AppError.internal('Internal err')
 
 		case 'SQLITE_CONSTRAINT_NOTNULL':
-			return AppError.invalidArgument(
-				'A required field was null'
-			)
+			return AppError.invalidArgument('A required field was null')
 
 		case 'SQLITE_BUSY':
-			return AppError.unavailable(
-				'Database is busy, try again'
-			)
+			return AppError.unavailable('Database is busy, try again')
 
 		case 'SQLITE_CANTOPEN':
 			return AppError.internal('Could not open database file')
 
 		case 'SQLITE_READONLY':
-			return AppError.permissionDenied(
-				'Database is read-only'
-			)
+			return AppError.permissionDenied('Database is read-only')
 
 		case 'SQLITE_MISMATCH':
 			return AppError.internal('Type mismatch in query')
@@ -52,9 +46,7 @@ function handleLibsqlError(code: SQLiteErrorCode): AppError {
 			return AppError.permissionDenied('Not authorized')
 
 		case 'SQLITE_NOTADB':
-			return AppError.internal(
-				'File is not a valid SQLite database'
-			)
+			return AppError.internal('File is not a valid SQLite database')
 
 		case 'SQLITE_CORRUPT':
 			return AppError.internal('Database file is corrupt')
@@ -63,19 +55,13 @@ function handleLibsqlError(code: SQLiteErrorCode): AppError {
 			return AppError.internal('Query or data too large')
 
 		case 'SQLITE_RANGE':
-			return AppError.invalidArgument(
-				'Parameter index out of range'
-			)
+			return AppError.invalidArgument('Parameter index out of range')
 
 		case 'SQLITE_CONSTRAINT':
-			return AppError.invalidArgument(
-				'Database constraint violated'
-			)
+			return AppError.invalidArgument('Database constraint violated')
 
 		default:
-			return AppError.internal(
-				`Unhandled SQLite error: ${code}`
-			)
+			return AppError.internal(`Unhandled SQLite error: ${code}`)
 	}
 }
 
@@ -91,6 +77,8 @@ export function mapAppErrorToAPIError(error: AppError): APIError {
 			return APIError.permissionDenied(error.message)
 		case 'Unimplemented':
 			return APIError.unimplemented(error.message)
+		case 'NotFound':
+			return APIError.notFound(error.message)
 		case 'InternalError':
 		default:
 			return APIError.internal(error.message)
