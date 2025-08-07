@@ -18,6 +18,7 @@ import { Route as CpvRouteImport } from './routes/cpv'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesIndexRouteImport } from './routes/classes/index'
+import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 
@@ -66,6 +67,11 @@ const ClassesIndexRoute = ClassesIndexRouteImport.update({
   path: '/classes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
+  id: '/tieu-doan/$alias',
+  path: '/tieu-doan/$alias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
   id: '/dai-doi/$companyAlias',
   path: '/dai-doi/$companyAlias',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/students': typeof StudentsRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/classes': typeof ClassesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/students': typeof StudentsRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/classes': typeof ClassesIndexRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/students': typeof StudentsRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/classes/': typeof ClassesIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/tieu-doan/$alias'
     | '/classes'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/tieu-doan/$alias'
     | '/classes'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/students'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/tieu-doan/$alias'
     | '/classes/'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   StudentsRoute: typeof StudentsRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
+  TieuDoanAliasRoute: typeof TieuDoanAliasRoute
   ClassesIndexRoute: typeof ClassesIndexRoute
 }
 
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tieu-doan/$alias': {
+      id: '/tieu-doan/$alias'
+      path: '/tieu-doan/$alias'
+      fullPath: '/tieu-doan/$alias'
+      preLoaderRoute: typeof TieuDoanAliasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dai-doi/$companyAlias': {
       id: '/dai-doi/$companyAlias'
       path: '/dai-doi/$companyAlias'
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudentsRoute: StudentsRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
+  TieuDoanAliasRoute: TieuDoanAliasRoute,
   ClassesIndexRoute: ClassesIndexRoute,
 }
 export const routeTree = rootRouteImport
