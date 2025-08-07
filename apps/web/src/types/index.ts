@@ -111,9 +111,10 @@ export interface StudentQueryParams {
 	classId?: number
 	isMarried?: boolean
 	politicalOrg?: PoliticalOrg
-	isEthnicMinority? : boolean
+	isEthnicMinority?: boolean
 	hasReligion?: boolean
-	
+	unitAlias?: string
+	unitLevel?: string
 }
 
 export type ChildrenInfo = {

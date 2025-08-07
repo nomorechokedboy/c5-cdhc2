@@ -60,7 +60,7 @@ const data = {
 				{
 					title: 'Tôn giáo',
 					url: '/religion'
-				},
+				}
 			]
 		},
 		{
@@ -82,6 +82,7 @@ interface NavItem {
 	url: string
 	isActive?: boolean
 	items?: NavItem[]
+	search?: { [k: string]: string }
 }
 
 // Recursive component to render nested menu items
@@ -138,7 +139,9 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 					</Collapsible>
 				) : (
 					<SidebarMenuButton asChild isActive={item.isActive}>
-						<Link to={item.url}>{item.title}</Link>
+						<Link to={item.url} search={item.search}>
+							{item.title}
+						</Link>
 					</SidebarMenuButton>
 				)}
 			</SidebarMenuItem>
@@ -170,14 +173,24 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { data: units } = useUnitsData({ level: 'battalion' })
-	const unitsNavbar = units?.map((unit) => ({
-		title: unit.name,
-		url: '#',
-		items: unit.children.map((child) => ({
-			title: child.name,
-			url: `/dai-doi/${child.alias}`
-		}))
-	}))
+	const unitsNavbar = units?.map(
+		(unit) =>
+			({
+				title: unit.name,
+				url: '#',
+				items: [
+					{
+						title: `Học viên ${unit.name}`,
+						url: `/tieu-doan/${unit.alias}`,
+						search: { name: unit.name, level: unit.level }
+					},
+					...unit.children.map((child) => ({
+						title: child.name,
+						url: `/dai-doi/${child.alias}`
+					}))
+				]
+			}) as NavItem
+	)
 	const newData = {
 		version: data.versions,
 		navMain: [
