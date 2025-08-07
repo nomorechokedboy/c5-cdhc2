@@ -77,14 +77,11 @@ class StudentSqliteRepo implements Repository {
 		return between(sql`strftime('%m', ${students.dob})`, start, end)
 	}
 
-	find(q: StudentQuery): Promise<Student[]> {
-		const baseQuery = this.db
-			.select()
-			.from(students)
-			.leftJoin(classes, eq(classes.id, students.classId))
+	async find(q: StudentQuery): Promise<Student[]> {
 		log.info('StudentSqliteRepo.find params: ', { params: q })
 
 		const whereConds = []
+
 		const isClassIdExist = q.classIds !== undefined
 		if (isClassIdExist) {
 			whereConds.push(inArray(students.classId, q.classIds!))
@@ -98,6 +95,7 @@ class StudentSqliteRepo implements Repository {
 		const isBirthdayInMonthExist = q.birthdayInMonth !== undefined
 		const isBirthdayInWeekExist = q.birthdayInWeek !== undefined
 		const isBirthdayInQuarterExist = q.birthdayInQuarter !== undefined
+
 		if (
 			isBirthdayInMonthExist &&
 			isBirthdayInWeekExist &&
@@ -122,7 +120,9 @@ class StudentSqliteRepo implements Repository {
 
 		const isIdsExist = q.ids !== undefined
 		if (isIdsExist) {
-			whereConds.push(inArray(classes.id, q.ids!))
+			// Note: This condition now applies to student IDs since we're querying students directly
+			// If you meant class IDs, you might want to use classIds instead
+			whereConds.push(inArray(students.id, q.ids!))
 		}
 
 		const isEthnicMinority = q.isEthnicMinority !== undefined
@@ -135,27 +135,19 @@ class StudentSqliteRepo implements Repository {
 			whereConds.push(ne(students.religion, 'Không'))
 		}
 
-		const isWhereCondEmpty = whereConds.length === 0
-		if (!isWhereCondEmpty) {
-			baseQuery.where(and(...whereConds))
-		}
+		const whereCondition =
+			whereConds.length === 0 ? undefined : and(...whereConds)
 
-		return baseQuery
-			.all()
-			.then((resp) =>
-				resp.map(
-					({ classes, students: { classId, ...students } }) =>
-						({
-							...students,
-							class: {
-								description: classes?.description,
-								id: classes?.id,
-								name: classes?.name
-							}
-						}) as Student
-				)
-			)
-			.catch(handleDatabaseErr)
+		return this.db.query.students
+			.findMany({
+				where: whereCondition,
+				with: {
+					class: {
+						with: { unit: true }
+					}
+				}
+			})
+			.catch(handleDatabaseErr) as unknown as Array<Student>
 	}
 
 	findOne(s: StudentDB): Promise<Student> {
