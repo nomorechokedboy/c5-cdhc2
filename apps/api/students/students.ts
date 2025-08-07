@@ -1,7 +1,7 @@
-import { api } from 'encore.dev/api'
+import { api, APIError } from 'encore.dev/api'
 import { CronJob } from 'encore.dev/cron'
 import log from 'encore.dev/log'
-import { StudentDB, StudentParam, StudentQuery } from '../schema/student.js'
+import { StudentDB, StudentParam } from '../schema/student.js'
 import studentController from './controller.js'
 import notificationController from '../notifications/controller.js'
 import {
@@ -127,7 +127,7 @@ type Month =
 
 type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 
-interface GetStudentsQuery {
+export interface GetStudentsQuery {
 	birthdayInMonth?: Month
 	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
@@ -137,14 +137,15 @@ interface GetStudentsQuery {
 	isEthnicMinority?: boolean
 	isMarried?: boolean
 	politicalOrg?: 'hcyu' | 'cpv'
+	unitAlias?: string
+	unitLevel?: 'battalion' | 'company'
 }
 
 export const GetStudents = api(
 	{ expose: true, method: 'GET', path: '/students' },
 	async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
-		const q: StudentQuery = { ...query }
-		log.trace('students.GetStudents query params', { params: q })
-		const students = await studentController.find(q)
+		log.trace('students.GetStudents query params', { params: query })
+		const students = await studentController.find(query)
 		const resp = students.map(
 			(s) => ({ ...s }) as unknown as StudentResponse
 		)
