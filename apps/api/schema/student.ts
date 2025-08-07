@@ -101,7 +101,7 @@ export type StudentQuery = {
 	birthdayInMonth?: Month
 	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
-	classId?: number
+	classIds?: Array<number>
 	hasReligion?: boolean
 	ids?: Array<number>
 	isEthnicMinority?: boolean

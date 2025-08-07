@@ -85,9 +85,9 @@ class StudentSqliteRepo implements Repository {
 		log.info('StudentSqliteRepo.find params: ', { params: q })
 
 		const whereConds = []
-		const isClassIdExist = q.classId !== undefined
+		const isClassIdExist = q.classIds !== undefined
 		if (isClassIdExist) {
-			whereConds.push(eq(students.classId, q.classId!))
+			whereConds.push(inArray(students.classId, q.classIds!))
 		}
 
 		const isPolicicalOrgExist = q.politicalOrg !== undefined
