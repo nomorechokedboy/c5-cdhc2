@@ -5,9 +5,11 @@ import { DataTable } from '@/components/data-table'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useUnitsData from '@/hooks/useUnitsData'
 import type { FacetedFilterConfig } from '@/types'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export const Route = createFileRoute('/dai-doi/$companyAlias')({
+	
 	component: RouteComponent
 })
 
@@ -37,32 +39,34 @@ function RouteComponent() {
 	const facetedFilters: FacetedFilterConfig[] = []
 
 	return (
-		<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
-			<div className='flex items-center justify-between space-y-2'>
-				<div>
-					<h2 className='text-2xl font-bold tracking-tight'>
-						Danh sách lớp của {company?.name}
-					</h2>
+		<ProtectedRoute>
+			<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
+				<div className='flex items-center justify-between space-y-2'>
+					<div>
+						<h2 className='text-2xl font-bold tracking-tight'>
+							Danh sách lớp của {company?.name}
+						</h2>
+					</div>
 				</div>
+				<DataTable
+					placeholder='Đại đội chưa có lớp nào'
+					columns={columns}
+					cardComponent={ClassCard}
+					cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+					data={company?.classes ?? []}
+					defaultViewMode='card'
+					toolbarProps={{
+						rightSection: (
+							<ClassForm
+								onSuccess={handleFormSuccess}
+								unitId={company?.id}
+							/>
+						),
+						searchConfig,
+						facetedFilters
+					}}
+				/>
 			</div>
-			<DataTable
-				placeholder='Đại đội chưa có lớp nào'
-				columns={columns}
-				cardComponent={ClassCard}
-				cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-				data={company?.classes ?? []}
-				defaultViewMode='card'
-				toolbarProps={{
-					rightSection: (
-						<ClassForm
-							onSuccess={handleFormSuccess}
-							unitId={company?.id}
-						/>
-					),
-					searchConfig,
-					facetedFilters
-				}}
-			/>
-		</div>
+		</ProtectedRoute>
 	)
 }

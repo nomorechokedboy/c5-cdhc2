@@ -12,12 +12,7 @@ import type { Month, Student, StudentBody } from '@/types';
 import dayjs from 'dayjs';
 
 export const Route = createFileRoute('/')({
-        loader: () =>
-                redirect({
-                        params: { classId: '' },
-                        to: '/classes',
-                }),
-        component: RouteComponent,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
