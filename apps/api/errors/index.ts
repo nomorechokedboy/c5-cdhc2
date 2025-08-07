@@ -34,6 +34,10 @@ export class AppError extends Error {
 		return new AppError('Unimplemented', msg)
 	}
 
+	public static notFound(msg: string) {
+		return new AppError('NotFound', msg)
+	}
+
 	public static handleAppErr(err: unknown): never {
 		log.error('Error from handleAppErr!', { err })
 
@@ -53,3 +57,4 @@ export type AppErrorType =
 	| 'PermissionDenied'
 	| 'InternalError'
 	| 'Unimplemented'
+	| 'NotFound'
