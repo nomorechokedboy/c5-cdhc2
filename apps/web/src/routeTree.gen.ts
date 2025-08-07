@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TableRouteImport } from './routes/table'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReligionRouteImport } from './routes/religion'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as HcyuRouteImport } from './routes/hcyu'
 import { Route as EthnicMinorityRouteImport } from './routes/ethnic-minority'
 import { Route as CpvRouteImport } from './routes/cpv'
@@ -38,6 +39,11 @@ const StudentsRoute = StudentsRouteImport.update({
 const ReligionRoute = ReligionRouteImport.update({
   id: '/religion',
   path: '/religion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HcyuRoute = HcyuRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
   '/table': typeof TableRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/login'
     | '/religion'
     | '/students'
     | '/table'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/login'
     | '/religion'
     | '/students'
     | '/table'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/login'
     | '/religion'
     | '/students'
     | '/table'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   CpvRoute: typeof CpvRoute
   EthnicMinorityRoute: typeof EthnicMinorityRoute
   HcyuRoute: typeof HcyuRoute
+  LoginRoute: typeof LoginRoute
   ReligionRoute: typeof ReligionRoute
   StudentsRoute: typeof StudentsRoute
   TableRoute: typeof TableRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/religion'
       fullPath: '/religion'
       preLoaderRoute: typeof ReligionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hcyu': {
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   CpvRoute: CpvRoute,
   EthnicMinorityRoute: EthnicMinorityRoute,
   HcyuRoute: HcyuRoute,
+  LoginRoute: LoginRoute,
   ReligionRoute: ReligionRoute,
   StudentsRoute: StudentsRoute,
   TableRoute: TableRoute,

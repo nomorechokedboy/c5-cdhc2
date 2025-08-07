@@ -1,15 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { SidebarInset } from '@/components/ui/sidebar'
 import StudentTable from '@/components/student-table'
 import type { StudentQueryParams } from '@/types'
 import useUnitsData from '@/hooks/useUnitsData'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export const Route = createFileRoute('/religion')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+	
 	const filter: StudentQueryParams = {
 		hasReligion: true
 	}
@@ -55,6 +57,7 @@ function RouteComponent() {
 	}, [selectedCompany, classes, selectedClassId])
 
 	return (
+		<ProtectedRoute>
 		<SidebarInset>
 			<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
 				<div className='flex items-center justify-between space-y-2'>
@@ -152,6 +155,8 @@ function RouteComponent() {
 				</div>
 			</div>
 		</SidebarInset>
+
+		</ProtectedRoute>
 	)
 }
 
