@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TableRouteImport } from './routes/table'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as LoginRouteImport } from './routes/login'
@@ -19,18 +18,9 @@ import { Route as CpvRouteImport } from './routes/cpv'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesIndexRouteImport } from './routes/classes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
-import { Route as DemoTableRouteImport } from './routes/demo.table'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
-import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
-import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
 
-const TableRoute = TableRouteImport.update({
-  id: '/table',
-  path: '/table',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -76,16 +66,6 @@ const ClassesIndexRoute = ClassesIndexRouteImport.update({
   path: '/classes/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
   id: '/dai-doi/$companyAlias',
   path: '/dai-doi/$companyAlias',
@@ -94,16 +74,6 @@ const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
 const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
   id: '/classes/$classId',
   path: '/classes/$classId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
-  id: '/demo/form/address',
-  path: '/demo/form/address',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -116,14 +86,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
-  '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes': typeof ClassesIndexRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,14 +99,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
-  '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes': typeof ClassesIndexRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -153,14 +113,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
-  '/table': typeof TableRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/classes/': typeof ClassesIndexRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -173,14 +128,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
-    | '/table'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/classes'
-    | '/demo/form/address'
-    | '/demo/form/simple'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -191,14 +141,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
-    | '/table'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/classes'
-    | '/demo/form/address'
-    | '/demo/form/simple'
   id:
     | '__root__'
     | '/'
@@ -209,14 +154,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
-    | '/table'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/classes/'
-    | '/demo/form/address'
-    | '/demo/form/simple'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -228,25 +168,13 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ReligionRoute: typeof ReligionRoute
   StudentsRoute: typeof StudentsRoute
-  TableRoute: typeof TableRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
-  DemoTableRoute: typeof DemoTableRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   ClassesIndexRoute: typeof ClassesIndexRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/table': {
-      id: '/table'
-      path: '/table'
-      fullPath: '/table'
-      preLoaderRoute: typeof TableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/students': {
       id: '/students'
       path: '/students'
@@ -310,20 +238,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dai-doi/$companyAlias': {
       id: '/dai-doi/$companyAlias'
       path: '/dai-doi/$companyAlias'
@@ -338,20 +252,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesClassIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
-      path: '/demo/form/simple'
-      fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/address': {
-      id: '/demo/form/address'
-      path: '/demo/form/address'
-      fullPath: '/demo/form/address'
-      preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -364,14 +264,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ReligionRoute: ReligionRoute,
   StudentsRoute: StudentsRoute,
-  TableRoute: TableRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
-  DemoTableRoute: DemoTableRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   ClassesIndexRoute: ClassesIndexRoute,
-  DemoFormAddressRoute: DemoFormAddressRoute,
-  DemoFormSimpleRoute: DemoFormSimpleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
