@@ -3,6 +3,7 @@ import * as sqlite from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 import { AppError } from '../errors'
 import { Unit, units } from './units'
+import { students } from './student'
 
 const StatusEnum = sqlite.customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -40,8 +41,9 @@ export const classes = sqlite.sqliteTable(
 	(t) => [sqlite.unique('class_unit_unique_constraint').on(t.name, t.unitId)]
 )
 
-export const classesRelations = relations(classes, ({ one }) => ({
-	unit: one(units, { fields: [classes.unitId], references: [units.id] })
+export const classesRelations = relations(classes, ({ one, many }) => ({
+	unit: one(units, { fields: [classes.unitId], references: [units.id] }),
+	students: many(students)
 }))
 
 export type ClassDB = InferSelectModel<typeof classes>

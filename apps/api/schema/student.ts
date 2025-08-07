@@ -1,9 +1,9 @@
-import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm'
+import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { customType } from 'drizzle-orm/sqlite-core'
 import { AppError } from '../errors/index'
 import { baseSchema } from './base'
-import { classes } from './classes'
+import { Class, classes } from './classes'
 
 const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -73,10 +73,17 @@ export const students = sqlite.sqliteTable('students', {
 	cpvOfficialAt: sqlite.text()
 })
 
+export const studentsRelations = relations(students, ({ one }) => ({
+	class: one(classes, {
+		fields: [students.classId],
+		references: [classes.id]
+	})
+}))
+
 export type StudentDB = InferSelectModel<typeof students>
 
 export type Student = Omit<StudentDB, 'classId'> & {
-	class: { id: number; name: string; description: string }
+	class: Omit<Class, 'studentCount'>
 }
 
 export type StudentParam = InferInsertModel<typeof students>
