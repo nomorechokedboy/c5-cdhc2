@@ -36,7 +36,10 @@ export class Controller {
 		const isUnitLevelExist = unitLevel !== undefined
 		const isUnitQueryParamsValid = isUnitAliasExist && isUnitLevelExist
 
-		if (!isUnitQueryParamsValid) {
+		if (
+			(isUnitAliasExist && !isUnitLevelExist) ||
+			(!isUnitAliasExist && isUnitLevelExist)
+		) {
 			throw AppError.invalidArgument('missing unitAlias or unitLevel')
 		}
 
