@@ -1,7 +1,7 @@
 import { api, APIError } from 'encore.dev/api'
 import { CronJob } from 'encore.dev/cron'
-import log from 'encore.dev/log'
 import { StudentDB, StudentParam } from '../schema/student.js'
+import log, { error } from 'encore.dev/log'
 import studentController from './controller.js'
 import notificationController from '../notifications/controller.js'
 import {
@@ -9,6 +9,19 @@ import {
 	CreateBatchNotificationItemData
 } from '../schema/notifications.js'
 import dayjs from 'dayjs'
+import fs, { writeFile } from 'fs/promises'
+import { createReport } from 'docx-templates'
+import path from 'path'
+import {
+	Document,
+	Packer,
+	Paragraph,
+	Table,
+	TableCell,
+	TableRow,
+	TextRun,
+	WidthType
+} from 'docx'
 
 interface ChildrenInfo {
 	fullName: string
@@ -194,6 +207,178 @@ export const UpdateStudents = api(
 		await studentController.update(students)
 
 		return {}
+	}
+)
+
+export const TestWordTemplate = api(
+	{ expose: true, method: 'POST', path: '/students/export' },
+	async () => {
+		const data = [
+			{
+				fullName: 'Đinh Bá Phong',
+				birthPlace: 'Phường Thanh Bình, Tp. Hải Dương, tỉnh Hải Dương',
+				address: 'Phường Thanh Bình, Tp. Hải Dương, tỉnh Hải Dương',
+				dob: '2002-02-26',
+				rank: 'Binh nhất',
+				previousUnit: 'Quân đoàn 12',
+				previousPosition: 'Công vụ',
+				position: 'Học viên',
+				ethnic: 'Kinh',
+				religion: 'Không',
+				enlistmentPeriod: '2023-06-02',
+				talent: 'Đá bóng',
+				isMarried: false
+			}
+		]
+
+		const columnLabels: Record<string, string> = {
+			fullName: 'Họ và tên',
+			dob: 'Ngày sinh',
+			birthPlace: 'Nơi sinh',
+			address: 'Địa chỉ',
+			rank: 'Cấp bậc',
+			position: 'Chức vụ',
+			previousUnit: 'Đơn vị cũ',
+			previousPosition: 'Chức vụ cũ',
+			ethnic: 'Dân tộc',
+			religion: 'Tôn giáo',
+			educationLevel: 'Trình độ học vấn',
+			fatherName: 'Tên cha',
+			motherName: 'Tên mẹ',
+			isMarried: 'Tình trạng hôn nhân',
+			classId: 'Lớp'
+		}
+
+		const selectedColumns = Object.keys(data[0] || {})
+
+		try {
+			const headerCells = selectedColumns.map(
+				(col) =>
+					new TableCell({
+						children: [
+							new Paragraph({
+								children: [
+									new TextRun({
+										text: columnLabels[col] || col,
+										bold: true
+									})
+								]
+							})
+						],
+						width: {
+							size: 100,
+							type: WidthType.PERCENTAGE
+						}
+					})
+			)
+
+			// Create data rows
+			const dataRows = data.map(
+				(row) =>
+					new TableRow({
+						children: selectedColumns.map((col) => {
+							let cellValue = row[col]
+
+							// Format different data types
+							if (cellValue === null || cellValue === undefined) {
+								cellValue = ''
+							} else if (typeof cellValue === 'boolean') {
+								cellValue = cellValue ? 'Có' : 'Không'
+							} else if (Array.isArray(cellValue)) {
+								cellValue =
+									cellValue.length > 0
+										? cellValue.join(', ')
+										: ''
+							} else {
+								cellValue = String(cellValue)
+							}
+
+							return new TableCell({
+								children: [
+									new Paragraph({
+										children: [
+											new TextRun({ text: cellValue })
+										]
+									})
+								]
+							})
+						})
+					})
+			)
+
+			// Create the table
+			const table = new Table({
+				rows: [
+					new TableRow({
+						children: headerCells,
+						tableHeader: true
+					}),
+					...dataRows
+				],
+				width: {
+					size: 100,
+					type: WidthType.PERCENTAGE
+				}
+			})
+
+			// Create document
+			const doc = new Document({
+				sections: [
+					{
+						children: [
+							/* new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: 'Báo cáo danh sách học viên',
+                                        bold: true,
+                                        size: 32 // 16pt
+                                    })
+                                ]
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Ngày tạo: ${new Date().toLocaleDateString('vi-VN')}`,
+                                        size: 24 // 12pt
+                                    })
+                                ]
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: `Tổng số bản ghi: ${data.length}`,
+                                        size: 24 // 12pt
+                                    })
+                                ]
+                            }), */
+							new Paragraph({ text: '' }), // Empty line
+							table
+						]
+					}
+				]
+			})
+
+			// Generate buffer
+			const buffer = await Packer.toBuffer(doc)
+
+			const filename = `report-${Date.now()}.docx`
+			const filePath = path.join('./temp', filename)
+			await writeFile(filePath, buffer)
+
+			return {
+				headers: {
+					'Content-Type':
+						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'Content-Disposition': `attachment; filename="report-${Date.now()}.docx"`,
+					'Content-Length': buffer.length.toString()
+				}
+			}
+		} catch (err) {
+			console.error('Help me', err)
+
+			log.error('Help me', { err })
+			throw APIError.internal('Internal error for exporting file')
+		}
 	}
 )
 
