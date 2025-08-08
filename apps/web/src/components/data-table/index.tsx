@@ -1,6 +1,8 @@
 import {
+	type AccessorKeyColumnDef,
 	type ColumnDef,
 	type ColumnFiltersState,
+	type DisplayColumnDef,
 	type SortingState,
 	type VisibilityState,
 	flexRender,
@@ -26,6 +28,9 @@ import {
 	type DataTableToolbarProps
 } from './data-table-toolbar'
 import { type ComponentType, useState } from 'react'
+import { Button } from '../ui/button'
+import { ArrowDownToLine } from 'lucide-react'
+import type { ExportData } from '@/types'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -41,9 +46,15 @@ interface DataTableProps<TData, TValue> {
 	pagination?: boolean
 	toolbarVisible?: boolean
 	placeholder?: string
+	exportButtonProps?: {
+		hidden?: boolean
+		onExport?: (data: ExportData) => void
+	}
 }
 
 type ViewMode = 'table' | 'card'
+
+type AccessorColumn<T> = AccessorKeyColumnDef<T, any> | DisplayColumnDef<T, any>
 
 export function DataTable<TData, TValue>({
 	cardClassName = '',
@@ -56,7 +67,8 @@ export function DataTable<TData, TValue>({
 	tableClassName,
 	pagination = true,
 	toolbarVisible = true,
-	placeholder = 'Không có dữ liệu nào'
+	placeholder = 'Không có dữ liệu nào',
+	exportButtonProps = { hidden: true, onExport: undefined }
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = useState({})
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -87,6 +99,56 @@ export function DataTable<TData, TValue>({
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues()
 	})
+
+	const excludeKeys = ['actions', 'select']
+	const getVisibleDataWithMetadata = (): Record<string, string>[] => {
+		const visibleColumns = table
+			.getVisibleLeafColumns()
+			.filter((column) => !excludeKeys.includes(column.id))
+		const selectedRows = table.getSelectedRowModel().rows
+		let rows = table.getPrePaginationRowModel().rows
+		if (selectedRows.length !== 0) {
+			rows = selectedRows
+		}
+
+		// Create column metadata with proper type checking
+		const columnMetadata = visibleColumns.map((column) => {
+			const columnDef = column.columnDef as AccessorColumn<TData>
+			return {
+				id: column.id,
+				key:
+					'accessorKey' in columnDef
+						? columnDef.accessorKey
+						: column.id,
+				header:
+					typeof columnDef.header === 'string'
+						? columnDef.header
+						: column.id,
+				label: columnDef.meta?.label || column.id,
+				accessorFn: column.accessorFn
+			}
+		})
+
+		// Extract data
+		const visibleData = rows.map((row) => {
+			const visibleRowData: Record<string, string> = {}
+			columnMetadata.forEach(({ key, id, label }) => {
+				const original = row.original as Record<string, string>
+				if (key && original?.[key as string] !== undefined) {
+					visibleRowData[label] = original[key as string]
+				} else {
+					try {
+						visibleRowData[label] = row.getValue(id)
+					} catch {
+						visibleRowData[label] = original?.[id] || ''
+					}
+				}
+			})
+			return visibleRowData
+		})
+
+		return visibleData
+	}
 
 	const renderTableView = () => {
 		return (
@@ -183,6 +245,11 @@ export function DataTable<TData, TValue>({
 		)
 	}
 
+	function handleExport() {
+		const data = getVisibleDataWithMetadata()
+		exportButtonProps.onExport?.(data)
+	}
+
 	return (
 		<div className='space-y-4'>
 			{toolbarVisible && (
@@ -190,6 +257,17 @@ export function DataTable<TData, TValue>({
 					table={table}
 					onViewModeChange={setViewMode}
 					{...toolbarProps}
+					rightSection={
+						<>
+							{exportButtonProps.hidden !== true && (
+								<Button onClick={handleExport}>
+									<ArrowDownToLine />
+									Xuất file
+								</Button>
+							)}
+							{toolbarProps?.rightSection}
+						</>
+					}
 				/>
 			)}
 			{viewMode === 'table' ? renderTableView() : renderCardView()}
