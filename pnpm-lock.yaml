@@ -31,9 +31,6 @@ importers:
             dayjs:
                 specifier: ^1.11.13
                 version: 1.11.13
-            docx:
-                specifier: ^9.5.1
-                version: 9.5.1
             docx-templates:
                 specifier: ^4.14.1
                 version: 4.14.1
@@ -4103,15 +4100,6 @@ packages:
         dependencies:
             undici-types: 6.21.0
 
-    /@types/node@24.2.0:
-        resolution:
-            {
-                integrity: sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==
-            }
-        dependencies:
-            undici-types: 7.10.0
-        dev: false
-
     /@types/react-dom@19.1.1(@types/react@19.1.0):
         resolution:
             {
@@ -5238,21 +5226,6 @@ packages:
             sax: 1.3.0
         dev: false
 
-    /docx@9.5.1:
-        resolution:
-            {
-                integrity: sha512-ABDI7JEirFD2+bHhOBlsGZxaG1UgZb2M/QMKhLSDGgVNhxDesTCDcP+qoDnDGjZ4EOXTRfUjUgwHVuZ6VSTfWQ==
-            }
-        engines: { node: '>=10' }
-        dependencies:
-            '@types/node': 24.2.0
-            hash.js: 1.1.7
-            jszip: 3.10.1
-            nanoid: 5.1.5
-            xml: 1.0.1
-            xml-js: 1.6.11
-        dev: false
-
     /dom-accessibility-api@0.5.16:
         resolution:
             {
@@ -6171,16 +6144,6 @@ packages:
             has-symbols: 1.1.0
         dev: false
 
-    /hash.js@1.1.7:
-        resolution:
-            {
-                integrity: sha512-taOaskGt4z4SOANNseOviYDvjEJinIkRgmp7LbKP2YTTmVxWBl87s/uzK9r+44BclBSp2X7K1hqeNfz9JbBeXA==
-            }
-        dependencies:
-            inherits: 2.0.4
-            minimalistic-assert: 1.0.1
-        dev: false
-
     /hasown@2.0.2:
         resolution:
             {
@@ -6959,13 +6922,6 @@ packages:
         engines: { node: '>=18' }
         dev: true
 
-    /minimalistic-assert@1.0.1:
-        resolution:
-            {
-                integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==
-            }
-        dev: false
-
     /minimatch@3.1.2:
         resolution:
             {
@@ -7065,15 +7021,6 @@ packages:
             }
         engines: { node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1 }
         hasBin: true
-
-    /nanoid@5.1.5:
-        resolution:
-            {
-                integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==
-            }
-        engines: { node: ^18 || >=20 }
-        hasBin: true
-        dev: false
 
     /natural-compare@1.4.0:
         resolution:
@@ -8515,13 +8462,6 @@ packages:
                 integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==
             }
 
-    /undici-types@7.10.0:
-        resolution:
-            {
-                integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==
-            }
-        dev: false
-
     /unplugin@2.3.5:
         resolution:
             {
@@ -9025,16 +8965,6 @@ packages:
             utf-8-validate:
                 optional: true
 
-    /xml-js@1.6.11:
-        resolution:
-            {
-                integrity: sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==
-            }
-        hasBin: true
-        dependencies:
-            sax: 1.3.0
-        dev: false
-
     /xml-name-validator@5.0.0:
         resolution:
             {
@@ -9042,13 +8972,6 @@ packages:
             }
         engines: { node: '>=18' }
         dev: true
-
-    /xml@1.0.1:
-        resolution:
-            {
-                integrity: sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==
-            }
-        dev: false
 
     /xmlchars@2.2.0:
         resolution:
