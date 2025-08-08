@@ -6,6 +6,7 @@ import type {
 	ClassBody,
 	ClassResponse,
 	DeleteStudentsBody,
+	ExportData,
 	GetUnitQuery,
 	GetUnitResponse,
 	GetUnreadNotificationCountResponse,
@@ -19,6 +20,7 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios from '@/lib/axios'
+import type { ExportsData } from 'vite'
 
 export function CreateClass(body: ClassBody) {
 	return axios
@@ -82,4 +84,8 @@ export function GetUnreadNotificationsCount(): Promise<number> {
 	return axios
 		.get<GetUnreadNotificationCountResponse>('/notifications/unread')
 		.then((resp) => resp.data.data.count)
+}
+
+export function ExportTableData(data: ExportData) {
+	return axios.post('/students/export', data, { responseType: 'blob' })
 }

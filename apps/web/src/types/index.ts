@@ -212,3 +212,5 @@ export interface GetUnitResponse {
 export interface GetUnreadNotificationCountResponse {
 	data: { count: number }
 }
+
+export type ExportData = { [k: string]: string }[]
