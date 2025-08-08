@@ -1,7 +1,7 @@
 import { api, APIError } from 'encore.dev/api'
 import { CronJob } from 'encore.dev/cron'
 import { StudentDB, StudentParam } from '../schema/student.js'
-import log, { error } from 'encore.dev/log'
+import log from 'encore.dev/log'
 import studentController from './controller.js'
 import notificationController from '../notifications/controller.js'
 import {
@@ -9,19 +9,9 @@ import {
 	CreateBatchNotificationItemData
 } from '../schema/notifications.js'
 import dayjs from 'dayjs'
-import fs, { writeFile } from 'fs/promises'
-import { createReport } from 'docx-templates'
+import { readFile, writeFile } from 'fs/promises'
+import { createReport, listCommands } from 'docx-templates'
 import path from 'path'
-import {
-	Document,
-	Packer,
-	Paragraph,
-	Table,
-	TableCell,
-	TableRow,
-	TextRun,
-	WidthType
-} from 'docx'
 
 interface ChildrenInfo {
 	fullName: string
@@ -249,118 +239,72 @@ export const TestWordTemplate = api(
 			classId: 'Lớp'
 		}
 
-		const selectedColumns = Object.keys(data[0] || {})
-
 		try {
-			const headerCells = selectedColumns.map(
-				(col) =>
-					new TableCell({
-						children: [
-							new Paragraph({
-								children: [
-									new TextRun({
-										text: columnLabels[col] || col,
-										bold: true
-									})
-								]
-							})
-						],
-						width: {
-							size: 100,
-							type: WidthType.PERCENTAGE
-						}
-					})
+			// Read the template file
+			const templatePath = path.join(
+				'./templates',
+				'dynamic-columns-with-dynamic-rows.docx'
 			)
+			const template = await readFile(templatePath)
 
-			// Create data rows
-			const dataRows = data.map(
-				(row) =>
-					new TableRow({
-						children: selectedColumns.map((col) => {
-							let cellValue = row[col]
+			// Prepare data for template
+			const selectedColumns = Object.keys(data[0] || {})
 
-							// Format different data types
-							if (cellValue === null || cellValue === undefined) {
-								cellValue = ''
-							} else if (typeof cellValue === 'boolean') {
-								cellValue = cellValue ? 'Có' : 'Không'
-							} else if (Array.isArray(cellValue)) {
-								cellValue =
-									cellValue.length > 0
-										? cellValue.join(', ')
-										: ''
-							} else {
-								cellValue = String(cellValue)
-							}
+			// Prepare columns data (headers)
+			const columns = selectedColumns.map((col) => ({
+				key: col,
+				label: columnLabels[col] || col
+			}))
 
-							return new TableCell({
-								children: [
-									new Paragraph({
-										children: [
-											new TextRun({ text: cellValue })
-										]
-									})
-								]
-							})
-						})
-					})
-			)
+			// Prepare rows data
+			const rows = data.map((student) => {
+				// Create an array of cell values in the same order as columns
+				const cellValues = selectedColumns.map((col) => {
+					let cellValue = student[col]
 
-			// Create the table
-			const table = new Table({
-				rows: [
-					new TableRow({
-						children: headerCells,
-						tableHeader: true
-					}),
-					...dataRows
-				],
-				width: {
-					size: 100,
-					type: WidthType.PERCENTAGE
-				}
-			})
-
-			// Create document
-			const doc = new Document({
-				sections: [
-					{
-						children: [
-							/* new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: 'Báo cáo danh sách học viên',
-                                        bold: true,
-                                        size: 32 // 16pt
-                                    })
-                                ]
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: `Ngày tạo: ${new Date().toLocaleDateString('vi-VN')}`,
-                                        size: 24 // 12pt
-                                    })
-                                ]
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text: `Tổng số bản ghi: ${data.length}`,
-                                        size: 24 // 12pt
-                                    })
-                                ]
-                            }), */
-							new Paragraph({ text: '' }), // Empty line
-							table
-						]
+					// Format different data types
+					if (cellValue === null || cellValue === undefined) {
+						cellValue = ''
+					} else if (typeof cellValue === 'boolean') {
+						cellValue = cellValue ? 'Có' : 'Không'
+					} else if (Array.isArray(cellValue)) {
+						cellValue =
+							cellValue.length > 0 ? cellValue.join(', ') : ''
+					} else {
+						cellValue = String(cellValue)
 					}
-				]
+
+					return cellValue
+				})
+
+				return cellValues
 			})
 
-			// Generate buffer
-			const buffer = await Packer.toBuffer(doc)
+			// Generate the report
+			const buffer = await createReport({
+				template,
+				data: {
+					/* reportTitle: 'BÁO CÁO DANH SÁCH HỌC VIÊN',
+                        reportDate: new Date().toLocaleDateString('vi-VN'),
+                        totalRecords: 2, */
+					columns: ['Họ và tên', 'Ngày sinh', 'Nơi sinh'],
+					rows: [
+						{
+							'Họ và tên': 'Đinh Bá Phong',
+							'Ngày sinh': '2002-02-26',
+							'Nơi sinh': 'Hải Dương'
+						},
+						{
+							'Họ và tên': 'Đinh Bá Phong 1',
+							'Ngày sinh': '2002-02-26 haha',
+							'Nơi sinh': 'Hải Dương lmao'
+						}
+					]
+				},
+				cmdDelimiter: ['{', '}']
+			})
 
+			// Save to temp file
 			const filename = `report-${Date.now()}.docx`
 			const filePath = path.join('./temp', filename)
 			await writeFile(filePath, buffer)
@@ -374,9 +318,8 @@ export const TestWordTemplate = api(
 				}
 			}
 		} catch (err) {
-			console.error('Help me', err)
-
-			log.error('Help me', { err })
+			console.error('Template processing error:', err)
+			log.error('Template processing error', { err })
 			throw APIError.internal('Internal error for exporting file')
 		}
 	}
