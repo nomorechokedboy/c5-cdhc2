@@ -225,7 +225,7 @@ async function getTypedRequestBody<T>(req: any): Promise<T> {
 
 type ExportStudentDataRequest = {
 	[k: string]: string
-}
+}[]
 
 export const ExportStudentData = api.raw(
 	{ expose: true, method: 'POST', path: '/students/export' },
@@ -279,16 +279,12 @@ export const ExportStudentData = api.raw(
 			const template = await readFile(templatePath)
 
 			// Prepare data for template
-			const selectedColumns = Object.keys(data[0] || {})
+			const selectedColumns = Object.keys(body[0] || {})
 
 			// Prepare columns data (headers)
-			const columns = selectedColumns.map((col) => ({
-				key: col,
-				label: columnLabels[col] || col
-			}))
 
 			// Prepare rows data
-			const rows = data.map((student) => {
+			const rows = body.map((student) => {
 				// Create an array of cell values in the same order as columns
 				const cellValues = selectedColumns.map((col) => {
 					let cellValue = student[col]
@@ -318,23 +314,16 @@ export const ExportStudentData = api.raw(
 					/* reportTitle: 'BÁO CÁO DANH SÁCH HỌC VIÊN',
                         reportDate: new Date().toLocaleDateString('vi-VN'),
                         totalRecords: 2, */
-					columns: ['Họ và tên', 'Ngày sinh', 'Nơi sinh'],
-					rows: [
-						{
-							'Họ và tên': 'Đinh Bá Phong',
-							'Ngày sinh': '2002-02-26',
-							'Nơi sinh': 'Hải Dương'
-						},
-						{
-							'Họ và tên': 'Đinh Bá Phong 1',
-							'Ngày sinh': '2002-02-26 haha',
-							'Nơi sinh': 'Hải Dương lmao'
-						}
-					]
+					columns: selectedColumns,
+					rows: body
 				},
 				cmdDelimiter: ['{', '}']
 			})
 
+			resp.setHeader(
+				'Content-Type',
+				'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+			)
 			resp.writeHead(200, { Connection: 'close' })
 			return resp.end(buffer)
 		} catch (err) {
