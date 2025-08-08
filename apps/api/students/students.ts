@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import { readFile, writeFile } from 'fs/promises'
 import { createReport, listCommands } from 'docx-templates'
 import path from 'path'
+import { AppError } from '../errors/index.js'
 
 interface ChildrenInfo {
 	fullName: string
@@ -200,9 +201,35 @@ export const UpdateStudents = api(
 	}
 )
 
-export const TestWordTemplate = api(
+async function getTypedRequestBody<T>(req: any): Promise<T> {
+	const chunks: Buffer[] = []
+
+	req.on('data', (chunk: Buffer) => {
+		chunks.push(chunk)
+	})
+
+	await new Promise<void>((resolve, reject) => {
+		req.on('end', () => resolve())
+		req.on('error', reject)
+	})
+
+	const body = Buffer.concat(chunks).toString('utf-8')
+
+	try {
+		const parsedBody = JSON.parse(body) as T
+		return parsedBody
+	} catch (error) {
+		throw AppError.invalidArgument('Invalid JSON body')
+	}
+}
+
+type ExportStudentDataRequest = {
+	[k: string]: string
+}
+
+export const ExportStudentData = api.raw(
 	{ expose: true, method: 'POST', path: '/students/export' },
-	async () => {
+	async (req, resp) => {
 		const data = [
 			{
 				fullName: 'Đinh Bá Phong',
@@ -240,6 +267,10 @@ export const TestWordTemplate = api(
 		}
 
 		try {
+			const body =
+				await getTypedRequestBody<ExportStudentDataRequest>(req)
+			log.info('ExportStudentData request body: ', { body })
+
 			// Read the template file
 			const templatePath = path.join(
 				'./templates',
@@ -304,21 +335,9 @@ export const TestWordTemplate = api(
 				cmdDelimiter: ['{', '}']
 			})
 
-			// Save to temp file
-			const filename = `report-${Date.now()}.docx`
-			const filePath = path.join('./temp', filename)
-			await writeFile(filePath, buffer)
-
-			return {
-				headers: {
-					'Content-Type':
-						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-					'Content-Disposition': `attachment; filename="report-${Date.now()}.docx"`,
-					'Content-Length': buffer.length.toString()
-				}
-			}
+			resp.writeHead(200, { Connection: 'close' })
+			return resp.end(buffer)
 		} catch (err) {
-			console.error('Template processing error:', err)
 			log.error('Template processing error', { err })
 			throw APIError.internal('Internal error for exporting file')
 		}
