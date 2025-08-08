@@ -9,6 +9,9 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import { ExportTableData } from '@/api'
+import { toast } from 'sonner'
+import type { ExportData } from '@/types'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -71,6 +74,27 @@ function RouteComponent() {
 		)
 	]
 
+	async function handleExport(data: ExportData) {
+		try {
+			const resp = await ExportTableData(data)
+			const blob = new Blob([resp.data], {
+				type: resp.headers['content-type']
+			})
+
+			const link = document.createElement('a')
+			link.href = window.URL.createObjectURL(blob)
+			link.download = 'my-file.docx'
+
+			document.body.appendChild(link)
+			link.click()
+
+			document.body.removeChild(link)
+			window.URL.revokeObjectURL(link.href)
+		} catch (err) {
+			toast.error('Chưa thể xuất file, đã có lỗi xảy ra!')
+		}
+	}
+
 	return (
 		<ProtectedRoute>
 			<SidebarInset>
@@ -116,6 +140,10 @@ function RouteComponent() {
 							),
 							searchConfig,
 							facetedFilters
+						}}
+						exportButtonProps={{
+							hidden: false,
+							onExport: handleExport
 						}}
 					/>
 				</div>
