@@ -15,6 +15,12 @@ import {
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
 
+type DateField = 'dob' | 'cpvOfficialAt'
+
+type DateFieldInMonthParams = { month?: Month; field: DateField }
+
+type DateFieldInQuarterParams = { quarter: Quarter; field: DateField }
+
 class StudentSqliteRepo implements Repository {
 	constructor(private db: DrizzleDatabase) {}
 
@@ -38,20 +44,34 @@ class StudentSqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	private birthdayThisMonth(month?: Month) {
-		if (month === undefined) {
-			return sql`strftime('%m', ${students.dob}) = strftime('%m', 'now')`
+	private getDateField(field: DateField) {
+		switch (field) {
+			case 'cpvOfficialAt':
+				return students.cpvOfficialAt
+			case 'dob':
+			default:
+				return students.dob
 		}
-
-		return sql`strftime('%m', ${students.dob}) = ${month}`
 	}
 
-	private birthdayThisWeek() {
-		return sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${students.dob})) 
+	private dayFieldThisMonth({ field, month }: DateFieldInMonthParams) {
+		const dateField = this.getDateField(field)
+		if (month === undefined) {
+			return sql`strftime('%m', ${dateField}) = strftime('%m', 'now')`
+		}
+
+		return sql`strftime('%m', ${dateField}) = ${month}`
+	}
+
+	private dateFieldThisWeek(field: DateField = 'dob') {
+		const dateField = this.getDateField(field)
+
+		return sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${dateField})) 
         BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
 	}
 
-	private birthdayInQuarter(quarter: Quarter) {
+	private dateFieldInQuarter({ quarter, field }: DateFieldInQuarterParams) {
+		const dateField = this.getDateField(field)
 		let start = '01'
 		let end = '03'
 
@@ -73,7 +93,7 @@ class StudentSqliteRepo implements Repository {
 				break
 		}
 
-		return between(sql`strftime('%m', ${students.dob})`, start, end)
+		return between(sql`strftime('%m', ${dateField})`, start, end)
 	}
 
 	async find(q: StudentQuery): Promise<Student[]> {
@@ -92,7 +112,8 @@ class StudentSqliteRepo implements Repository {
 		}
 
 		const isBirthdayInMonthExist = q.birthdayInMonth !== undefined
-		const isBirthdayInWeekExist = q.birthdayInWeek !== undefined
+		const isBirthdayInWeekExist =
+			q.birthdayInWeek !== undefined && q.birthdayInWeek === true
 		const isBirthdayInQuarterExist = q.birthdayInQuarter !== undefined
 
 		if (
@@ -106,15 +127,53 @@ class StudentSqliteRepo implements Repository {
 		}
 
 		if (isBirthdayInMonthExist) {
-			whereConds.push(this.birthdayThisMonth(q.birthdayInMonth))
+			whereConds.push(
+				this.dayFieldThisMonth({
+					month: q.birthdayInMonth,
+					field: 'dob'
+				})
+			)
 		}
 
 		if (isBirthdayInQuarterExist) {
-			whereConds.push(this.birthdayInQuarter(q.birthdayInQuarter!))
+			whereConds.push(
+				this.dateFieldInQuarter({
+					quarter: q.birthdayInQuarter!,
+					field: 'cpvOfficialAt'
+				})
+			)
 		}
 
-		if (isBirthdayInWeekExist && q.birthdayInWeek === true) {
-			whereConds.push(this.birthdayThisWeek())
+		if (isBirthdayInWeekExist) {
+			whereConds.push(this.dateFieldThisWeek())
+		}
+
+		const isCpvOfficialThisWeek =
+			q.isCpvOfficalThisWeek !== undefined &&
+			q.isCpvOfficalThisWeek === true
+		const isCpvOfficialInMonthExist = q.cpvOfficialInMonth !== undefined
+		const isCpvOfficialInQuarterExist = q.cpvOfficialInQuarter !== undefined
+
+		if (isCpvOfficialThisWeek) {
+			whereConds.push(this.dateFieldThisWeek('cpvOfficialAt'))
+		}
+
+		if (isCpvOfficialInMonthExist) {
+			whereConds.push(
+				this.dayFieldThisMonth({
+					field: 'cpvOfficialAt',
+					month: q.cpvOfficialInMonth
+				})
+			)
+		}
+
+		if (isCpvOfficialInQuarterExist) {
+			whereConds.push(
+				this.dateFieldInQuarter({
+					field: 'cpvOfficialAt',
+					quarter: q.cpvOfficialInQuarter!
+				})
+			)
 		}
 
 		const isIdsExist = q.ids !== undefined
