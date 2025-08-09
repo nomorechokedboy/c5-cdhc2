@@ -143,6 +143,9 @@ export interface GetStudentsQuery {
 	politicalOrg?: 'hcyu' | 'cpv'
 	unitAlias?: string
 	unitLevel?: 'battalion' | 'company'
+	isCpvOfficalThisWeek?: boolean
+	cpvOfficialInMonth?: Month
+	cpvOfficialInQuarter?: Quarter
 }
 
 export const GetStudents = api(
