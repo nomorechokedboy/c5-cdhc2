@@ -2,7 +2,6 @@ import { inArray, eq, sql, and, ne, between } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
-import { classes } from '../schema/classes'
 import {
 	Month,
 	Quarter,
