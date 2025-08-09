@@ -80,7 +80,7 @@ export class Controller {
 			}
 		}
 
-		const classIds = classId ? [classId] : []
+		const classIds = classId ? [classId] : undefined
 		return this.repo.find({ ...q, classIds }).catch(AppError.handleAppErr)
 	}
 
