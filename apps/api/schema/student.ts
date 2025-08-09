@@ -114,6 +114,9 @@ export type StudentQuery = {
 	isEthnicMinority?: boolean
 	isMarried?: boolean
 	politicalOrg?: 'hcyu' | 'cpv'
+	isCpvOfficalThisWeek?: boolean
+	cpvOfficialInMonth?: Month
+	cpvOfficialInQuarter?: Quarter
 }
 
 export type UpdateStudentMap = {
