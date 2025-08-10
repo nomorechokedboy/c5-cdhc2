@@ -108,6 +108,7 @@ export function DataTableToolbar<TData>({
 				{/* Search inputs */}
 				{renderSearchInputs()}
 
+				{LeftSection}
 				{/* Faceted filters */}
 				{renderFacetedFilters()}
 

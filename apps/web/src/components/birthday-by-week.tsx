@@ -1,13 +1,27 @@
 import { DataTable } from '@/components/data-table'
-import { columns } from '@/components/student-table/columns'
+import {
+	battalionStudentColumns,
+	columns
+} from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
+import useUnitsData from '@/hooks/useUnitsData'
+import { useState } from 'react'
+import UnitDropdown from './unit-dropdown'
 
 export default function BirthdayByWeek() {
+	/* const {
+        data: units,
+        isLoading: isLoadingUnits,
+        refetch: refetchUnits
+    } = useUnitsData()
+    const unitOptions =
+        units?.map((unit) => ({ label: unit.name, value: unit.alias })) ?? []
+    const [selectedValues, setSelectedValues] = useState<Set<string>>(new Set()) */
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -21,9 +35,6 @@ export default function BirthdayByWeek() {
 		return <div>Loading...</div>
 	}
 
-	const handleFormSuccess = () => {
-		refetchStudent()
-	}
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
 	]
@@ -37,8 +48,8 @@ export default function BirthdayByWeek() {
 	}))
 	const classOptions = classes
 		? classes.map((c) => ({
-				label: c.name,
-				value: c.name
+				label: `${c.name} - ${c.unit.alias}`,
+				value: `${c.name} - ${c.unit.alias}`
 			}))
 		: []
 
@@ -78,7 +89,7 @@ export default function BirthdayByWeek() {
 			<DataTable
 				data={students}
 				defaultColumnVisibility={defaultBirthdayColumnVisibility}
-				columns={columns}
+				columns={battalionStudentColumns}
 				toolbarProps={{
 					searchConfig,
 					facetedFilters
