@@ -26,6 +26,15 @@ import {
 	type DataTableToolbarProps
 } from './data-table-toolbar'
 import { type ComponentType, useState } from 'react'
+import StudentInfoTabs from '../student-info-tabs'
+import type { Student } from '@/types'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogClose
+} from '@/components/ui/dialog'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -65,6 +74,7 @@ export function DataTable<TData, TValue>({
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
+	const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
 	const table = useReactTable({
 		data,
@@ -122,6 +132,16 @@ export function DataTable<TData, TValue>({
 									data-state={
 										row.getIsSelected() && 'selected'
 									}
+									onClick={() => {
+										setSelectedStudent(
+											row.original as Student
+										)
+										console.log(
+											'Selected student:',
+											row.original
+										)
+									}}
+									className='cursor-pointer hover:bg-muted/50'
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
@@ -193,6 +213,25 @@ export function DataTable<TData, TValue>({
 				/>
 			)}
 			{viewMode === 'table' ? renderTableView() : renderCardView()}
+			{/* Modal Student Info */}
+			{selectedStudent && (
+				<Dialog
+					open={!!selectedStudent}
+					onOpenChange={(open) => {
+						if (!open) setSelectedStudent(null)
+					}}
+				>
+					<DialogContent className='max-w-7xl h-[90vh] overflow-y-auto p-6'>
+						<DialogHeader className='flex items-center justify-between'>
+							<DialogTitle>Thông tin học viên</DialogTitle>
+							{/* <DialogClose asChild>
+								
+							</DialogClose> */}
+						</DialogHeader>
+						<StudentInfoTabs student={selectedStudent} />
+					</DialogContent>
+				</Dialog>
+			)}
 			{pagination && <DataTablePagination table={table} />}
 		</div>
 	)

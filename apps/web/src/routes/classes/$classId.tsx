@@ -9,6 +9,7 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import SpinnerCircle2 from '@/components/spinner-08'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -27,7 +28,13 @@ function RouteComponent() {
 		useDataTableToolbarConfig()
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return (
+			<>
+				<div className='flex h-full items-center justify-center'>
+					<SpinnerCircle2 />
+				</div>
+			</>
+		)
 	}
 
 	const handleFormSuccess = () => {
