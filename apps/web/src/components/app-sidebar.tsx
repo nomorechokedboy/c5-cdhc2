@@ -202,8 +202,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	return (
 		<Sidebar {...props}>
 			<SidebarContent>
-				<div className='p-4 w-full'>
+				{/* <div className='p-4 w-full'>
 					<StudentForm onSuccess={() => {}} />
+				</div> */}
+				{/* add logo add apps/web/public/android-chrome-192x192 */}
+				<div className='flex items-center justify-center mb-4'>
+					<img
+					style={{ paddingTop: '10px' }}
+						src='https://cdhc2.edu.vn/wp-content/uploads/2025/07/LOGO-MOI.png'
+						alt='Logo'
+						width='50%'
+						
+					/>
 				</div>
 
 				{newData.navMain.map((item) => (
