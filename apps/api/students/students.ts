@@ -1,6 +1,6 @@
 import { api, APIError } from 'encore.dev/api'
 import { CronJob } from 'encore.dev/cron'
-import { StudentDB, StudentParam } from '../schema/student.js'
+import { StudentCronEvent, StudentDB, StudentParam } from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
 import notificationController from '../notifications/controller.js'
@@ -336,15 +336,68 @@ export const ExportStudentData = api.raw(
 	}
 )
 
+type StudentParamsCronEvent =
+	| 'birthdayThisWeek'
+	| 'birthdayThisMonth'
+	| 'birthdayThisQuarter'
+	| 'cpvOfficialThisWeek'
+	| 'cpvOfficialThisMonth'
+	| 'cpvOfficialThisQuarter'
+
 export const StudentCronjob = api(
 	{ expose: true, method: 'GET', path: '/students/cron' },
-	async (params: {
-		period: 'week' | 'month' | 'quarter'
-		dateField: 'dob' | 'cpvOfficialAt'
-	}) => {
+	async (params: { event: StudentParamsCronEvent }) => {
 		log.trace('students.StudentCronjob is running with params: ', {
 			params
 		})
+
+		const students = await studentController.getStudentsByCronEvent({
+			event: params.event as StudentCronEvent
+		})
+
+		if (
+			students === undefined ||
+			students === null ||
+			students.length === 0
+		) {
+			log.trace('students.StudentCronjob stop. students is empty')
+			return {}
+		}
+
+		const items: CreateBatchNotificationItemData = students.map((s) => ({
+			notifiableId: s.id,
+			notifiableType: 'students'
+		}))
+		const isCpvEvent = params.event.includes('cpv')
+		const date = dayjs().unix()
+
+		const firstStudent = students[0]
+		const baseMessage = `Tuần này có sinh nhật của đồng chí ${firstStudent.fullName}`
+		let batchNotification: CreateBatchNotificationData = {
+			notificationType: 'birthday',
+			title: 'Sinh nhật đồng đội',
+			message:
+				students.length === 1
+					? baseMessage
+					: `${baseMessage} và ${students.length - 1} đồng chí khác`,
+			batchKey: `birthday_${params.event}_${date}`,
+			items
+		}
+
+		if (isCpvEvent) {
+			const baseMessage = `Tuần này có sự kiện chuyển Đảng chính thức đồng chí ${firstStudent.fullName}`
+			batchNotification = {
+				notificationType: 'officialCpv',
+				title: 'Chuyển Đảng chính thức',
+				message:
+					students.length === 1
+						? baseMessage
+						: `${baseMessage} và ${students.length - 1} đồng chí khác`,
+				batchKey: `cpvOfficial_${params.event}_${date}`,
+				items
+			}
+		}
+		await notificationController.createBatch(batchNotification)
 
 		log.info('students.StudentCronjob complete!')
 	}
@@ -366,7 +419,7 @@ export const GetStudentWithBirthdayInWeek = api(
 			notifiableType: 'students'
 		}))
 
-		const date = dayjs().format('DD/MM/YYYY')
+		const date = dayjs().unix()
 		const batchNotification: CreateBatchNotificationData = {
 			notificationType: 'birthday',
 			title: 'Sinh nhật đồng đội',

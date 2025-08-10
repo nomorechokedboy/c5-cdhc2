@@ -3,14 +3,28 @@ import {
 	StudentDB,
 	StudentParam,
 	Student,
-	UpdateStudentMap
-} from '../schema/student.js'
+	UpdateStudentMap,
+	Month,
+	Quarter,
+	StudentCronJobEvent,
+	BirthdayThisWeek,
+	BirthdayThisMonth,
+	CpvOfficialThisMonth,
+	CpvOfficialThisQuarter,
+	CpvOfficialThisWeek,
+	BirthdayThisQuarter,
+	StudentCronEvent
+} from '../schema/student'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
-import studentRepo from './repo.js'
-import { GetStudentsQuery } from './students.js'
-import unitRepo from '../units/repo.js'
+import studentRepo from './repo'
+import { GetStudentsQuery } from './students'
+import unitRepo from '../units/repo'
 import log from 'encore.dev/log'
+import dayjs from 'dayjs'
+import quarterOfYear from 'dayjs/plugin/quarterOfYear.js'
+
+dayjs.extend(quarterOfYear)
 
 export class Controller {
 	constructor(
@@ -117,6 +131,41 @@ export class Controller {
 		)
 
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
+	}
+
+	getStudentsByCronEvent(params: {
+		event: StudentCronEvent
+	}): Promise<Array<Student>> {
+		let cronEvent: StudentCronJobEvent
+		const thisMonth = dayjs().format('MM') as Month
+		const thisQuarter = `Q${dayjs().quarter()}` as Quarter
+
+		switch (params.event) {
+			case 'birthdayThisWeek':
+				cronEvent = new BirthdayThisWeek()
+				break
+			case 'birthdayThisMonth':
+				cronEvent = new BirthdayThisMonth(thisMonth)
+				break
+			case 'birthdayThisQuarter':
+				cronEvent = new BirthdayThisQuarter(thisQuarter)
+				break
+			case 'cpvOfficialThisWeek':
+				cronEvent = new CpvOfficialThisWeek()
+				break
+			case 'cpvOfficialThisMonth':
+				cronEvent = new CpvOfficialThisMonth(thisMonth)
+				break
+			case 'cpvOfficialThisQuarter':
+				cronEvent = new CpvOfficialThisQuarter(thisQuarter)
+				break
+			default:
+				throw AppError.handleAppErr(
+					AppError.invalidArgument(`Invalid event: ${params.event}`)
+				)
+		}
+
+		return this.repo.find(cronEvent.getQueryParams())
 	}
 }
 
