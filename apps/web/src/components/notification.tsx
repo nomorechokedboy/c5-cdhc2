@@ -1,26 +1,20 @@
 import { MarkAsRead } from '@/api'
 import useUnreadNotificationCount from '@/hooks/useUnreadNotificationCount'
 import { formatTimestamp } from '@/lib/utils'
-import type { AppNotification, Student } from '@/types'
+import type { AppNotification, AppNotificationType } from '@/types'
 import { useMutation } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Cake } from 'lucide-react'
+import { Cake, UserRoundCheck } from 'lucide-react'
 
 export type NotificationProps = {
 	notification: AppNotification
 	onClick?: () => void
 }
 
-const getNotificationIcon = (type: string) => {
+const getNotificationIcon = (type: AppNotificationType) => {
 	switch (type) {
-		case 'like':
-			return '❤️'
-		case 'comment':
-			return '💬'
-		case 'follow':
-			return '👤'
-		case 'mention':
-			return '@'
+		case 'officialCpv':
+			return <UserRoundCheck size={16} />
 		case 'birthday':
 			return <Cake size={16} />
 		default:
@@ -32,6 +26,7 @@ export default function Notification({
 	notification,
 	onClick
 }: NotificationProps) {
+	const isBirthdayNoti = notification.notificationType === 'birthday'
 	const { refetch: refetchUnreadNotification } = useUnreadNotificationCount()
 	const { mutate } = useMutation({
 		mutationFn: MarkAsRead,
@@ -42,11 +37,6 @@ export default function Notification({
 			console.error('MarkAsRead error: ', err)
 		}
 	})
-	const birthdayMsg = 'Tuần này có sinh nhật của đồng chí'
-	const notificationMsg =
-		notification.totalCount === 1
-			? `${birthdayMsg} ${(notification.items[0].relatedData as Student).fullName}.`
-			: `${birthdayMsg} ${(notification.items[0].relatedData as Student).fullName} và ${notification.totalCount} đồng chí khác.`
 
 	function handleReadNotification() {
 		if (notification.readAt !== null) {
@@ -65,8 +55,10 @@ export default function Notification({
 		onClick?.()
 	}
 
+	const to = isBirthdayNoti ? '/birthday' : '/chuyen-dang-chinh-thuc'
+
 	return (
-		<Link to='/birthday' onClick={handleReadNotification}>
+		<Link to={to} onClick={handleReadNotification}>
 			<div
 				className={`p-4 hover:bg-gray-50 transition-colors ${
 					!notification.readAt === null ? 'bg-blue-50' : ''
@@ -86,7 +78,7 @@ export default function Notification({
 					<div className='flex-1 min-w-0'>
 						<p className='text-sm'>
 							<span className='font-medium'>
-								{notificationMsg}
+								{notification.message}
 							</span>
 						</p>
 						<p className='text-xs text-gray-500 mt-1'>
