@@ -5,6 +5,7 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -20,8 +21,9 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger
 } from './ui/collapsible'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, GraduationCap } from 'lucide-react'
 import useUnitsData from '@/hooks/useUnitsData'
+import cdhc2Logo from '@/assets/cdhc2.png'
 
 // Updated data structure to support unlimited nesting
 const data = {
@@ -64,12 +66,16 @@ const data = {
 			]
 		},
 		{
-			title: 'Sinh nhật học viên',
+			title: 'Sự kiện học viên',
 			url: '#',
 			items: [
 				{
-					title: 'Sinh nhật',
+					title: 'Sinh nhật đồng đội',
 					url: '/birthday'
+				},
+				{
+					title: 'Chuyển Đảng chính thức ',
+					url: '/chuyen-dang-chinh-thuc'
 				}
 			]
 		}
@@ -191,6 +197,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				]
 			}) as NavItem
 	)
+
 	const newData = {
 		version: data.versions,
 		navMain: [
@@ -201,6 +208,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	return (
 		<Sidebar {...props}>
+			<SidebarHeader>
+				<div className='flex items-center gap-2 px-4 py-2'>
+					<div className='flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary-foreground'>
+						<img
+							src={cdhc2Logo}
+							alt='Logo Trường Cao đẳng hậu cần 2'
+						/>
+					</div>
+					<div className='flex flex-col'>
+						<span className='text-sm font-semibold'>
+							Hệ thống quản lý học viên
+						</span>
+						<span className='text-xs text-muted-foreground'>
+							Trường Cao đẳng hậu cần 2
+						</span>
+					</div>
+				</div>
+			</SidebarHeader>
+
 			<SidebarContent>
 				{/* <div className='p-4 w-full'>
 					<StudentForm onSuccess={() => {}} />
