@@ -115,6 +115,9 @@ export interface StudentQueryParams {
 	hasReligion?: boolean
 	unitAlias?: string
 	unitLevel?: string
+	isCpvOfficialThisWeek?: boolean
+	cpvOfficialInMonth?: Month
+	cpvOfficialInQuarter?: Quarter
 }
 
 export type ChildrenInfo = {

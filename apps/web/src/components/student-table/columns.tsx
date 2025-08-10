@@ -51,7 +51,8 @@ export const baseStudentsColumns: ColumnDef<Student>[] = [
 		),
 		meta: {
 			label: 'Năm sinh'
-		}
+		},
+		enableHiding: true
 	}
 ]
 
@@ -199,10 +200,7 @@ export const columns: ColumnDef<Student>[] = [
 	{
 		accessorKey: 'politicalOrgOfficialDate',
 		header: ({ column }) => (
-			<DataTableColumnHeader
-				column={column}
-				title='Ngày chính thức vào Đoàn/Đảng'
-			/>
+			<DataTableColumnHeader column={column} title='Ngày vào Đoàn/Đảng' />
 		),
 		cell: ({ row }) => (
 			<div className='min-w-28'>
@@ -213,7 +211,7 @@ export const columns: ColumnDef<Student>[] = [
 		),
 		enableHiding: true,
 		meta: {
-			label: 'Ngày chính thức vào Đoàn/Đảng'
+			label: 'Ngày vào Đoàn/Đảng'
 		}
 	},
 	{
@@ -225,6 +223,20 @@ export const columns: ColumnDef<Student>[] = [
 		enableHiding: true,
 		meta: {
 			label: 'Số thẻ Đảng'
+		}
+	},
+	{
+		accessorKey: 'cpvOfficialAt',
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Ngày chính thức vào Đoàn/Đảng'
+			/>
+		),
+		cell: EditableCell,
+		enableHiding: true,
+		meta: {
+			label: 'Ngày chính thức vào Đoàn/Đảng'
 		}
 	},
 	{
@@ -320,6 +332,7 @@ export const columns: ColumnDef<Student>[] = [
 		accessorKey: 'previousUnit',
 		header: 'Đơn vị cũ',
 		cell: EditableCell,
+		enableHiding: true,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
@@ -335,6 +348,7 @@ export const columns: ColumnDef<Student>[] = [
 				{row.getValue('ethnic')}
 			</Badge>
 		),
+		enableHiding: true,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
@@ -350,6 +364,7 @@ export const columns: ColumnDef<Student>[] = [
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
+		enableHiding: true,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
@@ -629,10 +644,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	{
 		accessorKey: 'politicalOrgOfficialDate',
 		header: ({ column }) => (
-			<DataTableColumnHeader
-				column={column}
-				title='Ngày chính thức vào Đoàn/Đảng'
-			/>
+			<DataTableColumnHeader column={column} title='Ngày vào Đoàn/Đảng' />
 		),
 		cell: ({ row }) => (
 			<div className='min-w-28'>
@@ -643,7 +655,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 		),
 		enableHiding: true,
 		meta: {
-			label: 'Ngày chính thức vào Đoàn/Đảng'
+			label: 'Ngày vào Đoàn/Đảng'
 		}
 	},
 	{
@@ -655,6 +667,20 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 		enableHiding: true,
 		meta: {
 			label: 'Số thẻ Đảng'
+		}
+	},
+	{
+		accessorKey: 'cpvOfficialAt',
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Ngày chính thức vào Đoàn/Đảng'
+			/>
+		),
+		cell: EditableCell,
+		enableHiding: true,
+		meta: {
+			label: 'Ngày chính thức vào Đoàn/Đảng'
 		}
 	},
 	{

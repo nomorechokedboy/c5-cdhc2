@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as HcyuRouteImport } from './routes/hcyu'
 import { Route as EthnicMinorityRouteImport } from './routes/ethnic-minority'
 import { Route as CpvRouteImport } from './routes/cpv'
+import { Route as ChuyenDangChinhThucRouteImport } from './routes/chuyen-dang-chinh-thuc'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesIndexRouteImport } from './routes/classes/index'
@@ -52,6 +53,11 @@ const CpvRoute = CpvRouteImport.update({
   path: '/cpv',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChuyenDangChinhThucRoute = ChuyenDangChinhThucRouteImport.update({
+  id: '/chuyen-dang-chinh-thuc',
+  path: '/chuyen-dang-chinh-thuc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BirthdayRoute = BirthdayRouteImport.update({
   id: '/birthday',
   path: '/birthday',
@@ -86,6 +92,7 @@ const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/birthday'
+    | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/birthday'
+    | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/birthday'
+    | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BirthdayRoute: typeof BirthdayRoute
+  ChuyenDangChinhThucRoute: typeof ChuyenDangChinhThucRoute
   CpvRoute: typeof CpvRoute
   EthnicMinorityRoute: typeof EthnicMinorityRoute
   HcyuRoute: typeof HcyuRoute
@@ -230,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CpvRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chuyen-dang-chinh-thuc': {
+      id: '/chuyen-dang-chinh-thuc'
+      path: '/chuyen-dang-chinh-thuc'
+      fullPath: '/chuyen-dang-chinh-thuc'
+      preLoaderRoute: typeof ChuyenDangChinhThucRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/birthday': {
       id: '/birthday'
       path: '/birthday'
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BirthdayRoute: BirthdayRoute,
+  ChuyenDangChinhThucRoute: ChuyenDangChinhThucRoute,
   CpvRoute: CpvRoute,
   EthnicMinorityRoute: EthnicMinorityRoute,
   HcyuRoute: HcyuRoute,
