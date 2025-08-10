@@ -1,11 +1,11 @@
 #!/bin/sh
-# File: ./cron/scripts/weekly_birthday.sh
-# Weekly birthday notification script
+# File: ./cron/scripts/weekly_cpv_official.sh
+# Weekly cpv_official notification script
 
 set -e
 
 APP_URL="${APP_URL:-http://app:8080}"
-ENDPOINT="/students/cron?event=birthdayThisWeek"
+ENDPOINT="/students/cron?event=cpvOfficialThisWeek"
 TIMEOUT=30
 MAX_RETRIES=3
 
@@ -27,7 +27,7 @@ check_app_health() {
 }
 
 main() {
-    log "Starting weekly birthday notification job"
+    log "Starting weekly cpv official notification job"
     
     if ! check_app_health; then
         log "ERROR: App health check failed after $MAX_RETRIES attempts"
@@ -37,9 +37,9 @@ main() {
     log "Calling endpoint: ${APP_URL}${ENDPOINT}"
     
     if curl -f -s --connect-timeout $TIMEOUT -X GET "${APP_URL}${ENDPOINT}"; then
-        log "SUCCESS: Weekly birthday notification completed"
+        log "SUCCESS: Weekly cpv official notification completed"
     else
-        log "ERROR: Weekly birthday notification failed"
+        log "ERROR: Weekly cpv official notification failed"
         exit 1
     fi
 }
