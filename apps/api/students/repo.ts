@@ -14,6 +14,7 @@ import {
 } from '../schema/student'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
+import dayjs from 'dayjs'
 
 type DateField = 'dob' | 'cpvOfficialAt'
 
@@ -56,6 +57,17 @@ class StudentSqliteRepo implements Repository {
 
 	private dayFieldThisMonth({ field, month }: DateFieldInMonthParams) {
 		const dateField = this.getDateField(field)
+		const thisYear = dayjs().year()
+
+		if (field === 'cpvOfficialAt') {
+			if (month === undefined) {
+				return sql`strftime('%Y-%m', ${dateField}) = strftime('%Y-%m', 'now')`
+			}
+
+			const value = `${thisYear}-${month}`
+			return sql`strftime('%Y-%m', ${dateField}) = ${value}`
+		}
+
 		if (month === undefined) {
 			return sql`strftime('%m', ${dateField}) = strftime('%m', 'now')`
 		}
@@ -65,13 +77,13 @@ class StudentSqliteRepo implements Repository {
 
 	private dateFieldThisWeek(field: DateField = 'dob') {
 		const dateField = this.getDateField(field)
-
 		return sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${dateField})) 
         BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
 	}
 
 	private dateFieldInQuarter({ quarter, field }: DateFieldInQuarterParams) {
 		const dateField = this.getDateField(field)
+		const thisYear = dayjs().year()
 		let start = '01'
 		let end = '03'
 
@@ -91,6 +103,14 @@ class StudentSqliteRepo implements Repository {
 			case 'Q1':
 			default:
 				break
+		}
+
+		if (field === 'cpvOfficialAt') {
+			return between(
+				sql`strftime('%Y-%m', ${dateField})`,
+				`${thisYear}-${start}`,
+				`${thisYear}-${end}`
+			)
 		}
 
 		return between(sql`strftime('%m', ${dateField})`, start, end)
@@ -139,7 +159,7 @@ class StudentSqliteRepo implements Repository {
 			whereConds.push(
 				this.dateFieldInQuarter({
 					quarter: q.birthdayInQuarter!,
-					field: 'cpvOfficialAt'
+					field: 'dob'
 				})
 			)
 		}

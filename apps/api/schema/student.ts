@@ -123,3 +123,63 @@ export type UpdateStudentMap = {
 	id: number
 	updatePayload: { [k: string]: any }
 }[]
+
+export interface StudentCronJobEvent {
+	getQueryParams(): StudentQuery
+}
+
+export class BirthdayThisWeek implements StudentCronJobEvent {
+	constructor() {}
+
+	getQueryParams(): StudentQuery {
+		return { birthdayInWeek: true }
+	}
+}
+
+export class BirthdayThisMonth implements StudentCronJobEvent {
+	constructor(private month: Month) {}
+
+	getQueryParams(): StudentQuery {
+		return { birthdayInMonth: this.month }
+	}
+}
+
+export class BirthdayThisQuarter implements StudentCronJobEvent {
+	constructor(private quarter: Quarter) {}
+
+	getQueryParams(): StudentQuery {
+		return { birthdayInQuarter: this.quarter }
+	}
+}
+
+export class CpvOfficialThisWeek implements StudentCronJobEvent {
+	constructor() {}
+
+	getQueryParams(): StudentQuery {
+		return { birthdayInWeek: true }
+	}
+}
+
+export class CpvOfficialThisMonth implements StudentCronJobEvent {
+	constructor(private month: Month) {}
+
+	getQueryParams(): StudentQuery {
+		return { cpvOfficialInMonth: this.month }
+	}
+}
+
+export class CpvOfficialThisQuarter implements StudentCronJobEvent {
+	constructor(private quarter: Quarter) {}
+
+	getQueryParams(): StudentQuery {
+		return { cpvOfficialInQuarter: this.quarter }
+	}
+}
+
+export type StudentCronEvent =
+	| 'birthdayThisWeek'
+	| 'birthdayThisMonth'
+	| 'birthdayThisQuarter'
+	| 'cpvOfficialThisWeek'
+	| 'cpvOfficialThisMonth'
+	| 'cpvOfficialThisQuarter'
