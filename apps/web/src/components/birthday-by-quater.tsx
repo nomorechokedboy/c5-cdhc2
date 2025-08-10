@@ -1,6 +1,5 @@
 import { DataTable } from '@/components/data-table'
 import { columns } from '@/components/student-table/columns'
-import StudentForm from '@/components/student-form'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
@@ -38,9 +37,6 @@ export default function BirthdayByQuarter() {
 		return <div>Loading...</div>
 	}
 
-	const handleFormSuccess = () => {
-		refetchStudent()
-	}
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
 	]
@@ -126,7 +122,7 @@ export default function BirthdayByQuarter() {
 						</Select>
 					</div>
 					<p className='text-muted-foreground'>
-						Đây là danh sách học viên có sinh nhật trong quý
+						Đây là danh sách học viên có sinh nhật trong quý{' '}
 						{quarter} của đại đội
 					</p>
 				</div>
@@ -157,7 +153,6 @@ export default function BirthdayByQuarter() {
 				}}
 				columns={columns}
 				toolbarProps={{
-					rightSection: <StudentForm onSuccess={handleFormSuccess} />,
 					searchConfig,
 					facetedFilters
 				}}
