@@ -16,6 +16,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
+import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -159,28 +160,7 @@ export default function BirthdayByMonth() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false
-				}}
+				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					searchConfig,

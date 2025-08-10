@@ -7,6 +7,7 @@ import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 
 export default function CpvOfficialThisWeek() {
 	const {
@@ -76,32 +77,7 @@ export default function CpvOfficialThisWeek() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false,
-					dob: false,
-					ethnic: false,
-					educationLevel: false,
-					rank: false
-				}}
+				defaultColumnVisibility={defaultCpvOfficialColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					rightSection: (

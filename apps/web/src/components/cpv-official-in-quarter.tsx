@@ -19,6 +19,7 @@ import {
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 
 dayjs.extend(quarterOfYear)
 
@@ -133,32 +134,7 @@ export default function CpvOfficialInQuarter() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false,
-					dob: false,
-					ethnic: false,
-					educationLevel: false,
-					rank: false
-				}}
+				defaultColumnVisibility={defaultCpvOfficialColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					rightSection: (
