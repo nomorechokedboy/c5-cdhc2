@@ -168,13 +168,15 @@ export interface AppNotificationItem extends Base {
 	relatedData: Student | Class
 }
 
+export type AppNotificationType = 'birthday' | 'officialCpv'
+
 export interface AppNotification {
 	id: string
 	createdAt: string
 	readAt: string | null
 
 	message: string
-	notificationType: 'birthday' | 'officialCpv'
+	notificationType: AppNotificationType
 	title: string
 	totalCount: number
 
