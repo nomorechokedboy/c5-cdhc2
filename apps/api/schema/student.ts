@@ -156,7 +156,7 @@ export class CpvOfficialThisWeek implements StudentCronJobEvent {
 	constructor() {}
 
 	getQueryParams(): StudentQuery {
-		return { birthdayInWeek: true }
+		return { isCpvOfficialThisWeek: true }
 	}
 }
 

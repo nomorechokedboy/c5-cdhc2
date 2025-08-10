@@ -364,6 +364,7 @@ export const StudentCronjob = api(
 			return {}
 		}
 
+		log.trace('students.StudentCronjob students results', { students })
 		const items: CreateBatchNotificationItemData = students.map((s) => ({
 			notifiableId: s.id,
 			notifiableType: 'students'
@@ -372,7 +373,25 @@ export const StudentCronjob = api(
 		const date = dayjs().unix()
 
 		const firstStudent = students[0]
-		const baseMessage = `Tuần này có sinh nhật của đồng chí ${firstStudent.fullName}`
+		let periodText
+		switch (params.event) {
+			case 'birthdayThisMonth':
+			case 'cpvOfficialThisMonth':
+				periodText = 'Tháng'
+				break
+			case 'birthdayThisQuarter':
+			case 'cpvOfficialThisQuarter':
+				periodText = 'Quý'
+				break
+
+			case 'birthdayThisWeek':
+			case 'cpvOfficialThisWeek':
+			default:
+				periodText = 'Tuần'
+				break
+		}
+
+		const baseMessage = `${periodText} này có sinh nhật của đồng chí ${firstStudent.fullName}`
 		let batchNotification: CreateBatchNotificationData = {
 			notificationType: 'birthday',
 			title: 'Sinh nhật đồng đội',
@@ -385,14 +404,14 @@ export const StudentCronjob = api(
 		}
 
 		if (isCpvEvent) {
-			const baseMessage = `Tuần này có sự kiện chuyển Đảng chính thức đồng chí ${firstStudent.fullName}`
+			const baseCpvMessage = `${periodText} này có sự kiện chuyển Đảng chính thức của đồng chí ${firstStudent.fullName}`
 			batchNotification = {
 				notificationType: 'officialCpv',
 				title: 'Chuyển Đảng chính thức',
 				message:
 					students.length === 1
-						? baseMessage
-						: `${baseMessage} và ${students.length - 1} đồng chí khác`,
+						? baseCpvMessage
+						: `${baseCpvMessage} và ${students.length - 1} đồng chí khác`,
 				batchKey: `cpvOfficial_${params.event}_${date}`,
 				items
 			}
