@@ -5,7 +5,7 @@
 set -e
 
 APP_URL="${APP_URL:-http://app:8080}"
-ENDPOINT="/students/birthday/month"
+ENDPOINT="/students/cron?event=birthdayThisMonth"
 TIMEOUT=30
 MAX_RETRIES=3
 
