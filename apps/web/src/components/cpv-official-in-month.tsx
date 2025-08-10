@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 
 export default function CpvOfficialInMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -159,32 +160,7 @@ export default function CpvOfficialInMonth() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false,
-					dob: false,
-					ethnic: false,
-					educationLevel: false,
-					rank: false
-				}}
+				defaultColumnVisibility={defaultCpvOfficialColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					rightSection: (

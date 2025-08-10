@@ -5,6 +5,7 @@ import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
+import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 
 export default function BirthdayByWeek() {
 	const {
@@ -76,28 +77,7 @@ export default function BirthdayByWeek() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false
-				}}
+				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					searchConfig,

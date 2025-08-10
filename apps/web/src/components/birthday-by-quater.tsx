@@ -17,6 +17,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
+import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 
 dayjs.extend(quarterOfYear)
 
@@ -113,7 +114,7 @@ export default function BirthdayByQuarter() {
 											label: 'Quý 4'
 										}
 									].map(({ label, value }) => (
-										<SelectItem value={value}>
+										<SelectItem key={value} value={value}>
 											{label}
 										</SelectItem>
 									))}
@@ -129,28 +130,7 @@ export default function BirthdayByQuarter() {
 			</div>
 			<DataTable
 				data={students}
-				defaultColumnVisibility={{
-					enlistmentPeriod: false,
-					isGraduated: false,
-					major: false,
-					phone: false,
-					position: false,
-					policyBeneficiaryGroup: false,
-					politicalOrg: false,
-					politicalOrgOfficialDate: false,
-					cpvId: false,
-					previousPosition: false,
-					religion: false,
-					schoolName: false,
-					shortcoming: false,
-					talent: false,
-					fatherName: false,
-					fatherJob: false,
-					fatherPhoneNumber: false,
-					motherName: false,
-					motherJob: false,
-					motherPhoneNumber: false
-				}}
+				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={columns}
 				toolbarProps={{
 					searchConfig,
