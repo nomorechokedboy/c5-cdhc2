@@ -149,8 +149,8 @@ class StudentSqliteRepo implements Repository {
 		}
 
 		const isCpvOfficialThisWeek =
-			q.isCpvOfficalThisWeek !== undefined &&
-			q.isCpvOfficalThisWeek === true
+			q.isCpvOfficialThisWeek !== undefined &&
+			q.isCpvOfficialThisWeek === true
 		const isCpvOfficialInMonthExist = q.cpvOfficialInMonth !== undefined
 		const isCpvOfficialInQuarterExist = q.cpvOfficialInQuarter !== undefined
 

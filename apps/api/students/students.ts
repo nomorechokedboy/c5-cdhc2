@@ -143,7 +143,7 @@ export interface GetStudentsQuery {
 	politicalOrg?: 'hcyu' | 'cpv'
 	unitAlias?: string
 	unitLevel?: 'battalion' | 'company'
-	isCpvOfficalThisWeek?: boolean
+	isCpvOfficialThisWeek?: boolean
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
 }
@@ -333,6 +333,20 @@ export const ExportStudentData = api.raw(
 			log.error('Template processing error', { err })
 			throw APIError.internal('Internal error for exporting file')
 		}
+	}
+)
+
+export const StudentCronjob = api(
+	{ expose: true, method: 'GET', path: '/students/cron' },
+	async (params: {
+		period: 'week' | 'month' | 'quarter'
+		dateField: 'dob' | 'cpvOfficialAt'
+	}) => {
+		log.trace('students.StudentCronjob is running with params: ', {
+			params
+		})
+
+		log.info('students.StudentCronjob complete!')
 	}
 )
 
