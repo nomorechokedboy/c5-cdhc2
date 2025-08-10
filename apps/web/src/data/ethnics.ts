@@ -107,3 +107,23 @@ export const eduLevelOptions = [
         { label: 'Đại học', value: 'Đại học' },
         { label: 'Sau đại học', value: 'Sau đại học' },
 ];
+
+export const politicalOptions = [
+        { label: 'Đoàn', value: 'hcyu' },
+        { label: 'Đảng', value: 'cpv' }
+];
+
+export const rankOptions = [
+        { label: 'Binh nhất', value: 'Binh nhất' },
+        { label: 'Binh nhì', value: 'Binh nhì' },
+        { label: 'Hạ sĩ', value: 'Hạ sĩ' },
+        { label: 'Trung sĩ', value: 'Trung sĩ' },
+        { label: 'Thượng sĩ', value: 'Thượng sĩ' },
+        { label: 'Thiếu úy CN', value: 'Thiếu úy chuyên nghiệp' },
+        { label: 'Trung úy CN', value: 'Trung úy chuyên nghiệp' },
+        { label: 'Thượng úy CN', value: 'Thượng úy chuyên nghiệp' },
+        { label: 'Đại úy CN', value: 'Đại úy chuyên nghiệp' },
+        { label: 'Thiếu tá CN', value: 'Thiếu tá chuyên nghiệp' },
+        { label: 'Trung tá CN', value: 'Trung tá chuyên nghiệp' },
+        { label: 'Thượng tá CN', value: 'Thượng tá chuyên nghiệp' }
+];
