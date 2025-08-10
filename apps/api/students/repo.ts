@@ -75,7 +75,7 @@ class StudentSqliteRepo implements Repository {
 		return sql`strftime('%m', ${dateField}) = ${month}`
 	}
 
-	private dateFieldThisWeek(field: DateField = 'dob') {
+	private dateFieldThisWeek(field: DateField) {
 		const dateField = this.getDateField(field)
 		return sql`date(strftime('%Y', 'now') || '-' || strftime('%m-%d', ${dateField})) 
         BETWEEN date('now', 'weekday 1', '-6 days') AND date('now', 'weekday 0')`
@@ -165,7 +165,7 @@ class StudentSqliteRepo implements Repository {
 		}
 
 		if (isBirthdayInWeekExist) {
-			whereConds.push(this.dateFieldThisWeek())
+			whereConds.push(this.dateFieldThisWeek('dob'))
 		}
 
 		const isCpvOfficialThisWeek =
