@@ -1,5 +1,8 @@
 import { DataTable } from '@/components/data-table'
-import { columns } from '@/components/student-table/columns'
+import {
+	battalionStudentColumns,
+	columns
+} from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
@@ -51,8 +54,8 @@ export default function BirthdayByQuarter() {
 	}))
 	const classOptions = classes
 		? classes.map((c) => ({
-				label: c.name,
-				value: c.name
+				label: `${c.name} - ${c.unit.alias}`,
+				value: `${c.name} - ${c.unit.alias}`
 			}))
 		: []
 
@@ -131,7 +134,7 @@ export default function BirthdayByQuarter() {
 			<DataTable
 				data={students}
 				defaultColumnVisibility={defaultBirthdayColumnVisibility}
-				columns={columns}
+				columns={battalionStudentColumns}
 				toolbarProps={{
 					searchConfig,
 					facetedFilters
