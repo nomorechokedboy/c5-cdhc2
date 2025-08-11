@@ -289,6 +289,10 @@ export function DataTable<TData, TValue>({
 	}
 
 	useEffect(() => {
+		if (onDeleteRows === undefined) {
+			return
+		}
+
 		if (selectedRow.length === 0) {
 			toast.dismiss()
 			return
@@ -323,7 +327,13 @@ export function DataTable<TData, TValue>({
 				</Button>
 			)
 		})
-	}, [selectedRow, isDeleting, handleReset, handleDeleteSelected])
+	}, [
+		selectedRow,
+		isDeleting,
+		handleReset,
+		handleDeleteSelected,
+		onDeleteRows
+	])
 
 	return (
 		<div className='space-y-4'>
