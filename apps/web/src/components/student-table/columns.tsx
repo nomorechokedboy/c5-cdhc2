@@ -230,13 +230,13 @@ export const columns: ColumnDef<Student>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title='Ngày chính thức vào Đoàn/Đảng'
+				title='Ngày chính thức vào Đảng'
 			/>
 		),
 		cell: EditableCell,
 		enableHiding: true,
 		meta: {
-			label: 'Ngày chính thức vào Đoàn/Đảng'
+			label: 'Ngày chính thức vào Đảng'
 		}
 	},
 	{
@@ -674,13 +674,13 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title='Ngày chính thức vào Đoàn/Đảng'
+				title='Ngày chính thức vào Đảng'
 			/>
 		),
 		cell: EditableCell,
 		enableHiding: true,
 		meta: {
-			label: 'Ngày chính thức vào Đoàn/Đảng'
+			label: 'Ngày chính thức vào Đảng'
 		}
 	},
 	{
