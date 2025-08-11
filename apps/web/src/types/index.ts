@@ -218,4 +218,4 @@ export interface GetUnreadNotificationCountResponse {
 	data: { count: number }
 }
 
-export type ExportData = { [k: string]: string }[]
+export type ExportData = Record<string, string>[]
