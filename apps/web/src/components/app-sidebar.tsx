@@ -21,7 +21,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger
 } from './ui/collapsible'
-import { ChevronDown, GraduationCap } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import useUnitsData from '@/hooks/useUnitsData'
 import cdhc2Logo from '@/assets/cdhc2.png'
 
@@ -228,17 +228,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 
 			<SidebarContent>
-				{/* <div className='p-4 w-full'>
-					<StudentForm onSuccess={() => {}} />
-				</div> */}
-				{/* add logo add apps/web/public/android-chrome-192x192 */}
-				<div className='flex items-center justify-center mb-4'>
-					<img
-					style={{ paddingTop: '10px' }}
-						src='https://cdhc2.edu.vn/wp-content/uploads/2025/07/LOGO-MOI.png'
-						alt='Logo'
-						width='50%'
-						
+				<div className='p-4 w-full'>
+					<StudentForm
+						buttonProps={{ className: 'w-full' }}
+						onSuccess={() => {}}
 					/>
 				</div>
 

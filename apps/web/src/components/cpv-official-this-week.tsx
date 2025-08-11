@@ -1,8 +1,5 @@
 import { DataTable } from '@/components/data-table'
-import {
-	battalionStudentColumns,
-	columns
-} from '@/components/student-table/columns'
+import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'

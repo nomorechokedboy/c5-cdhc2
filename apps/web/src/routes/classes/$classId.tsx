@@ -138,7 +138,10 @@ function RouteComponent() {
 							fatherPhoneNumber: false,
 							motherName: false,
 							motherJob: false,
-							motherPhoneNumber: false
+							motherPhoneNumber: false,
+							cpvOfficialAt: false,
+							ethnic: false,
+							educationLevel: false
 						}}
 						columns={columns}
 						toolbarProps={{

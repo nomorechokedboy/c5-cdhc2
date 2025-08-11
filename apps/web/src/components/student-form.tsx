@@ -14,12 +14,13 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from './ui/dialog'
-import { Button } from './ui/button'
+import { Button, buttonVariants } from './ui/button'
 import { useMutation } from '@tanstack/react-query'
 import { CreateStudent } from '@/api'
 import type { Student, StudentBody } from '@/types'
 import MilitaryStep from './military-step'
 import { toast } from 'sonner'
+import type { VariantProps } from 'class-variance-authority'
 
 export interface StudentFormProps {
 	onSuccess: (
@@ -27,6 +28,8 @@ export interface StudentFormProps {
 		variables: StudentBody,
 		context: unknown
 	) => unknown
+	buttonProps?: React.ComponentProps<'button'> &
+		VariantProps<typeof buttonVariants> & { asChild?: boolean }
 }
 
 function convertToIso(dateStr: string): string {
@@ -34,7 +37,10 @@ function convertToIso(dateStr: string): string {
 	return `${year}-${month}-${day}`
 }
 
-export default function StudentForm({ onSuccess }: StudentFormProps) {
+export default function StudentForm({
+	onSuccess,
+	buttonProps
+}: StudentFormProps) {
 	const [currentStep, setCurrentStep] = useState(0)
 	const [completedSteps, setCompletedSteps] = useState<number[]>([])
 	const [open, setOpen] = useState(false)
@@ -206,7 +212,7 @@ export default function StudentForm({ onSuccess }: StudentFormProps) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>
+				<Button {...buttonProps}>
 					<Plus className='w-4 h-4 mr-2' />
 					Thêm học viên
 				</Button>

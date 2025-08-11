@@ -19,7 +19,9 @@ export const defaultBirthdayColumnVisibility = {
 	motherName: false,
 	motherJob: false,
 	motherPhoneNumber: false,
-	cpvOfficialAt: false
+	cpvOfficialAt: false,
+	ethnic: false,
+	educationLevel: false
 }
 
 export const defaultCpvOfficialColumnVisibility = {

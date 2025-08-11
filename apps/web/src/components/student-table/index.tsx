@@ -74,7 +74,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ params }) => {
 				columns={columns}
 				defaultColumnVisibility={defaultStudentColumnVisibility}
 				toolbarProps={{
-					rightSection: <StudentForm onSuccess={handleFormSuccess} />,
+					// rightSection: <StudentForm onSuccess={handleFormSuccess} />,
 					searchConfig,
 					facetedFilters
 				}}

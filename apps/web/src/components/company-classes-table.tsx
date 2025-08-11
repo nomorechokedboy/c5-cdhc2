@@ -5,6 +5,8 @@ import { DataTable } from '@/components/data-table'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useUnitsData from '@/hooks/useUnitsData'
 import type { FacetedFilterConfig } from '@/types'
+import { Button } from './ui/button'
+import { RefreshCw } from 'lucide-react'
 
 type CompanyClassesTableProps = {
 	companyAlias: string
@@ -54,10 +56,15 @@ export default function CompanyClassesTable({
 				defaultViewMode='card'
 				toolbarProps={{
 					rightSection: (
-						<ClassForm
-							onSuccess={handleFormSuccess}
-							unitId={company?.id}
-						/>
+						<>
+							<ClassForm
+								onSuccess={handleFormSuccess}
+								unitId={company?.id}
+							/>
+							<Button onClick={() => refetchUnits()}>
+								<RefreshCw />
+							</Button>
+						</>
 					),
 					searchConfig,
 					facetedFilters

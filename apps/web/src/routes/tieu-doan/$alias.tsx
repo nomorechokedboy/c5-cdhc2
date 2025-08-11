@@ -1,12 +1,16 @@
 import { DataTable } from '@/components/data-table'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import StudentForm from '@/components/student-form'
 import { battalionStudentColumns } from '@/components/student-table/columns'
+import { defaultBirthdayColumnVisibility } from '@/components/student-table/default-columns-visibility'
+import { Button } from '@/components/ui/button'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import { createFileRoute } from '@tanstack/react-router'
+import { RefreshCw } from 'lucide-react'
 import z from 'zod'
 
 const aliasSearchSchema = z.object({
@@ -24,19 +28,24 @@ export const Route = createFileRoute('/tieu-doan/$alias')({
 function RouteComponent() {
 	const { alias } = Route.useParams()
 	const { level } = Route.useSearch()
+
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ unitAlias: alias, unitLevel: level })
 	const { data: units, refetch: refetchUnits } = useUnitsData({
 		level: 'battalion'
 	})
+
+	const handleFormSuccess = () => {
+		refetchStudents()
+	}
+	const searchConfig = [
+		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
+	]
 	const flatUnits = units
 		?.map((unit) => {
 			if (unit.children.length !== 0) {
@@ -109,30 +118,17 @@ function RouteComponent() {
 				</div>
 				<DataTable
 					data={students}
-					defaultColumnVisibility={{
-						enlistmentPeriod: false,
-						isGraduated: false,
-						major: false,
-						phone: false,
-						position: false,
-						policyBeneficiaryGroup: false,
-						politicalOrg: false,
-						politicalOrgOfficialDate: false,
-						cpvId: false,
-						previousPosition: false,
-						religion: false,
-						schoolName: false,
-						shortcoming: false,
-						talent: false,
-						fatherName: false,
-						fatherJob: false,
-						fatherPhoneNumber: false,
-						motherName: false,
-						motherJob: false,
-						motherPhoneNumber: false
-					}}
+					defaultColumnVisibility={defaultBirthdayColumnVisibility}
 					columns={battalionStudentColumns}
 					toolbarProps={{
+						rightSection: (
+							<>
+								<StudentForm onSuccess={handleFormSuccess} />
+								<Button onClick={() => refetchStudents()}>
+									<RefreshCw />
+								</Button>
+							</>
+						),
 						searchConfig,
 						facetedFilters
 					}}

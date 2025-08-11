@@ -7,6 +7,10 @@ import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import type { UnitLevel } from '@/types'
+import { Button } from './ui/button'
+import { RefreshCw } from 'lucide-react'
+import StudentForm from './student-form'
+import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -22,8 +26,12 @@ export default function CompanyStudentTable({
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ unitAlias: alias, unitLevel: level })
+	const handleFormSuccess = () => {
+		refetchStudents()
+	}
+
 	const { data: units, refetch: refetchUnits } = useUnitsData({
 		level: 'battalion'
 	})
@@ -93,30 +101,17 @@ export default function CompanyStudentTable({
 				</div>
 				<DataTable
 					data={students}
-					defaultColumnVisibility={{
-						enlistmentPeriod: false,
-						isGraduated: false,
-						major: false,
-						phone: false,
-						position: false,
-						policyBeneficiaryGroup: false,
-						politicalOrg: false,
-						politicalOrgOfficialDate: false,
-						cpvId: false,
-						previousPosition: false,
-						religion: false,
-						schoolName: false,
-						shortcoming: false,
-						talent: false,
-						fatherName: false,
-						fatherJob: false,
-						fatherPhoneNumber: false,
-						motherName: false,
-						motherJob: false,
-						motherPhoneNumber: false
-					}}
+					defaultColumnVisibility={defaultBirthdayColumnVisibility}
 					columns={columns}
 					toolbarProps={{
+						rightSection: (
+							<>
+								<StudentForm onSuccess={handleFormSuccess} />
+								<Button onClick={() => refetchStudents()}>
+									<RefreshCw />
+								</Button>
+							</>
+						),
 						searchConfig,
 						facetedFilters
 					}}
