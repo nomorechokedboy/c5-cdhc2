@@ -20,7 +20,6 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios from '@/lib/axios'
-import type { ExportsData } from 'vite'
 
 export function CreateClass(body: ClassBody) {
 	return axios
@@ -47,7 +46,10 @@ export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
 }
 
 export function DeleteStudents(params: DeleteStudentsBody) {
-	return axios.delete('/students', { params })
+	return axios.delete('/students', {
+		params,
+		paramsSerializer: { indexes: null }
+	})
 }
 
 export function UpdateStudents(params: UpdateStudentsBody) {
