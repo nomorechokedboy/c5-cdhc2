@@ -11,7 +11,33 @@ export default function useExportButton({
 }: ExportConfig) {
 	async function handleExport(data: ExportData) {
 		try {
-			const resp = await ExportTableData(data)
+			const politicalOrgColLabel = 'Đoàn/Đảng'
+			const politicalOrgMap = { hcyu: 'Đoàn viên', cpv: 'Đảng viên' }
+			const sanitizedData = data.map((d) => {
+				for (const [key, val] of Object.entries(d)) {
+					if (val === '') {
+						d[key] = 'Chưa có thông tin'
+					}
+				}
+
+				const isPoliticalOrgExist =
+					d[politicalOrgColLabel] !== undefined ||
+					d[politicalOrgColLabel] !== null ||
+					d[politicalOrgColLabel] !== ''
+
+				if (isPoliticalOrgExist) {
+					d[politicalOrgColLabel] =
+						politicalOrgMap[
+							d[
+								politicalOrgColLabel
+							] as keyof typeof politicalOrgMap
+						]
+				}
+
+				return d
+			})
+
+			const resp = await ExportTableData(sanitizedData)
 			const blob = new Blob([resp.data], {
 				type: resp.headers['content-type']
 			})
