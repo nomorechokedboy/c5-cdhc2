@@ -12,6 +12,7 @@ import { RefreshCw } from 'lucide-react'
 import StudentForm from './student-form'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import useExportButton from '@/hooks/useExportButton'
+import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -32,8 +33,9 @@ export default function CompanyStudentTable({
 	const handleFormSuccess = () => {
 		refetchStudents()
 	}
+	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
-	const { data: units, refetch: refetchUnits } = useUnitsData({
+	const { data: units, refetch: _refetchUnits } = useUnitsData({
 		level: 'battalion'
 	})
 	const flatUnits = units
@@ -121,6 +123,7 @@ export default function CompanyStudentTable({
 					}}
 					placeholder='Chưa có thông tin học viên.'
 					exportButtonProps={exportButtonProps}
+					onDeleteRows={handleDeleteStudents}
 				/>
 			</div>
 		</SidebarInset>

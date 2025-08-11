@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useExportButton from '@/hooks/useExportButton'
+import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import { createFileRoute } from '@tanstack/react-router'
@@ -43,6 +44,7 @@ function RouteComponent() {
 	const exportButtonProps = useExportButton({
 		filename: `danh-sach-hoc-vien-${alias}`
 	})
+	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
 	const handleFormSuccess = () => {
 		refetchStudents()
@@ -138,6 +140,7 @@ function RouteComponent() {
 					}}
 					placeholder='Chưa có thông tin học viên.'
 					exportButtonProps={exportButtonProps}
+					onDeleteRows={handleDeleteStudents}
 				/>
 			</div>
 		</ProtectedRoute>

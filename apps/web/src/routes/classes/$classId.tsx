@@ -11,10 +11,10 @@ import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import SpinnerCircle2 from '@/components/spinner-08'
 import useExportButton from '@/hooks/useExportButton'
-import useDeleteStudents from '@/hooks/useDeleteStudents'
 import useActionColumn from '@/hooks/useActionColumn'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
+import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -28,20 +28,15 @@ function RouteComponent() {
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
 	} = useStudentData({ classId: Number(classId) })
-	const { data: classes, refetch } = useClassData()
+	const { data: classes } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
 	const thisClass = classes?.find((c) => c.id === Number(classId))
 	const exportButtonProps = useExportButton({
 		filename: `danh-sach-hoc-vien-lop-${thisClass?.name}`
 	})
-	const {
-		mutateAsync: deleteStudentMutate,
-		isPending: isDeletingStudents,
-		error: deleteStudentsErr,
-		isError
-	} = useDeleteStudents()
 	const actionColumn = useActionColumn(handleRefreshStudents)
+	const handleDeleteRows = useOnDeleteStudents(refetchStudents)
 
 	if (isLoadingStudents) {
 		return (
@@ -93,10 +88,6 @@ function RouteComponent() {
 			EduLevelOptions
 		)
 	]
-
-	async function handleDeleteRows(ids: Array<number>) {
-		return deleteStudentMutate({ ids }).then(() => refetchStudents())
-	}
 
 	function handleRefreshStudents() {
 		return refetchStudents()
