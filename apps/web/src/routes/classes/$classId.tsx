@@ -11,6 +11,8 @@ import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import SpinnerCircle2 from '@/components/spinner-08'
 import useExportButton from '@/hooks/useExportButton'
+import useDeleteStudents from '@/hooks/useDeleteStudents'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -31,6 +33,12 @@ function RouteComponent() {
 	const exportButtonProps = useExportButton({
 		filename: `danh-sach-hoc-vien-lop-${thisClass?.name}`
 	})
+	const {
+		mutateAsync: deleteStudentMutate,
+		isPending: isDeleteStudentsPending,
+		error: deleteStudentsErr,
+		isError
+	} = useDeleteStudents()
 
 	if (isLoadingStudents) {
 		return (
@@ -83,6 +91,10 @@ function RouteComponent() {
 		)
 	]
 
+	async function handleDeleteRows(ids: Array<number>) {
+		return deleteStudentMutate({ ids }).then(() => refetchStudent())
+	}
+
 	return (
 		<ProtectedRoute>
 			<SidebarInset>
@@ -133,6 +145,7 @@ function RouteComponent() {
 							facetedFilters
 						}}
 						exportButtonProps={exportButtonProps}
+						onDeleteRows={handleDeleteRows}
 					/>
 				</div>
 			</SidebarInset>
