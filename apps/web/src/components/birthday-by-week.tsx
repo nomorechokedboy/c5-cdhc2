@@ -11,6 +11,8 @@ import { useState } from 'react'
 import UnitDropdown from './unit-dropdown'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import useExportButton from '@/hooks/useExportButton'
+import { getCurrentWeekNumber } from '@/lib/utils'
 
 export default function BirthdayByWeek() {
 	/* const {
@@ -29,6 +31,10 @@ export default function BirthdayByWeek() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const weekNumber = getCurrentWeekNumber()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-sinh-nhat-dong-doi-tuan-${weekNumber}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -98,6 +104,7 @@ export default function BirthdayByWeek() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)

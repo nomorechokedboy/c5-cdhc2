@@ -7,6 +7,7 @@ import { defaultBirthdayColumnVisibility } from '@/components/student-table/defa
 import { Button } from '@/components/ui/button'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
+import useExportButton from '@/hooks/useExportButton'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import { createFileRoute } from '@tanstack/react-router'
@@ -38,6 +39,9 @@ function RouteComponent() {
 	} = useStudentData({ unitAlias: alias, unitLevel: level })
 	const { data: units, refetch: refetchUnits } = useUnitsData({
 		level: 'battalion'
+	})
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-hoc-vien-${alias}`
 	})
 
 	const handleFormSuccess = () => {
@@ -133,6 +137,7 @@ function RouteComponent() {
 						facetedFilters
 					}}
 					placeholder='Chưa có thông tin học viên.'
+					exportButtonProps={exportButtonProps}
 				/>
 			</div>
 		</ProtectedRoute>

@@ -22,6 +22,7 @@ import {
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
+import useExportButton from '@/hooks/useExportButton'
 
 export default function CpvOfficialInMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -33,6 +34,9 @@ export default function CpvOfficialInMonth() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-chuyen-dang-chinh-thuc-thang-${month}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -174,6 +178,7 @@ export default function CpvOfficialInMonth() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)

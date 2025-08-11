@@ -1,15 +1,11 @@
 import { DataTable } from '@/components/data-table'
-import {
-	battalionStudentColumns,
-	columns
-} from '@/components/student-table/columns'
+import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import type { Quarter } from '@/types'
-import dayjs from 'dayjs'
 import { useState } from 'react'
 import {
 	Select,
@@ -19,16 +15,15 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
-
-dayjs.extend(quarterOfYear)
+import useExportButton from '@/hooks/useExportButton'
+import { getCurrentQuarter } from '@/lib/utils'
 
 export default function CpvOfficialInQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
-		`Q${dayjs().quarter()}` as Quarter
+		`Q${getCurrentQuarter()}` as Quarter
 	)
 	const {
 		data: students = [],
@@ -38,6 +33,9 @@ export default function CpvOfficialInQuarter() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-chuyen-dang-chinh-thuc-${quarter}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -148,6 +146,7 @@ export default function CpvOfficialInQuarter() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)

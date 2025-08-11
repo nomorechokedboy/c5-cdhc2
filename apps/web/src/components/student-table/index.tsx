@@ -8,14 +8,15 @@ import { DataTable } from '../data-table'
 import { columns } from '@/components/student-table/columns'
 import { EhtnicOptions } from '@/data/ethnics'
 import { EduLevelOptions } from '@/components/data-table/data/data'
-import StudentForm from '../student-form'
 import SpinnerCircle2 from '../spinner-08'
+import useExportButton from '@/hooks/useExportButton'
 
 interface StudentTableProps {
 	params: StudentQueryParams
+	filename: string
 }
 
-const StudentTable: React.FC<StudentTableProps> = ({ params }) => {
+export default function StudentTable({ params, filename }: StudentTableProps) {
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -24,6 +25,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ params }) => {
 
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename
+	})
 
 	if (isLoadingStudents) {
 		return (
@@ -33,9 +37,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ params }) => {
 		)
 	}
 
-	const handleFormSuccess = () => {
-		refetchStudent()
-	}
+	/* const handleFormSuccess = () => {
+        refetchStudent()
+    } */
 
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
@@ -78,9 +82,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ params }) => {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</div>
 	)
 }
-
-export default StudentTable

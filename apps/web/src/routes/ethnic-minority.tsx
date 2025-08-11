@@ -110,9 +110,12 @@ function RouteComponent() {
 				<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
 					<div className='flex items-center justify-between space-y-2'>
 						<div>
-							<h2 className="text-2xl font-bold tracking-tight">Danh sách học viên dân tộc thiểu số</h2>
+							<h2 className='text-2xl font-bold tracking-tight'>
+								Danh sách học viên dân tộc thiểu số
+							</h2>
 							<p className='text-muted-foreground'>
-								Chọn tiểu đoàn, đại đội, lớp để xem bảng học viên
+								Chọn tiểu đoàn, đại đội, lớp để xem bảng học
+								viên
 							</p>
 						</div>
 					</div>
@@ -152,7 +155,10 @@ function RouteComponent() {
 						</button>
 					</div>
 					<div className='mt-4'>
-						<StudentTable params={studentParams} />
+						<StudentTable
+							params={studentParams}
+							filename='danh-sach-hoc-vien-la-nguoi-dong-bao'
+						/>
 					</div>
 				</div>
 			</SidebarInset>

@@ -19,6 +19,7 @@ import {
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import useExportButton from '@/hooks/useExportButton'
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -30,6 +31,9 @@ export default function BirthdayByMonth() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-sinh-nhat-dong-doi-thang-${month}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -173,6 +177,7 @@ export default function BirthdayByMonth() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)

@@ -8,6 +8,8 @@ import useStudentData from '@/hooks/useStudents'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
+import useExportButton from '@/hooks/useExportButton'
+import { getCurrentWeekNumber } from '@/lib/utils'
 
 export default function CpvOfficialThisWeek() {
 	const {
@@ -18,6 +20,9 @@ export default function CpvOfficialThisWeek() {
 	const { data: classes, refetch: refetchClasses } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-chuyen-dang-chinh-thuc-tuan-${getCurrentWeekNumber()}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -88,6 +93,7 @@ export default function CpvOfficialThisWeek() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)

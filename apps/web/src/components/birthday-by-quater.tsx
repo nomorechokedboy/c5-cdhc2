@@ -9,7 +9,6 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import type { Quarter } from '@/types'
-import dayjs from 'dayjs'
 import { useState } from 'react'
 import {
 	Select,
@@ -19,16 +18,15 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
-
-dayjs.extend(quarterOfYear)
+import { getCurrentQuarter } from '@/lib/utils'
+import useExportButton from '@/hooks/useExportButton'
 
 export default function BirthdayByQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
-		`Q${dayjs().quarter()}` as Quarter
+		`Q${getCurrentQuarter()}` as Quarter
 	)
 	const {
 		data: students = [],
@@ -38,6 +36,9 @@ export default function BirthdayByQuarter() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-sinh-nhat-dong-doi-${quarter}`
+	})
 
 	if (isLoadingStudents) {
 		return <div>Loading...</div>
@@ -146,6 +147,7 @@ export default function BirthdayByQuarter() {
 					searchConfig,
 					facetedFilters
 				}}
+				exportButtonProps={exportButtonProps}
 			/>
 		</>
 	)
