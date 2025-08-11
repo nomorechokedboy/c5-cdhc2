@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
@@ -18,11 +18,14 @@ export const Route = createFileRoute('/')({
   component: RouteComponent,
 })
 
+
 function RouteComponent() {
+  const navigate = useNavigate();
   const [showStudentForm, setShowStudentForm] = useState(false);
   const handleFormSuccess = () => {
     setShowStudentForm(false);
   };
+  const [urlSite, setUrlSite] = useState('');
   return (
     <ProtectedRoute>
         {/* Gradient background */}
@@ -55,6 +58,11 @@ function RouteComponent() {
                 size="lg"
                 variant="outline"
                 className="flex items-center gap-2 shadow-sm hover:shadow-md transition-all"
+                // onclick redrect to /dai-doi/c5
+                onClick={() => {
+                  setUrlSite('/dai-doi/c5');
+                  navigate({ to: urlSite });
+                }}
               >
                 <Users className="w-5 h-5" />
                 Xem danh sách học viên
