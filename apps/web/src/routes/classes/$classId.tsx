@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataTable } from '@/components/data-table'
-import { columns } from '@/components/student-table/columns'
+import { columnsWithoutAction } from '@/components/student-table/columns'
 import { SidebarInset } from '@/components/ui/sidebar'
 import StudentForm from '@/components/student-form'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
@@ -12,7 +12,9 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import SpinnerCircle2 from '@/components/spinner-08'
 import useExportButton from '@/hooks/useExportButton'
 import useDeleteStudents from '@/hooks/useDeleteStudents'
-import { toast } from 'sonner'
+import useActionColumn from '@/hooks/useActionColumn'
+import { Button } from '@/components/ui/button'
+import { RefreshCw } from 'lucide-react'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -24,7 +26,7 @@ function RouteComponent() {
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ classId: Number(classId) })
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
@@ -35,10 +37,11 @@ function RouteComponent() {
 	})
 	const {
 		mutateAsync: deleteStudentMutate,
-		isPending: isDeleteStudentsPending,
+		isPending: isDeletingStudents,
 		error: deleteStudentsErr,
 		isError
 	} = useDeleteStudents()
+	const actionColumn = useActionColumn(handleRefreshStudents)
 
 	if (isLoadingStudents) {
 		return (
@@ -51,7 +54,7 @@ function RouteComponent() {
 	}
 
 	const handleFormSuccess = () => {
-		refetchStudent()
+		refetchStudents()
 	}
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
@@ -92,7 +95,11 @@ function RouteComponent() {
 	]
 
 	async function handleDeleteRows(ids: Array<number>) {
-		return deleteStudentMutate({ ids }).then(() => refetchStudent())
+		return deleteStudentMutate({ ids }).then(() => refetchStudents())
+	}
+
+	function handleRefreshStudents() {
+		return refetchStudents()
 	}
 
 	return (
@@ -136,10 +143,17 @@ function RouteComponent() {
 							ethnic: false,
 							educationLevel: false
 						}}
-						columns={columns}
+						columns={[...columnsWithoutAction, actionColumn]}
 						toolbarProps={{
 							rightSection: (
-								<StudentForm onSuccess={handleFormSuccess} />
+								<>
+									<StudentForm
+										onSuccess={handleFormSuccess}
+									/>
+									<Button onClick={handleRefreshStudents}>
+										<RefreshCw />
+									</Button>
+								</>
 							),
 							searchConfig,
 							facetedFilters

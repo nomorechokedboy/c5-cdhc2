@@ -1,3 +1,5 @@
+import type { QueryObserverResult } from '@tanstack/react-query'
+
 export interface Class extends Base {
 	name: string
 	description: string
@@ -219,3 +221,7 @@ export interface GetUnreadNotificationCountResponse {
 }
 
 export type ExportData = Record<string, string>[]
+
+export type OnDeleteRows = (
+	ids: Array<number>
+) => Promise<QueryObserverResult<Array<Student>, Error>>
