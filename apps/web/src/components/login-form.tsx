@@ -31,14 +31,6 @@ export function LoginForm() {
 
 	return (
 		<div className='w-screen h-screen flex flex-col items-center bg-gray-100 overflow-auto'>
-			{/* Header với logo */}
-			<div className='w-full bg-[#616bcf] py-4 flex flex-col items-center'>
-				<img src={cdhc2Logo} alt='Logo' className='h-40 mb-2' />
-				<h1 className='text-white text-2xl font-bold'>
-					TRƯỜNG CAO ĐẲNG HẬU CẦN 2
-				</h1>
-			</div>
-
 			{/* Pattern chấm mờ */}
 			<div className='absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.15),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.15),transparent_50%)]'></div>
 

@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { NotificationBell } from './notification-bell';
 import React from 'react';
 import { useLocation } from '@tanstack/react-router';
+import { UserNav } from './data-table/user-nav';
 
 export default function Header() {
   const location = useLocation();
@@ -35,8 +36,10 @@ export default function Header() {
             {breadcrumbItems.map((item, idx) => (
               <React.Fragment key={item.href}>
                 <BreadcrumbItem>
-                  {idx < breadcrumbItems.length - 1 ? (
+                  {idx === 0 ? (
                     <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
+                  ) : idx < breadcrumbItems.length - 1 ? (
+                    <span className="text-muted-foreground cursor-default select-none">{item.label}</span>
                   ) : (
                     <BreadcrumbPage>{item.label}</BreadcrumbPage>
                   )}
@@ -47,7 +50,8 @@ export default function Header() {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="px-4">
+      <div className="px-4 flex items-center gap-5">
+        <UserNav/>
         <NotificationBell />
       </div>
     </header>
