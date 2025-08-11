@@ -9,7 +9,7 @@ import {
 	DropdownMenuShortcut,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { Student } from '@/types'
+import type { OnDeleteRows, Student } from '@/types'
 import {
 	Dialog,
 	DialogHeader,
@@ -17,20 +17,40 @@ import {
 	DialogContent
 } from '@/components/ui/dialog'
 import StudentInfoTabs from '../student-info-tabs'
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
+import useDeleteStudents from '@/hooks/useDeleteStudents'
+import { toast } from 'sonner'
+import { AxiosError } from 'axios'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
+	onDeleteRows?: OnDeleteRows
 }
 
 export function DataTableRowActions<TData>({
-	row
+	row,
+	onDeleteRows
 }: DataTableRowActionsProps<TData>) {
 	const student = row.original as unknown as Student
 	const [dialogOpen, setDialogOpen] = useState(false)
+	const { mutateAsync: deleteStudentMutate, isPending: isDeletingStudent } =
+		useDeleteStudents()
 
 	function handleOpenDialog() {
 		setDialogOpen(true)
+	}
+
+	async function handleDeleteRow(_: MouseEvent<HTMLDivElement>) {
+		try {
+			await deleteStudentMutate({ ids: [student.id] })
+			toast.success('Xóa dữ liệu thành công!')
+			onDeleteRows?.([student.id])
+		} catch (err) {
+			toast.error('Xóa dữ liệu bị lỗi!')
+			if (err instanceof AxiosError) {
+				console.error('Http error: ', err.response?.data)
+			}
+		}
 	}
 
 	return (
@@ -40,6 +60,7 @@ export function DataTableRowActions<TData>({
 					<Button
 						variant='ghost'
 						className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
+						disabled={isDeletingStudent}
 					>
 						<MoreHorizontal />
 						<span className='sr-only'>Open menu</span>
@@ -50,7 +71,11 @@ export function DataTableRowActions<TData>({
 						Chi tiết
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem>
+					<DropdownMenuItem
+						// disabled={isDeletingStudent}
+						disabled
+						onClick={handleDeleteRow}
+					>
 						Xóa
 						<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
 					</DropdownMenuItem>

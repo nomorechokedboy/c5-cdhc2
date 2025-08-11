@@ -33,7 +33,8 @@ import { ArrowDownToLine } from 'lucide-react'
 import type { ExportData } from '@/types'
 import { toast } from 'sonner'
 import { BaseSchema } from './data/schema'
-import { AxiosError, type AxiosResponse } from 'axios'
+import { AxiosError } from 'axios'
+import type { QueryObserverResult } from '@tanstack/react-query'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -55,7 +56,9 @@ interface DataTableProps<TData, TValue> {
 		hidden?: boolean
 		onExport?: (data: ExportData) => void
 	}
-	onDeleteRows?: (ids: number[]) => Promise<AxiosResponse<unknown, unknown>>
+	onDeleteRows?: (
+		ids: number[]
+	) => Promise<QueryObserverResult<TData[], unknown>>
 }
 
 type ViewMode = 'table' | 'card'
