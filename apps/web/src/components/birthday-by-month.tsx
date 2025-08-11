@@ -1,8 +1,5 @@
 import { DataTable } from '@/components/data-table'
-import {
-	battalionStudentColumns,
-	columns
-} from '@/components/student-table/columns'
+import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
@@ -20,13 +17,15 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
+import { Button } from './ui/button'
+import { RefreshCw } from 'lucide-react'
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ birthdayInMonth: month })
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
@@ -37,7 +36,7 @@ export default function BirthdayByMonth() {
 	}
 
 	const handleFormSuccess = () => {
-		refetchStudent()
+		refetchStudents()
 	}
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
@@ -166,6 +165,11 @@ export default function BirthdayByMonth() {
 				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
 				toolbarProps={{
+					rightSection: (
+						<Button onClick={() => refetchStudents()}>
+							<RefreshCw />
+						</Button>
+					),
 					searchConfig,
 					facetedFilters
 				}}

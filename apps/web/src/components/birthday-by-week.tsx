@@ -1,8 +1,5 @@
 import { DataTable } from '@/components/data-table'
-import {
-	battalionStudentColumns,
-	columns
-} from '@/components/student-table/columns'
+import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
@@ -12,6 +9,8 @@ import { defaultBirthdayColumnVisibility } from './student-table/default-columns
 import useUnitsData from '@/hooks/useUnitsData'
 import { useState } from 'react'
 import UnitDropdown from './unit-dropdown'
+import { Button } from './ui/button'
+import { RefreshCw } from 'lucide-react'
 
 export default function BirthdayByWeek() {
 	/* const {
@@ -25,7 +24,7 @@ export default function BirthdayByWeek() {
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ birthdayInWeek: true })
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
@@ -91,6 +90,11 @@ export default function BirthdayByWeek() {
 				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
 				toolbarProps={{
+					rightSection: (
+						<Button onClick={() => refetchStudents()}>
+							<RefreshCw />
+						</Button>
+					),
 					searchConfig,
 					facetedFilters
 				}}

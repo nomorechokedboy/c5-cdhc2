@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/select'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
+import { Button } from './ui/button'
+import { RefreshCw } from 'lucide-react'
 
 dayjs.extend(quarterOfYear)
 
@@ -31,7 +33,7 @@ export default function BirthdayByQuarter() {
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData({ birthdayInQuarter: quarter })
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
@@ -136,6 +138,11 @@ export default function BirthdayByQuarter() {
 				defaultColumnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
 				toolbarProps={{
+					rightSection: (
+						<Button onClick={() => refetchStudents()}>
+							<RefreshCw />
+						</Button>
+					),
 					searchConfig,
 					facetedFilters
 				}}
