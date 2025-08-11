@@ -11,6 +11,7 @@ import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import StudentForm from './student-form'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
+import useExportButton from '@/hooks/useExportButton'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -44,6 +45,9 @@ export default function CompanyStudentTable({
 			return [unit]
 		})
 		.flat()
+	const exportButtonProps = useExportButton({
+		filename: `danh-sach-hoc-vien-${alias}`
+	})
 
 	const unit = flatUnits?.find((unit) => unit.alias === alias)
 	const unitClasses = unit?.classes
@@ -116,6 +120,7 @@ export default function CompanyStudentTable({
 						facetedFilters
 					}}
 					placeholder='Chưa có thông tin học viên.'
+					exportButtonProps={exportButtonProps}
 				/>
 			</div>
 		</SidebarInset>
