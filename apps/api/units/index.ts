@@ -8,4 +8,6 @@ export interface Repository {
 		alias: string
 		level: 'battalion' | 'company'
 	}): Promise<Unit | undefined>
+	findByIds(ids: number[]): Promise<UnitDB[]>
+	findById(id: number): Promise<UnitDB | undefined>
 }
