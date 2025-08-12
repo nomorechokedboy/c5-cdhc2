@@ -1,6 +1,6 @@
 import { api } from 'encore.dev/api'
 import log from 'encore.dev/log'
-import { ClassParam } from '../schema/classes.js'
+import { ClassDB, ClassParam } from '../schema/classes.js'
 import classController from './controller.js'
 
 interface ClassBody {
@@ -64,5 +64,44 @@ export const GetClasses = api(
 		)
 
 		return { data: resp }
+	}
+)
+
+interface DeleteClassRequest {
+	ids: number[]
+}
+
+interface DeleteClassResponse {
+	ids: number[]
+}
+
+export const DeleteClasss = api(
+	{ expose: true, method: 'DELETE', path: '/classes' },
+	async (body: DeleteClassRequest): Promise<DeleteClassResponse> => {
+		log.trace('classes.DeleteClasss body', { body })
+
+		const classes: ClassDB[] = body.ids.map((id) => ({ id }) as ClassDB)
+		await classController.delete(classes)
+
+		return { ids: body.ids }
+	}
+)
+
+interface UpdatePayload extends Partial<ClassBody> {
+	id: number
+}
+
+interface UpdateClassBody {
+	data: UpdatePayload[]
+}
+
+export const UpdateClasss = api(
+	{ expose: true, method: 'PATCH', path: '/classes' },
+	async (body: UpdateClassBody) => {
+		const classes: ClassDB[] = body.data.map((s) => ({ ...s }) as ClassDB)
+
+		await classController.update(classes)
+
+		return {}
 	}
 )

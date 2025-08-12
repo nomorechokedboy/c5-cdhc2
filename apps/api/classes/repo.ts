@@ -6,7 +6,8 @@ import {
 	ClassDB,
 	classes,
 	ClassParam,
-	ClassQuery
+	ClassQuery,
+	UpdateClassMap
 } from '../schema/classes.js'
 import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
@@ -74,13 +75,37 @@ class SqliteRepo implements Repository {
 		return baseQuery.all().catch(handleDatabaseErr)
 	}
 
-	findOne(_c: ClassDB): Promise<Class> {
-		// return this.db.select().from(classes).where()
-		throw AppError.umimplemented('Method not implemented.')
+	findOne(c: ClassDB): Promise<Class> {
+		return this.db.query.classes
+			.findFirst({
+				where: eq(classes.id, c.id),
+				with: { students: true, unit: true }
+			})
+			.catch(handleDatabaseErr)
 	}
 
-	update(_params: ClassDB[]): Promise<ClassDB[]> {
-		throw AppError.umimplemented('Method not implemented.')
+	update(params: UpdateClassMap): Promise<ClassDB[]> {
+		log.info('ClassRepo.update params', { params })
+
+		return this.db
+			.transaction(async (tx) => {
+				const updatedRecords = []
+
+				for (const { id, updatePayload } of params) {
+					const updated = await tx
+						.update(classes)
+						.set(updatePayload)
+						.where(eq(classes.id, id))
+						.returning()
+
+					if (updated.length > 0) {
+						updatedRecords.push(updated[0])
+					}
+				}
+
+				return updatedRecords
+			})
+			.catch(handleDatabaseErr)
 	}
 }
 

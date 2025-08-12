@@ -50,8 +50,23 @@ export type ClassDB = InferSelectModel<typeof classes>
 
 export type Class = ClassDB & { studentCount: number; unit: Unit }
 
-export type ClassParam = InferInsertModel<typeof classes>
+export type ClassParam = {
+	name: string
+	description?: string
+	graduatedAt: string
+	unitId: number
+}
 
 export type ClassQuery = {
 	ids?: Array<number>
 }
+
+export type UpdateClassMap = {
+	id: number
+	updatePayload: Partial<{
+		name: string
+		description: string
+		unitId: number
+		graduatedAt: string
+	}>
+}[]
