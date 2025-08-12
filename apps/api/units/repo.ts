@@ -91,6 +91,18 @@ class repo implements Repository {
 				return undefined
 		}
 	}
+
+	findByIds(ids: number[]): Promise<UnitDB[]> {
+		return this.db.query.units
+			.findMany({ where: inArray(units.id, ids) })
+			.catch(handleDatabaseErr)
+	}
+
+	findById(id: number): Promise<UnitDB | undefined> {
+		return this.db.query.units
+			.findFirst({ where: eq(units.id, id) })
+			.catch(handleDatabaseErr)
+	}
 }
 
 const unitRepo = new repo(orm)
