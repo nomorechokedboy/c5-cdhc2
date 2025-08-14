@@ -48,7 +48,7 @@ function RouteComponent() {
             <div className="flex gap-4 animate-fadeInUp delay-300">
               <Button
                 size="lg"
-                className="flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                className="cursor-pointer flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
                 onClick={() => setShowStudentForm(true)}
               >
                 <UserPlus className="w-5 h-5" />
@@ -57,7 +57,7 @@ function RouteComponent() {
               <Button
                 size="lg"
                 variant="outline"
-                className="flex items-center gap-2 shadow-sm hover:shadow-md transition-all"
+                className="cursor-pointer not-first-of-type:flex items-center gap-2 shadow-sm hover:shadow-md transition-all"
                 // onclick redrect to /dai-doi/c5
                 onClick={() => {
                   setUrlSite('/dai-doi/c5');
@@ -71,7 +71,7 @@ function RouteComponent() {
           </div>
 
           {/* Thống kê */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="cursor-pointer grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard
               icon={<Users className="w-6 h-6" />}
               title="Tổng số học viên"

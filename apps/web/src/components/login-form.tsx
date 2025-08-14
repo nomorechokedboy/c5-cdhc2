@@ -37,7 +37,7 @@ export function LoginForm() {
 			{/* Nội dung chính */}
 			<div className='z-10 w-full max-w-md px-4 animate-fadeInUp'>
 				{/* Logo + tiêu đề */}
-				<div className='flex flex-col items-center mb-8'>
+				<div className='flex flex-col items-center mb-8 pt-3'>
 					<img
 						src={cdhc2Logo}
 						alt='Logo'
