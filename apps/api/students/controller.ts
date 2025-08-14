@@ -192,6 +192,18 @@ export class Controller {
 			classIds = unit!.classes.map((c) => c.id)
 		}
 
+		const educationLevelMap = {
+			'7/12': 'Cấp II',
+			'8/12': 'Cấp II',
+			'9/12': 'Cấp II',
+			'10/12': 'Cấp III',
+			'11/12': 'Cấp III',
+			'12/12': 'Cấp III',
+			'Cao đẳng': 'TC-CĐ-ĐH',
+			'Đại học': 'TC-CĐ-ĐH',
+			'Trung cấp': 'TC-CĐ-ĐH',
+			'Sau đại học': 'Sau ĐH'
+		}
 		const data: Record<number, Record<string, any>> = {}
 		const rows = await this.repo.politicsQualityReport(classIds)
 		for (const { count, value, classId, category } of rows) {
@@ -205,7 +217,24 @@ export class Controller {
 				if (!data[classId][category]) {
 					data[classId][category] = {}
 				}
-				data[classId][category][String(value)] = count
+
+				const educationLevelMapKey = String(
+					value
+				) as keyof typeof educationLevelMap
+
+				if (educationLevelMap[educationLevelMapKey] !== undefined) {
+					const valueLabel = educationLevelMap[educationLevelMapKey]
+					if (
+						data[classId][category][valueLabel] === undefined ||
+						data[classId][category][valueLabel] === null
+					) {
+						data[classId][category][valueLabel] = 0
+					}
+
+					data[classId][category][valueLabel] += count
+				} else {
+					data[classId][category][String(value)] = count
+				}
 			}
 		}
 
