@@ -1,5 +1,17 @@
 import type * as React from 'react'
 import {
+	UserPlus,
+	Calendar,
+	ChevronDown,
+	PieChart,
+	Star,
+	Award,
+	HeartHandshake,
+	Church,
+	UserCheck,
+	Building2,
+} from 'lucide-react'
+import {
 	Sidebar,
 	SidebarContent,
 	SidebarGroup,
@@ -21,61 +33,54 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger
 } from './ui/collapsible'
-import { ChevronDown } from 'lucide-react'
 import useUnitsData from '@/hooks/useUnitsData'
 import cdhc2Logo from '@/assets/cdhc2.png'
 
-// Updated data structure to support unlimited nesting
+// Updated data structure to support unlimited nesting and icons
 const data = {
 	versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
 	navMain: [
-		/* {
-            title: 'Quản lý đơn vị',
-            url: '#',
-            items: [
-                {
-                    title: 'Lớp',
-                    url: '/classes'
-                },
-                {
-                    title: 'Học viên',
-                    url: '/students'
-                }
-            ]
-        }, */
 		{
 			title: 'Thống kê học viên',
 			url: '#',
+			icon: PieChart,
 			items: [
 				{
 					title: 'Đảng viên',
-					url: '/cpv'
+					url: '/cpv',
+					icon: UserCheck
 				},
 				{
 					title: 'Đoàn viên',
-					url: '/hcyu'
+					url: '/hcyu',
+					icon: UserPlus
 				},
 				{
 					title: 'Dân tộc thiểu số',
-					url: '/ethnic-minority'
+					url: '/ethnic-minority',
+					icon: Star
 				},
 				{
 					title: 'Tôn giáo',
-					url: '/religion'
+					url: '/religion',
+					icon: Church
 				}
 			]
 		},
 		{
 			title: 'Sự kiện học viên',
 			url: '#',
+			icon: Calendar,
 			items: [
 				{
 					title: 'Sinh nhật đồng đội',
-					url: '/birthday'
+					url: '/birthday',
+					icon: Award
 				},
 				{
 					title: 'Chuyển Đảng chính thức ',
-					url: '/chuyen-dang-chinh-thuc'
+					url: '/chuyen-dang-chinh-thuc',
+					icon: HeartHandshake
 				}
 			]
 		}
@@ -89,6 +94,7 @@ interface NavItem {
 	isActive?: boolean
 	items?: NavItem[]
 	search?: { [k: string]: string }
+	icon?: React.ElementType
 }
 
 // Recursive component to render nested menu items
@@ -123,58 +129,64 @@ function NavMenuItems({
 // Individual menu item component
 function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 	const hasChildren = item.items && item.items.length > 0
+	const Icon = item.icon
 
 	if (level === 0) {
 		// Top level menu item
+				return (
+					<SidebarMenuItem>
+						<Collapsible className="group/collapsible" defaultOpen={false}>
+							<CollapsibleTrigger asChild>
+								<SidebarMenuButton className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
+									{Icon && <Icon className="w-5 h-5" />}
+									<span>{item.title}</span>
+									{hasChildren && (
+										<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+									)}
+								</SidebarMenuButton>
+							</CollapsibleTrigger>
+							{hasChildren ? (
+								<CollapsibleContent>
+									<NavMenuItems items={item.items!} level={level + 1} />
+								</CollapsibleContent>
+							) : null}
+						</Collapsible>
+					</SidebarMenuItem>
+				)
+	}
+
 		return (
-			<SidebarMenuItem>
+			<SidebarMenuSubItem>
 				{hasChildren ? (
-					<Collapsible className='group/collapsible' defaultOpen>
+					<Collapsible className="group/collapsible" defaultOpen>
 						<CollapsibleTrigger asChild>
-							<SidebarMenuButton>
-								{item.title}
-								<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
-							</SidebarMenuButton>
+						<SidebarMenuSubButton className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
+								{Icon && <Icon className="w-5 h-5  " />}
+								<span>{item.title}</span>
+								<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+							</SidebarMenuSubButton>
 						</CollapsibleTrigger>
 						<CollapsibleContent>
-							<NavMenuItems
-								items={item.items!}
-								level={level + 1}
-							/>
+							<NavMenuItems items={item.items!} level={level + 1} />
 						</CollapsibleContent>
 					</Collapsible>
 				) : (
-					<SidebarMenuButton asChild isActive={item.isActive}>
-						<Link to={item.url} search={item.search}>
-							{item.title}
+					<SidebarMenuSubButton
+						asChild
+						isActive={item.isActive}
+						className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors  hover:bg-gray-200  focus:bg-blue-100 "
+					>
+						<Link
+							to={item.url}
+							className="flex items-center gap-3 w-full"
+						>
+							{Icon && <Icon className="w-5 h-5  " />}
+							<span>{item.title}</span>
 						</Link>
-					</SidebarMenuButton>
+					</SidebarMenuSubButton>
 				)}
-			</SidebarMenuItem>
+			</SidebarMenuSubItem>
 		)
-	}
-
-	return (
-		<SidebarMenuSubItem>
-			{hasChildren ? (
-				<Collapsible className='group/collapsible' defaultOpen>
-					<CollapsibleTrigger asChild>
-						<SidebarMenuSubButton>
-							{item.title}
-							<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
-						</SidebarMenuSubButton>
-					</CollapsibleTrigger>
-					<CollapsibleContent>
-						<NavMenuItems items={item.items!} level={level + 1} />
-					</CollapsibleContent>
-				</Collapsible>
-			) : (
-				<SidebarMenuSubButton asChild isActive={item.isActive}>
-					<Link to={item.url}>{item.title}</Link>
-				</SidebarMenuSubButton>
-			)}
-		</SidebarMenuSubItem>
-	)
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -188,11 +200,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					{
 						title: `Học viên ${unit.name}`,
 						url: `/tieu-doan/${unit.alias}`,
-						search: { name: unit.name, level: unit.level }
+						search: { name: unit.name, level: unit.level },
+						icon: Building2
 					},
 					...unit.children.map((child) => ({
 						title: child.name,
-						url: `/dai-doi/${child.alias}`
+						url: `/dai-doi/${child.alias}`,
+						icon: Building2,
 					}))
 				]
 			}) as NavItem
