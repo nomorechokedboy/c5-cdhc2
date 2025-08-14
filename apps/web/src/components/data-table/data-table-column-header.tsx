@@ -1,5 +1,5 @@
 import type { Column } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff, XIcon } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useDebounce } from 'react-use'
 
 interface DataTableColumnHeaderProps<TData, TValue>
@@ -28,11 +28,16 @@ export function DataTableColumnHeader<TData, TValue>({
 		return <div className={cn(className)}>{title}</div>
 	}
 
+	useEffect(() => {
+		const filterValue = (column.getFilterValue() as string) ?? ''
+		setSearchValue(filterValue)
+	}, [column.getFilterValue()])
+
 	const [searchValue, setSearchValue] = useState(() => {
 		return (column.getFilterValue() as string) ?? ''
 	})
 
-	const [, cancel] = useDebounce(
+	useDebounce(
 		() => {
 			column.setFilterValue(searchValue || undefined)
 		},
