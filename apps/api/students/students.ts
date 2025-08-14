@@ -422,32 +422,21 @@ export const StudentCronjob = api(
 	}
 )
 
-export const GetStudentWithBirthdayInWeek = api(
-	{ expose: true, method: 'GET', path: '/students/birthday/week' },
-	async () => {
-		log.trace('students.GetStudentWithBirthdayInWeek running...')
-		const students = await studentController.find({
-			birthdayInMonth: '07'
-		})
-		log.trace('students.GetStudentWithBirthdayInWeek processing data', {
-			students
-		})
+interface GetPoliticsQualityReportRequest {
+	unitId: number
+}
 
-		const items: CreateBatchNotificationItemData = students.map((s) => ({
-			notifiableId: s.id,
-			notifiableType: 'students'
-		}))
+interface GetPoliticsQualityReportResponse {
+	data: Record<number, Record<string, any>>
+}
 
-		const date = dayjs().unix()
-		const batchNotification: CreateBatchNotificationData = {
-			notificationType: 'birthday',
-			title: 'Sinh nhật đồng đội',
-			message: 'Tuần này có sinh nhật của đồng chí',
-			batchKey: `birthday_${date}`,
-			items
-		}
-		await notificationController.createBatch(batchNotification)
+export const GetPoliticsQualityReport = api(
+	{ expose: true, method: 'GET', path: '/students/politics-quality-report' },
+	async ({
+		unitId
+	}: GetPoliticsQualityReportRequest): Promise<GetPoliticsQualityReportResponse> => {
+		const resp = await studentController.politicsQualityReport(unitId)
 
-		log.info('students.GetStudentWithBirthdayInWeek complete')
+		return { data: resp }
 	}
 )
