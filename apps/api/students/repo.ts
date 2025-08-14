@@ -1,9 +1,10 @@
-import { inArray, eq, sql, and, ne, between } from 'drizzle-orm'
+import { inArray, eq, sql, and, ne, between, count } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
 import {
 	Month,
+	PoliticsQualityRow,
 	Quarter,
 	Student,
 	StudentDB,
@@ -15,12 +16,20 @@ import {
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
 import dayjs from 'dayjs'
+import { SQLiteColumn, unionAll } from 'drizzle-orm/sqlite-core'
 
 type DateField = 'dob' | 'cpvOfficialAt'
 
 type DateFieldInMonthParams = { month?: Month; field: DateField }
 
 type DateFieldInQuarterParams = { quarter: Quarter; field: DateField }
+
+type ClassStudentSumaryParams = {
+	classIds: number[]
+	category: string
+	value: SQLiteColumn
+	groupBy?: SQLiteColumn[]
+}
 
 class StudentSqliteRepo implements Repository {
 	constructor(private db: DrizzleDatabase) {}
@@ -254,6 +263,92 @@ class StudentSqliteRepo implements Repository {
 				return updatedRecords
 			})
 			.catch(handleDatabaseErr)
+	}
+
+	private baseClassStudentSumary({
+		classIds,
+		value,
+		category,
+		groupBy
+	}: ClassStudentSumaryParams) {
+		return this.db
+			.select({
+				category: sql<string>`${category}`,
+				classId: students.classId,
+				value,
+				count: count()
+			})
+			.from(students)
+			.where(inArray(students.classId, classIds))
+			.groupBy(students.classId, ...(groupBy ?? []))
+	}
+
+	private classStudentCountSumary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'classId',
+			value: students.classId
+		})
+	}
+
+	private classEthnicSummary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'ethnic',
+			value: students.ethnic,
+			groupBy: [students.ethnic]
+		})
+	}
+
+	private classReligionSummary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'religion',
+			value: students.religion,
+			groupBy: [students.religion]
+		})
+	}
+
+	private classEducationLevelSummary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'educationLevel',
+			value: students.educationLevel,
+			groupBy: [students.educationLevel]
+		})
+	}
+
+	private classPoliticalOrgSummary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'politicalOrg',
+			value: students.politicalOrg,
+			groupBy: [students.politicalOrg]
+		})
+	}
+
+	private classPreviousUnitSummary(classIds: number[]) {
+		return this.baseClassStudentSumary({
+			classIds,
+			category: 'previousUnit',
+			value: students.previousUnit,
+			groupBy: [students.previousUnit]
+		})
+	}
+
+	async politicsQualityReport(
+		classIds: number[]
+	): Promise<PoliticsQualityRow[]> {
+		log.trace('students.politicsQualityReport params: ', { classIds })
+
+		return unionAll(
+			this.classStudentCountSumary(classIds),
+			this.classEthnicSummary(classIds),
+			this.classReligionSummary(classIds),
+			this.classEducationLevelSummary(classIds),
+			this.classPoliticalOrgSummary(classIds),
+			this.classPreviousUnitSummary(classIds)
+		).catch(handleDatabaseErr)
 	}
 }
 
