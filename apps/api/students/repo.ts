@@ -265,7 +265,7 @@ class StudentSqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	private baseClassStudentSumary({
+	private baseClassStudentSummary({
 		classIds,
 		value,
 		category,
@@ -284,7 +284,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classStudentCountSumary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'classId',
 			value: students.classId
@@ -292,7 +292,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classEthnicSummary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'ethnic',
 			value: students.ethnic,
@@ -301,7 +301,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classReligionSummary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'religion',
 			value: students.religion,
@@ -310,7 +310,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classEducationLevelSummary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'educationLevel',
 			value: students.educationLevel,
@@ -319,7 +319,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classPoliticalOrgSummary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'politicalOrg',
 			value: students.politicalOrg,
@@ -328,7 +328,7 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	private classPreviousUnitSummary(classIds: number[]) {
-		return this.baseClassStudentSumary({
+		return this.baseClassStudentSummary({
 			classIds,
 			category: 'previousUnit',
 			value: students.previousUnit,
