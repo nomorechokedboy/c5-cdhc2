@@ -1,6 +1,5 @@
 import { LayoutGrid, TableIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { DataTableViewOptions } from './data-table-view-options'
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 import type { Table } from '@tanstack/react-table'
@@ -45,7 +44,6 @@ export function DataTableToolbar<TData>({
 	viewMode = 'table',
 	showViewToggle = false,
 	onViewModeChange,
-	searchConfig,
 	facetedFilters = [],
 	showColumnVisibility = true,
 	showResetButton = true,
@@ -55,33 +53,6 @@ export function DataTableToolbar<TData>({
 	rightContainerClassName = ''
 }: DataTableToolbarProps<TData>) {
 	const isFiltered = table.getState().columnFilters.length > 0
-
-	// Normalize search config to array for consistent handling
-	const searchConfigs = searchConfig
-		? Array.isArray(searchConfig)
-			? searchConfig
-			: [searchConfig]
-		: []
-
-	// Render search inputs
-	const renderSearchInputs = () => {
-		return searchConfigs.map((config, index) => {
-			const column = table.getColumn(config.columnKey)
-			if (!column) return null
-
-			return (
-				<Input
-					key={`search-${config.columnKey}-${index}`}
-					placeholder={config.placeholder || 'Search...'}
-					value={(column.getFilterValue() as string) ?? ''}
-					onChange={(event) =>
-						column.setFilterValue(event.target.value)
-					}
-					className={`h-8 w-[150px] lg:w-[250px] ${config.className || ''}`}
-				/>
-			)
-		})
-	}
 
 	// Render faceted filters
 	const renderFacetedFilters = () => {
@@ -100,14 +71,15 @@ export function DataTableToolbar<TData>({
 		})
 	}
 
+	function handleResetColumnFilter() {
+		table.resetColumnFilters()
+	}
+
 	return (
 		<div className={`flex items-center justify-between ${className}`}>
 			<div
 				className={`flex flex-1 items-center space-x-2 ${searchContainerClassName}`}
 			>
-				{/* Search inputs */}
-				{renderSearchInputs()}
-
 				{LeftSection}
 				{/* Faceted filters */}
 				{renderFacetedFilters()}
@@ -116,7 +88,7 @@ export function DataTableToolbar<TData>({
 				{showResetButton && isFiltered && (
 					<Button
 						variant='ghost'
-						onClick={() => table.resetColumnFilters()}
+						onClick={handleResetColumnFilter}
 						className='h-8 px-2 lg:px-3'
 					>
 						{ResetButton}
