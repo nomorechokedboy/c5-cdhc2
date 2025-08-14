@@ -167,6 +167,50 @@ export class Controller {
 
 		return this.repo.find(cronEvent.getQueryParams())
 	}
+
+	async politicsQualityReport(unitId: number) {
+		const unitDB = await this.unitRepo
+			.findById(unitId)
+			.catch(AppError.handleAppErr)
+		if (unitDB === undefined) {
+			throw AppError.handleAppErr(
+				AppError.invalidArgument('Invalid unit')
+			)
+		}
+
+		const unit = await this.unitRepo.findOne({
+			level: unitDB.level,
+			alias: unitDB.alias
+		})
+		let classIds: number[]
+		const isBattalionUnit = unitDB.level === 'battalion'
+		if (isBattalionUnit) {
+			classIds = unit!.children
+				.map((child) => child.classes.map((cl) => cl.id))
+				.flat()
+		} else {
+			classIds = unit!.classes.map((c) => c.id)
+		}
+
+		const data: Record<number, Record<string, any>> = {}
+		const rows = await this.repo.politicsQualityReport(classIds)
+		for (const { count, value, classId, category } of rows) {
+			if (!data[classId]) {
+				data[classId] = {}
+			}
+
+			if (category === 'classId') {
+				data[classId].total = count
+			} else {
+				if (!data[classId][category]) {
+					data[classId][category] = {}
+				}
+				data[classId][category][String(value)] = count
+			}
+		}
+
+		return data
+	}
 }
 
 const studentController = new Controller(studentRepo, unitRepo)

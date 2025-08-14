@@ -183,3 +183,10 @@ export type StudentCronEvent =
 	| 'cpvOfficialThisWeek'
 	| 'cpvOfficialThisMonth'
 	| 'cpvOfficialThisQuarter'
+
+export type PoliticsQualityRow = {
+	category: string
+	classId: number
+	value: string | number
+	count: number
+}
