@@ -9,8 +9,8 @@ import {
 	CreateBatchNotificationItemData
 } from '../schema/notifications.js'
 import dayjs from 'dayjs'
-import { readFile, writeFile } from 'fs/promises'
-import { createReport, listCommands } from 'docx-templates'
+import { readFile } from 'fs/promises'
+import { createReport } from 'docx-templates'
 import path from 'path'
 import { AppError } from '../errors/index.js'
 
@@ -451,9 +451,3 @@ export const GetStudentWithBirthdayInWeek = api(
 		log.info('students.GetStudentWithBirthdayInWeek complete')
 	}
 )
-
-const _ = new CronJob('birthday-in-week', {
-	schedule: '0 0 * * 1',
-	title: 'Birthday in week notification',
-	endpoint: GetStudentWithBirthdayInWeek
-})
