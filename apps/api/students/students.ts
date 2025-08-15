@@ -1,5 +1,4 @@
 import { api, APIError } from 'encore.dev/api'
-import { CronJob } from 'encore.dev/cron'
 import { StudentCronEvent, StudentDB, StudentParam } from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
@@ -14,6 +13,7 @@ import { createReport } from 'docx-templates'
 import path from 'path'
 import { AppError } from '../errors/index.js'
 import { Unit } from '../units/units.js'
+import { notiTopic } from '../topics/index.js'
 
 interface ChildrenInfo {
 	fullName: string
@@ -417,6 +417,13 @@ export const StudentCronjob = api(
 				items
 			}
 		}
+
+		notiTopic.publish({
+			message: batchNotification.message,
+			title: batchNotification.title,
+			userId: 0,
+			type: params.event
+		})
 		await notificationController.createBatch(batchNotification)
 
 		log.info('students.StudentCronjob complete!')
