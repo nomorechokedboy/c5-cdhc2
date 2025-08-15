@@ -20,6 +20,10 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios from '@/lib/axios'
+import Client, { Local } from './client'
+
+export const requestClient = new Client('http://localhost:8080')
+// export const requestClient = new Client(Local)
 
 export function CreateClass(body: ClassBody) {
 	return axios
@@ -71,7 +75,7 @@ export function MarkAsRead(params: MarkAsReadNotificationParams) {
 export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
 	return axios
 		.get<GetUnitResponse>('/units', {
-			params: { level: level.name }
+			params: { level }
 		})
 		.then((resp) => resp.data.data)
 }
