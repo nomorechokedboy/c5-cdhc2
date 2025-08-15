@@ -1,23 +1,11 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Loader2 } from 'lucide-react'
 import { Bell } from 'lucide-react'
-import { GetNotifications } from '@/api'
 import dayjs from 'dayjs'
 import type { AppNotification } from '@/types'
 import Notification from './notification'
-
-const PAGE_SIZE = 10
-
-async function FetchNotifications({ pageParam }: { pageParam: number }) {
-	const resp = await GetNotifications({
-		page: pageParam,
-		pageSize: PAGE_SIZE
-	})
-
-	return { data: resp, page: pageParam }
-}
+import useInfiniteNotification from '@/hooks/useInfiniteNotification'
 
 export type NotificationListProps = {
 	onItemClick?: () => void
@@ -33,16 +21,7 @@ export function NotificationList({ onItemClick }: NotificationListProps) {
 		isFetchingNextPage,
 		isLoading,
 		error
-	} = useInfiniteQuery({
-		queryKey: ['notifications'],
-		queryFn: FetchNotifications,
-		getNextPageParam: (lastPage) => {
-			return lastPage.data.length < PAGE_SIZE
-				? undefined
-				: lastPage.page + 1
-		},
-		initialPageParam: 0
-	})
+	} = useInfiniteNotification()
 
 	useEffect(() => {
 		const scrollElement = scrollRef.current
