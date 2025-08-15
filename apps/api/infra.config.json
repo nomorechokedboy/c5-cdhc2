@@ -1,0 +1,19 @@
+{
+	"$schema": "https://encore.dev/schemas/infra.schema.json",
+	"pubsub": [
+		{
+			"type": "nsq",
+			"hosts": "nsqd:4150",
+			"topics": {
+				"notification-events": {
+					"name": "notification-events-topic",
+					"subscriptions": {
+						"notification-processor": {
+							"name": "notification-processor-subscription"
+						}
+					}
+				}
+			}
+		}
+	]
+}
