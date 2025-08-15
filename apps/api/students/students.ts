@@ -13,6 +13,7 @@ import { readFile } from 'fs/promises'
 import { createReport } from 'docx-templates'
 import path from 'path'
 import { AppError } from '../errors/index.js'
+import { Unit } from '../units/units.js'
 
 interface ChildrenInfo {
 	fullName: string
@@ -428,6 +429,7 @@ interface GetPoliticsQualityReportRequest {
 
 interface GetPoliticsQualityReportResponse {
 	data: Record<number, Record<string, any>>
+	unit: Unit
 }
 
 export const GetPoliticsQualityReport = api(
@@ -435,8 +437,10 @@ export const GetPoliticsQualityReport = api(
 	async ({
 		unitId
 	}: GetPoliticsQualityReportRequest): Promise<GetPoliticsQualityReportResponse> => {
-		const resp = await studentController.politicsQualityReport(unitId)
+		const { data, unit: u } =
+			await studentController.politicsQualityReport(unitId)
+		const unit = { ...u } as Unit
 
-		return { data: resp }
+		return { data, unit }
 	}
 )

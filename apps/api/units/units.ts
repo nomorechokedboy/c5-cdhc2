@@ -38,7 +38,7 @@ export const CreateUnit = api(
 
 type unit = Omit<UnitBody, 'parentId'>
 
-type Unit = unit & {
+export type Unit = unit & {
 	parent: unit | null
 	children: Unit[]
 	classes: ClassResponse[]

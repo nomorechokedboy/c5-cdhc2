@@ -238,7 +238,7 @@ export class Controller {
 			}
 		}
 
-		return data
+		return { data, unit }
 	}
 }
 
