@@ -11,8 +11,20 @@ export function NotificationBell() {
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const { data: unreadCount } = useUnreadNotificationCount()
 
+	async function requestNotificationPermission() {
+		if ('Notification' in window) {
+			await Notification.requestPermission()
+		}
+	}
+
 	function handleCloseDropdown() {
 		setIsOpen(false)
+	}
+
+	async function handleClick() {
+		await requestNotificationPermission()
+
+		setIsOpen(!isOpen)
 	}
 
 	useClickAway(dropdownRef, handleCloseDropdown)
@@ -24,7 +36,7 @@ export function NotificationBell() {
 				variant='ghost'
 				size='icon'
 				className='relative'
-				onClick={() => setIsOpen(!isOpen)}
+				onClick={handleClick}
 			>
 				<Bell className='h-5 w-5' />
 				<Badge
