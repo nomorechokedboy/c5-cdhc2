@@ -131,8 +131,9 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 	const hasChildren = item.items && item.items.length > 0
 	const Icon = item.icon
 
-	if (level === 0) {
-		// Top level menu item
+		if (level === 0) {
+			// Top level menu item
+			if (hasChildren) {
 				return (
 					<SidebarMenuItem>
 						<Collapsible className="group/collapsible" defaultOpen={false}>
@@ -140,19 +141,27 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 								<SidebarMenuButton className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
 									{Icon && <Icon className="w-5 h-5" />}
 									<span>{item.title}</span>
-									{hasChildren && (
-										<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-									)}
+									<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
 								</SidebarMenuButton>
 							</CollapsibleTrigger>
-							{hasChildren ? (
-								<CollapsibleContent>
-									<NavMenuItems items={item.items!} level={level + 1} />
-								</CollapsibleContent>
-							) : null}
+							<CollapsibleContent>
+								<NavMenuItems items={item.items!} level={level + 1} />
+							</CollapsibleContent>
 						</Collapsible>
 					</SidebarMenuItem>
-				)
+				);
+			} else {
+				return (
+					<SidebarMenuItem>
+						<SidebarMenuButton asChild isActive={item.isActive} className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
+							<Link to={item.url} className="flex items-center gap-3 w-full">
+								{Icon && <Icon className="w-5 h-5" />}
+								<span>{item.title}</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				);
+			}
 	}
 
 		return (
