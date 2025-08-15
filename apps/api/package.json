@@ -11,7 +11,8 @@
 		"migrate": "drizzle-kit migrate",
 		"push": "drizzle-kit push",
 		"prestart": "drizzle-kit push",
-		"start": "encore run"
+		"start": "encore run",
+		"gen": "encore gen client --output=../web/src/api/client.ts --env=local"
 	},
 	"devDependencies": {
 		"@types/node": "^20.5.7",
