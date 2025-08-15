@@ -27,8 +27,6 @@
 
 		/* Advanced Options */
 		"forceConsistentCasingInFileNames": true,
-		"skipLibCheck": true,
-
-		"allowImportingTsExtensions": true
+		"skipLibCheck": true
 	}
 }
