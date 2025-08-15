@@ -1,6 +1,9 @@
 services:
     app:
-        image: quanlyhocvien-cdhc2:test-cron
+        depends_on:
+            - nsqd
+            - nsqlookupd
+        image: quanlyhocvien-cdhc2:test
         ports:
             - '8080:8080'
         environment:
@@ -12,6 +15,9 @@ services:
             timeout: 10s
             retries: 3
             start_period: 40s
+        networks:
+            - nsq-network
+            - cron-network
     cron-scheduler:
         image: alpine:latest
         environment:
@@ -24,6 +30,8 @@ services:
             app:
                 condition: service_healthy
         restart: unless-stopped
+        networks:
+            - cron-network
         command: >
             sh -c "
 
@@ -33,7 +41,8 @@ services:
               echo 'Asia/Ho_Chi_Minh' > /etc/timezone &&
 
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
-              echo '0 0 * * 1 /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
+              # echo '0 0 * * 1 /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
+              echo '30 * * * * /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 * * /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 */3 * /scripts/quarterly_birthday.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 * * 1 /scripts/weekly_cpv_official.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
@@ -47,6 +56,66 @@ services:
               crond -f -l 2
             "
 
+    # NSQ Lookup Daemon - service discovery for NSQ
+    nsqlookupd:
+        image: nsqio/nsq:v1.2.1
+        command: /nsqlookupd
+        ports:
+            - '4160:4160' # TCP port for nsqd
+            - '4161:4161' # HTTP port for admin interface
+        networks:
+            - nsq-network
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:4161/ping']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 3s
+    # NSQ Daemon - handles message queuing
+    nsqd:
+        image: nsqio/nsq:v1.2.1
+        command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=nsqd
+        depends_on:
+            - nsqlookupd
+        ports:
+            - '4150:4150' # TCP port for producers/consumers
+            - '4151:4151' # HTTP port for admin interface
+        networks:
+            - nsq-network
+        restart: unless-stopped
+        volumes:
+            - nsq-data:/data
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:4151/ping']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 3s
+    # NSQ Admin UI (optional but recommended for monitoring)
+    nsqadmin:
+        image: nsqio/nsq:v1.2.1
+        command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+        depends_on:
+            - nsqlookupd
+            - nsqd
+        ports:
+            - '4171:4171' # Web UI port
+        networks:
+            - nsq-network
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:4171/ping']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 3s
+networks:
+    cron-network:
+        driver: bridge
+    nsq-network:
+        driver: bridge
 volumes:
     cron_logs:
         driver: local
+    nsq-data:
