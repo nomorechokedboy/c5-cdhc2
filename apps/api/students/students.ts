@@ -418,13 +418,14 @@ export const StudentCronjob = api(
 			}
 		}
 
-		notiTopic.publish({
-			message: batchNotification.message,
-			title: batchNotification.title,
-			userId: 0,
-			type: params.event
+		await notificationController.createBatch(batchNotification).then(() => {
+			notiTopic.publish({
+				message: batchNotification.message,
+				title: batchNotification.title,
+				userId: 0,
+				type: params.event
+			})
 		})
-		await notificationController.createBatch(batchNotification)
 
 		log.info('students.StudentCronjob complete!')
 	}
