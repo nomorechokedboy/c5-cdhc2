@@ -1,8 +1,10 @@
 services:
     app:
         depends_on:
-            - nsqd
-            - nsqlookupd
+            nsqd:
+                condition: service_healthy
+            nsqlookupd:
+                condition: service_healthy
         image: quanlyhocvien-cdhc2:test
         ports:
             - '8080:8080'
@@ -67,17 +69,26 @@ services:
             - nsq-network
         restart: unless-stopped
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:4161/ping']
-            interval: 5s
-            timeout: 3s
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose',
+                    '--tries=1',
+                    '--spider',
+                    'http://localhost:4161/ping'
+                ]
+            interval: 10s
+            timeout: 5s
             retries: 5
-            start_period: 3s
+            start_period: 10s
     # NSQ Daemon - handles message queuing
     nsqd:
         image: nsqio/nsq:v1.2.1
         command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=nsqd
         depends_on:
-            - nsqlookupd
+            nsqlookupd:
+                condition: service_healthy
         ports:
             - '4150:4150' # TCP port for producers/consumers
             - '4151:4151' # HTTP port for admin interface
@@ -87,29 +98,47 @@ services:
         volumes:
             - nsq-data:/data
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:4151/ping']
-            interval: 5s
-            timeout: 3s
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose',
+                    '--tries=1',
+                    '--spider',
+                    'http://localhost:4151/ping'
+                ]
+            interval: 10s
+            timeout: 5s
             retries: 5
-            start_period: 3s
+            start_period: 15s
     # NSQ Admin UI (optional but recommended for monitoring)
     nsqadmin:
         image: nsqio/nsq:v1.2.1
         command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
         depends_on:
-            - nsqlookupd
-            - nsqd
+            nsqlookupd:
+                condition: service_healthy
+            nsqd:
+                condition: service_healthy
         ports:
             - '4171:4171' # Web UI port
         networks:
             - nsq-network
         restart: unless-stopped
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:4171/ping']
-            interval: 5s
-            timeout: 3s
-            retries: 5
-            start_period: 3s
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose',
+                    '--tries=1',
+                    '--spider',
+                    'http://localhost:4171/ping'
+                ]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 20s
 networks:
     cron-network:
         driver: bridge
