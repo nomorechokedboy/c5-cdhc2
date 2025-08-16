@@ -1,11 +1,10 @@
-
-import { EhtnicOptions, religionOptions, eduLevelOptions } from '@/data/ethnics' 
+import { EhtnicOptions, religionOptions, eduLevelOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import { useMemo } from 'react'
 
 export default function PersonalStep({ form }: { form: any }) {
 	const { data: classes = [], refetch } = useClassData()
-	
+
 	const classOptions = useMemo(
 		() =>
 			classes.map((c) => ({
@@ -66,10 +65,11 @@ export default function PersonalStep({ form }: { form: any }) {
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 				<form.AppField name='ethnic'>
 					{(field: any) => (
-						<field.Select
+						<field.Combobox
 							values={EhtnicOptions}
 							label='Dân tộc'
 							defaultValue={eduLevelOptions[0].value}
+							className=''
 						/>
 					)}
 				</form.AppField>
