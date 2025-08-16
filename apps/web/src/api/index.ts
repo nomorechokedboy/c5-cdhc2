@@ -19,11 +19,14 @@ import type {
 	UnitLevel,
 	UpdateStudentsBody
 } from '@/types'
-import axios from '@/lib/axios'
+import axios, { AxiosFetcher } from '@/lib/axios'
 import Client, { Local } from './client'
 
-export const requestClient = new Client('http://localhost:8080')
-// export const requestClient = new Client(Local)
+const Prod = 'http://localhost:8080'
+
+export const requestClient = new Client(import.meta.env.DEV ? Local : Prod, {
+	fetcher: AxiosFetcher
+})
 
 export function CreateClass(body: ClassBody) {
 	return axios
