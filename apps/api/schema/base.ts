@@ -9,3 +9,9 @@ export const baseSchema = {
 		.default(sql`CURRENT_TIMESTAMP`)
 		.$onUpdate(() => sql`CURRENT_TIMESTAMP`)
 }
+
+export interface Base {
+	id: number
+	createdAt: string
+	updatedAt: string
+}
