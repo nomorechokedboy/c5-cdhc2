@@ -3,6 +3,7 @@ import { Base, baseSchema } from './base'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
 import { Permission } from './permissions'
+import { userRoles } from './user-roles'
 
 export const roles = sqliteTable('roles', {
 	...baseSchema,
@@ -12,12 +13,15 @@ export const roles = sqliteTable('roles', {
 })
 
 export const rolesRelations = relations(roles, ({ many }) => ({
-	users: many(users)
+	users: many(userRoles)
 }))
 
-export interface Role extends Base {
+export interface RoleDB extends Base {
 	name: string
 	description?: string
+}
+
+export interface Role extends RoleDB {
 	permissions?: Permission[]
 }
 
@@ -28,6 +32,7 @@ export interface CreateRoleRequest {
 }
 
 export interface UpdateRoleRequest {
+	id: number
 	name?: string
 	description?: string
 	permissionIds?: number[]
