@@ -32,10 +32,13 @@ export const permissionsRelations = relations(permissions, ({ one, many }) => ({
 	rolePermissions: many(rolePermissions)
 }))
 
-export interface Permission extends Base {
+export interface PermissionDB extends Base {
 	name: string
 	displayName: string
 	description?: string
+}
+
+export interface Permission extends PermissionDB {
 	resource: Resource
 	action: Action
 }
@@ -49,6 +52,15 @@ export interface PermissionCheck {
 export interface PermissionResult {
 	allowed: boolean
 	reason?: string
+}
+
+export interface CreatePermissionRequest {
+	name: string
+	displayName: string
+	description?: string
+
+	actionId: number
+	resourceId: number
 }
 
 export interface BulkCreatePermissionsRequest {
