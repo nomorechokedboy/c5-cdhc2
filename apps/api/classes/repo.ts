@@ -12,7 +12,6 @@ import {
 import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
-import { AppError } from '../errors/index.js'
 import { units } from '../schema/units.js'
 
 class SqliteRepo implements Repository {
