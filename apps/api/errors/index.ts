@@ -34,6 +34,10 @@ export class AppError extends Error {
 		return new AppError('Unimplemented', msg)
 	}
 
+	public static unauthenticated(msg: string) {
+		return new AppError('Unauthenticated', msg)
+	}
+
 	public static notFound(msg: string) {
 		return new AppError('NotFound', msg)
 	}
@@ -52,9 +56,10 @@ export class AppError extends Error {
 
 export type AppErrorType =
 	| 'AlreadyExists'
-	| 'InvalidArgument'
-	| 'Unavailable'
-	| 'PermissionDenied'
 	| 'InternalError'
-	| 'Unimplemented'
+	| 'InvalidArgument'
 	| 'NotFound'
+	| 'PermissionDenied'
+	| 'Unavailable'
+	| 'Unimplemented'
+	| 'Unauthenticated'
