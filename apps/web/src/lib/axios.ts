@@ -1,9 +1,8 @@
+import { env } from '@/env'
 import baseAxios, { AxiosError, type AxiosRequestConfig } from 'axios'
 
-const PORT = import.meta.env.DEV ? 4000 : 8080
-
 const axios = baseAxios.create({
-	baseURL: `http://localhost:${PORT}`
+	baseURL: env.VITE_API_URL
 })
 
 export async function AxiosFetcher(url: RequestInfo | URL, init?: RequestInit) {
