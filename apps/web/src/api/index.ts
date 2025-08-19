@@ -21,12 +21,14 @@ import type {
 } from '@/types'
 import axios, { AxiosFetcher } from '@/lib/axios'
 import Client, { Local } from './client'
+import { env } from '@/env'
 
-const Prod = 'http://localhost:8080'
-
-export const requestClient = new Client(import.meta.env.DEV ? Local : Prod, {
-	fetcher: AxiosFetcher
-})
+export const requestClient = new Client(
+	import.meta.env.DEV ? Local : env.VITE_API_URL,
+	{
+		fetcher: AxiosFetcher
+	}
+)
 
 export function CreateClass(body: ClassBody) {
 	return axios
@@ -97,4 +99,8 @@ export function GetUnreadNotificationsCount(): Promise<number> {
 
 export function ExportTableData(data: ExportData) {
 	return axios.post('/students/export', data, { responseType: 'blob' })
+}
+
+export function GetPoliticsQualityReport() {
+	return requestClient.students.GetPoliticsQualityReport({ unitId: 7 })
 }
