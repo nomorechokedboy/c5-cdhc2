@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ThongKeChinhTriRouteImport } from './routes/thong-ke-chinh-tri'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as LoginRouteImport } from './routes/login'
@@ -23,6 +24,11 @@ import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 
+const ThongKeChinhTriRoute = ThongKeChinhTriRouteImport.update({
+  id: '/thong-ke-chinh-tri',
+  path: '/thong-ke-chinh-tri',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
+  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
+  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
   '/students': typeof StudentsRoute
+  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
+    | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
+    | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/religion'
     | '/students'
+    | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ReligionRoute: typeof ReligionRoute
   StudentsRoute: typeof StudentsRoute
+  ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
@@ -201,6 +214,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/thong-ke-chinh-tri': {
+      id: '/thong-ke-chinh-tri'
+      path: '/thong-ke-chinh-tri'
+      fullPath: '/thong-ke-chinh-tri'
+      preLoaderRoute: typeof ThongKeChinhTriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/students': {
       id: '/students'
       path: '/students'
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ReligionRoute: ReligionRoute,
   StudentsRoute: StudentsRoute,
+  ThongKeChinhTriRoute: ThongKeChinhTriRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
