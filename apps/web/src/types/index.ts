@@ -225,3 +225,26 @@ export type ExportData = Record<string, string>[]
 export type OnDeleteRows = (
 	ids: Array<number>
 ) => Promise<QueryObserverResult<Array<Student>, Error>>
+
+export interface UnitPoliticsQualitySummary {
+	name: string
+	politicsQualityReport: PoliticsQualityReport | null
+	children?: UnitPoliticsQualitySummary[]
+	classes?: UnitPoliticsQualitySummary[]
+}
+
+export type PoliticsQualitySummary = {
+	totalPersonnel: number
+	totalUnits: number
+}
+
+export type BasePoliticsQualitySummary = Record<string, number>
+
+export type PoliticsQualityReport = {
+	educationLevel: BasePoliticsQualitySummary
+	ethnic: BasePoliticsQualitySummary
+	politicalOrg: BasePoliticsQualitySummary
+	previousUnit: BasePoliticsQualitySummary
+	religion: BasePoliticsQualitySummary
+	total: number
+}
