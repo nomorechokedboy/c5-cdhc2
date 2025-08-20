@@ -116,7 +116,7 @@ function RootLayout() {
 			{showNavbar ? (
 				<>
 					<SidebarProvider>
-						<AppSidebar />
+						<AppSidebar collapsible='icon' />
 						<Toaster richColors position='top-center' />
 						<div className='flex flex-col w-full'>
 							<Header />

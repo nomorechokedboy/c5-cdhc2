@@ -1,3 +1,4 @@
+import { useSidebar } from '@/components/ui/sidebar'
 import type * as React from 'react'
 import {
 	UserPlus,
@@ -9,7 +10,7 @@ import {
 	HeartHandshake,
 	Church,
 	UserCheck,
-	Building2,
+	Building2
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -34,7 +35,6 @@ import {
 	CollapsibleTrigger
 } from './ui/collapsible'
 import useUnitsData from '@/hooks/useUnitsData'
-import cdhc2Logo from '@/assets/cdhc2.png'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -105,6 +105,9 @@ function NavMenuItems({
 	items: NavItem[]
 	level?: number
 }) {
+	const { state } = useSidebar()
+	const isCollapsed = state === 'collapsed'
+
 	if (level === 0) {
 		// Top level items
 		return (
@@ -128,77 +131,107 @@ function NavMenuItems({
 
 // Individual menu item component
 function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
+	const { state } = useSidebar()
+	const isCollapsed = state === 'collapsed'
+
 	const hasChildren = item.items && item.items.length > 0
 	const Icon = item.icon
 
-		if (level === 0) {
-			// Top level menu item
-			if (hasChildren) {
-				return (
-					<SidebarMenuItem>
-						<Collapsible className="group/collapsible" defaultOpen={false}>
-							<CollapsibleTrigger asChild>
-								<SidebarMenuButton className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
-									{Icon && <Icon className="w-5 h-5" />}
-									<span>{item.title}</span>
-									<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-								</SidebarMenuButton>
-							</CollapsibleTrigger>
-							<CollapsibleContent>
-								<NavMenuItems items={item.items!} level={level + 1} />
-							</CollapsibleContent>
-						</Collapsible>
-					</SidebarMenuItem>
-				);
-			} else {
-				return (
-					<SidebarMenuItem>
-						<SidebarMenuButton asChild isActive={item.isActive} className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
-							<Link to={item.url} className="flex items-center gap-3 w-full">
-								{Icon && <Icon className="w-5 h-5" />}
-								<span>{item.title}</span>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				);
-			}
-	}
-
-		return (
-			<SidebarMenuSubItem>
-				{hasChildren ? (
-					<Collapsible className="group/collapsible" defaultOpen>
+	if (level === 0) {
+		// Top level menu item
+		if (hasChildren) {
+			return (
+				<SidebarMenuItem>
+					<Collapsible
+						className='group/collapsible'
+						defaultOpen={!isCollapsed}
+					>
 						<CollapsibleTrigger asChild>
-						<SidebarMenuSubButton className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer">
-								{Icon && <Icon className="w-5 h-5  " />}
-								<span>{item.title}</span>
-								<ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-							</SidebarMenuSubButton>
+							<SidebarMenuButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+								{Icon && <Icon className='w-5 h-5' />}
+								{!isCollapsed && <span>{item.title}</span>}
+								{!isCollapsed && (
+									<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
+								)}
+							</SidebarMenuButton>
 						</CollapsibleTrigger>
-						<CollapsibleContent>
-							<NavMenuItems items={item.items!} level={level + 1} />
-						</CollapsibleContent>
+						{!isCollapsed && (
+							<CollapsibleContent>
+								<NavMenuItems
+									items={item.items!}
+									level={level + 1}
+								/>
+							</CollapsibleContent>
+						)}
 					</Collapsible>
-				) : (
-					<SidebarMenuSubButton
+				</SidebarMenuItem>
+			)
+		} else {
+			return (
+				<SidebarMenuItem>
+					<SidebarMenuButton
 						asChild
 						isActive={item.isActive}
-						className="flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors  hover:bg-gray-200  focus:bg-blue-100 "
+						className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'
 					>
 						<Link
 							to={item.url}
-							className="flex items-center gap-3 w-full"
+							className='flex items-center gap-3 w-full'
 						>
-							{Icon && <Icon className="w-5 h-5  " />}
-							<span>{item.title}</span>
+							{Icon && <Icon className='w-5 h-5' />}
+							{!isCollapsed && <span>{item.title}</span>}
 						</Link>
-					</SidebarMenuSubButton>
-				)}
-			</SidebarMenuSubItem>
-		)
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+			)
+		}
+	}
+
+	return (
+		<SidebarMenuSubItem>
+			{hasChildren ? (
+				<Collapsible className='group/collapsible' defaultOpen>
+					<CollapsibleTrigger asChild>
+						<SidebarMenuSubButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+							{Icon && <Icon className='w-5 h-5  ' />}
+							{!isCollapsed && <span>{item.title}</span>}
+							{!isCollapsed && (
+								<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
+							)}
+						</SidebarMenuSubButton>
+					</CollapsibleTrigger>
+					{!isCollapsed && (
+						<CollapsibleContent>
+							<NavMenuItems
+								items={item.items!}
+								level={level + 1}
+							/>
+						</CollapsibleContent>
+					)}
+				</Collapsible>
+			) : (
+				<SidebarMenuSubButton
+					asChild
+					isActive={item.isActive}
+					className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors  hover:bg-gray-200  focus:bg-blue-100 '
+				>
+					<Link
+						to={item.url}
+						className='flex items-center gap-3 w-full'
+					>
+						{Icon && <Icon className='w-5 h-5  ' />}
+						{!isCollapsed && <span>{item.title}</span>}
+					</Link>
+				</SidebarMenuSubButton>
+			)}
+		</SidebarMenuSubItem>
+	)
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const { state } = useSidebar()
+	const isCollapsed = state === 'collapsed'
+
 	const { data: units } = useUnitsData({ level: 'battalion' })
 	const unitsNavbar = units?.map(
 		(unit) =>
@@ -215,7 +248,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					...unit.children.map((child) => ({
 						title: child.name,
 						url: `/dai-doi/${child.alias}`,
-						icon: Building2,
+						icon: Building2
 					}))
 				]
 			}) as NavItem
@@ -235,47 +268,62 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<div className='flex items-center gap-2 px-4 py-2'>
 					<div className='flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary-foreground'>
 						<img
-							src={cdhc2Logo}
+							src='/placeholder.svg?height=32&width=32'
 							alt='Logo Trường Cao đẳng hậu cần 2'
+							className='h-6 w-6'
 						/>
 					</div>
-					<div className='flex flex-col'>
-						<span className='text-sm font-semibold'>
-							Hệ thống quản lý học viên
-						</span>
-						<span className='text-xs text-muted-foreground'>
-							Trường Cao đẳng hậu cần 2
-						</span>
-					</div>
+					{!isCollapsed && (
+						<div className='flex flex-col'>
+							<span className='text-sm font-semibold'>
+								Hệ thống quản lý học viên
+							</span>
+							<span className='text-xs text-muted-foreground'>
+								Trường Cao đẳng hậu cần 2
+							</span>
+						</div>
+					)}
 				</div>
 			</SidebarHeader>
 
 			<SidebarContent>
-				<div className='p-4 w-full'>
-					<StudentForm
-						buttonProps={{ className: 'w-full' }}
-						onSuccess={() => {}}
-					/>
-				</div>
+				{!isCollapsed && (
+					<div className='p-4 w-full'>
+						<StudentForm
+							buttonProps={{ className: 'w-full' }}
+							onSuccess={() => {}}
+						/>
+					</div>
+				)}
 
 				{newData.navMain.map((item) => (
 					<Collapsible
 						key={item.title}
 						className='group/collapsible'
-						defaultOpen
+						defaultOpen={!isCollapsed}
 					>
 						<SidebarGroup>
-							<SidebarGroupLabel asChild>
-								<CollapsibleTrigger>
-									{item.title}
-									<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
-								</CollapsibleTrigger>
-							</SidebarGroupLabel>
-							<CollapsibleContent>
+							{!isCollapsed && (
+								<SidebarGroupLabel asChild>
+									<CollapsibleTrigger>
+										{item.title}
+										<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
+									</CollapsibleTrigger>
+								</SidebarGroupLabel>
+							)}
+							{isCollapsed ? (
 								<SidebarGroupContent>
 									<NavMenuItems items={item.items || []} />
 								</SidebarGroupContent>
-							</CollapsibleContent>
+							) : (
+								<CollapsibleContent>
+									<SidebarGroupContent>
+										<NavMenuItems
+											items={item.items || []}
+										/>
+									</SidebarGroupContent>
+								</CollapsibleContent>
+							)}
 						</SidebarGroup>
 					</Collapsible>
 				))}
