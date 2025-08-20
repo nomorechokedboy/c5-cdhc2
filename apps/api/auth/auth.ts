@@ -60,3 +60,20 @@ export const Login = api(
 		return { refreshToken, accessToken }
 	}
 )
+
+interface RefreshTokenRequest {
+	token: string
+}
+
+interface RefreshTokenResponse extends LoginResponse {}
+
+export const RefreshToken = api(
+	{ expose: true, method: 'POST', path: '/authn/refresh' },
+	async ({ token }: RefreshTokenRequest): Promise<RefreshTokenResponse> => {
+		const { accessToken, refreshToken } = await authController.refreshToken(
+			{ token }
+		)
+
+		return { accessToken, refreshToken }
+	}
+)
