@@ -8,7 +8,8 @@ import {
 	TrendingUp,
 	Users,
 	Award,
-	Target
+	Target,
+	School
 } from 'lucide-react'
 import { StatisticsTable } from './statistics-table'
 import { ChartsSection } from './charts-section'
@@ -21,187 +22,6 @@ import {
 	TooltipContent,
 	TooltipTrigger
 } from '@/components/ui/tooltip'
-
-const reportData = {
-	summary: {
-		totalPersonnel: 150,
-		totalUnits: 5,
-		completionRate: 96.7,
-		excellentRate: 60.0
-	},
-	units: [
-		{
-			name: 'Tiểu đoàn 2',
-			total: 150,
-			categories: {
-				phanCap: {
-					ha: 1,
-					uy: 2,
-					onqnc: 0,
-					onc: 0,
-					chinhTri: 0,
-					hocViec: 147
-				},
-				danToc: { kinh: 0, hoa: 135, khac: 1 },
-				tonGiao: {
-					phatGiao: 14,
-					catGiao: 7,
-					tinLanh: 11,
-					cauDai: 1,
-					hoaHao: 1,
-					tinTho: 0,
-					caiDai: 7
-				},
-				vanHoa: {
-					chiThi: 90,
-					cuNhan: 43,
-					sauDh: 1,
-					thacSi: 36,
-					tienSi: 114,
-					chuyenNghiep: 0,
-					ngheCaoCapKhac: 0
-				},
-				giaDinh: { ghiChu: 1 }
-			}
-		},
-		{
-			name: 'Đại đội 5',
-			total: 0,
-			categories: {
-				phanCap: {
-					ha: 0,
-					uy: 0,
-					onqnc: 0,
-					onc: 0,
-					chinhTri: 0,
-					hocViec: 0
-				},
-				danToc: { kinh: 0, hoa: 0, khac: 0 },
-				tonGiao: {
-					phatGiao: 0,
-					catGiao: 0,
-					tinLanh: 0,
-					cauDai: 0,
-					hoaHao: 0,
-					tinTho: 0,
-					caiDai: 0
-				},
-				vanHoa: {
-					chiThi: 0,
-					cuNhan: 0,
-					sauDh: 0,
-					thacSi: 0,
-					tienSi: 0,
-					chuyenNghiep: 0,
-					ngheCaoCapKhac: 0
-				},
-				giaDinh: { ghiChu: 0 }
-			}
-		},
-		{
-			name: 'Lớp XVQYC 42',
-			total: 83,
-			categories: {
-				phanCap: {
-					ha: 0,
-					uy: 0,
-					onqnc: 0,
-					onc: 0,
-					chinhTri: 0,
-					hocViec: 83
-				},
-				danToc: { kinh: 0, hoa: 77, khac: 1 },
-				tonGiao: {
-					phatGiao: 5,
-					catGiao: 5,
-					tinLanh: 11,
-					cauDai: 0,
-					hoaHao: 1,
-					tinTho: 0,
-					caiDai: 7
-				},
-				vanHoa: {
-					chiThi: 41,
-					cuNhan: 25,
-					sauDh: 1,
-					thacSi: 3,
-					tienSi: 80,
-					chuyenNghiep: 0,
-					ngheCaoCapKhac: 0
-				},
-				giaDinh: { ghiChu: 0 }
-			}
-		},
-		{
-			name: 'Lớp K1',
-			total: 41,
-			categories: {
-				phanCap: {
-					ha: 0,
-					uy: 0,
-					onqnc: 0,
-					onc: 0,
-					chinhTri: 0,
-					hocViec: 41
-				},
-				danToc: { kinh: 0, hoa: 33, khac: 0 },
-				tonGiao: {
-					phatGiao: 8,
-					catGiao: 2,
-					tinLanh: 0,
-					cauDai: 1,
-					hoaHao: 0,
-					tinTho: 0,
-					caiDai: 0
-				},
-				vanHoa: {
-					chiThi: 40,
-					cuNhan: 1,
-					sauDh: 0,
-					thacSi: 11,
-					tienSi: 30,
-					chuyenNghiep: 0,
-					ngheCaoCapKhac: 0
-				},
-				giaDinh: { ghiChu: 0 }
-			}
-		},
-		{
-			name: 'Lớp KCL1',
-			total: 23,
-			categories: {
-				phanCap: {
-					ha: 0,
-					uy: 0,
-					onqnc: 0,
-					onc: 0,
-					chinhTri: 0,
-					hocViec: 23
-				},
-				danToc: { kinh: 0, hoa: 22, khac: 0 },
-				tonGiao: {
-					phatGiao: 1,
-					catGiao: 0,
-					tinLanh: 0,
-					cauDai: 0,
-					hoaHao: 0,
-					tinTho: 0,
-					caiDai: 0
-				},
-				vanHoa: {
-					chiThi: 9,
-					cuNhan: 14,
-					sauDh: 0,
-					thacSi: 19,
-					tienSi: 4,
-					chuyenNghiep: 0,
-					ngheCaoCapKhac: 0
-				},
-				giaDinh: { ghiChu: 0 }
-			}
-		}
-	]
-}
 
 export function PoliticalQualityDashboard() {
 	const { data: politicsQualityData } = useQuery({
@@ -260,7 +80,7 @@ export function PoliticalQualityDashboard() {
 						<CardTitle className='text-sm font-medium'>
 							Số lớp
 						</CardTitle>
-						<Target className='h-4 w-4 text-green-600' />
+						<School />
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-green-900'>
@@ -422,7 +242,7 @@ export function PoliticalQualityDashboard() {
 				</CardHeader>
 				<CardContent>
 					<div className='flex flex-col sm:flex-row gap-4'>
-						<ExportButton data={reportData} />
+						<ExportButton data={transformData} />
 						<Tooltip>
 							<TooltipTrigger>
 								<Button
