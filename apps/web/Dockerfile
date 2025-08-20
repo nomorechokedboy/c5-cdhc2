@@ -37,6 +37,8 @@ RUN pnpm install --frozen-lockfile
 # Copy the pruned source code and build
 COPY --from=builder /app/out/full/ .
 
+ENV VITE_API_URL="http://localhost:8080"
+
 # Build the web application
 RUN pnpm turbo build --filter=web
 
@@ -48,9 +50,6 @@ COPY --from=installer /app/apps/web/nginx/default.conf /etc/nginx/conf.d/default
 
 # Copy built application from installer stage
 COPY --from=installer /app/apps/web/dist /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
