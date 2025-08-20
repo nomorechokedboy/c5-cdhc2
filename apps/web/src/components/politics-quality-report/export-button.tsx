@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button'
+import type { UnitPoliticsQualitySummary } from '@/types'
 import { Download } from 'lucide-react'
 
 export interface ExportButtonProps {
-	data: any
+	data: UnitPoliticsQualitySummary[]
 }
 
 export function ExportButton({ data }: ExportButtonProps) {
