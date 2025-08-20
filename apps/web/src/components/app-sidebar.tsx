@@ -6,11 +6,11 @@ import {
 	ChevronDown,
 	PieChart,
 	Star,
-	Award,
 	HeartHandshake,
 	Church,
 	UserCheck,
-	Building2
+	Building2,
+	UsersRound
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -75,7 +75,7 @@ const data = {
 				{
 					title: 'Sinh nhật đồng đội',
 					url: '/birthday',
-					icon: Award
+					icon: Calendar
 				},
 				{
 					title: 'Chuyển Đảng chính thức ',
@@ -243,7 +243,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						title: `Học viên ${unit.name}`,
 						url: `/tieu-doan/${unit.alias}`,
 						search: { name: unit.name, level: unit.level },
-						icon: Building2
+						icon: UsersRound
 					},
 					...unit.children.map((child) => ({
 						title: child.name,
