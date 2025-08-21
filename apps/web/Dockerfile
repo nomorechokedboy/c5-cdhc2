@@ -37,7 +37,7 @@ RUN pnpm install --frozen-lockfile
 # Copy the pruned source code and build
 COPY --from=builder /app/out/full/ .
 
-ENV VITE_API_URL="http://localhost:8080"
+ENV VITE_API_URL=""
 
 # Build the web application
 RUN pnpm turbo build --filter=web
@@ -45,15 +45,8 @@ RUN pnpm turbo build --filter=web
 # Production stage with nginx
 FROM nginx:alpine AS runner
 
-# Copy custom nginx config
-COPY --from=installer /app/apps/web/nginx/default.conf /etc/nginx/conf.d/default.conf
-
 # Copy built application from installer stage
 COPY --from=installer /app/apps/web/dist /usr/share/nginx/html
-
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
