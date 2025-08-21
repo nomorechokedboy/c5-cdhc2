@@ -4,7 +4,7 @@ export interface Class extends Base {
 	name: string
 	description: string
 	studentCount: number
-
+	graduatedAt: string | null
 	unit: Unit
 }
 
