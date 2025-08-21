@@ -6,10 +6,7 @@ services:
             nsqlookupd:
                 condition: service_healthy
         image: quanlyhocvien-cdhc2:test
-        ports:
-            - '8080:8080'
-        environment:
-            - PORT=8080
+        env_file: ./env.prod
         restart: unless-stopped
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
@@ -88,7 +85,6 @@ services:
         image: nsqio/nsq:v1.2.1
         command: /nsqlookupd
         ports:
-            - '4160:4160' # TCP port for nsqd
             - '4161:4161' # HTTP port for admin interface
         networks:
             - nsq-network
@@ -115,7 +111,6 @@ services:
             nsqlookupd:
                 condition: service_healthy
         ports:
-            - '4150:4150' # TCP port for producers/consumers
             - '4151:4151' # HTTP port for admin interface
         networks:
             - nsq-network
