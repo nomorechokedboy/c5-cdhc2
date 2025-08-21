@@ -74,13 +74,13 @@ class sqliteRepo implements Repository {
 					.where(eq(roles.id, params.id))
 					.returning()
 
-				// Remove existing permissions
-				await tx
-					.delete(rolePermissions)
-					.where(eq(rolePermissions.roleId, params.id))
-
-				// Add new permissions
 				if (params.permissionIds && params.permissionIds?.length > 0) {
+					// Remove existing permissions
+					await tx
+						.delete(rolePermissions)
+						.where(eq(rolePermissions.roleId, params.id))
+
+					// Add new permissions
 					const rolePermissionData = params.permissionIds.map(
 						(permissionId) => ({
 							roleId: params.id,

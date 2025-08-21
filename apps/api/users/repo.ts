@@ -66,16 +66,28 @@ class sqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	update({
-		id,
-		...params
-	}: Omit<UpdateUserRequest, 'roleIds'>): Promise<UserDB> {
+	update({ id, ...params }: UpdateUserRequest): Promise<UserDB> {
 		log.info('UserRepo.update params', { params, id })
 		return this.db
-			.update(users)
-			.set(params)
-			.where(eq(users.id, id))
-			.returning()
+			.transaction(async (tx) => {
+				const [user] = await tx
+					.update(users)
+					.set(params)
+					.where(eq(users.id, id))
+					.returning()
+
+				if (params.roleIds !== undefined && params.roleIds.length > 0) {
+					await tx.delete(userRoles).where(eq(userRoles.userId, id))
+
+					const userRoleData = params.roleIds.map((roleId) => ({
+						roleId,
+						userId: id
+					}))
+					await tx.insert(userRoles).values(userRoleData)
+				}
+
+				return user
+			})
 			.catch(handleDatabaseErr)
 	}
 
