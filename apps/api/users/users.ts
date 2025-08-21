@@ -16,6 +16,18 @@ interface UserDB extends Omit<CreateUserRequest, 'password'> {
 	updatedAt: string
 }
 
+interface RoleDB {
+	id: number
+	createdAt: string
+	updatedAt: string
+	name: string
+	description?: string
+}
+
+export interface User extends UserDB {
+	roles: RoleDB[]
+}
+
 export const CreateUser = api(
 	{ expose: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
