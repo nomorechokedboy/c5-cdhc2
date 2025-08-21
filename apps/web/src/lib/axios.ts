@@ -1,8 +1,8 @@
-import { env } from '@/env'
 import baseAxios, { AxiosError, type AxiosRequestConfig } from 'axios'
+import { ApiUrl } from './const'
 
 const axios = baseAxios.create({
-	baseURL: env.VITE_API_URL
+	baseURL: ApiUrl
 })
 
 export async function AxiosFetcher(url: RequestInfo | URL, init?: RequestInit) {
