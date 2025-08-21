@@ -20,15 +20,12 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios, { AxiosFetcher } from '@/lib/axios'
-import Client, { Local } from './client'
-import { env } from '@/env'
+import Client from './client'
+import { ApiUrl } from '@/lib/const'
 
-export const requestClient = new Client(
-	import.meta.env.DEV ? Local : env.VITE_API_URL,
-	{
-		fetcher: AxiosFetcher
-	}
-)
+export const requestClient = new Client(ApiUrl, {
+	fetcher: AxiosFetcher
+})
 
 export function CreateClass(body: ClassBody) {
 	return axios
