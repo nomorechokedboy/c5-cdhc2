@@ -11,6 +11,6 @@ export interface Repository {
 	delete(ids: number[]): Promise<UserDB[]>
 	find(): Promise<User[]>
 	findOne(user: UserDB): Promise<User>
-	update(params: Omit<UpdateUserRequest, 'roleIds'>): Promise<UserDB>
+	update(params: UpdateUserRequest): Promise<UserDB>
 	findUserPermissions(id: number): Promise<UserPermissions[]>
 }
