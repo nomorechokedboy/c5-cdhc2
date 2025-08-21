@@ -3,6 +3,10 @@ import { authHandler } from 'encore.dev/auth'
 import log from 'encore.dev/log'
 import authController from './controller'
 import { AppError } from '../errors'
+import { getAuthData } from '~encore/auth'
+import userController from '../users/controller'
+import { UserDB } from '../schema'
+import { User } from '../users/users'
 
 interface AuthParams {
 	authorization: Header<'Authorization'>
@@ -75,5 +79,36 @@ export const RefreshToken = api(
 		)
 
 		return { accessToken, refreshToken }
+	}
+)
+
+interface GetUserInfoResponse {
+	data: User
+}
+
+export const GetUserInfo = api(
+	{ auth: true, expose: true, method: 'GET', path: '/authn/me' },
+	async (): Promise<GetUserInfoResponse> => {
+		const userId = Number(getAuthData()!.userID)
+		const data = await userController
+			.findOne({ id: userId } as UserDB)
+			.then((user) => ({ ...user }) as User)
+
+		return { data }
+	}
+)
+
+interface ChangeUserPasswordRequest {
+	prevPassword: string
+	password: string
+}
+
+export const ChangeUserPassword = api(
+	{ auth: true, expose: true, method: 'PATCH', path: '/authn/change-pwd' },
+	async ({ password, prevPassword }: ChangeUserPasswordRequest) => {
+		const userId = Number(getAuthData()!.userID)
+		await authController.changePassword({ password, prevPassword, userId })
+
+		return {}
 	}
 )

@@ -31,6 +31,12 @@ type RefreshTokenRequest = {
 	token: string
 }
 
+type ChangePasswordRequest = {
+	userId: number
+	prevPassword: string
+	password: string
+}
+
 class controller {
 	constructor(private readonly userRepo: UserRepository) {}
 
@@ -122,6 +128,12 @@ class controller {
 		}
 	}
 
+	verifyPwd(hashStr: string, pwd: string): Promise<boolean> {
+		return argon2.verify(hashStr, pwd, {
+			secret: Buffer.from(appConfig.HASH_SECRET)
+		})
+	}
+
 	async login(req: LoginRequest): Promise<TokenResponse> {
 		log.trace('AuthController.login request', { req })
 		const { username, password } = req
@@ -131,10 +143,11 @@ class controller {
 			.catch(AppError.handleAppErr)
 
 		try {
-			const isPasswordMatch = argon2.verify(user.password, password, {
-				secret: Buffer.from(appConfig.HASH_SECRET)
-			})
-			if (!isPasswordMatch) {
+			const isPasswordMatch = await this.verifyPwd(
+				user.password,
+				password
+			)
+			if (isPasswordMatch === false) {
 				throw AppError.invalidArgument(
 					'username or password is incorrect'
 				)
@@ -168,6 +181,32 @@ class controller {
 			return { accessToken, refreshToken: req.token }
 		} catch (err) {
 			log.error('AuthController.refreshToken err', { err })
+			AppError.handleAppErr(err)
+		}
+	}
+
+	async changePassword(params: ChangePasswordRequest) {
+		log.trace('AuthController.changePassword params', { params })
+
+		try {
+			const user = await this.userRepo.findOne({
+				id: params.userId
+			} as UserDB)
+			const isOldPwdMatchPwd = await this.verifyPwd(
+				user.password,
+				params.prevPassword
+			)
+			if (isOldPwdMatchPwd === false) {
+				throw AppError.invalidArgument('Incorrect password')
+			}
+
+			const hashPwd = await argon2.hash(params.password, {
+				secret: Buffer.from(appConfig.HASH_SECRET)
+			})
+
+			await this.userRepo.update({ id: user.id, password: hashPwd })
+		} catch (err) {
+			log.error('AuthController.changePassword error', { err })
 			AppError.handleAppErr(err)
 		}
 	}
