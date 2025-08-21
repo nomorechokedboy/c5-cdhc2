@@ -95,7 +95,7 @@ export namespace classes {
 	export interface ClassBody {
 		name: string
 		description?: string
-		graduatedAt?: string
+		graduatedAt?: string | null
 		unitId: number
 	}
 
@@ -130,7 +130,7 @@ export namespace classes {
 		id: number
 		name?: string
 		description?: string
-		graduatedAt?: string
+		graduatedAt?: string | null
 		unitId?: number
 	}
 

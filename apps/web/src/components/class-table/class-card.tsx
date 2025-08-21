@@ -7,28 +7,92 @@ import {
 } from '@/components/ui/card'
 import type { Class } from '@/types'
 import { EllipsisText } from '@/components/data-table/ellipsis-text'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { toVNTz } from '@/lib/utils'
+import { Pencil, Trash } from 'lucide-react'
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import ClassEditForm from '../ClassEditForm'
+import { useDeleteClasses } from '@/hooks/useDeleteClasses'
+import { toast } from 'sonner'
 
 interface ClassCardProps {
 	data: Class
-	index: number
+	onEdit?: (data: Class) => void
+	onDelete?: (data: Class) => void
 }
 
-export default function ClassCard({ data, index }: ClassCardProps) {
+export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
+	const [hovered, setHovered] = useState(false)
+	const [openEdit, setOpenEdit] = useState(false)
+	const [openDelete, setOpenDelete] = useState(false)
+	const deleteClassMutation = useDeleteClasses()
+	const navigate = useNavigate()
+
+	const handleDelete = async () => {
+		try {
+			await deleteClassMutation.mutateAsync([data.id])
+			toast.success(`Đã xoá lớp "${data.name}" thành công!`)
+			onDelete?.(data)
+		} catch (error) {
+			toast.error('Có lỗi xảy ra khi xoá lớp học')
+		} finally {
+			setOpenDelete(false)
+		}
+	}
+
+	const handleCardClick = (e: React.MouseEvent) => {
+		if ((e.target as HTMLElement).closest('button')) return
+		navigate({ to: `/classes/${data.id}` })
+	}
+
 	return (
-		<Link
-			to={`/classes/$classId`}
-			params={(prev) => ({ ...prev, classId: data.id })}
-		>
-			<Card className='@container/card'>
-				<CardHeader>
-					<CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-						{data.name}
-					</CardTitle>
-					<CardDescription>
-						<EllipsisText>{data.description}</EllipsisText>
-					</CardDescription>
+		<>
+			<Card
+				className='@container/card cursor-pointer relative'
+				onMouseEnter={() => setHovered(true)}
+				onMouseLeave={() => setHovered(false)}
+				onClick={handleCardClick}
+			>
+				<CardHeader className='flex items-center justify-between'>
+					<div>
+						<CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+							{data.name}
+						</CardTitle>
+						<CardDescription>
+							<EllipsisText>{data.description}</EllipsisText>
+						</CardDescription>
+					</div>
+					<div
+						className={`flex gap-2 transition-opacity ${
+							hovered ? 'opacity-100' : 'opacity-0'
+						}`}
+					>
+						<button
+							type='button'
+							aria-label='Edit'
+							title='Chỉnh sửa'
+							className='p-2 rounded hover:bg-muted'
+							onClick={(e) => {
+								e.stopPropagation()
+								setOpenEdit(true)
+							}}
+						>
+							<Pencil size={18} />
+						</button>
+						<button
+							type='button'
+							aria-label='Delete'
+							title='Xoá'
+							className='p-2 rounded hover:bg-muted text-destructive'
+							onClick={(e) => {
+								e.stopPropagation()
+								setOpenDelete(true)
+							}}
+						>
+							<Trash size={18} />
+						</button>
+					</div>
 				</CardHeader>
 				<CardFooter className='flex-col items-start gap-1.5 text-sm'>
 					<div className='line-clamp-1 flex gap-2 font-medium'>
@@ -39,6 +103,62 @@ export default function ClassCard({ data, index }: ClassCardProps) {
 					</div>
 				</CardFooter>
 			</Card>
-		</Link>
+
+			<Dialog open={openEdit} onOpenChange={setOpenEdit}>
+				<DialogContent className='backdrop-blur-sm flex items-center justify-center'>
+					<DialogTitle className='sr-only'>
+						Chỉnh sửa lớp học
+					</DialogTitle>
+					<ClassEditForm
+						classData={data}
+						onUpdate={(updated) => {
+							onEdit?.({ ...data, ...updated }) // truyền nguyên data kiểu Class
+							setOpenEdit(false)
+						}}
+						onClose={() => setOpenEdit(false)}
+					/>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={openDelete} onOpenChange={setOpenDelete}>
+				<DialogContent className='max-w-md max-h-1/3'>
+					<DialogTitle className='sr-only'>
+						Xác nhận xoá lớp học
+					</DialogTitle>
+					<div className='flex flex-col gap-4'>
+						<div className='font-semibold text-lg text-center'>
+							Xác nhận xoá lớp học?
+						</div>
+						<div className='text-center text-muted-foreground'>
+							Bạn có chắc muốn xoá lớp{' '}
+							<b className='text-red-600'>{data.name}</b> không?
+							<p>
+								Hành động này <b>không thể hoàn tác.</b>
+							</p>
+						</div>
+						<div className='flex justify-end gap-2 mt-4'>
+							<button
+								type='button'
+								className='px-4 py-2 rounded-lg border'
+								onClick={() => setOpenDelete(false)}
+								disabled={deleteClassMutation.isPending}
+							>
+								Huỷ
+							</button>
+							<button
+								type='button'
+								className='px-4 py-2 rounded-lg bg-destructive text-white font-semibold hover:bg-destructive/90 disabled:opacity-50'
+								onClick={handleDelete}
+								disabled={deleteClassMutation.isPending}
+							>
+								{deleteClassMutation.isPending
+									? 'Đang xoá...'
+									: 'Xoá'}
+							</button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }

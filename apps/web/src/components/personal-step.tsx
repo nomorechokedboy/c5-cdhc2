@@ -68,6 +68,7 @@ export default function PersonalStep({ form }: { form: any }) {
 						<field.Combobox
 							values={EhtnicOptions}
 							label='Dân tộc'
+							placeholder = 'Chọn dân tộc'
 							defaultValue={eduLevelOptions[0].value}
 							className=''
 						/>
@@ -79,6 +80,7 @@ export default function PersonalStep({ form }: { form: any }) {
 						<field.Select
 							values={religionOptions}
 							label='Tôn giáo'
+							placeholder = 'Chọn tôn giáo'
 							defaultValue={religionOptions[0].value}
 						/>
 					)}
@@ -91,6 +93,7 @@ export default function PersonalStep({ form }: { form: any }) {
 					{(field: any) => (
 						<field.Select
 							label='Trình độ học vấn'
+							placeholder = 'Chọn trình độ học vấn'
 							values={eduLevelOptions}
 							defaultValue={eduLevelOptions[5].value}
 						/>

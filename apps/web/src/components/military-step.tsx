@@ -1,3 +1,4 @@
+import { rankOptions } from '@/data/ethnics'
 import { useState } from 'react'
 
 export default function MilitaryStep({ form }: { form: any }) {
@@ -6,19 +7,16 @@ export default function MilitaryStep({ form }: { form: any }) {
 	return (
 		<div className='space-y-6'>
 			<div className='grid grid-cols-3 gap-6'>
-				<form.AppField
-					name='rank'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Cấp bậc không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
-					{(field: any) => <field.TextField label='Cấp bậc' />}
-				</form.AppField>
+				<form.AppField name='rank'>
+									{(field: any) => (
+										<field.Select
+											values={rankOptions}
+											label='Cấp bậc'
+											placeholder = 'Chọn cấp bậc'
+											defaultValue={rankOptions[0].value}
+										/>
+									)}
+								</form.AppField>
 				<form.AppField
 					name='enlistmentPeriod'
 					validators={{

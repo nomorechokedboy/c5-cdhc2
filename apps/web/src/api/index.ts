@@ -33,6 +33,19 @@ export function CreateClass(body: ClassBody) {
 		.then((resp) => resp.data.data)
 }
 
+export function DeleteClasses(ids: number[]) {
+	return axios.delete('/classes', {
+		params: { ids },
+		paramsSerializer: { indexes: null }
+	})
+}
+
+export function UpdateClasses(data: Class[]) {
+	return axios
+		.patch<ClassResponse>('/classes', { data })
+		.then((resp) => resp.data.data)
+}
+
 export async function GetClasses(): Promise<Class[]> {
 	return axios.get<ClassResponse>('/classes').then((resp) => resp.data.data)
 }
