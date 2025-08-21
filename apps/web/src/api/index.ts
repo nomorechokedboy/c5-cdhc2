@@ -20,7 +20,7 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios, { AxiosFetcher } from '@/lib/axios'
-import Client from './client'
+import Client, { students } from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
@@ -43,12 +43,12 @@ export function CreateStudent(body: StudentBody) {
 		.then((resp) => resp.data.data)
 }
 
-export function GetStudents(params?: StudentQueryParams): Promise<Student[]> {
-	return axios
-		.get<StudentResponse>('/students', {
-			params
-		})
-		.then((resp) => resp.data.data)
+export function GetStudents(
+	params?: students.GetStudentsQuery
+): Promise<Student[]> {
+	return requestClient.students
+		.GetStudents(params ?? {})
+		.then((resp) => resp.data.map((s) => ({ ...s }) as unknown as Student))
 }
 
 export function DeleteStudents(params: DeleteStudentsBody) {
