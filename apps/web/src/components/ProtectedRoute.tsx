@@ -1,6 +1,7 @@
 import useAuth from '@/hooks/useAuth'
 import { Navigate, useLocation } from '@tanstack/react-router'
 import { LoaderCircle } from 'lucide-react'
+import { PageSkeleton } from './page-skeleton'
 
 interface ProtectedRouteProps {
 	children: React.ReactNode
@@ -18,13 +19,7 @@ export default function ProtectedRoute({
 
 	// Show loading spinner while checking auth
 	if (isAuthLoading) {
-		return (
-			fallback || (
-				<div className='flex items-center justify-center min-h-screen'>
-					<LoaderCircle className='animate-spin text-blue-600' />
-				</div>
-			)
-		)
+		return fallback || <PageSkeleton />
 	}
 
 	// Redirect to login if not authenticated
