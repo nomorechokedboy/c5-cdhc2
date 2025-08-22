@@ -32,11 +32,14 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
  * Client is an API client for the ibibi Encore application.
  */
 export default class Client {
+	public readonly auth: auth.ServiceClient
 	public readonly classes: classes.ServiceClient
 	public readonly healthcheck: healthcheck.ServiceClient
 	public readonly notifications: notifications.ServiceClient
+	public readonly permissions: permissions.ServiceClient
 	public readonly students: students.ServiceClient
 	public readonly units: units.ServiceClient
+	public readonly users: users.ServiceClient
 	private readonly options: ClientOptions
 	private readonly target: string
 
@@ -50,11 +53,14 @@ export default class Client {
 		this.target = target
 		this.options = options ?? {}
 		const base = new BaseClient(this.target, this.options)
+		this.auth = new auth.ServiceClient(base)
 		this.classes = new classes.ServiceClient(base)
 		this.healthcheck = new healthcheck.ServiceClient(base)
 		this.notifications = new notifications.ServiceClient(base)
+		this.permissions = new permissions.ServiceClient(base)
 		this.students = new students.ServiceClient(base)
 		this.units = new units.ServiceClient(base)
+		this.users = new users.ServiceClient(base)
 	}
 
 	/**
@@ -85,6 +91,97 @@ export interface ClientOptions {
 	requestInit?: Omit<RequestInit, 'headers'> & {
 		headers?: Record<string, string>
 	}
+
+	/**
+	 * Allows you to set the authentication data to be used for each
+	 * request either by passing in a static object or by passing in
+	 * a function which returns a new object for each request.
+	 */
+	auth?: auth.AuthParams | AuthDataGenerator
+}
+
+export namespace auth {
+	export interface AuthParams {
+		authorization: string
+	}
+
+	export interface ChangeUserPasswordRequest {
+		prevPassword: string
+		password: string
+	}
+
+	export interface GetUserInfoResponse {
+		data: users.User
+	}
+
+	export interface LoginRequest {
+		username: string
+		password: string
+	}
+
+	export interface LoginResponse {
+		accessToken: string
+		refreshToken: string
+	}
+
+	export interface RefreshTokenRequest {
+		token: string
+	}
+
+	export interface RefreshTokenResponse {
+		accessToken: string
+		refreshToken: string
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.ChangeUserPassword = this.ChangeUserPassword.bind(this)
+			this.GetUserInfo = this.GetUserInfo.bind(this)
+			this.Login = this.Login.bind(this)
+			this.RefreshToken = this.RefreshToken.bind(this)
+		}
+
+		public async ChangeUserPassword(
+			params: ChangeUserPasswordRequest
+		): Promise<void> {
+			await this.baseClient.callTypedAPI(
+				'PATCH',
+				`/authn/change-pwd`,
+				JSON.stringify(params)
+			)
+		}
+
+		public async GetUserInfo(): Promise<GetUserInfoResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI('GET', `/authn/me`)
+			return (await resp.json()) as GetUserInfoResponse
+		}
+
+		public async Login(params: LoginRequest): Promise<LoginResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'POST',
+				`/authn/login`,
+				JSON.stringify(params)
+			)
+			return (await resp.json()) as LoginResponse
+		}
+
+		public async RefreshToken(
+			params: RefreshTokenRequest
+		): Promise<RefreshTokenResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'POST',
+				`/authn/refresh`,
+				JSON.stringify(params)
+			)
+			return (await resp.json()) as RefreshTokenResponse
+		}
+	}
 }
 
 export namespace classes {
@@ -95,7 +192,7 @@ export namespace classes {
 	export interface ClassBody {
 		name: string
 		description?: string
-		graduatedAt?: string | null
+		graduatedAt?: string
 		unitId: number
 	}
 
@@ -130,7 +227,7 @@ export namespace classes {
 		id: number
 		name?: string
 		description?: string
-		graduatedAt?: string | null
+		graduatedAt?: string
 		unitId?: number
 	}
 
@@ -337,6 +434,32 @@ export namespace notifications {
 			return await this.baseClient.createStreamIn(
 				`/notifications/stream`,
 				{ query }
+			)
+		}
+	}
+}
+
+export namespace permissions {
+	export interface CreatePermissionRequest {
+		actionId: number
+		resourceId: number
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.CreatePermission = this.CreatePermission.bind(this)
+		}
+
+		public async CreatePermission(
+			params: CreatePermissionRequest
+		): Promise<void> {
+			await this.baseClient.callTypedAPI(
+				'POST',
+				`/permissions`,
+				JSON.stringify(params)
 			)
 		}
 	}
@@ -853,6 +976,61 @@ export namespace units {
 	}
 }
 
+export namespace users {
+	export interface CreateUserRequest {
+		username: string
+		password: string
+	}
+
+	export interface CreateUserResponse {
+		data: UserDB
+	}
+
+	export interface RoleDB {
+		id: number
+		createdAt: string
+		updatedAt: string
+		name: string
+		description?: string
+	}
+
+	export interface User {
+		roles: RoleDB[]
+		id: number
+		createdAt: string
+		updatedAt: string
+		username: string
+	}
+
+	export interface UserDB {
+		id: number
+		createdAt: string
+		updatedAt: string
+		username: string
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.CreateUser = this.CreateUser.bind(this)
+		}
+
+		public async CreateUser(
+			params: CreateUserRequest
+		): Promise<CreateUserResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'POST',
+				`/users`,
+				JSON.stringify(params)
+			)
+			return (await resp.json()) as CreateUserResponse
+		}
+	}
+}
+
 function encodeQuery(parts: Record<string, string | string[]>): string {
 	const pairs: string[] = []
 	for (const key in parts) {
@@ -1067,6 +1245,12 @@ type CallParameters = Omit<RequestInit, 'method' | 'body' | 'headers'> & {
 	query?: Record<string, string | string[]>
 }
 
+// AuthDataGenerator is a function that returns a new instance of the authentication data required by this API
+export type AuthDataGenerator = () =>
+	| auth.AuthParams
+	| Promise<auth.AuthParams | undefined>
+	| undefined
+
 // A fetcher is the prototype for the inbuilt Fetch function
 export type Fetcher = typeof fetch
 
@@ -1079,6 +1263,7 @@ class BaseClient {
 	readonly requestInit: Omit<RequestInit, 'headers'> & {
 		headers?: Record<string, string>
 	}
+	readonly authGenerator?: AuthDataGenerator
 
 	constructor(baseURL: string, options: ClientOptions) {
 		this.baseURL = baseURL
@@ -1099,9 +1284,41 @@ class BaseClient {
 		} else {
 			this.fetcher = boundFetch
 		}
+
+		// Setup an authentication data generator using the auth data token option
+		if (options.auth !== undefined) {
+			const auth = options.auth
+			if (typeof auth === 'function') {
+				this.authGenerator = auth
+			} else {
+				this.authGenerator = () => auth
+			}
+		}
 	}
 
 	async getAuthData(): Promise<CallParameters | undefined> {
+		let authData: auth.AuthParams | undefined
+
+		// If authorization data generator is present, call it and add the returned data to the request
+		if (this.authGenerator) {
+			const mayBePromise = this.authGenerator()
+			if (mayBePromise instanceof Promise) {
+				authData = await mayBePromise
+			} else {
+				authData = mayBePromise
+			}
+		}
+
+		if (authData) {
+			const data: CallParameters = {}
+
+			data.headers = makeRecord<string, string>({
+				authorization: authData.authorization
+			})
+
+			return data
+		}
+
 		return undefined
 	}
 
