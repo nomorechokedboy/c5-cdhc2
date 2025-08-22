@@ -10,7 +10,8 @@ import {
 	Church,
 	UserCheck,
 	Building2,
-	UsersRound
+	UsersRound,
+	Building
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -28,13 +29,14 @@ import {
 	SidebarRail
 } from '@/components/ui/sidebar'
 import { Link } from '@tanstack/react-router'
-import StudentForm from './student-form'
+import StudentForm from '@/components/student-form'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger
-} from './ui/collapsible'
+} from '@/components/ui/collapsible'
 import useUnitsData from '@/hooks/useUnitsData'
+import Cdhc2Logo from '@/assets/cdhc2.png'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -250,7 +252,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						url: `/dai-doi/${child.alias}`,
 						icon: Building2
 					}))
-				]
+				],
+				icon: Building
 			}) as NavItem
 	)
 
@@ -268,7 +271,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<div className='flex items-center gap-2 px-4 py-2'>
 					<div className='flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary-foreground'>
 						<img
-							src='/placeholder.svg?height=32&width=32'
+							src={Cdhc2Logo}
 							alt='Logo Trường Cao đẳng hậu cần 2'
 							className='h-6 w-6'
 						/>
