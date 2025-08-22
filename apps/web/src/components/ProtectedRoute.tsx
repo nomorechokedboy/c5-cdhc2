@@ -1,18 +1,41 @@
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import useAuth from '@/hooks/useAuth'
+import { Navigate, useLocation } from '@tanstack/react-router'
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+interface ProtectedRouteProps {
+	children: React.ReactNode
+	fallback?: React.ReactNode
+	redirectTo?: string
+}
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate({ to: '/login' });
-    }
-  }, [isAuthenticated]);
+export default function ProtectedRoute({
+	children,
+	fallback,
+	redirectTo = '/login'
+}: ProtectedRouteProps) {
+	const { isAuthenticated, isAuthLoading } = useAuth()
+	const location = useLocation()
 
-  if (!isAuthenticated) return null;
+	// Show loading spinner while checking auth
+	if (isAuthLoading) {
+		return (
+			fallback || (
+				<div className='flex items-center justify-center min-h-screen'>
+					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+				</div>
+			)
+		)
+	}
 
-  return <>{children}</>;
+	// Redirect to login if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<Navigate
+				to={redirectTo}
+				search={{ redirect: location.pathname.toString() }}
+				replace
+			/>
+		)
+	}
+
+	return <>{children}</>
 }
