@@ -5,7 +5,7 @@ import { useAppForm } from '@/hooks/demo.form'
 import useAuth from '@/hooks/useAuth'
 
 export function LoginForm() {
-	const { login, loginError } = useAuth()
+	const { login } = useAuth()
 
 	const form = useAppForm({
 		defaultValues: {
@@ -93,13 +93,6 @@ export function LoginForm() {
 							<div className='text-sm text-blue-600 hover:underline cursor-pointer'>
 								Quên mật khẩu?
 							</div>
-
-							{loginError && (
-								<p className='text-red-600 text-sm'>
-									{loginError.message ||
-										'Tên đăng nhập hoặc mật khẩu không đúng.'}
-								</p>
-							)}
 
 							<form.Subscribe
 								selector={(state) => [
