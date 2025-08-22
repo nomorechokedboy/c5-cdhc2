@@ -11,7 +11,9 @@ import {
 	UserCheck,
 	Building2,
 	UsersRound,
-	Building
+	Building,
+	Home,
+	Proportions
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -43,6 +45,18 @@ import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 const data = {
 	versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
 	navMain: [
+		{
+			title: 'Chung',
+			url: '#',
+			items: [
+				{ title: 'Trang chủ', url: '/', icon: Home },
+				{
+					title: 'Chất lượng chính trị',
+					url: '/thong-ke-chinh-tri',
+					icon: Proportions
+				}
+			]
+		},
 		{
 			title: 'Thống kê học viên',
 			url: '#',
@@ -264,11 +278,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			}) as NavItem
 	)
 
+	const [firstNavItem, ...navMain] = data.navMain
 	const newData = {
 		version: data.versions,
 		navMain: [
+			firstNavItem,
 			{ title: 'Đơn vị', url: '#', items: unitsNavbar },
-			...data.navMain
+			...navMain
 		]
 	}
 
