@@ -1,9 +1,7 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
-import { AuthProvider } from './context/AuthContext'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -43,11 +41,9 @@ if (rootElement && !rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement)
 	root.render(
 		<StrictMode>
-			<AuthProvider>
-				<TanStackQueryProvider.Provider>
-					<RouterProvider router={router} />
-				</TanStackQueryProvider.Provider>
-			</AuthProvider>
+			<TanStackQueryProvider.Provider>
+				<RouterProvider router={router} />
+			</TanStackQueryProvider.Provider>
 		</StrictMode>
 	)
 }
