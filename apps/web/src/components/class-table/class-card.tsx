@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import ClassEditForm from '../ClassEditForm'
 import { useDeleteClasses } from '@/hooks/useDeleteClasses'
 import { toast } from 'sonner'
+import { Button } from '../ui/button'
 
 interface ClassCardProps {
 	data: Class
@@ -23,7 +24,6 @@ interface ClassCardProps {
 }
 
 export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
-	const [hovered, setHovered] = useState(false)
 	const [openEdit, setOpenEdit] = useState(false)
 	const [openDelete, setOpenDelete] = useState(false)
 	const deleteClassMutation = useDeleteClasses()
@@ -49,9 +49,7 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 	return (
 		<>
 			<Card
-				className='@container/card cursor-pointer relative'
-				onMouseEnter={() => setHovered(true)}
-				onMouseLeave={() => setHovered(false)}
+				className='@container/card cursor-pointer relative group'
 				onClick={handleCardClick}
 			>
 				<CardHeader className='flex items-center justify-between'>
@@ -64,34 +62,36 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 						</CardDescription>
 					</div>
 					<div
-						className={`flex gap-2 transition-opacity ${
-							hovered ? 'opacity-100' : 'opacity-0'
-						}`}
+						className={`hidden gap-2 transition-all group-hover:flex self-start`}
 					>
-						<button
+						<Button
 							type='button'
 							aria-label='Edit'
 							title='Chỉnh sửa'
-							className='p-2 rounded hover:bg-muted'
+							variant='ghost'
+							className='text-sky-600'
+							size='icon'
 							onClick={(e) => {
 								e.stopPropagation()
 								setOpenEdit(true)
 							}}
 						>
 							<Pencil size={18} />
-						</button>
-						<button
+						</Button>
+						<Button
 							type='button'
+							variant='ghost'
 							aria-label='Delete'
 							title='Xoá'
-							className='p-2 rounded hover:bg-muted text-destructive'
+							className='text-destructive'
+							size='icon'
 							onClick={(e) => {
 								e.stopPropagation()
 								setOpenDelete(true)
 							}}
 						>
 							<Trash size={18} />
-						</button>
+						</Button>
 					</div>
 				</CardHeader>
 				<CardFooter className='flex-col items-start gap-1.5 text-sm'>
