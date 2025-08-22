@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/collapsible'
 import useUnitsData from '@/hooks/useUnitsData'
 import Cdhc2Logo from '@/assets/cdhc2.png'
+import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -234,7 +235,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { state } = useSidebar()
 	const isCollapsed = state === 'collapsed'
 
-	const { data: units } = useUnitsData({ level: 'battalion' })
+	const { data: units, isLoading: isLoadingUnits } = useUnitsData({
+		level: 'battalion'
+	})
+	if (isLoadingUnits) {
+		return <AppSidebarSkeleton />
+	}
+
 	const unitsNavbar = units?.map(
 		(unit) =>
 			({
