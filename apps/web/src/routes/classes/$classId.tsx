@@ -9,12 +9,12 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import SpinnerCircle2 from '@/components/spinner-08'
 import useExportButton from '@/hooks/useExportButton'
 import useActionColumn from '@/hooks/useActionColumn'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
+import TableSkeleton from '@/components/table-skeleton'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -39,13 +39,7 @@ function RouteComponent() {
 	const handleDeleteRows = useOnDeleteStudents(refetchStudents)
 
 	if (isLoadingStudents) {
-		return (
-			<>
-				<div className='flex h-full items-center justify-center'>
-					<SpinnerCircle2 />
-				</div>
-			</>
-		)
+		return <TableSkeleton />
 	}
 
 	const handleFormSuccess = () => {
