@@ -114,3 +114,11 @@ export function ExportTableData(data: ExportData) {
 export function GetPoliticsQualityReport() {
 	return requestClient.students.GetPoliticsQualityReport({ unitId: 7 })
 }
+
+export function Login(req: auth.LoginRequest) {
+	return requestClient.auth.Login(req)
+}
+
+export function GetUserInfo() {
+	return requestClient.auth.GetUserInfo()
+}
