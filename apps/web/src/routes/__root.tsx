@@ -1,9 +1,5 @@
-import {
-	Outlet,
-	createRootRouteWithContext,
-	useRouter
-} from '@tanstack/react-router'
-import { useAuth } from '@/context/AuthContext'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import useAuth from '@/hooks/useAuth'
 import React, { useRef } from 'react'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import Header from '../components/Header'
@@ -26,10 +22,7 @@ interface MyRouterContext {
 export const NavbarContext = React.createContext(true)
 
 function RootLayout() {
-	const router = useRouter()
 	const { isAuthenticated } = useAuth()
-	const currentPath = router.state.location.pathname
-	const showNavbar = isAuthenticated && currentPath !== '/login'
 	const { refetch: refetchNotifications } = useInfiniteNotification()
 	const { refetch: refetchUnreadNoti } = useUnreadNotificationCount()
 
@@ -104,6 +97,10 @@ function RootLayout() {
 	}
 
 	useEffectOnce(() => {
+		if (isAuthenticated !== true) {
+			return
+		}
+
 		setupStream()
 
 		return () => {
@@ -112,26 +109,18 @@ function RootLayout() {
 	})
 
 	return (
-		<NavbarContext.Provider value={showNavbar}>
-			{showNavbar ? (
-				<>
-					<SidebarProvider>
-						<AppSidebar collapsible='icon' />
-						<Toaster richColors position='top-center' />
-						<div className='flex flex-col w-full'>
-							<Header />
-							<Outlet />
-						</div>
-					</SidebarProvider>
-					<TanStackRouterDevtools />
-					<TanStackQueryLayout />
-				</>
-			) : (
-				<div className='min-h-svh w-full flex items-center justify-center'>
+		<>
+			<SidebarProvider>
+				{isAuthenticated && <AppSidebar collapsible='icon' />}
+				<Toaster richColors position='top-center' />
+				<div className='flex flex-col w-full'>
+					{isAuthenticated && <Header />}
 					<Outlet />
 				</div>
-			)}
-		</NavbarContext.Provider>
+			</SidebarProvider>
+			<TanStackRouterDevtools />
+			<TanStackQueryLayout />
+		</>
 	)
 }
 
