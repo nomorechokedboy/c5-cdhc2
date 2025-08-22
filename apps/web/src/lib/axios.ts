@@ -1,54 +1,61 @@
-import baseAxios, { AxiosError, type AxiosRequestConfig } from 'axios'
+import baseAxios from 'axios'
 import { ApiUrl } from './const'
+import Client from '@/api/client'
+import { AuthController } from '@/biz'
 
 const axios = baseAxios.create({
 	baseURL: ApiUrl
 })
 
-export async function AxiosFetcher(url: RequestInfo | URL, init?: RequestInit) {
-	// Convert RequestInit to AxiosRequestConfig
-	const config: AxiosRequestConfig = {
-		method: init?.method as any,
-		headers: init?.headers as any,
-		data: init?.body,
-		// Axios expects a string, fetch can pass URL or RequestInfo
-		url: typeof url === 'string' ? url : url.toString()
+export default axios
+
+export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
+	const accessToken = AuthController.getAccessToken()
+	let initWithToken = init
+	if (accessToken) {
+		initWithToken = {
+			...init,
+			headers: {
+				...init?.headers,
+				Authorization: `Bearer ${accessToken}`
+			}
+		}
+	}
+
+	const resp = await fetch(url, initWithToken)
+	const isUnauthenticatedResp = resp.status !== 401
+	if (isUnauthenticatedResp) {
+		return resp
+	}
+
+	const refreshToken = AuthController.getRefreshToken()
+	const isInvalidRefreshToken = !refreshToken
+	if (isInvalidRefreshToken) {
+		return resp
 	}
 
 	try {
-		const response = await axios(config)
-
-		// Construct a Response-like object so Encore’s client can use it
-		return new Response(JSON.stringify(response.data), {
-			status: response.status,
-			statusText: response.statusText,
-			headers: new Headers(
-				Object.entries(response.headers).map(([k, v]) => [k, String(v)])
-			)
+		const tempClient = new Client(ApiUrl)
+		const refreshResp = await tempClient.auth.RefreshToken({
+			token: refreshToken
 		})
-	} catch (err: unknown) {
-		if (!(err instanceof AxiosError)) {
-			console.error('Unknown error', err)
-			throw err // unexpected error
+		AuthController.setTokens({
+			accessToken: refreshResp.accessToken,
+			refreshToken: refreshResp.refreshToken
+		})
+
+		const newInit = {
+			...init,
+			headers: {
+				...init?.headers,
+				Authorization: `Bearer ${refreshResp.accessToken}`
+			}
 		}
 
-		if (err.response) {
-			// Axios error with response
-			return new Response(JSON.stringify(err.response.data), {
-				status: err.response.status,
-				statusText: err.response.statusText,
-				headers: new Headers(
-					Object.entries(err.response.headers).map(([k, v]) => [
-						k,
-						String(v)
-					])
-				)
-			})
-		}
-
-		console.error('Unknown error', err)
-		throw err // network or unexpected error
+		return await fetch(url, newInit)
+	} catch (err) {
+		console.error('Token refresh failed:', err)
+		AuthController.clearTokens()
+		return resp
 	}
 }
-
-export default axios

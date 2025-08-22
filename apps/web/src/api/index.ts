@@ -19,12 +19,12 @@ import type {
 	UnitLevel,
 	UpdateStudentsBody
 } from '@/types'
-import axios, { AxiosFetcher } from '@/lib/axios'
-import Client, { students } from './client'
+import axios, { appFetcher } from '@/lib/axios'
+import Client, { auth, students } from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
-	fetcher: AxiosFetcher
+	fetcher: appFetcher
 })
 
 export function CreateClass(body: ClassBody) {
