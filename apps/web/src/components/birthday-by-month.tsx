@@ -20,6 +20,7 @@ import { defaultBirthdayColumnVisibility } from './student-table/default-columns
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import useExportButton from '@/hooks/useExportButton'
+import TableSkeleton from './table-skeleton'
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -36,7 +37,7 @@ export default function BirthdayByMonth() {
 	})
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const handleFormSuccess = () => {

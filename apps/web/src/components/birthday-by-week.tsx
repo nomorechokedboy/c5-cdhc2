@@ -13,6 +13,7 @@ import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import useExportButton from '@/hooks/useExportButton'
 import { getCurrentWeekNumber } from '@/lib/utils'
+import TableSkeleton from './table-skeleton'
 
 export default function BirthdayByWeek() {
 	/* const {
@@ -37,7 +38,7 @@ export default function BirthdayByWeek() {
 	})
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const searchConfig = [

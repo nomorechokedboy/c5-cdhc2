@@ -4,6 +4,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import StudentForm from '@/components/student-form'
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import { defaultBirthdayColumnVisibility } from '@/components/student-table/default-columns-visibility'
+import TableSkeleton from '@/components/table-skeleton'
 import { Button } from '@/components/ui/button'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
@@ -68,7 +69,7 @@ function RouteComponent() {
 	}))
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const militaryRankSet = new Set(
