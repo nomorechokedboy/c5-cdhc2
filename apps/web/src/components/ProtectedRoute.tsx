@@ -1,5 +1,6 @@
 import useAuth from '@/hooks/useAuth'
 import { Navigate, useLocation } from '@tanstack/react-router'
+import { LoaderCircle } from 'lucide-react'
 
 interface ProtectedRouteProps {
 	children: React.ReactNode
@@ -20,7 +21,7 @@ export default function ProtectedRoute({
 		return (
 			fallback || (
 				<div className='flex items-center justify-center min-h-screen'>
-					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+					<LoaderCircle className='animate-spin text-blue-600' />
 				</div>
 			)
 		)

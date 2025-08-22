@@ -6,13 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, UserPlus, BarChart3 } from 'lucide-react'
 import StudentForm from '@/components/student-form'
 import { useState } from 'react'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogClose
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/')({
 	component: RouteComponent
