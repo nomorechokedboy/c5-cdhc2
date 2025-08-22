@@ -35,7 +35,7 @@ function RouteComponent() {
 		companies.find((c) => c.id === selectedCompanyId) || null
 	const classes = selectedCompany ? selectedCompany.classes : []
 	const selectedClass =
-		classes.find((cls) => cls.id === selectedClassId) || null
+		classes?.find((cls) => cls.id === selectedClassId) || null
 
 	// Handle filter button click
 	const handleFilter = () => {

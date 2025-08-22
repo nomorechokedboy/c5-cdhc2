@@ -1,6 +1,5 @@
 import React from 'react'
-import useGetStudentsByLevel from '@/hooks/useGetSutdentsByLevel'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import StudentTable from '@/components/student-table'
 import { SidebarInset } from '@/components/ui/sidebar'
 import type { StudentQueryParams } from '@/types'
@@ -35,7 +34,7 @@ function RouteComponent() {
 		companies.find((c) => c.id === selectedCompanyId) || null
 	const classes = selectedCompany ? selectedCompany.classes : []
 	const selectedClass =
-		classes.find((cls) => cls.id === selectedClassId) || null
+		classes?.find((cls) => cls.id === selectedClassId) || null
 
 	// Handle filter button click
 	const handleFilter = () => {
