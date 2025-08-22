@@ -8,8 +8,8 @@ import { DataTable } from '../data-table'
 import { columns } from '@/components/student-table/columns'
 import { EhtnicOptions } from '@/data/ethnics'
 import { EduLevelOptions } from '@/components/data-table/data/data'
-import SpinnerCircle2 from '../spinner-08'
 import useExportButton from '@/hooks/useExportButton'
+import TableSkeleton from '../table-skeleton'
 
 interface StudentTableProps {
 	params: StudentQueryParams
@@ -30,11 +30,7 @@ export default function StudentTable({ params, filename }: StudentTableProps) {
 	})
 
 	if (isLoadingStudents) {
-		return (
-			<div className='flex h-full items-center justify-center'>
-				<SpinnerCircle2 />
-			</div>
-		)
+		return <TableSkeleton />
 	}
 
 	/* const handleFormSuccess = () => {

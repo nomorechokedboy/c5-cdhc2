@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ThongKeChinhTriRouteImport } from './routes/thong-ke-chinh-tri'
-import { Route as StudentsRouteImport } from './routes/students'
 import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HcyuRouteImport } from './routes/hcyu'
@@ -19,7 +18,6 @@ import { Route as CpvRouteImport } from './routes/cpv'
 import { Route as ChuyenDangChinhThucRouteImport } from './routes/chuyen-dang-chinh-thuc'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ClassesIndexRouteImport } from './routes/classes/index'
 import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
@@ -27,11 +25,6 @@ import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 const ThongKeChinhTriRoute = ThongKeChinhTriRouteImport.update({
   id: '/thong-ke-chinh-tri',
   path: '/thong-ke-chinh-tri',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudentsRoute = StudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReligionRoute = ReligionRouteImport.update({
@@ -74,11 +67,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClassesIndexRoute = ClassesIndexRouteImport.update({
-  id: '/classes/',
-  path: '/classes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
   id: '/tieu-doan/$alias',
   path: '/tieu-doan/$alias',
@@ -104,12 +92,10 @@ export interface FileRoutesByFullPath {
   '/hcyu': typeof HcyuRoute
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
-  '/students': typeof StudentsRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
-  '/classes': typeof ClassesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,12 +106,10 @@ export interface FileRoutesByTo {
   '/hcyu': typeof HcyuRoute
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
-  '/students': typeof StudentsRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
-  '/classes': typeof ClassesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -137,12 +121,10 @@ export interface FileRoutesById {
   '/hcyu': typeof HcyuRoute
   '/login': typeof LoginRoute
   '/religion': typeof ReligionRoute
-  '/students': typeof StudentsRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
-  '/classes/': typeof ClassesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,12 +137,10 @@ export interface FileRouteTypes {
     | '/hcyu'
     | '/login'
     | '/religion'
-    | '/students'
     | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
-    | '/classes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,12 +151,10 @@ export interface FileRouteTypes {
     | '/hcyu'
     | '/login'
     | '/religion'
-    | '/students'
     | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
-    | '/classes'
   id:
     | '__root__'
     | '/'
@@ -187,12 +165,10 @@ export interface FileRouteTypes {
     | '/hcyu'
     | '/login'
     | '/religion'
-    | '/students'
     | '/thong-ke-chinh-tri'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
-    | '/classes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,12 +180,10 @@ export interface RootRouteChildren {
   HcyuRoute: typeof HcyuRoute
   LoginRoute: typeof LoginRoute
   ReligionRoute: typeof ReligionRoute
-  StudentsRoute: typeof StudentsRoute
   ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
-  ClassesIndexRoute: typeof ClassesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,13 +193,6 @@ declare module '@tanstack/react-router' {
       path: '/thong-ke-chinh-tri'
       fullPath: '/thong-ke-chinh-tri'
       preLoaderRoute: typeof ThongKeChinhTriRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/students': {
-      id: '/students'
-      path: '/students'
-      fullPath: '/students'
-      preLoaderRoute: typeof StudentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/religion': {
@@ -284,13 +251,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/classes/': {
-      id: '/classes/'
-      path: '/classes'
-      fullPath: '/classes'
-      preLoaderRoute: typeof ClassesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tieu-doan/$alias': {
       id: '/tieu-doan/$alias'
       path: '/tieu-doan/$alias'
@@ -324,12 +284,10 @@ const rootRouteChildren: RootRouteChildren = {
   HcyuRoute: HcyuRoute,
   LoginRoute: LoginRoute,
   ReligionRoute: ReligionRoute,
-  StudentsRoute: StudentsRoute,
   ThongKeChinhTriRoute: ThongKeChinhTriRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
-  ClassesIndexRoute: ClassesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

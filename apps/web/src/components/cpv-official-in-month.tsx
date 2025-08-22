@@ -23,6 +23,7 @@ import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 import useExportButton from '@/hooks/useExportButton'
+import TableSkeleton from './table-skeleton'
 
 export default function CpvOfficialInMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -39,7 +40,7 @@ export default function CpvOfficialInMonth() {
 	})
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const searchConfig = [

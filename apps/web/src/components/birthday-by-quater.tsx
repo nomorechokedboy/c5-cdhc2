@@ -23,6 +23,7 @@ import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import { getCurrentQuarter } from '@/lib/utils'
 import useExportButton from '@/hooks/useExportButton'
+import TableSkeleton from './table-skeleton'
 
 export default function BirthdayByQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
@@ -41,7 +42,7 @@ export default function BirthdayByQuarter() {
 	})
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const searchConfig = [

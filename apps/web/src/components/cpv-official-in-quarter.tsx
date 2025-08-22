@@ -20,6 +20,7 @@ import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 import useExportButton from '@/hooks/useExportButton'
 import { getCurrentQuarter } from '@/lib/utils'
+import TableSkeleton from './table-skeleton'
 
 export default function CpvOfficialInQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
@@ -38,7 +39,7 @@ export default function CpvOfficialInQuarter() {
 	})
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const searchConfig = [

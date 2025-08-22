@@ -13,6 +13,7 @@ import StudentForm from './student-form'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import useExportButton from '@/hooks/useExportButton'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
+import TableSkeleton from './table-skeleton'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -55,7 +56,7 @@ export default function CompanyStudentTable({
 	const unitClasses = unit?.classes
 
 	if (isLoadingStudents) {
-		return <div>Loading...</div>
+		return <TableSkeleton />
 	}
 
 	const militaryRankSet = new Set(
