@@ -1,33 +1,22 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import cdhc2Logo from '@/assets/cdhc2.png'
+import { useAppForm } from '@/hooks/demo.form'
+import useAuth from '@/hooks/useAuth'
 
 export function LoginForm() {
-	const navigate = useNavigate()
-	const { login } = useAuth()
-	const [username, setUsername] = useState('')
-	const [password, setPassword] = useState('')
-	const [error, setError] = useState('')
+	const { login, loginError } = useAuth()
 
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault()
-		//  Đăng nhập giả lập
-		if (username === 'admin' && password === 'admin') {
-			login()
-			setError('')
-			navigate({
-				to: '/dai-doi/$companyAlias',
-				params: { companyAlias: 'c5' }
-			})
-			//  Gọi API ở đây sau này
-			// fetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) })
-		} else {
-			setError('Tên đăng nhập hoặc mật khẩu không đúng.')
+	const form = useAppForm({
+		defaultValues: {
+			username: '',
+			password: ''
+		},
+		onSubmit: async ({ value }) => {
+			console.log('Form submitted with values:', value)
+			login(value)
 		}
-	}
+	})
 
 	return (
 		<div className='w-screen h-screen flex flex-col items-center bg-gray-100 overflow-auto'>
@@ -62,47 +51,73 @@ export function LoginForm() {
 						</p>
 					</CardHeader>
 					<CardContent>
-						<form onSubmit={handleSubmit} className='space-y-4'>
-							<div>
-								<label className='block font-medium mb-1'>
-									Tên đăng nhập
-								</label>
-								<input
-									type='text'
-									className='w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-300 outline-none'
-									placeholder='Tên đăng nhập'
-									value={username}
-									onChange={(e) =>
-										setUsername(e.target.value)
-									}
-								/>
-							</div>
-							<div>
-								<label className='block font-medium mb-1'>
-									Mật khẩu
-								</label>
-								<input
-									type='password'
-									className='w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-300 outline-none'
-									placeholder='Mật khẩu'
-									value={password}
-									onChange={(e) =>
-										setPassword(e.target.value)
-									}
-								/>
-							</div>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								form.handleSubmit()
+							}}
+							className='space-y-4'
+						>
+							<form.AppField
+								name='username'
+								validators={{
+									onBlur: ({ value }) =>
+										!value
+											? 'Tên đăng nhập là bắt buộc'
+											: undefined
+								}}
+							>
+								{(field) => (
+									<field.TextField label='Tên đăng nhập' />
+								)}
+							</form.AppField>
+
+							<form.AppField
+								name='password'
+								validators={{
+									onBlur: ({ value }) =>
+										!value
+											? 'Mật khẩu là bắt buộc'
+											: undefined
+								}}
+							>
+								{(field) => (
+									<field.TextField
+										type='password'
+										label='Mật khẩu'
+									/>
+								)}
+							</form.AppField>
+
 							<div className='text-sm text-blue-600 hover:underline cursor-pointer'>
 								Quên mật khẩu?
 							</div>
-							{error && (
-								<p className='text-red-600 text-sm'>{error}</p>
+
+							{loginError && (
+								<p className='text-red-600 text-sm'>
+									{loginError.message ||
+										'Tên đăng nhập hoặc mật khẩu không đúng.'}
+								</p>
 							)}
-							<Button
-								type='submit'
-								className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-md'
-							>
-								Đăng nhập
-							</Button>
+
+							<form.Subscribe
+								selector={(state) => [
+									state.canSubmit,
+									state.isSubmitting
+								]}
+								children={([canSubmit, isSubmitting]) => (
+									<Button
+										type='submit'
+										disabled={!canSubmit}
+										className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-md disabled:opacity-50'
+									>
+										{isSubmitting
+											? 'Đang đăng nhập...'
+											: 'Đăng nhập'}
+									</Button>
+								)}
+							/>
 						</form>
 					</CardContent>
 				</Card>
