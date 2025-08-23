@@ -1,15 +1,12 @@
 import dotenv from 'dotenv'
+import * as v from 'valibot'
 
 dotenv.config()
 
-export type AppConfig = {
-	PORT?: string
-	HASH_SECRET: string
-	JWT_PRIVATE_KEY: string
-}
+const AppConfigSchema = v.object({
+	PORT: v.optional(v.string(), '8080'),
+	HASH_SECRET: v.string(),
+	JWT_PRIVATE_KEY: v.string()
+})
 
-export const appConfig: AppConfig = {
-	PORT: process.env.PORT || '8080',
-	HASH_SECRET: process.env.HASH_SECRET,
-	JWT_PRIVATE_KEY: process.env.JWT_PRIVATE_KEY
-}
+export const appConfig = v.parse(AppConfigSchema, process.env)
