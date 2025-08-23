@@ -1,4 +1,4 @@
-import { useSidebar } from '@/components/ui/sidebar'
+import { SidebarFooter, useSidebar } from '@/components/ui/sidebar'
 import type * as React from 'react'
 import {
 	UserPlus,
@@ -40,6 +40,7 @@ import {
 import useUnitsData from '@/hooks/useUnitsData'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from './app-sidebar-skeleton'
+import { ThemeToggle } from './theme-toggle'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -355,6 +356,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				))}
 			</SidebarContent>
 			<SidebarRail />
+			<SidebarFooter>
+				<div className='w-full flex items-center'>
+					<div className='self-end'>
+						<ThemeToggle />
+					</div>
+				</div>
+			</SidebarFooter>
 		</Sidebar>
 	)
 }
