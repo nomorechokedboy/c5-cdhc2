@@ -35,7 +35,8 @@
 		"encore.dev": "^1.48.11",
 		"jsonwebtoken": "^9.0.2",
 		"node": "link:@libsql/client/node",
-		"uuid": "^11.1.0"
+		"uuid": "^11.1.0",
+		"valibot": "^1.1.0"
 	},
 	"optionalDependencies": {
 		"@rollup/rollup-linux-x64-gnu": "^4.13.0"
