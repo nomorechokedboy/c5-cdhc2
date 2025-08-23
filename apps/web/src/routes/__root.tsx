@@ -118,8 +118,8 @@ function RootLayout() {
 					<Outlet />
 				</div>
 			</SidebarProvider>
-			{/* <TanStackRouterDevtools />
-			<TanStackQueryLayout /> */}
+			<TanStackRouterDevtools />
+			<TanStackQueryLayout />
 		</>
 	)
 }
