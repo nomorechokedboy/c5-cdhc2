@@ -248,3 +248,18 @@ export type PoliticsQualityReport = {
 	religion: BasePoliticsQualitySummary
 	total: number
 }
+
+export type AppTheme =
+	| 'light'
+	| 'dark'
+	| 'system'
+	| 'blue'
+	| 'green'
+	| 'purple'
+	| 'orange'
+	| 'red'
+	| 'stone'
+	| 'zinc'
+	| 'gray'
+	| 'slate'
+	| 'none'
