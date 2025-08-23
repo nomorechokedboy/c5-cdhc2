@@ -73,6 +73,16 @@ export function PoliticalQualityDashboard() {
 		'overview' | 'detailed' | 'charts'
 	>('overview')
 
+	const totalPersonnel = transformData
+		.map((unit) => unit.politicsQualityReport?.total ?? 0)
+		.reduce((accum, curr) => accum + curr, 0)
+	const totalUnit = (politicsQualityData?.unit?.children?.length ?? 0) + 1
+	const totalChildrenClasses =
+		politicsQualityData?.unit?.children
+			?.map((u) => u.classes.length ?? 0)
+			.reduce((accum, curr) => accum + curr, 0) ?? 0
+	const totalUnitClasses = politicsQualityData?.unit?.classes?.length ?? 0
+
 	return (
 		<div className='container mx-auto p-6 space-y-6'>
 			{/* Key Metrics */}
@@ -86,12 +96,7 @@ export function PoliticalQualityDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-blue-900'>
-							{transformData
-								.map(
-									(unit) =>
-										unit.politicsQualityReport?.total ?? 0
-								)
-								.reduce((accum, curr) => accum + curr, 0)}
+							{totalPersonnel}
 						</div>
 						<p className='text-xs text-muted-foreground'>
 							Toàn đơn vị
@@ -108,8 +113,7 @@ export function PoliticalQualityDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-green-900'>
-							{(politicsQualityData?.unit.children.length ?? 0) +
-								1}
+							{totalUnit}
 						</div>
 						<p className='text-xs text-muted-foreground'>Đơn vị</p>
 					</CardContent>
@@ -124,9 +128,7 @@ export function PoliticalQualityDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-green-900'>
-							{politicsQualityData?.unit.children
-								.map((u) => u.classes.length ?? 0)
-								.reduce((accum, curr) => accum + curr, 0)}
+							{totalChildrenClasses + totalUnitClasses}
 						</div>
 						<p className='text-xs text-muted-foreground'>Lớp</p>
 					</CardContent>
