@@ -33,6 +33,8 @@ const COLORS = [
 	'#FF6666'
 ]
 
+const politicalOrgNameMapping = { cpv: 'Đảng', hcyu: 'Đoàn' }
+
 export function ChartsSection({ data }: ChartsSectionProps) {
 	const units = data
 
@@ -89,6 +91,28 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 		)
 	)
 
+	const ethnicKeys = Array.from(
+		new Set(
+			units.flatMap((u) => [
+				...Object.keys(u.politicsQualityReport?.ethnic ?? {}),
+				...(u.classes?.flatMap((c) =>
+					Object.keys(c.politicsQualityReport?.ethnic ?? {})
+				) ?? [])
+			])
+		)
+	)
+
+	const politicalOrgKeys = Array.from(
+		new Set(
+			units.flatMap((u) => [
+				...Object.keys(u.politicsQualityReport?.politicalOrg ?? {}),
+				...(u.classes?.flatMap((c) =>
+					Object.keys(c.politicsQualityReport?.politicalOrg ?? {})
+				) ?? [])
+			])
+		)
+	)
+
 	/**
 	 * Aggregate religion counts
 	 */
@@ -124,6 +148,40 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 	const educationData = eduKeys.map((name, idx) => ({
 		name,
 		value: eduAgg[name] || 0,
+		color: COLORS[idx % COLORS.length]
+	}))
+
+	const ethnicAgg: Record<string, number> = {}
+	units.forEach((u) => {
+		u.classes?.forEach((cls) => {
+			Object.entries(cls.politicsQualityReport?.ethnic ?? {}).forEach(
+				([key, val]) => {
+					ethnicAgg[key] = (ethnicAgg[key] || 0) + val
+				}
+			)
+		})
+	})
+	const ethnicData = ethnicKeys.map((name, idx) => ({
+		name,
+		value: ethnicAgg[name] || 0,
+		color: COLORS[idx % COLORS.length]
+	}))
+
+	const politicalOrgAgg: Record<string, number> = {}
+	units.forEach((u) => {
+		u.classes?.forEach((cls) => {
+			Object.entries(
+				cls.politicsQualityReport?.politicalOrg ?? {}
+			).forEach(([key, val]) => {
+				politicalOrgAgg[key] = (politicalOrgAgg[key] || 0) + val
+			})
+		})
+	})
+	const politicalOrgData = politicalOrgKeys.map((name, idx) => ({
+		name: politicalOrgNameMapping[
+			name as keyof typeof politicalOrgNameMapping
+		],
+		value: politicalOrgAgg[name],
 		color: COLORS[idx % COLORS.length]
 	}))
 
@@ -175,86 +233,74 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 			</Card>
 
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+				<PieChartCard data={ethnicData} title='Phân bố dân tộc' />
+
 				{/* Religion Distribution */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Phân bố tôn giáo</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<ChartContainer
-							config={{ value: { label: 'Số lượng' } }}
-							className='h-[300px]'
-						>
-							<ResponsiveContainer width='100%' height='100%'>
-								<PieChart>
-									<Pie
-										data={religionData}
-										cx='50%'
-										cy='50%'
-										labelLine={false}
-										label={({ name, percent }) =>
-											`${name} ${(percent * 100).toFixed(0)}%`
-										}
-										outerRadius={80}
-										fill='#8884d8'
-										dataKey='value'
-									>
-										{religionData.map((entry, index) => (
-											<Cell
-												key={`cell-${index}`}
-												fill={entry.color}
-											/>
-										))}
-									</Pie>
-									<ChartTooltip
-										content={<ChartTooltipContent />}
-									/>
-								</PieChart>
-							</ResponsiveContainer>
-						</ChartContainer>
-					</CardContent>
-				</Card>
+				<PieChartCard data={religionData} title='Phân bố tôn giáo' />
 
 				{/* Education Level Distribution */}
-				<Card>
-					<CardHeader>
-						<CardTitle>Phân bố trình độ văn hóa</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<ChartContainer
-							config={{ value: { label: 'Số lượng' } }}
-							className='h-[300px]'
-						>
-							<ResponsiveContainer width='100%' height='100%'>
-								<PieChart>
-									<Pie
-										data={educationData}
-										cx='50%'
-										cy='50%'
-										labelLine={false}
-										label={({ name, percent }) =>
-											`${name} ${(percent * 100).toFixed(0)}%`
-										}
-										outerRadius={80}
-										fill='#8884d8'
-										dataKey='value'
-									>
-										{educationData.map((entry, index) => (
-											<Cell
-												key={`cell-${index}`}
-												fill={entry.color}
-											/>
-										))}
-									</Pie>
-									<ChartTooltip
-										content={<ChartTooltipContent />}
-									/>
-								</PieChart>
-							</ResponsiveContainer>
-						</ChartContainer>
-					</CardContent>
-				</Card>
+				<PieChartCard
+					title='Phân bố trình độ văn hóa'
+					data={educationData}
+				/>
+
+				<PieChartCard
+					data={politicalOrgData}
+					title='Phân bố Đoàn/Đảng'
+				/>
 			</div>
 		</div>
+	)
+}
+
+type PieChartData = {
+	name: string
+	value: number
+	color: string
+}
+
+type PieChartCardProps = {
+	title: string
+	data: PieChartData[]
+}
+
+function PieChartCard({ data, title }: PieChartCardProps) {
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>{title}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<ChartContainer
+					config={{ value: { label: 'Số lượng' } }}
+					className='h-[300px]'
+				>
+					<ResponsiveContainer width='100%' height='100%'>
+						<PieChart>
+							<Pie
+								data={data}
+								cx='50%'
+								cy='50%'
+								labelLine={false}
+								label={({ name, percent }) =>
+									`${name} ${(percent * 100).toFixed(0)}%`
+								}
+								outerRadius={80}
+								fill='#8884d8'
+								dataKey='value'
+							>
+								{data.map((entry, index) => (
+									<Cell
+										key={`cell-${index}`}
+										fill={entry.color}
+									/>
+								))}
+							</Pie>
+							<ChartTooltip content={<ChartTooltipContent />} />
+						</PieChart>
+					</ResponsiveContainer>
+				</ChartContainer>
+			</CardContent>
+		</Card>
 	)
 }
