@@ -1,5 +1,10 @@
 import { api, APIError } from 'encore.dev/api'
-import { StudentCronEvent, StudentDB, StudentParam } from '../schema/student.js'
+import {
+	ExcelTemplateData,
+	StudentCronEvent,
+	StudentDB,
+	StudentParam
+} from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
 import notificationController from '../notifications/controller.js'
@@ -14,6 +19,7 @@ import path from 'path'
 import { AppError } from '../errors/index.js'
 import { Unit } from '../units/units.js'
 import { notiTopic } from '../topics/index.js'
+import * as v from 'valibot'
 
 interface ChildrenInfo {
 	fullName: string
@@ -205,7 +211,10 @@ export const UpdateStudents = api(
 	}
 )
 
-async function getTypedRequestBody<T>(req: any): Promise<T> {
+async function getTypedRequestBody<T>(
+	req: any,
+	schema: v.BaseSchema<unknown, T, v.BaseIssue<unknown>>
+): Promise<T> {
 	const chunks: Buffer[] = []
 
 	req.on('data', (chunk: Buffer) => {
@@ -220,75 +229,78 @@ async function getTypedRequestBody<T>(req: any): Promise<T> {
 	const body = Buffer.concat(chunks).toString('utf-8')
 
 	try {
-		const parsedBody = JSON.parse(body) as T
-		return parsedBody
+		const rawBody = JSON.parse(body)
+
+		// Validate and parse using valibot schema
+		const result = v.safeParse(schema, rawBody)
+
+		if (!result.success) {
+			log.error('Request body validation failed', {
+				issues: result.issues,
+				body: rawBody
+			})
+			throw AppError.invalidArgument(
+				`Invalid request body: ${result.issues.map((issue) => issue.message).join(', ')}`
+			)
+		}
+
+		return result.output
 	} catch (error) {
-		throw AppError.invalidArgument('Invalid JSON body')
+		if (error instanceof SyntaxError) {
+			log.error('Invalid JSON in request body', { error, body })
+			throw AppError.invalidArgument('Invalid JSON body')
+		}
+		// Re-throw validation errors and other custom errors
+		throw error
 	}
 }
 
-type ExportStudentDataRequest = {
-	[k: string]: string
-}[]
+const ExportStudentDataRequestSchema = v.object({
+	city: v.string(),
+	commanderName: v.string(),
+	commanderPosition: v.string(),
+	commanderRank: v.string(),
+	data: v.pipe(v.array(v.record(v.string(), v.string())), v.minLength(1)),
+	date: v.string(),
+	reportTitle: v.string(),
+	underUnitName: v.string(),
+	unitName: v.string()
+})
 
 export const ExportStudentData = api.raw(
 	{ expose: true, method: 'POST', path: '/students/export' },
 	async (req, resp) => {
-		const data = [
-			{
-				fullName: 'Đinh Bá Phong',
-				birthPlace: 'Phường Thanh Bình, Tp. Hải Dương, tỉnh Hải Dương',
-				address: 'Phường Thanh Bình, Tp. Hải Dương, tỉnh Hải Dương',
-				dob: '2002-02-26',
-				rank: 'Binh nhất',
-				previousUnit: 'Quân đoàn 12',
-				previousPosition: 'Công vụ',
-				position: 'Học viên',
-				ethnic: 'Kinh',
-				religion: 'Không',
-				enlistmentPeriod: '2023-06-02',
-				talent: 'Đá bóng',
-				isMarried: false
-			}
-		]
-
-		const columnLabels: Record<string, string> = {
-			fullName: 'Họ và tên',
-			dob: 'Ngày sinh',
-			birthPlace: 'Nơi sinh',
-			address: 'Địa chỉ',
-			rank: 'Cấp bậc',
-			position: 'Chức vụ',
-			previousUnit: 'Đơn vị cũ',
-			previousPosition: 'Chức vụ cũ',
-			ethnic: 'Dân tộc',
-			religion: 'Tôn giáo',
-			educationLevel: 'Trình độ học vấn',
-			fatherName: 'Tên cha',
-			motherName: 'Tên mẹ',
-			isMarried: 'Tình trạng hôn nhân',
-			classId: 'Lớp'
-		}
-
 		try {
-			const body =
-				await getTypedRequestBody<ExportStudentDataRequest>(req)
+			const body = await getTypedRequestBody(
+				req,
+				ExportStudentDataRequestSchema
+			)
+
 			log.info('ExportStudentData request body: ', { body })
+			const {
+				city,
+				data,
+				date,
+				underUnitName,
+				reportTitle,
+				unitName,
+				commanderPosition,
+				commanderName,
+				commanderRank
+			} = body
 
 			// Read the template file
 			const templatePath = path.join(
 				'./templates',
-				'dynamic-columns-with-dynamic-rows.docx'
+				'dynamic-docx-template.docx'
 			)
 			const template = await readFile(templatePath)
 
 			// Prepare data for template
-			const selectedColumns = Object.keys(body[0] || {})
-
-			// Prepare columns data (headers)
+			const selectedColumns = Object.keys(data[0] || {})
 
 			// Prepare rows data
-			const rows = body.map((student) => {
+			const rows = data.map((student) => {
 				// Create an array of cell values in the same order as columns
 				const cellValues = selectedColumns.map((col) => {
 					let cellValue = student[col]
@@ -311,16 +323,30 @@ export const ExportStudentData = api.raw(
 				return cellValues
 			})
 
+			const dateObj = dayjs(date)
+			const day = dateObj.format('DD')
+			const month = dateObj.format('MM')
+			const year = dateObj.year()
+
+			const templateData: ExcelTemplateData = {
+				city,
+				columns: selectedColumns,
+				commanderName,
+				commanderPosition,
+				commanderRank,
+				day,
+				month,
+				reportTitle,
+				rows: data,
+				underUnitName,
+				unitName,
+				year
+			}
+
 			// Generate the report
 			const buffer = await createReport({
 				template,
-				data: {
-					/* reportTitle: 'BÁO CÁO DANH SÁCH HỌC VIÊN',
-                        reportDate: new Date().toLocaleDateString('vi-VN'),
-                        totalRecords: 2, */
-					columns: selectedColumns,
-					rows: body
-				},
+				data: templateData,
 				cmdDelimiter: ['{', '}']
 			})
 
@@ -331,6 +357,8 @@ export const ExportStudentData = api.raw(
 			resp.writeHead(200, { Connection: 'close' })
 			return resp.end(buffer)
 		} catch (err) {
+			console.error('SOS', err)
+
 			log.error('Template processing error', { err })
 			throw APIError.internal('Internal error for exporting file')
 		}
