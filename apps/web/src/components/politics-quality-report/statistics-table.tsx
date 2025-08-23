@@ -25,40 +25,32 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 	const renderRow = (
 		name: string,
 		report: UnitPoliticsQualitySummary['politicsQualityReport'] | null,
-		isChild: boolean = false
+		depth: number = 0
 	) => (
-		<TableRow>
+		<TableRow key={name}>
 			<TableCell
-				className={`font-medium sticky left-0 border-r ${
-					isChild ? 'pl-8 bg-gray-50' : 'bg-white'
-				}`}
+				className={`font-medium sticky left-0 border-r ${depth > 0 ? 'bg-gray-50' : 'bg-white'}  ${depth === 1 && 'pl-4'} ${depth === 2 && 'pl-6'}`}
 			>
 				{name}
 			</TableCell>
 			<TableCell className='text-center'>{report?.total ?? 0}</TableCell>
 
-			{/* Dynamic ethnic */}
 			{ethnicKeys.map((key) => (
 				<TableCell key={key} className='text-center'>
 					{report?.ethnic[key] ?? 0}
 				</TableCell>
 			))}
-
-			{/* Dynamic religion */}
 			{religionKeys.map((key) => (
 				<TableCell key={key} className='text-center'>
 					{report?.religion[key] ?? 0}
 				</TableCell>
 			))}
-
-			{/* Dynamic education */}
 			{educationKeys.map((key) => (
 				<TableCell key={key} className='text-center'>
 					{report?.educationLevel[key] ?? 0}
 				</TableCell>
 			))}
 
-			{/* Static placeholders */}
 			<TableCell className='text-center'>
 				{report?.politicalOrg['cpv'] ?? 0}
 			</TableCell>
@@ -70,6 +62,30 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 			<TableCell className='text-center'>0</TableCell>
 		</TableRow>
 	)
+
+	const renderEntity = (
+		entity:
+			| UnitPoliticsQualitySummary
+			| UnitPoliticsQualitySummary['classes'][number],
+		depth: number = 0
+	): React.ReactNode[] => {
+		const rows: React.ReactNode[] = []
+		rows.push(renderRow(entity.name, entity.politicsQualityReport, depth))
+
+		if (entity.classes) {
+			entity.classes.forEach((cls) =>
+				rows.push(...renderEntity(cls, depth + 1))
+			)
+		}
+
+		if (entity.children) {
+			entity.children.forEach((child) =>
+				rows.push(...renderEntity(child, depth + 1))
+			)
+		}
+
+		return rows
+	}
 
 	return (
 		<Card>
@@ -176,22 +192,7 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 						</TableHeader>
 
 						<TableBody>
-							{data.map((unit, index) => (
-								<>
-									{renderRow(
-										unit.name,
-										unit.politicsQualityReport,
-										false
-									)}
-									{unit.classes?.map((cls, idx) =>
-										renderRow(
-											cls.name,
-											cls.politicsQualityReport,
-											true
-										)
-									)}
-								</>
-							))}
+							{data.flatMap((unit) => renderEntity(unit))}
 						</TableBody>
 					</Table>
 				</div>

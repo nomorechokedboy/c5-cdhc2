@@ -1,27 +1,66 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-	Download,
-	FileSpreadsheet,
-	TrendingUp,
-	Users,
-	Award,
-	Target,
-	School
-} from 'lucide-react'
+import { FileSpreadsheet, Users, Target, School, Download } from 'lucide-react'
 import { StatisticsTable } from './statistics-table'
 import { ChartsSection } from './charts-section'
 import { ExportButton } from './export-button'
 import { useQuery } from '@tanstack/react-query'
-import { GetPoliticsQualityReport, requestClient } from '@/api'
+import { GetPoliticsQualityReport } from '@/api'
 import { transformPoliticsQualityData } from '@/lib/utils'
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger
 } from '@/components/ui/tooltip'
+
+// Recursive renderer for children + classes
+function UnitBlock({
+	unit
+}: {
+	unit: {
+		name: string
+		politicsQualityReport: any
+		classes?: any[]
+		children?: any[]
+	}
+}) {
+	return (
+		<div className='flex flex-col gap-4 p-4 border rounded-lg'>
+			<div>
+				<h3 className='font-semibold'>{unit.name}</h3>
+				<p className='text-sm text-muted-foreground'>
+					Tổng quân số: {unit.politicsQualityReport?.total ?? 0}
+				</p>
+			</div>
+
+			{/* Render classes */}
+			{unit.classes &&
+				unit.classes.map((cls) => (
+					<div
+						key={cls.name}
+						className='flex items-center justify-between p-4 border rounded-lg ml-4'
+					>
+						<div>
+							<h4 className='font-medium'>{cls.name}</h4>
+							<p className='text-sm text-muted-foreground'>
+								Tổng quân số:{' '}
+								{cls.politicsQualityReport?.total ?? 0}
+							</p>
+						</div>
+					</div>
+				))}
+
+			{/* Render children recursively */}
+			{unit.children &&
+				unit.children.map((child) => (
+					<div key={child.name} className='ml-4'>
+						<UnitBlock unit={child} />
+					</div>
+				))}
+		</div>
+	)
+}
 
 export function PoliticalQualityDashboard() {
 	const { data: politicsQualityData } = useQuery({
@@ -69,7 +108,8 @@ export function PoliticalQualityDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-green-900'>
-							{transformData.length}
+							{(politicsQualityData?.unit.children.length ?? 0) +
+								1}
 						</div>
 						<p className='text-xs text-muted-foreground'>Đơn vị</p>
 					</CardContent>
@@ -84,47 +124,13 @@ export function PoliticalQualityDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-green-900'>
-							{transformData
-								.map((unit) => unit.classes?.length ?? 0)
+							{politicsQualityData?.unit.children
+								.map((u) => u.classes.length ?? 0)
 								.reduce((accum, curr) => accum + curr, 0)}
 						</div>
 						<p className='text-xs text-muted-foreground'>Lớp</p>
 					</CardContent>
 				</Card>
-
-				{/* <Card>
-                    <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                        <CardTitle className='text-sm font-medium'>
-                            Tỷ lệ hoàn thành
-                        </CardTitle>
-                        <TrendingUp className='h-4 w-4 text-orange-600' />
-                    </CardHeader>
-                    <CardContent>
-                        <div className='text-2xl font-bold text-orange-900'>
-                            {reportData.summary.completionRate}%
-                        </div>
-                        <p className='text-xs text-muted-foreground'>
-                            Chất lượng chính trị
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                        <CardTitle className='text-sm font-medium'>
-                            Tỷ lệ xuất sắc
-                        </CardTitle>
-                        <Award className='h-4 w-4 text-purple-600' />
-                    </CardHeader>
-                    <CardContent>
-                        <div className='text-2xl font-bold text-purple-900'>
-                            {reportData.summary.excellentRate}%
-                        </div>
-                        <p className='text-xs text-muted-foreground'>
-                            Đánh giá cao
-                        </p>
-                    </CardContent>
-                </Card> */}
 			</div>
 
 			{/* Navigation Tabs */}
@@ -165,60 +171,7 @@ export function PoliticalQualityDashboard() {
 						<CardContent>
 							<div className='space-y-4'>
 								{transformData.map((unit, index) => (
-									<div
-										key={index}
-										className='flex flex-col gap-4 justify-between p-4 border rounded-lg'
-									>
-										<div>
-											<h3 className='font-semibold'>
-												{unit.name}
-											</h3>
-											<p className='text-sm text-muted-foreground'>
-												Tổng quân số:{' '}
-												{
-													unit.politicsQualityReport
-														?.total
-												}
-											</p>
-										</div>
-										{unit.classes !== undefined &&
-											unit.classes.length !== 0 &&
-											unit.classes.map((cls) => (
-												<div
-													key={cls.name}
-													className='flex items-center justify-between p-4 border rounded-lg'
-												>
-													<div>
-														<h3 className='font-semibold'>
-															{cls.name}
-														</h3>
-														<p className='text-sm text-muted-foreground'>
-															Tổng quân số:{' '}
-															{
-																cls
-																	.politicsQualityReport
-																	?.total
-															}
-														</p>
-													</div>
-												</div>
-											))}
-										{/*
-                                            <div className='flex gap-2'>
-                                                <Badge variant='secondary'>
-                                                    Học việc:{' '}
-                                                    {
-                                                        unit..phanCap
-                                                            .hocViec
-                                                    }
-                                                </Badge>
-                                                <Badge variant='outline'>
-                                                    Dân tộc Hoa:{' '}
-                                                    {unit.categories.danToc.hoa}
-                                                </Badge>
-                                            </div>
-                                        */}
-									</div>
+									<UnitBlock key={index} unit={unit} />
 								))}
 							</div>
 						</CardContent>
