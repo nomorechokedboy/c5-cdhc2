@@ -37,8 +37,6 @@ RUN pnpm install --frozen-lockfile
 # Copy the pruned source code and build
 COPY --from=builder /app/out/full/ .
 
-ENV VITE_API_URL=""
-
 # Build the web application
 RUN pnpm turbo build --filter=web
 
