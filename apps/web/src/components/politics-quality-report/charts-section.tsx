@@ -15,7 +15,7 @@ import {
 	Pie,
 	Cell
 } from 'recharts'
-import type { UnitPoliticsQualitySummary } from '@/types'
+import type { PoliticsQualityReport, UnitPoliticsQualitySummary } from '@/types'
 
 export interface ChartsSectionProps {
 	data: UnitPoliticsQualitySummary[]
@@ -39,155 +39,116 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 	const units = data
 
 	/**
-	 * Flattened rows for bar chart (unit + class)
+	 * Flatten only classes (leaf data for aggregation)
 	 */
-	const unitData = units.flatMap((unit) => {
+	const flattenClasses = (
+		entity: UnitPoliticsQualitySummary,
+		prefix: string = ''
+	): any[] => {
 		const rows: any[] = []
 
-		// Unit-level row
-		rows.push({
-			name: unit.name,
-			...(unit.politicsQualityReport ?? {})
+		entity.classes?.forEach((cls) => {
+			rows.push({
+				name: prefix ? `${prefix} - ${cls.name}` : cls.name,
+				...(cls.politicsQualityReport ?? {})
+			})
 		})
 
-		// Class-level rows
-		if (unit.classes) {
-			rows.push(
-				...unit.classes.map((cls) => ({
-					name: `${unit.name} - ${cls.name}`,
-					...(cls.politicsQualityReport ?? {})
-				}))
-			)
-		}
+		entity.children?.forEach((child) => {
+			rows.push(...flattenClasses(child, entity.name))
+		})
 
 		return rows
-	})
+	}
 
 	/**
-	 * Collect all unique keys from educationLevel for dynamic bars
+	 * Flatten all (units + classes) for BarChart
 	 */
-	const eduKeys = Array.from(
-		new Set(
-			units.flatMap((u) => [
-				...Object.keys(u.politicsQualityReport?.educationLevel ?? {}),
-				...(u.classes?.flatMap((c) =>
-					Object.keys(c.politicsQualityReport?.educationLevel ?? {})
-				) ?? [])
-			])
-		)
-	)
+	const flattenReports = (
+		entity: UnitPoliticsQualitySummary,
+		prefix: string = ''
+	): any[] => {
+		const rows: any[] = []
 
-	/**
-	 * Collect all unique keys from religion for dynamic pie chart
-	 */
-	const religionKeys = Array.from(
-		new Set(
-			units.flatMap((u) => [
-				...Object.keys(u.politicsQualityReport?.religion ?? {}),
-				...(u.classes?.flatMap((c) =>
-					Object.keys(c.politicsQualityReport?.religion ?? {})
-				) ?? [])
-			])
-		)
-	)
-
-	const ethnicKeys = Array.from(
-		new Set(
-			units.flatMap((u) => [
-				...Object.keys(u.politicsQualityReport?.ethnic ?? {}),
-				...(u.classes?.flatMap((c) =>
-					Object.keys(c.politicsQualityReport?.ethnic ?? {})
-				) ?? [])
-			])
-		)
-	)
-
-	const politicalOrgKeys = Array.from(
-		new Set(
-			units.flatMap((u) => [
-				...Object.keys(u.politicsQualityReport?.politicalOrg ?? {}),
-				...(u.classes?.flatMap((c) =>
-					Object.keys(c.politicsQualityReport?.politicalOrg ?? {})
-				) ?? [])
-			])
-		)
-	)
-
-	/**
-	 * Aggregate religion counts
-	 */
-	const religionAgg: Record<string, number> = {}
-	units.forEach((u) => {
-		u.classes?.forEach((cls) => {
-			Object.entries(cls.politicsQualityReport?.religion ?? {}).forEach(
-				([key, val]) => {
-					religionAgg[key] = (religionAgg[key] || 0) + val
-				}
-			)
+		rows.push({
+			name: prefix ? `${prefix} - ${entity.name}` : entity.name,
+			...(entity.politicsQualityReport ?? {})
 		})
-	})
+
+		entity.classes?.forEach((cls) => {
+			rows.push({
+				name: `${entity.name} - ${cls.name}`,
+				...(cls.politicsQualityReport ?? {})
+			})
+		})
+
+		entity.children?.forEach((child) => {
+			rows.push(...flattenReports(child, entity.name))
+		})
+
+		return rows
+	}
+
+	const unitData = units.flatMap((u) => flattenReports(u))
+	const classData = units.flatMap((u) => flattenClasses(u))
+
+	/**
+	 * Dynamic keys
+	 */
+	const collectKeys = (key: keyof PoliticsQualityReport) =>
+		Array.from(
+			new Set(classData.flatMap((row) => Object.keys(row[key] ?? {})))
+		)
+
+	const eduKeys = collectKeys('educationLevel')
+	const religionKeys = collectKeys('religion')
+	const ethnicKeys = collectKeys('ethnic')
+	const politicalOrgKeys = collectKeys('politicalOrg')
+
+	/**
+	 * Aggregate only class-level data (no duplication)
+	 */
+	const aggregate = (
+		key: keyof PoliticsQualityReport
+	): Record<string, number> => {
+		const agg: Record<string, number> = {}
+		classData.forEach((row) => {
+			Object.entries(row[key] ?? {}).forEach(([k, v]) => {
+				agg[k] = (agg[k] || 0) + v
+			})
+		})
+		return agg
+	}
+
 	const religionData = religionKeys.map((name, idx) => ({
 		name,
-		value: religionAgg[name] || 0,
+		value: aggregate('religion')[name] || 0,
 		color: COLORS[idx % COLORS.length]
 	}))
 
-	/**
-	 * Aggregate education counts (only classes to avoid double counting)
-	 */
-	const eduAgg: Record<string, number> = {}
-	units.forEach((u) => {
-		u.classes?.forEach((cls) => {
-			Object.entries(
-				cls.politicsQualityReport?.educationLevel ?? {}
-			).forEach(([key, val]) => {
-				eduAgg[key] = (eduAgg[key] || 0) + val
-			})
-		})
-	})
 	const educationData = eduKeys.map((name, idx) => ({
 		name,
-		value: eduAgg[name] || 0,
+		value: aggregate('educationLevel')[name] || 0,
 		color: COLORS[idx % COLORS.length]
 	}))
 
-	const ethnicAgg: Record<string, number> = {}
-	units.forEach((u) => {
-		u.classes?.forEach((cls) => {
-			Object.entries(cls.politicsQualityReport?.ethnic ?? {}).forEach(
-				([key, val]) => {
-					ethnicAgg[key] = (ethnicAgg[key] || 0) + val
-				}
-			)
-		})
-	})
 	const ethnicData = ethnicKeys.map((name, idx) => ({
 		name,
-		value: ethnicAgg[name] || 0,
+		value: aggregate('ethnic')[name] || 0,
 		color: COLORS[idx % COLORS.length]
 	}))
 
-	const politicalOrgAgg: Record<string, number> = {}
-	units.forEach((u) => {
-		u.classes?.forEach((cls) => {
-			Object.entries(
-				cls.politicsQualityReport?.politicalOrg ?? {}
-			).forEach(([key, val]) => {
-				politicalOrgAgg[key] = (politicalOrgAgg[key] || 0) + val
-			})
-		})
-	})
 	const politicalOrgData = politicalOrgKeys.map((name, idx) => ({
-		name: politicalOrgNameMapping[
-			name as keyof typeof politicalOrgNameMapping
-		],
-		value: politicalOrgAgg[name],
+		name:
+			politicalOrgNameMapping[
+				name as keyof typeof politicalOrgNameMapping
+			] ?? name,
+		value: aggregate('politicalOrg')[name] || 0,
 		color: COLORS[idx % COLORS.length]
 	}))
 
 	return (
 		<div className='space-y-6'>
-			{/* Unit + Class Personnel Chart */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Biểu đồ nhân sự theo đơn vị & lớp</CardTitle>
@@ -234,16 +195,11 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 				<PieChartCard data={ethnicData} title='Phân bố dân tộc' />
-
-				{/* Religion Distribution */}
 				<PieChartCard data={religionData} title='Phân bố tôn giáo' />
-
-				{/* Education Level Distribution */}
 				<PieChartCard
-					title='Phân bố trình độ văn hóa'
 					data={educationData}
+					title='Phân bố trình độ văn hóa'
 				/>
-
 				<PieChartCard
 					data={politicalOrgData}
 					title='Phân bố Đoàn/Đảng'
@@ -286,7 +242,6 @@ function PieChartCard({ data, title }: PieChartCardProps) {
 									`${name} ${(percent * 100).toFixed(0)}%`
 								}
 								outerRadius={80}
-								fill='#8884d8'
 								dataKey='value'
 							>
 								{data.map((entry, index) => (
