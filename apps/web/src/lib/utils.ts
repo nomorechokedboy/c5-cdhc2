@@ -7,7 +7,7 @@ import weekOfYear from 'dayjs/plugin/weekOfYear'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import { classes, type students } from '@/api/client'
+import { type students } from '@/api/client'
 import type { UnitPoliticsQualitySummary, Unit } from '@/types'
 
 dayjs.locale('vi')
@@ -46,8 +46,6 @@ export function transformPoliticsQualityData(
 		return []
 	}
 
-	const result: UnitPoliticsQualitySummary[] = []
-	const classesReport: UnitPoliticsQualitySummary[] = []
 	const { data, unit } = params
 
 	function mergeReports(
@@ -64,11 +62,13 @@ export function transformPoliticsQualityData(
 		return target
 	}
 
-	function traverse(unitNode: Unit): Record<string, any> {
+	function traverse(unitNode: Unit): UnitPoliticsQualitySummary {
 		let unitReport: Record<string, any> = {}
+		const classesReport: UnitPoliticsQualitySummary[] = []
+		const childrenReport: UnitPoliticsQualitySummary[] = []
 
 		// collect class reports
-		if (unitNode.classes) {
+		if (unitNode.classes && unitNode.classes.length > 0) {
 			for (const cls of unitNode.classes) {
 				const clsReport = data[cls.id] ?? null
 				classesReport.push({
@@ -82,25 +82,34 @@ export function transformPoliticsQualityData(
 		}
 
 		// collect children reports recursively
-		if (unitNode.children) {
+		if (unitNode.children && unitNode.children.length > 0) {
 			for (const child of unitNode.children) {
-				const childReport = traverse(child)
-				unitReport = mergeReports(unitReport, childReport)
+				const childSummary = traverse(child)
+				childrenReport.push(childSummary)
+				if (childSummary.politicsQualityReport) {
+					unitReport = mergeReports(
+						unitReport,
+						childSummary.politicsQualityReport
+					)
+				}
 			}
 		}
 
-		// push the unit itself with aggregated report
-		result.push({
+		const unitSummary: UnitPoliticsQualitySummary = {
 			name: unitNode.name,
 			politicsQualityReport:
-				Object.keys(unitReport).length > 0 ? unitReport : null,
-			classes: classesReport
-		})
+				Object.keys(unitReport).length > 0 ? unitReport : null
+		}
 
-		return unitReport
+		if (classesReport.length > 0) {
+			unitSummary.classes = classesReport
+		}
+		if (childrenReport.length > 0) {
+			unitSummary.children = childrenReport
+		}
+
+		return unitSummary
 	}
 
-	traverse(unit as unknown as Unit)
-
-	return result
+	return [traverse(unit as unknown as Unit)]
 }
