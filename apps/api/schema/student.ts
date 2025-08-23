@@ -190,3 +190,18 @@ export type PoliticsQualityRow = {
 	value: string | number
 	count: number
 }
+
+export type ExcelTemplateData = {
+	city: string
+	columns: string[]
+	commanderName: string
+	commanderPosition: string
+	commanderRank: string
+	day: string
+	month: string
+	reportTitle: string
+	rows: Record<string, string>[]
+	underUnitName: string
+	unitName: string
+	year: number
+}
