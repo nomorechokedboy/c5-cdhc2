@@ -112,7 +112,7 @@ export function ExportTableData(data: ExportData) {
 }
 
 export function GetPoliticsQualityReport() {
-	return requestClient.students.GetPoliticsQualityReport({ unitId: 7 })
+	return requestClient.students.GetPoliticsQualityReport({ unitId: 2 })
 }
 
 export function Login(req: auth.LoginRequest) {
