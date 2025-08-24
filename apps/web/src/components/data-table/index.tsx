@@ -1,8 +1,6 @@
 import {
-	type AccessorKeyColumnDef,
 	type ColumnDef,
 	type ColumnFiltersState,
-	type DisplayColumnDef,
 	type SortingState,
 	type VisibilityState,
 	flexRender,
@@ -12,7 +10,8 @@ import {
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	useReactTable
+	useReactTable,
+	type Table as TanStackTable
 } from '@tanstack/react-table'
 import {
 	Table,
@@ -28,13 +27,13 @@ import {
 	type DataTableToolbarProps
 } from './data-table-toolbar'
 import { type ComponentType, useEffect, useState } from 'react'
-import { Button } from '../ui/button'
-import { ArrowDownToLine } from 'lucide-react'
-import type { ExportData } from '@/types'
-import { toast } from 'sonner'
-import { BaseSchema } from './data/schema'
-import { AxiosError } from 'axios'
 import type { QueryObserverResult } from '@tanstack/react-query'
+import type { DataTableExportHook } from '@/hooks/useDataTableExport'
+import useDataTableExport from '@/hooks/useDataTableExport'
+import { toast } from 'sonner'
+import { AxiosError } from 'axios'
+import { BaseSchema } from './data/schema'
+import { Button } from '../ui/button'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -52,18 +51,16 @@ interface DataTableProps<TData, TValue> {
 	pagination?: boolean
 	toolbarVisible?: boolean
 	placeholder?: string
-	exportButtonProps?: {
-		hidden?: boolean
-		onExport?: (data: ExportData) => void
-	}
 	onDeleteRows?: (
 		ids: number[]
 	) => Promise<QueryObserverResult<TData[], unknown>>
+	renderToolbarActions?: (params: {
+		table: TanStackTable<TData>
+		exportHook: DataTableExportHook
+	}) => React.ReactNode
 }
 
 type ViewMode = 'table' | 'card'
-
-type AccessorColumn<T> = AccessorKeyColumnDef<T, any> | DisplayColumnDef<T, any>
 
 export function DataTable<TData, TValue>({
 	cardClassName = '',
@@ -77,8 +74,8 @@ export function DataTable<TData, TValue>({
 	pagination = true,
 	toolbarVisible = true,
 	placeholder = 'Không có dữ liệu nào',
-	exportButtonProps = { hidden: true, onExport: undefined },
-	onDeleteRows
+	onDeleteRows,
+	renderToolbarActions
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = useState({})
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -111,55 +108,78 @@ export function DataTable<TData, TValue>({
 		getFacetedUniqueValues: getFacetedUniqueValues()
 	})
 
-	const excludeKeys = ['actions', 'select']
-	const getVisibleDataWithMetadata = (): Record<string, string>[] => {
-		const visibleColumns = table
-			.getVisibleLeafColumns()
-			.filter((column) => !excludeKeys.includes(column.id))
-		const selectedRows = table.getSelectedRowModel().rows
-		let rows = table.getPrePaginationRowModel().rows
-		if (selectedRows.length !== 0) {
-			rows = selectedRows
+	// Only create export hook
+	const exportHook = useDataTableExport(table)
+
+	// Deletion logic remains in the component
+	const selectedRows = table.getSelectedRowModel().rows
+
+	const handleReset = () => {
+		table.resetRowSelection()
+	}
+
+	const handleDeleteSelected = async () => {
+		if (!onDeleteRows) return
+
+		const ids = selectedRows.map((r) => {
+			const record = BaseSchema.parse(r.original)
+			return record.id
+		})
+
+		try {
+			setIsDeleting(true)
+			await onDeleteRows(ids)
+			toast.success('Xóa dữ liệu thành công!')
+			table.resetRowSelection()
+		} catch (err) {
+			toast.error('Xóa dữ liệu bị lỗi!')
+			if (err instanceof AxiosError) {
+				console.error('Http error: ', err.response?.data)
+			}
+		} finally {
+			setIsDeleting(false)
+		}
+	}
+
+	// Deletion toast effect
+	useEffect(() => {
+		if (!onDeleteRows) return
+
+		if (selectedRows.length === 0) {
+			toast.dismiss()
+			return
 		}
 
-		// Create column metadata with proper type checking
-		const columnMetadata = visibleColumns.map((column) => {
-			const columnDef = column.columnDef as AccessorColumn<TData>
-			return {
-				id: column.id,
-				key:
-					'accessorKey' in columnDef
-						? columnDef.accessorKey
-						: column.id,
-				header:
-					typeof columnDef.header === 'string'
-						? columnDef.header
-						: column.id,
-				label: columnDef.meta?.label || column.id,
-				accessorFn: column.accessorFn
-			}
+		toast('', {
+			id: deleteDataToastId,
+			duration: Number.POSITIVE_INFINITY,
+			closeButton: false,
+			position: 'bottom-center',
+			description: `Đang chọn ${selectedRows.length}`,
+			cancel: (
+				<Button
+					variant='outline'
+					size='sm'
+					onClick={handleReset}
+					className='text-xs h-7 bg-transparent'
+					disabled={isDeleting}
+				>
+					Bỏ chọn
+				</Button>
+			),
+			action: (
+				<Button
+					variant='destructive'
+					size='sm'
+					onClick={handleDeleteSelected}
+					className='text-xs h-7 ml-4'
+					disabled={isDeleting}
+				>
+					Xóa dữ liệu
+				</Button>
+			)
 		})
-
-		// Extract data
-		const visibleData = rows.map((row) => {
-			const visibleRowData: Record<string, string> = {}
-			columnMetadata.forEach(({ key, id, label }) => {
-				const original = row.original as Record<string, string>
-				if (key && original?.[key as string] !== undefined) {
-					visibleRowData[label] = original[key as string]
-				} else {
-					try {
-						visibleRowData[label] = row.getValue(id)
-					} catch {
-						visibleRowData[label] = original?.[id] || ''
-					}
-				}
-			})
-			return visibleRowData
-		})
-
-		return visibleData
-	}
+	}, [selectedRows, isDeleting, onDeleteRows])
 
 	const renderTableView = () => {
 		return (
@@ -243,7 +263,9 @@ export function DataTable<TData, TValue>({
 
 		return (
 			<div
-				className={`grid gap-4 ${cardClassName || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}
+				className={`grid gap-4 ${
+					cardClassName || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+				}`}
 			>
 				{rows.map((row, index) => (
 					<CardComponent
@@ -255,85 +277,6 @@ export function DataTable<TData, TValue>({
 			</div>
 		)
 	}
-	const selectedRow = table.getSelectedRowModel().rows
-
-	function handleExport() {
-		const data = getVisibleDataWithMetadata()
-		exportButtonProps.onExport?.(data)
-	}
-
-	function handleReset() {
-		table.resetRowSelection()
-	}
-
-	async function handleDeleteSelected() {
-		const ids = selectedRow.map((r) => {
-			const record = BaseSchema.parse(r.original)
-			return record.id
-		})
-
-		try {
-			setIsDeleting(true)
-			await onDeleteRows?.(ids)
-
-			toast.success('Xóa dữ liệu thành công!')
-			table.resetRowSelection()
-		} catch (err) {
-			toast.error('Xóa dữ liệu bị lỗi!')
-			if (err instanceof AxiosError) {
-				console.error('Http error: ', err.response?.data)
-			}
-		} finally {
-			setIsDeleting(false)
-		}
-	}
-
-	useEffect(() => {
-		if (onDeleteRows === undefined) {
-			return
-		}
-
-		if (selectedRow.length === 0) {
-			toast.dismiss()
-			return
-		}
-
-		toast('', {
-			id: deleteDataToastId,
-			duration: Number.POSITIVE_INFINITY,
-			closeButton: false,
-			position: 'bottom-center',
-			description: `Đang chọn ${selectedRow.length}`,
-			cancel: (
-				<Button
-					variant='outline'
-					size='sm'
-					onClick={handleReset}
-					className='text-xs h-7 bg-transparent'
-					disabled={isDeleting}
-				>
-					Bỏ chọn
-				</Button>
-			),
-			action: (
-				<Button
-					variant='destructive'
-					size='sm'
-					onClick={handleDeleteSelected}
-					className='text-xs h-7 ml-4'
-					disabled={isDeleting}
-				>
-					Xóa dữ liệu
-				</Button>
-			)
-		})
-	}, [
-		selectedRow,
-		isDeleting,
-		handleReset,
-		handleDeleteSelected,
-		onDeleteRows
-	])
 
 	return (
 		<div className='space-y-4'>
@@ -344,12 +287,10 @@ export function DataTable<TData, TValue>({
 					{...toolbarProps}
 					rightSection={
 						<>
-							{exportButtonProps.hidden !== true && (
-								<Button onClick={handleExport}>
-									<ArrowDownToLine />
-									Xuất file
-								</Button>
-							)}
+							{renderToolbarActions?.({
+								table,
+								exportHook
+							})}
 							{toolbarProps?.rightSection}
 						</>
 					}
