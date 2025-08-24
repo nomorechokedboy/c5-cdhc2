@@ -1,12 +1,6 @@
-import { DataTable } from '@/components/data-table'
-import { battalionStudentColumns } from '@/components/student-table/columns'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
-import useStudentData from '@/hooks/useStudents'
-import type { Quarter } from '@/types'
 import { useState } from 'react'
+import type { Quarter } from '@/types'
+import { getCurrentQuarter } from '@/lib/utils'
 import {
 	Select,
 	SelectContent,
@@ -15,37 +9,33 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
-import useExportButton from '@/hooks/useExportButton'
-import { getCurrentQuarter } from '@/lib/utils'
-import TableSkeleton from './table-skeleton'
+import { battalionStudentColumns } from '@/components/student-table/columns'
+import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
+import { EduLevelOptions } from '@/components/data-table/data/data'
+import { EhtnicOptions } from '@/data/ethnics'
+import useClassData from '@/hooks/useClasses'
+import useStudentData from '@/hooks/useStudents'
+import StudentTable from './student-table/new-student-table'
+
+const quarterOptions = [
+	{ value: 'Q1', label: 'Quý 1' },
+	{ value: 'Q2', label: 'Quý 2' },
+	{ value: 'Q3', label: 'Quý 3' },
+	{ value: 'Q4', label: 'Quý 4' }
+]
 
 export default function CpvOfficialInQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
 		`Q${getCurrentQuarter()}` as Quarter
 	)
-	const {
-		data: students = [],
-		isLoading: isLoadingStudents,
-		refetch: refetchStudents
-	} = useStudentData({ cpvOfficialInQuarter: quarter })
-	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-chuyen-dang-chinh-thuc-${quarter}`
+	const { createFacetedFilter } = useDataTableToolbarConfig()
+	const { data: classes } = useClassData()
+	const { data: students = [] } = useStudentData({
+		cpvOfficialInQuarter: quarter
 	})
 
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
-
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
-
+	// Generate filter options from actual data
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
 	)
@@ -53,6 +43,7 @@ export default function CpvOfficialInQuarter() {
 		label: rank,
 		value: rank
 	}))
+
 	const classOptions = classes
 		? classes.map((c) => ({
 				label: `${c.name} - ${c.unit.alias}`,
@@ -79,6 +70,7 @@ export default function CpvOfficialInQuarter() {
 			EduLevelOptions
 		)
 	]
+
 	return (
 		<>
 			<div className='flex items-center justify-between space-y-2'>
@@ -90,9 +82,9 @@ export default function CpvOfficialInQuarter() {
 						</h2>
 						<Select
 							value={quarter}
-							onValueChange={(value) => {
+							onValueChange={(value) =>
 								setQuarter(value as Quarter)
-							}}
+							}
 						>
 							<SelectTrigger className='w-[180px]'>
 								<SelectValue aria-label={quarter}>
@@ -101,25 +93,8 @@ export default function CpvOfficialInQuarter() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									{[
-										{
-											value: 'Q1',
-											label: 'Quý 1'
-										},
-										{
-											value: 'Q2',
-											label: 'Quý 2'
-										},
-										{
-											value: 'Q3',
-											label: 'Quý 3'
-										},
-										{
-											value: 'Q4',
-											label: 'Quý 4'
-										}
-									].map(({ label, value }) => (
-										<SelectItem value={value}>
+									{quarterOptions.map(({ label, value }) => (
+										<SelectItem key={value} value={value}>
 											{label}
 										</SelectItem>
 									))}
@@ -129,25 +104,20 @@ export default function CpvOfficialInQuarter() {
 					</div>
 					<p className='text-muted-foreground'>
 						Đây là danh sách học viên chuẩn bị chuyển Đảng chính
-						thức trong quý
-						{quarter} của đại đội
+						thức trong quý {quarter} của đại đội
 					</p>
 				</div>
 			</div>
-			<DataTable
-				data={students}
-				defaultColumnVisibility={defaultCpvOfficialColumnVisibility}
+
+			<StudentTable
+				params={{ cpvOfficialInQuarter: quarter }}
 				columns={battalionStudentColumns}
-				toolbarProps={{
-					rightSection: (
-						<Button onClick={() => refetchStudents()}>
-							<RefreshCw />
-						</Button>
-					),
-					searchConfig,
-					facetedFilters
+				facetedFilters={facetedFilters}
+				exportConfig={{
+					filename: `danh-sach-chuyen-dang-chinh-thuc-${quarter}`
 				}}
-				exportButtonProps={exportButtonProps}
+				columnVisibility={defaultCpvOfficialColumnVisibility}
+				showRefreshButton={true}
 			/>
 		</>
 	)

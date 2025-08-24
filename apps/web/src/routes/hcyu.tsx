@@ -156,7 +156,7 @@ function RouteComponent() {
 								}}
 							>
 								<option value='-'>--Chọn lớp--</option>
-								{classes.map((cls) => (
+								{classes?.map((cls) => (
 									<option key={cls.id} value={cls.id}>
 										{cls.name}
 									</option>

@@ -1,16 +1,13 @@
-import { DataTable } from '@/components/data-table'
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
-import useExportButton from '@/hooks/useExportButton'
 import { getCurrentWeekNumber } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
+import StudentTable from './student-table/new-student-table'
 
 export default function CpvOfficialThisWeek() {
 	const {
@@ -21,17 +18,10 @@ export default function CpvOfficialThisWeek() {
 	const { data: classes, refetch: refetchClasses } = useClassData()
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-chuyen-dang-chinh-thuc-tuan-${getCurrentWeekNumber()}`
-	})
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -81,20 +71,15 @@ export default function CpvOfficialThisWeek() {
 					</p>
 				</div>
 			</div>
-			<DataTable
-				data={students}
-				defaultColumnVisibility={defaultCpvOfficialColumnVisibility}
+			<StudentTable
+				params={{ isCpvOfficialThisWeek: true }}
+				columnVisibility={defaultCpvOfficialColumnVisibility}
 				columns={battalionStudentColumns}
-				toolbarProps={{
-					rightSection: (
-						<Button onClick={() => refetchStudents()}>
-							<RefreshCw />
-						</Button>
-					),
-					searchConfig,
-					facetedFilters
+				facetedFilters={facetedFilters}
+				exportConfig={{
+					filename: `danh-sach-chuyen-dang-chinh-thuc-tuan-${getCurrentWeekNumber()}`
 				}}
-				exportButtonProps={exportButtonProps}
+				showRefreshButton
 			/>
 		</>
 	)

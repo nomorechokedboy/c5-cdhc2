@@ -1,4 +1,3 @@
-import { DataTable } from '@/components/data-table'
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
@@ -17,10 +16,59 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
-import useExportButton from '@/hooks/useExportButton'
 import TableSkeleton from './table-skeleton'
+import StudentTable from './student-table/new-student-table'
+
+const monthOptions = [
+	{
+		value: '01',
+		label: 'Tháng 1'
+	},
+	{
+		value: '02',
+		label: 'Tháng 2'
+	},
+	{
+		value: '03',
+		label: 'Tháng 3'
+	},
+	{
+		value: '04',
+		label: 'Tháng 4'
+	},
+	{
+		value: '05',
+		label: 'Tháng 5'
+	},
+	{
+		value: '06',
+		label: 'Tháng 6'
+	},
+	{
+		value: '07',
+		label: 'Tháng 7'
+	},
+	{
+		value: '08',
+		label: 'Tháng 8'
+	},
+	{
+		value: '09',
+		label: 'Tháng 9'
+	},
+	{
+		value: '10',
+		label: 'Tháng 10'
+	},
+	{
+		value: '11',
+		label: 'Tháng 11'
+	},
+	{
+		value: '12',
+		label: 'Tháng 12'
+	}
+]
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
@@ -30,22 +78,10 @@ export default function BirthdayByMonth() {
 		refetch: refetchStudents
 	} = useStudentData({ birthdayInMonth: month })
 	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-sinh-nhat-dong-doi-thang-${month}`
-	})
-
+	const { createFacetedFilter } = useDataTableToolbarConfig()
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const handleFormSuccess = () => {
-		refetchStudents()
-	}
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -101,56 +137,7 @@ export default function BirthdayByMonth() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									{[
-										{
-											value: '01',
-											label: 'Tháng 1'
-										},
-										{
-											value: '02',
-											label: 'Tháng 2'
-										},
-										{
-											value: '03',
-											label: 'Tháng 3'
-										},
-										{
-											value: '04',
-											label: 'Tháng 4'
-										},
-										{
-											value: '05',
-											label: 'Tháng 5'
-										},
-										{
-											value: '06',
-											label: 'Tháng 6'
-										},
-										{
-											value: '07',
-											label: 'Tháng 7'
-										},
-										{
-											value: '08',
-											label: 'Tháng 8'
-										},
-										{
-											value: '09',
-											label: 'Tháng 9'
-										},
-										{
-											value: '10',
-											label: 'Tháng 10'
-										},
-										{
-											value: '11',
-											label: 'Tháng 11'
-										},
-										{
-											value: '12',
-											label: 'Tháng 12'
-										}
-									].map(({ label, value }) => (
+									{monthOptions.map(({ label, value }) => (
 										<SelectItem value={value}>
 											{label}
 										</SelectItem>
@@ -165,20 +152,15 @@ export default function BirthdayByMonth() {
 					</p>
 				</div>
 			</div>
-			<DataTable
-				data={students}
-				defaultColumnVisibility={defaultBirthdayColumnVisibility}
+			<StudentTable
+				params={{ birthdayInMonth: month }}
 				columns={battalionStudentColumns}
-				toolbarProps={{
-					rightSection: (
-						<Button onClick={() => refetchStudents()}>
-							<RefreshCw />
-						</Button>
-					),
-					searchConfig,
-					facetedFilters
+				facetedFilters={facetedFilters}
+				exportConfig={{
+					filename: `danh-sach-sinh-nhat-thang-${month}`
 				}}
-				exportButtonProps={exportButtonProps}
+				columnVisibility={defaultBirthdayColumnVisibility}
+				showRefreshButton={true}
 			/>
 		</>
 	)

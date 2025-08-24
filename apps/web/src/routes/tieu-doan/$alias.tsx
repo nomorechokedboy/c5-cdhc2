@@ -1,27 +1,21 @@
-import { DataTable } from '@/components/data-table'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import StudentForm from '@/components/student-form'
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import { defaultBirthdayColumnVisibility } from '@/components/student-table/default-columns-visibility'
+import StudentTable from '@/components/student-table/new-student-table'
 import TableSkeleton from '@/components/table-skeleton'
-import { Button } from '@/components/ui/button'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import useExportButton from '@/hooks/useExportButton'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import { createFileRoute } from '@tanstack/react-router'
-import { RefreshCw } from 'lucide-react'
 import z from 'zod'
 
 const aliasSearchSchema = z.object({
 	level: z.enum(['battalion', 'company']).default('battalion'),
 	name: z.string().default('')
 })
-
-type _AliasBattalionSearch = z.infer<typeof aliasSearchSchema>
 
 export const Route = createFileRoute('/tieu-doan/$alias')({
 	component: RouteComponent,
@@ -32,8 +26,7 @@ function RouteComponent() {
 	const { alias } = Route.useParams()
 	const { level } = Route.useSearch()
 
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
+	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -42,17 +35,12 @@ function RouteComponent() {
 	const { data: units, refetch: refetchUnits } = useUnitsData({
 		level: 'battalion'
 	})
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-hoc-vien-${alias}`
-	})
+	const filename = `danh-sach-hoc-vien-${alias}`
 	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
 	const handleFormSuccess = () => {
 		refetchStudents()
 	}
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 	const flatUnits = units
 		?.map((unit) => {
 			if (unit.children.length !== 0) {
@@ -123,25 +111,17 @@ function RouteComponent() {
 						</p>
 					</div>
 				</div>
-				<DataTable
-					data={students}
-					defaultColumnVisibility={defaultBirthdayColumnVisibility}
+				<StudentTable
+					params={{ unitAlias: alias, unitLevel: level }}
+					columnVisibility={defaultBirthdayColumnVisibility}
 					columns={battalionStudentColumns}
-					toolbarProps={{
-						rightSection: (
-							<>
-								<StudentForm onSuccess={handleFormSuccess} />
-								<Button onClick={() => refetchStudents()}>
-									<RefreshCw />
-								</Button>
-							</>
-						),
-						searchConfig,
-						facetedFilters
-					}}
+					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
-					exportButtonProps={exportButtonProps}
+					exportConfig={{ filename }}
 					onDeleteRows={handleDeleteStudents}
+					onCreateSuccess={handleFormSuccess}
+					enableCreation
+					showRefreshButton
 				/>
 			</div>
 		</ProtectedRoute>
