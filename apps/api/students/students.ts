@@ -20,6 +20,7 @@ import { AppError } from '../errors/index.js'
 import { Unit } from '../units/units.js'
 import { notiTopic } from '../topics/index.js'
 import * as v from 'valibot'
+import XlsxTemplate from 'xlsx-template'
 
 interface ChildrenInfo {
 	fullName: string
@@ -261,7 +262,10 @@ const ExportStudentDataRequestSchema = v.object({
 	commanderPosition: v.string(),
 	commanderRank: v.string(),
 	data: v.pipe(v.array(v.record(v.string(), v.string())), v.minLength(1)),
-	date: v.string(),
+	date: v.optional(
+		v.pipe(v.string(), v.isoDate()),
+		dayjs().format('YYYY-MM-DD')
+	),
 	reportTitle: v.string(),
 	underUnitName: v.string(),
 	unitName: v.string()
@@ -478,5 +482,185 @@ export const GetPoliticsQualityReport = api(
 		const unit = { ...u } as Unit
 
 		return { data, unit }
+	}
+)
+
+const PoliticsQualitySummarySchema = v.object({
+	idx: v.number(),
+	className: v.string(),
+	total: v.number(),
+	totalColonel: v.number(),
+	totalLieutenant: v.number(),
+	totalProSoldierCommander: v.number(),
+	totalProSoldier: v.number(),
+	totalSoldier: v.number(),
+	totalWorker: v.number(),
+	kinh: v.number(),
+	hoa: v.number(),
+	otherEthnics: v.number(),
+	buddhism: v.number(),
+	christianity: v.number(),
+	caodaism: v.number(),
+	protestantism: v.number(),
+	secondarySchool: v.number(),
+	highSchool: v.number(),
+	universityAndOthers: v.number(),
+	postGraduate: v.number(),
+	cpv: v.number(),
+	hcyu: v.number(),
+	cm: v.number(),
+	nguy: v.number(),
+	aboard: v.number(),
+	male: v.number(),
+	female: v.number(),
+	note: v.optional(v.string(), '')
+})
+
+const ExportPoliticsQualityReportSchema = v.object({
+	data: v.pipe(v.array(PoliticsQualitySummarySchema), v.minLength(1)),
+	date: v.optional(
+		v.pipe(v.string(), v.isoDate()),
+		dayjs().format('YYYY-MM-DD')
+	),
+	title: v.string()
+})
+
+const sheetNumber = 1
+
+export const ExportPoliticsQualityReport = api.raw(
+	{
+		expose: true,
+		method: 'POST',
+		path: '/students/politics-quality-report/export'
+	},
+	async (req, resp) => {
+		try {
+			const body = await getTypedRequestBody(
+				req,
+				ExportPoliticsQualityReportSchema
+			)
+
+			log.info('ExportPoliticsQualityReport body', { body })
+			const { data, date, title } = body
+			/* const data = [
+                {
+                    idx: 1,
+                    className: 'KCL1',
+                    total: 21,
+                    totalColonel: 12,
+                    totalLieutenant: 1,
+                    totalProSoldierCommander: 1,
+                    totalProSoldier: 0,
+                    totalSoldier: 0,
+                    totalWorker: 0,
+                    kinh: 20,
+                    hoa: 0,
+                    otherEthnics: 1,
+                    buddhism: 0,
+                    christianity: 0,
+                    caodaism: 0,
+                    protestantism: 0,
+                    hoahaoism: 0,
+                    secondarySchool: 15,
+                    highSchool: 11,
+                    universityAndOthers: 10,
+                    postGraduate: 22,
+                    cpv: 30,
+                    hcyu: 50,
+                    cm: 0,
+                    nguy: 0,
+                    aboard: 0,
+                    male: 0,
+                    female: 0,
+                    note: ''
+                },
+                {
+                    idx: 2,
+                    className: 'K1',
+                    total: 21,
+                    totalColonel: 12,
+                    totalLieutenant: 1,
+                    totalProSoldierCommander: 1,
+                    totalProSoldier: 0,
+                    totalSoldier: 0,
+                    totalWorker: 0,
+                    kinh: 20,
+                    hoa: 0,
+                    otherEthnics: 1,
+                    buddhism: 0,
+                    christianity: 0,
+                    caodaism: 0,
+                    protestantism: 0,
+                    hoahaoism: 0,
+                    secondarySchool: 15,
+                    highSchool: 11,
+                    universityAndOthers: 20,
+                    postGraduate: 22,
+                    cpv: 30,
+                    hcyu: 50,
+                    cm: 0,
+                    nguy: 0,
+                    aboard: 0,
+                    male: 0,
+                    female: 0,
+                    note: ''
+                },
+                {
+                    idx: 3,
+                    className: 'K2',
+                    total: 21,
+                    totalColonel: 12,
+                    totalLieutenant: 1,
+                    totalProSoldierCommander: 1,
+                    totalProSoldier: 0,
+                    totalSoldier: 0,
+                    totalWorker: 0,
+                    kinh: 20,
+                    hoa: 0,
+                    otherEthnics: 1,
+                    buddhism: 0,
+                    christianity: 0,
+                    caodaism: 0,
+                    protestantism: 0,
+                    hoahaoism: 0,
+                    secondarySchool: 15,
+                    highSchool: 11,
+                    universityAndOthers: 20,
+                    postGraduate: 22,
+                    cpv: 30,
+                    hcyu: 50,
+                    cm: 0,
+                    nguy: 0,
+                    aboard: 0,
+                    male: 0,
+                    female: 0,
+                    note: ''
+                }
+            ] */
+			const dateObj = dayjs(date)
+			const day = dateObj.format('DD')
+			const month = dateObj.format('MM')
+			const year = dateObj.year()
+
+			const templatePath = path.join('./templates', 'xlsx-template.xlsx')
+			const templateFile = await readFile(templatePath)
+			const template = new XlsxTemplate(templateFile)
+			template.substitute(sheetNumber, {
+				data,
+				endRowNum: 10 + data.length - 1,
+				title,
+				day,
+				month,
+				year
+			})
+
+			const binBuffer = template.generate({ type: 'nodebuffer' })
+			resp.writeHead(200, { connection: 'close' })
+			return resp.end(binBuffer)
+		} catch (err) {
+			console.error('ExportPoliticsQualityReport errror', err)
+			log.error('ExportPoliticsQualityReport err', { err })
+			throw APIError.internal('Internal error for exporting file')
+		}
 	}
 )
