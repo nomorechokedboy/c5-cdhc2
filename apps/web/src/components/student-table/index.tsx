@@ -8,15 +8,23 @@ import { DataTable } from '../data-table'
 import { columns } from '@/components/student-table/columns'
 import { EhtnicOptions } from '@/data/ethnics'
 import { EduLevelOptions } from '@/components/data-table/data/data'
-import useExportButton from '@/hooks/useExportButton'
 import TableSkeleton from '../table-skeleton'
+import { Button } from '../ui/button'
+import { ArrowDownToLine } from 'lucide-react'
+import { ExportStudentDataDialog } from '../export-student-data-dialog'
+import StudentForm from '../student-form'
 
 interface StudentTableProps {
 	params: StudentQueryParams
 	filename: string
+	enabledCreation?: boolean
 }
 
-export default function StudentTable({ params, filename }: StudentTableProps) {
+export default function StudentTable({
+	params,
+	filename,
+	enabledCreation = false
+}: StudentTableProps) {
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -25,17 +33,14 @@ export default function StudentTable({ params, filename }: StudentTableProps) {
 
 	const { createFacetedFilter, createSearchConfig } =
 		useDataTableToolbarConfig()
-	const exportButtonProps = useExportButton({
-		filename
-	})
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
 
-	/* const handleFormSuccess = () => {
-        refetchStudent()
-    } */
+	const handleFormSuccess = () => {
+		refetchStudent()
+	}
 
 	const searchConfig = [
 		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
@@ -74,11 +79,24 @@ export default function StudentTable({ params, filename }: StudentTableProps) {
 				columns={columns}
 				defaultColumnVisibility={defaultStudentColumnVisibility}
 				toolbarProps={{
-					// rightSection: <StudentForm onSuccess={handleFormSuccess} />,
+					rightSection:
+						enabledCreation === true ? (
+							<StudentForm onSuccess={handleFormSuccess} />
+						) : undefined,
 					searchConfig,
 					facetedFilters
 				}}
-				exportButtonProps={exportButtonProps}
+				renderToolbarActions={({ exportHook }) => (
+					<ExportStudentDataDialog
+						data={exportHook.exportableData.data}
+						defaultFilename={filename}
+					>
+						<Button>
+							<ArrowDownToLine />
+							Xuất file
+						</Button>
+					</ExportStudentDataDialog>
+				)}
 			/>
 		</div>
 	)
