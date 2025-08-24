@@ -220,7 +220,17 @@ export interface GetUnreadNotificationCountResponse {
 	data: { count: number }
 }
 
-export type ExportData = Record<string, string>[]
+export type ExportData = {
+	city: string
+	commanderName: string
+	commanderPosition: string
+	commanderRank: string
+	data: Record<string, string>[]
+	date?: string
+	reportTitle: string
+	underUnitName: string
+	unitName: string
+}
 
 export type OnDeleteRows = (
 	ids: Array<number>

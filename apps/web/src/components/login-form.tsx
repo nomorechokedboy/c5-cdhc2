@@ -13,7 +13,6 @@ export function LoginForm() {
 			password: ''
 		},
 		onSubmit: async ({ value }) => {
-			console.log('Form submitted with values:', value)
 			login(value)
 		}
 	})
