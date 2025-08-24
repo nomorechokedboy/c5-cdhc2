@@ -3,7 +3,7 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import BirthdayByWeek from '@/components/birthday-by-week'
 import BirthdayByMonth from '@/components/birthday-by-month'
-import BirthdayByQuarter from '@/components/birthday-by-quater'
+import BirthdayByQuarter from '@/components/birthday-by-quarter'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
 export const Route = createFileRoute('/birthday')({
