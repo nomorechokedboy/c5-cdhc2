@@ -1,20 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DataTable } from '@/components/data-table'
 import { columnsWithoutAction } from '@/components/student-table/columns'
 import { SidebarInset } from '@/components/ui/sidebar'
-import StudentForm from '@/components/student-form'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import useExportButton from '@/hooks/useExportButton'
 import useActionColumn from '@/hooks/useActionColumn'
-import { Button } from '@/components/ui/button'
-import { RefreshCw } from 'lucide-react'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import TableSkeleton from '@/components/table-skeleton'
+import StudentTable from '@/components/student-table/new-student-table'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -29,12 +25,9 @@ function RouteComponent() {
 		refetch: refetchStudents
 	} = useStudentData({ classId: Number(classId) })
 	const { data: classes } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
+	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const thisClass = classes?.find((c) => c.id === Number(classId))
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-hoc-vien-lop-${thisClass?.name}`
-	})
+	const filename = `danh-sach-hoc-vien-lop-${thisClass?.name}`
 	const actionColumn = useActionColumn(handleRefreshStudents)
 	const handleDeleteRows = useOnDeleteStudents(refetchStudents)
 
@@ -45,9 +38,6 @@ function RouteComponent() {
 	const handleFormSuccess = () => {
 		refetchStudents()
 	}
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -101,9 +91,9 @@ function RouteComponent() {
 							</p>
 						</div>
 					</div>
-					<DataTable
-						data={students}
-						defaultColumnVisibility={{
+					<StudentTable
+						params={{ classId: Number(classId) }}
+						columnVisibility={{
 							enlistmentPeriod: false,
 							isGraduated: false,
 							major: false,
@@ -129,22 +119,12 @@ function RouteComponent() {
 							educationLevel: false
 						}}
 						columns={[...columnsWithoutAction, actionColumn]}
-						toolbarProps={{
-							rightSection: (
-								<>
-									<StudentForm
-										onSuccess={handleFormSuccess}
-									/>
-									<Button onClick={handleRefreshStudents}>
-										<RefreshCw />
-									</Button>
-								</>
-							),
-							searchConfig,
-							facetedFilters
-						}}
-						exportButtonProps={exportButtonProps}
+						facetedFilters={facetedFilters}
+						exportConfig={{ filename }}
 						onDeleteRows={handleDeleteRows}
+						onCreateSuccess={handleFormSuccess}
+						enableCreation
+						showRefreshButton
 					/>
 				</div>
 			</SidebarInset>

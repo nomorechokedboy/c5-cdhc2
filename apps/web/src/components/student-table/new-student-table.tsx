@@ -13,6 +13,7 @@ import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import StudentForm from '../student-form'
 import { type ReactNode } from 'react'
 import type { VisibilityState, ColumnDef } from '@tanstack/react-table'
+import type { QueryObserverResult } from '@tanstack/react-query'
 
 interface StudentTableProps {
 	// Core data params
@@ -41,6 +42,9 @@ interface StudentTableProps {
 	// Event handlers
 	onRefresh?: () => void
 	onCreateSuccess?: () => void
+	onDeleteRows?: (
+		ids: number[]
+	) => Promise<QueryObserverResult<Student[], unknown>>
 }
 
 export default function StudentTable({
@@ -55,7 +59,8 @@ export default function StudentTable({
 	leftToolbarSection,
 	rightToolbarSection,
 	onRefresh,
-	onCreateSuccess
+	onCreateSuccess,
+	onDeleteRows
 }: StudentTableProps) {
 	const {
 		data: students = [],
@@ -102,6 +107,7 @@ export default function StudentTable({
 					rightSection,
 					facetedFilters
 				}}
+				onDeleteRows={onDeleteRows}
 				renderToolbarActions={
 					exportConfig?.disabled === true
 						? undefined

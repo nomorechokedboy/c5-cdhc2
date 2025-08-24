@@ -1,8 +1,4 @@
-import { DataTable } from '@/components/data-table'
-import {
-	battalionStudentColumns,
-	columns
-} from '@/components/student-table/columns'
+import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
@@ -19,11 +15,28 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
 import { getCurrentQuarter } from '@/lib/utils'
-import useExportButton from '@/hooks/useExportButton'
 import TableSkeleton from './table-skeleton'
+import StudentTable from './student-table/new-student-table'
+
+const quarterOptions = [
+	{
+		value: 'Q1',
+		label: 'Quý 1'
+	},
+	{
+		value: 'Q2',
+		label: 'Quý 2'
+	},
+	{
+		value: 'Q3',
+		label: 'Quý 3'
+	},
+	{
+		value: 'Q4',
+		label: 'Quý 4'
+	}
+]
 
 export default function BirthdayByQuarter() {
 	const [quarter, setQuarter] = useState<Quarter>(
@@ -35,19 +48,12 @@ export default function BirthdayByQuarter() {
 		refetch: refetchStudents
 	} = useStudentData({ birthdayInQuarter: quarter })
 	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-sinh-nhat-dong-doi-${quarter}`
-	})
+	const { createFacetedFilter } = useDataTableToolbarConfig()
+	const filename = `danh-sach-sinh-nhat-dong-doi-${quarter}`
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -103,24 +109,7 @@ export default function BirthdayByQuarter() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									{[
-										{
-											value: 'Q1',
-											label: 'Quý 1'
-										},
-										{
-											value: 'Q2',
-											label: 'Quý 2'
-										},
-										{
-											value: 'Q3',
-											label: 'Quý 3'
-										},
-										{
-											value: 'Q4',
-											label: 'Quý 4'
-										}
-									].map(({ label, value }) => (
+									{quarterOptions.map(({ label, value }) => (
 										<SelectItem key={value} value={value}>
 											{label}
 										</SelectItem>
@@ -135,20 +124,13 @@ export default function BirthdayByQuarter() {
 					</p>
 				</div>
 			</div>
-			<DataTable
-				data={students}
-				defaultColumnVisibility={defaultBirthdayColumnVisibility}
+			<StudentTable
+				params={{ cpvOfficialInQuarter: quarter }}
+				columnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
-				toolbarProps={{
-					rightSection: (
-						<Button onClick={() => refetchStudents()}>
-							<RefreshCw />
-						</Button>
-					),
-					searchConfig,
-					facetedFilters
-				}}
-				exportButtonProps={exportButtonProps}
+				facetedFilters={facetedFilters}
+				exportConfig={{ filename }}
+				showRefreshButton
 			/>
 		</>
 	)

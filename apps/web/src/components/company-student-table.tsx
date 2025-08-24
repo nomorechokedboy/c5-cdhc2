@@ -1,4 +1,3 @@
-import { DataTable } from '@/components/data-table'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { columns } from '@/components/student-table/columns'
 import { SidebarInset } from '@/components/ui/sidebar'
@@ -7,13 +6,10 @@ import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
 import useUnitsData from '@/hooks/useUnitsData'
 import type { UnitLevel } from '@/types'
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
-import StudentForm from './student-form'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
-import useExportButton from '@/hooks/useExportButton'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import TableSkeleton from './table-skeleton'
+import StudentTable from './student-table/new-student-table'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -21,11 +17,7 @@ export default function CompanyStudentTable({
 	alias,
 	level
 }: CompanyStudentTableProps) {
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
+	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -48,9 +40,7 @@ export default function CompanyStudentTable({
 			return [unit]
 		})
 		.flat()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-hoc-vien-${alias}`
-	})
+	const filename = `danh-sach-hoc-vien-${alias}`
 
 	const unit = flatUnits?.find((unit) => unit.alias === alias)
 	const unitClasses = unit?.classes
@@ -106,25 +96,17 @@ export default function CompanyStudentTable({
 						</p>
 					</div>
 				</div>
-				<DataTable
-					data={students}
-					defaultColumnVisibility={defaultBirthdayColumnVisibility}
+				<StudentTable
+					params={{ unitAlias: alias, unitLevel: level }}
+					columnVisibility={defaultBirthdayColumnVisibility}
 					columns={columns}
-					toolbarProps={{
-						rightSection: (
-							<>
-								<StudentForm onSuccess={handleFormSuccess} />
-								<Button onClick={() => refetchStudents()}>
-									<RefreshCw />
-								</Button>
-							</>
-						),
-						searchConfig,
-						facetedFilters
-					}}
+					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
-					exportButtonProps={exportButtonProps}
+					exportConfig={{ filename }}
 					onDeleteRows={handleDeleteStudents}
+					onCreateSuccess={handleFormSuccess}
+					enableCreation
+					showRefreshButton
 				/>
 			</div>
 		</SidebarInset>

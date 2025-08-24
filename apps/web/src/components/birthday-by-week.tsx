@@ -1,4 +1,3 @@
-import { DataTable } from '@/components/data-table'
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
@@ -9,11 +8,9 @@ import { defaultBirthdayColumnVisibility } from './student-table/default-columns
 /* import useUnitsData from '@/hooks/useUnitsData'
 import { useState } from 'react'
 import UnitDropdown from './unit-dropdown' */
-import { Button } from './ui/button'
-import { RefreshCw } from 'lucide-react'
-import useExportButton from '@/hooks/useExportButton'
 import { getCurrentWeekNumber } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
+import StudentTable from './student-table/new-student-table'
 
 export default function BirthdayByWeek() {
 	/* const {
@@ -30,20 +27,12 @@ export default function BirthdayByWeek() {
 		refetch: refetchStudents
 	} = useStudentData({ birthdayInWeek: true })
 	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
+	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const weekNumber = getCurrentWeekNumber()
-	const exportButtonProps = useExportButton({
-		filename: `danh-sach-sinh-nhat-dong-doi-tuan-${weekNumber}`
-	})
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -92,20 +81,15 @@ export default function BirthdayByWeek() {
 					</p>
 				</div>
 			</div>
-			<DataTable
-				data={students}
-				defaultColumnVisibility={defaultBirthdayColumnVisibility}
+			<StudentTable
+				params={{ birthdayInWeek: true }}
+				columnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
-				toolbarProps={{
-					rightSection: (
-						<Button onClick={() => refetchStudents()}>
-							<RefreshCw />
-						</Button>
-					),
-					searchConfig,
-					facetedFilters
+				facetedFilters={facetedFilters}
+				exportConfig={{
+					filename: `danh-sach-sinh-nhat-dong-doi-tuan-${weekNumber}`
 				}}
-				exportButtonProps={exportButtonProps}
+				showRefreshButton
 			/>
 		</>
 	)
