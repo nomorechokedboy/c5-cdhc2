@@ -9,7 +9,7 @@ export type ExportConfig = {
 export default function useExportButton({
 	filename = 'my-file'
 }: ExportConfig) {
-	async function handleExport(data: ExportData) {
+	async function handleExport({ data, ...exportData }: ExportData) {
 		try {
 			const politicalOrgColLabel = 'Đoàn/Đảng'
 			const politicalOrgMap = { hcyu: 'Đoàn viên', cpv: 'Đảng viên' }
@@ -37,7 +37,10 @@ export default function useExportButton({
 				return d
 			})
 
-			const resp = await ExportTableData(sanitizedData)
+			const resp = await ExportTableData({
+				data: sanitizedData,
+				...exportData
+			})
 			const blob = new Blob([resp.data], {
 				type: resp.headers['content-type']
 			})
@@ -52,6 +55,8 @@ export default function useExportButton({
 			document.body.removeChild(link)
 			window.URL.revokeObjectURL(link.href)
 		} catch (err) {
+			console.error('handleExport error', err)
+
 			toast.error('Chưa thể xuất file, đã có lỗi xảy ra!')
 		}
 	}
