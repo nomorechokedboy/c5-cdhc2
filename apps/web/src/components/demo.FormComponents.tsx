@@ -24,6 +24,7 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import ToggleInput from './toggle-input'
 
 export function SubscribeButton({
 	label,
@@ -315,6 +316,35 @@ export function Combobox({
 					))}
 				</div>
 			)}
+		</div>
+	)
+}
+
+export type EditableInputProps = JSX.IntrinsicElements['input'] & {
+	label: string
+}
+
+export function EditableInput({
+	label,
+	className,
+	...inputProps
+}: EditableInputProps) {
+	const field = useFieldContext<string>()
+	const errors = useStore(field.store, (state) => state.meta.errors)
+
+	return (
+		<div className={className}>
+			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+				{label}
+			</Label>
+			<ToggleInput
+				initialValue={field.state.value}
+				value={field.state.value}
+				onBlur={field.handleBlur}
+				onChange={(e) => field.handleChange(e.target.value)}
+				{...inputProps}
+			/>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
 	)
 }
