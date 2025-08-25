@@ -1,5 +1,5 @@
 import { AppError } from '../errors/index'
-import { ClassDB, ClassParam, UpdateClassMap } from '../schema/classes'
+import { Class, ClassDB, ClassParam, UpdateClassMap } from '../schema/classes'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
 import sqliteRepo from './repo'
@@ -79,6 +79,11 @@ class Controller {
 		)
 
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
+	}
+
+	findOne(id: number): Promise<Class | undefined> {
+		log.trace('classController.findOne params', { params: { id } })
+		return this.repo.findOne({ id } as ClassDB).catch(AppError.handleAppErr)
 	}
 }
 
