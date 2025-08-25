@@ -502,6 +502,7 @@ const PoliticsQualitySummarySchema = v.object({
 	christianity: v.number(),
 	caodaism: v.number(),
 	protestantism: v.number(),
+	hoahaoism: v.number(),
 	secondarySchool: v.number(),
 	highSchool: v.number(),
 	universityAndOthers: v.number(),
