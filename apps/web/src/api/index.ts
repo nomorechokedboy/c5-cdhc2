@@ -7,6 +7,7 @@ import type {
 	ClassResponse,
 	DeleteStudentsBody,
 	ExportData,
+	ExportPoliticsQualityReport,
 	GetUnitQuery,
 	GetUnitResponse,
 	GetUnreadNotificationCountResponse,
@@ -111,8 +112,14 @@ export function ExportTableData(data: ExportData) {
 	return axios.post('/students/export', data, { responseType: 'blob' })
 }
 
+export function ExportPoliticsQualityData(data: ExportPoliticsQualityReport) {
+	return axios.post('/students/politics-quality-report/export', data, {
+		responseType: 'blob'
+	})
+}
+
 export function GetPoliticsQualityReport() {
-	return requestClient.students.GetPoliticsQualityReport({ unitId: 2 })
+	return requestClient.students.GetPoliticsQualityReport({ unitId: 7 })
 }
 
 export function Login(req: auth.LoginRequest) {
