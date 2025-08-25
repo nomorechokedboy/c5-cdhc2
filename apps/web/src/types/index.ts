@@ -273,3 +273,40 @@ export type AppTheme =
 	| 'gray'
 	| 'slate'
 	| 'none'
+
+export interface ExportPoliticsQualitySummary {
+	idx: number
+	className: string
+	total: number
+	totalColonel: number
+	totalLieutenant: number
+	totalProSoldierCommander: number
+	totalProSoldier: number
+	totalSoldier: number
+	totalWorker: number
+	kinh: number
+	hoa: number
+	otherEthnics: number
+	buddhism: number
+	christianity: number
+	caodaism: number
+	protestantism: number
+	hoahaoism: number
+	secondarySchool: number
+	highSchool: number
+	universityAndOthers: number
+	postGraduate: number
+	cpv: number
+	hcyu: number
+	cm: number
+	nguy: number
+	aboard: number
+	male: number
+	female: number
+	note: string
+}
+
+export interface ExportPoliticsQualityReport {
+	data: ExportPoliticsQualitySummary[]
+	title: string
+}
