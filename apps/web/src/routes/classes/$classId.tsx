@@ -11,6 +11,8 @@ import useActionColumn from '@/hooks/useActionColumn'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import TableSkeleton from '@/components/table-skeleton'
 import StudentTable from '@/components/student-table/new-student-table'
+import { useQuery } from '@tanstack/react-query'
+import { GetClassById } from '@/api'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -25,8 +27,12 @@ function RouteComponent() {
 		refetch: refetchStudents
 	} = useStudentData({ classId: Number(classId) })
 	const { data: classes } = useClassData()
+	const { data: thisClass } = useQuery({
+		queryKey: ['classById', classId],
+		queryFn: () => GetClassById(Number(classId)),
+		enabled: !!classId
+	})
 	const { createFacetedFilter } = useDataTableToolbarConfig()
-	const thisClass = classes?.find((c) => c.id === Number(classId))
 	const filename = `danh-sach-hoc-vien-lop-${thisClass?.name}`
 	const actionColumn = useActionColumn(handleRefreshStudents)
 	const handleDeleteRows = useOnDeleteStudents(refetchStudents)
@@ -120,7 +126,13 @@ function RouteComponent() {
 						}}
 						columns={[...columnsWithoutAction, actionColumn]}
 						facetedFilters={facetedFilters}
-						exportConfig={{ filename }}
+						exportConfig={{
+							filename,
+							defaultExportValues: {
+								underUnitName: `LỚP ${thisClass?.name}`,
+								unitName: thisClass?.unit.name.toUpperCase()
+							}
+						}}
 						onDeleteRows={handleDeleteRows}
 						onCreateSuccess={handleFormSuccess}
 						enableCreation

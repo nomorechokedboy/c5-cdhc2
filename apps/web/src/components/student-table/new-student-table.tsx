@@ -13,9 +13,7 @@ import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import StudentForm from '../student-form'
 import { type ReactNode } from 'react'
 import type { VisibilityState, ColumnDef } from '@tanstack/react-table'
-import { useQuery, type QueryObserverResult } from '@tanstack/react-query'
-import { useParams } from '@tanstack/react-router'
-import { GetClassById } from '@/api'
+import { type QueryObserverResult } from '@tanstack/react-query'
 
 interface StudentTableProps {
 	// Core data params
@@ -29,6 +27,10 @@ interface StudentTableProps {
 	exportConfig?: {
 		filename: string
 		disabled?: boolean
+		defaultExportValues?: {
+			underUnitName?: string
+			unitName?: string
+		}
 	}
 
 	// UI configuration
@@ -64,12 +66,6 @@ export default function StudentTable({
 	onCreateSuccess,
 	onDeleteRows
 }: StudentTableProps) {
-	const { classId } = useParams({ strict: false })
-	const { data: classData } = useQuery({
-		queryKey: ['classById', classId],
-		queryFn: () => GetClassById(Number(classId))
-	})
-
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -124,11 +120,9 @@ export default function StudentTable({
 									<ExportStudentDataDialog
 										data={exportHook.exportableData.data}
 										defaultFilename={exportConfig.filename}
-										defaultValues={{
-											underUnitName: `LỚP ${classData?.name}`,
-											unitName:
-												classData?.unit.name.toUpperCase()
-										}}
+										defaultValues={
+											exportConfig.defaultExportValues
+										}
 									>
 										<Button>
 											<ArrowDownToLine />
