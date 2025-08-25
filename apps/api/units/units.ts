@@ -11,7 +11,11 @@ type UnitBody = {
 	parentId?: number | null
 }
 
-type UnitDB = UnitBody & { id: number; createdAt: string; updatedAt: string }
+export type UnitDB = UnitBody & {
+	id: number
+	createdAt: string
+	updatedAt: string
+}
 
 interface CreateUnitRequest {
 	data: Array<UnitBody>
@@ -57,6 +61,25 @@ export const GetUnits = api(
 	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
 		const resp = await unitController.find(q)
 		const data = resp.map((u) => ({ ...u }) as Unit)
+
+		return { data }
+	}
+)
+
+interface GetUnitRequest {
+	id: number
+}
+
+interface GetUnitResponse {
+	data: Unit | undefined
+}
+
+export const GetUnit = api(
+	{ auth: true, expose: true, method: 'GET', path: '/units/:id' },
+	async ({ id }: GetUnitRequest): Promise<GetUnitResponse> => {
+		const data = await unitController
+			.findById(id)
+			.then((resp) => (resp === undefined ? resp : ({ ...resp } as Unit)))
 
 		return { data }
 	}

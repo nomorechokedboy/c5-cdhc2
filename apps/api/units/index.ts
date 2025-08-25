@@ -9,5 +9,10 @@ export interface Repository {
 		level: 'battalion' | 'company'
 	}): Promise<Unit | undefined>
 	findByIds(ids: number[]): Promise<UnitDB[]>
-	findById(id: number): Promise<UnitDB | undefined>
+	findById(
+		id: number,
+		opts?: {
+			with: { children?: boolean; classes?: boolean; parent?: boolean }
+		}
+	): Promise<UnitDB | undefined>
 }
