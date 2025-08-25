@@ -2,6 +2,7 @@ import { api } from 'encore.dev/api'
 import log from 'encore.dev/log'
 import { ClassDB, ClassParam } from '../schema/classes.js'
 import classController from './controller.js'
+import { UnitDB } from '../units/units.js'
 
 interface ClassBody {
 	name: string
@@ -103,5 +104,28 @@ export const UpdateClasss = api(
 		await classController.update(classes)
 
 		return {}
+	}
+)
+
+interface GetClassByIdRequest {
+	id: number
+}
+
+type Class = Omit<ClassResponse, 'unitId'> & { unit: UnitDB }
+
+interface GetClassByIdResponse {
+	data: Class | undefined
+}
+
+export const GetClassById = api(
+	{ auth: true, expose: true, method: 'GET', path: '/classes/:id' },
+	async ({ id }: GetClassByIdRequest): Promise<GetClassByIdResponse> => {
+		const data = await classController
+			.findOne(id)
+			.then((resp) =>
+				resp !== undefined ? ({ ...resp } as Class) : undefined
+			)
+
+		return { data }
 	}
 )

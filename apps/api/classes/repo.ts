@@ -74,7 +74,7 @@ class SqliteRepo implements Repository {
 		return baseQuery.all().catch(handleDatabaseErr)
 	}
 
-	findOne(c: ClassDB): Promise<Class> {
+	findOne(c: ClassDB): Promise<Class | undefined> {
 		return this.db.query.classes
 			.findFirst({
 				where: eq(classes.id, c.id),
