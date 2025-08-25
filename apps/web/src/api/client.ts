@@ -760,6 +760,8 @@ export namespace students {
 			this.baseClient = baseClient
 			this.CreateStudent = this.CreateStudent.bind(this)
 			this.DeleteStudents = this.DeleteStudents.bind(this)
+			this.ExportPoliticsQualityReport =
+				this.ExportPoliticsQualityReport.bind(this)
 			this.ExportStudentData = this.ExportStudentData.bind(this)
 			this.GetPoliticsQualityReport =
 				this.GetPoliticsQualityReport.bind(this)
@@ -796,6 +798,19 @@ export namespace students {
 				{ query }
 			)
 			return (await resp.json()) as DeleteStudentResponse
+		}
+
+		public async ExportPoliticsQualityReport(
+			method: 'POST',
+			body?: RequestInit['body'],
+			options?: CallParameters
+		): Promise<globalThis.Response> {
+			return this.baseClient.callAPI(
+				method,
+				`/students/politics-quality-report/export`,
+				body,
+				options
+			)
 		}
 
 		public async ExportStudentData(
