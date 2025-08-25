@@ -189,6 +189,17 @@ export namespace classes {
 		data: ClassResponse[]
 	}
 
+	export interface Class {
+		id: number
+		createdAt: string
+		updatedAt: string
+		name: string
+		description: string
+		graduatedAt: string | null
+		status: 'ongoing' | 'graduated'
+		unit: units.UnitDB
+	}
+
 	export interface ClassBody {
 		name: string
 		description?: string
@@ -215,6 +226,10 @@ export namespace classes {
 		ids: number[]
 	}
 
+	export interface GetClassByIdResponse {
+		data?: Class
+	}
+
 	export interface GetClassesResponse {
 		data: ClassResponse[]
 	}
@@ -238,6 +253,7 @@ export namespace classes {
 			this.baseClient = baseClient
 			this.CreateClass = this.CreateClass.bind(this)
 			this.DeleteClasss = this.DeleteClasss.bind(this)
+			this.GetClassById = this.GetClassById.bind(this)
 			this.GetClasses = this.GetClasses.bind(this)
 			this.UpdateClasss = this.UpdateClasss.bind(this)
 		}
@@ -270,6 +286,15 @@ export namespace classes {
 				{ query }
 			)
 			return (await resp.json()) as DeleteClassResponse
+		}
+
+		public async GetClassById(id: number): Promise<GetClassByIdResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/classes/${encodeURIComponent(id)}`
+			)
+			return (await resp.json()) as GetClassByIdResponse
 		}
 
 		public async GetClasses(): Promise<GetClassesResponse> {
@@ -940,6 +965,10 @@ export namespace students {
 }
 
 export namespace units {
+	export interface GetUnitResponse {
+		data?: Unit
+	}
+
 	export interface GetUnitsQuery {
 		level: 'battalion' | 'company'
 	}
@@ -957,6 +986,16 @@ export namespace units {
 		classes: classes.ClassResponse[]
 	}
 
+	export interface UnitDB {
+		alias: string
+		name: string
+		level: 'battalion' | 'company'
+		parentId?: number | null
+		id: number
+		createdAt: string
+		updatedAt: string
+	}
+
 	export interface unit {
 		alias: string
 		name: string
@@ -968,7 +1007,17 @@ export namespace units {
 
 		constructor(baseClient: BaseClient) {
 			this.baseClient = baseClient
+			this.GetUnit = this.GetUnit.bind(this)
 			this.GetUnits = this.GetUnits.bind(this)
+		}
+
+		public async GetUnit(id: number): Promise<GetUnitResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/units/${encodeURIComponent(id)}`
+			)
+			return (await resp.json()) as GetUnitResponse
 		}
 
 		public async GetUnits(
