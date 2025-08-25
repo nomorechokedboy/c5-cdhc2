@@ -51,6 +51,14 @@ export async function GetClasses(): Promise<Class[]> {
 	return axios.get<ClassResponse>('/classes').then((resp) => resp.data.data)
 }
 
+export function GetClassById(id: number): Promise<Class | undefined> {
+	return requestClient.classes
+		.GetClassById(id)
+		.then((resp) =>
+			resp === undefined ? resp : ({ ...resp.data } as Class)
+		)
+}
+
 export function CreateStudent(body: StudentBody) {
 	return axios
 		.post<StudentResponse>('/students', body)

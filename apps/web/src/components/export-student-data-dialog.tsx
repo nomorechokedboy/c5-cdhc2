@@ -18,12 +18,17 @@ export interface ExportStudentDataDialogProps {
 	children: ReactNode
 	data: Record<string, string>[]
 	defaultFilename: string
+	defaultValues?: {
+		unitName?: string
+		underUnitName?: string
+	}
 }
 
 export function ExportStudentDataDialog({
 	children,
 	data,
-	defaultFilename
+	defaultFilename,
+	defaultValues
 }: ExportStudentDataDialogProps) {
 	const { onExport } = useExportButton({ filename: defaultFilename })
 	const [open, setOpen] = useState(false)
@@ -35,8 +40,8 @@ export function ExportStudentDataDialog({
 			commanderRank: '',
 			data,
 			reportTitle: '',
-			underUnitName: '',
-			unitName: '',
+			underUnitName: defaultValues?.underUnitName ?? '',
+			unitName: defaultValues?.unitName ?? '',
 			filename: defaultFilename
 		},
 		onSubmit: async ({ value, formApi }) => {
@@ -99,7 +104,9 @@ export function ExportStudentDataDialog({
 										: undefined
 							}}
 						>
-							{(field) => <field.TextField label='Tên file' />}
+							{(field) => (
+								<field.EditableInput label='Tên file' />
+							)}
 						</form.AppField>
 					</div>
 					<div className='grid grid-cols-2 gap-4'>
@@ -113,16 +120,7 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.Select
-									values={[
-										{
-											value: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2',
-											label: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2'
-										},
-										...(unitOptions ?? [])
-									]}
-									label='Tên đơn vị'
-								/>
+								<field.EditableInput label='Tên đơn vị' />
 							)}
 						</form.AppField>
 						<form.AppField
@@ -135,22 +133,11 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.TextField label='Tên đơn vị trực thuộc' />
+								<field.EditableInput label='Tên đơn vị trực thuộc' />
 							)}
 						</form.AppField>
 					</div>
 					<div className='grid grid-cols-3 gap-4'>
-						<form.AppField
-							name='commanderName'
-							validators={{
-								onBlur: ({ value }) =>
-									!value
-										? 'Tên chỉ huy không được bỏ trống'
-										: undefined
-							}}
-						>
-							{(field) => <field.TextField label='Tên chỉ huy' />}
-						</form.AppField>
 						<form.AppField
 							name='commanderPosition'
 							validators={{
@@ -161,8 +148,19 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.TextField label='Cấp bậc của chỉ huy' />
+								<field.EditableInput label='Cấp bậc của chỉ huy' />
 							)}
+						</form.AppField>
+						<form.AppField
+							name='commanderName'
+							validators={{
+								onBlur: ({ value }) =>
+									!value
+										? 'Tên chỉ huy không được bỏ trống'
+										: undefined
+							}}
+						>
+							{(field) => <field.TextField label='Tên chỉ huy' />}
 						</form.AppField>
 						<form.AppField
 							name='commanderRank'
