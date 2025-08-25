@@ -46,9 +46,20 @@ class controller {
 	}
 
 	find(q: GetUnitsQuery): Promise<Unit[]> {
+		log.trace('UnitController.find params', { params: q })
 		const unitQuery: UnitQuery = { level: q.level }
 
 		return this.repo.find(unitQuery)
+	}
+
+	findById(id: number): Promise<Unit | undefined> {
+		log.trace('UnitController.findById params', { params: { id } })
+
+		return this.repo
+			.findById(id, {
+				with: { parent: true, children: true, classes: true }
+			})
+			.catch(AppError.handleAppErr)
 	}
 }
 

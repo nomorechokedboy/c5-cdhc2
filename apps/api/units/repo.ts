@@ -98,9 +98,31 @@ class repo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	findById(id: number): Promise<UnitDB | undefined> {
+	findById(
+		id: number,
+		opts?: {
+			with: { children?: boolean; classes?: boolean; parent?: boolean }
+		}
+	): Promise<UnitDB | undefined> {
+		const withClause: Record<string, boolean> = {}
+
+		if (opts?.with?.children) {
+			withClause.children = true
+		}
+
+		if (opts?.with?.classes) {
+			withClause.classes = true
+		}
+
+		if (opts?.with?.parent) {
+			withClause.parent = true
+		}
+
 		return this.db.query.units
-			.findFirst({ where: eq(units.id, id) })
+			.findFirst({
+				where: eq(units.id, id),
+				with: withClause
+			})
 			.catch(handleDatabaseErr)
 	}
 }
