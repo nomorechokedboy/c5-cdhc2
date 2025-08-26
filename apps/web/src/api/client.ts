@@ -1070,6 +1070,7 @@ export namespace users {
 	export interface CreateUserRequest {
 		username: string
 		password: string
+		displayName: string
 	}
 
 	export interface CreateUserResponse {
@@ -1090,6 +1091,7 @@ export namespace users {
 		createdAt: string
 		updatedAt: string
 		username: string
+		displayName: string
 	}
 
 	export interface UserDB {
@@ -1097,6 +1099,7 @@ export namespace users {
 		createdAt: string
 		updatedAt: string
 		username: string
+		displayName: string
 	}
 
 	export class ServiceClient {

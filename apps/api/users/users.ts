@@ -4,6 +4,7 @@ import userController from './controller'
 interface CreateUserRequest {
 	username: string
 	password: string
+	displayName: string
 }
 
 interface CreateUserResponse {
@@ -31,10 +32,10 @@ export interface User extends UserDB {
 export const CreateUser = api(
 	{ expose: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const { username, password } = req
+		const { username, password, displayName } = req
 
 		const data = await userController
-			.create({ password, username })
+			.create({ password, username, displayName })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
