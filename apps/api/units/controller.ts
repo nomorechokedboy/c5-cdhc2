@@ -1,9 +1,15 @@
 import log from 'encore.dev/log'
 import { Repository } from '.'
 import { AppError } from '../errors'
-import { Unit, UnitLevel, UnitParams, UnitQuery } from '../schema'
+import {
+	Unit,
+	UnitLevel,
+	UnitParams,
+	UnitQuery,
+	UnitDB as InteralUnitDB
+} from '../schema'
 import unitRepo from './repo'
-import { GetUnitsQuery } from './units'
+import { GetUnitsQuery, UnitDB } from './units'
 
 class controller {
 	constructor(private readonly repo: Repository) {}
@@ -60,6 +66,13 @@ class controller {
 				with: { parent: true, children: true, classes: true }
 			})
 			.catch(AppError.handleAppErr)
+	}
+
+	findOne(p: UnitDB): Promise<Unit | undefined> {
+		const params = { ...p } as InteralUnitDB
+		log.trace('UnitController.findOne params', { params })
+
+		return this.repo.getOne(params).catch(AppError.handleAppErr)
 	}
 }
 

@@ -15,4 +15,5 @@ export interface Repository {
 			with: { children?: boolean; classes?: boolean; parent?: boolean }
 		}
 	): Promise<UnitDB | undefined>
+	getOne(params: UnitDB): Promise<Unit | undefined>
 }

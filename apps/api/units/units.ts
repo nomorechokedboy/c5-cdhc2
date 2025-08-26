@@ -1,4 +1,4 @@
-import { api } from 'encore.dev/api'
+import { api, Query } from 'encore.dev/api'
 import { UnitParams } from '../schema'
 import unitController from './controller'
 import { ClassResponse } from '../classes/classes'
@@ -67,7 +67,13 @@ export const GetUnits = api(
 )
 
 interface GetUnitRequest {
-	id: number
+	id?: Query<number>
+
+	alias: string
+	name?: Query<string>
+	level?: Query<'battalion' | 'company'>
+
+	parentId?: Query<number> | null
 }
 
 interface GetUnitResponse {
@@ -75,10 +81,10 @@ interface GetUnitResponse {
 }
 
 export const GetUnit = api(
-	{ auth: true, expose: true, method: 'GET', path: '/units/:id' },
-	async ({ id }: GetUnitRequest): Promise<GetUnitResponse> => {
+	{ auth: true, expose: true, method: 'GET', path: '/units/:alias' },
+	async (params: GetUnitRequest): Promise<GetUnitResponse> => {
 		const data = await unitController
-			.findById(id)
+			.findOne(params)
 			.then((resp) => (resp === undefined ? resp : ({ ...resp } as Unit)))
 
 		return { data }
