@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `displayName` text DEFAULT '' NOT NULL;
