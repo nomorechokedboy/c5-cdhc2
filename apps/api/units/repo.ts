@@ -125,6 +125,34 @@ class repo implements Repository {
 			})
 			.catch(handleDatabaseErr)
 	}
+
+	getOne(params: Partial<Unit>): Promise<Unit | undefined> {
+		// Check if params is empty or has no valid fields
+		if (!params || Object.keys(params).length === 0) {
+			throw new Error(
+				'Invalid parameters: at least one field must be provided'
+			)
+		}
+
+		// Dynamically build where conditions based on provided fields
+		const conditions = Object.entries(params)
+			.filter(([_, value]) => value !== undefined && value !== null)
+			.map(([key, value]) => eq(units[key as keyof typeof units], value))
+
+		// If no valid conditions were built, throw error
+		if (conditions.length === 0) {
+			throw new Error('Invalid parameters: no valid fields provided')
+		}
+
+		const baseQuery = this.db.query.units
+
+		return baseQuery
+			.findFirst({
+				where:
+					conditions.length === 1 ? conditions[0] : and(...conditions)
+			})
+			.catch(handleDatabaseErr)
+	}
 }
 
 const unitRepo = new repo(orm)
