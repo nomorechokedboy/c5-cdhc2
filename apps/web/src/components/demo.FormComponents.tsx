@@ -322,11 +322,13 @@ export function Combobox({
 
 export type EditableInputProps = JSX.IntrinsicElements['input'] & {
 	label: string
+	ellipsisMaxWidth?: string
 }
 
 export function EditableInput({
 	label,
 	className,
+	ellipsisMaxWidth,
 	...inputProps
 }: EditableInputProps) {
 	const field = useFieldContext<string>()
@@ -342,6 +344,7 @@ export function EditableInput({
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
+				ellipsisMaxWidth={ellipsisMaxWidth}
 				{...inputProps}
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}

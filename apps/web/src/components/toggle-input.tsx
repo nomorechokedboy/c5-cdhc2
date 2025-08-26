@@ -19,6 +19,7 @@ type ToggleInputProps = Omit<JSX.IntrinsicElements['input'], 'placeholder'> & {
 	className?: string
 	disabled?: boolean
 	isLoading?: boolean
+	ellipsisMaxWidth?: string
 }
 
 export default function ToggleInput({
@@ -29,6 +30,7 @@ export default function ToggleInput({
 	disabled = false,
 	isLoading = false,
 	onChange,
+	ellipsisMaxWidth,
 	...inputProps
 }: ToggleInputProps) {
 	const [isEditing, setIsEditing] = useState(false)
@@ -131,6 +133,7 @@ export default function ToggleInput({
 		>
 			<EllipsisText
 				className={`flex-1 ${!value ? 'text-muted-foreground' : ''}`}
+				maxWidth={ellipsisMaxWidth}
 			>
 				{value || placeholder}
 			</EllipsisText>

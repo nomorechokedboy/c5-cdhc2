@@ -105,7 +105,10 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.EditableInput label='Tên file' />
+								<field.EditableInput
+									label='Tên file'
+									ellipsisMaxWidth='500px'
+								/>
 							)}
 						</form.AppField>
 					</div>
@@ -120,7 +123,10 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.EditableInput label='Tên đơn vị' />
+								<field.EditableInput
+									label='Tên đơn vị'
+									ellipsisMaxWidth='500px'
+								/>
 							)}
 						</form.AppField>
 						<form.AppField
@@ -133,7 +139,10 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.EditableInput label='Tên đơn vị trực thuộc' />
+								<field.EditableInput
+									label='Tên đơn vị trực thuộc'
+									ellipsisMaxWidth='500px'
+								/>
 							)}
 						</form.AppField>
 					</div>
@@ -148,7 +157,10 @@ export function ExportStudentDataDialog({
 							}}
 						>
 							{(field) => (
-								<field.EditableInput label='Cấp bậc của chỉ huy' />
+								<field.EditableInput
+									label='Cấp bậc của chỉ huy'
+									ellipsisMaxWidth='500px'
+								/>
 							)}
 						</form.AppField>
 						<form.AppField
