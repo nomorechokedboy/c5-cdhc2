@@ -142,5 +142,5 @@ export function Login(req: auth.LoginRequest) {
 }
 
 export function GetUserInfo() {
-	return requestClient.auth.GetUserInfo()
+	return requestClient.auth.GetUserInfo().then((resp) => resp.data)
 }
