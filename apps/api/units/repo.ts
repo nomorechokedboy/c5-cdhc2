@@ -149,7 +149,14 @@ class repo implements Repository {
 		return baseQuery
 			.findFirst({
 				where:
-					conditions.length === 1 ? conditions[0] : and(...conditions)
+					conditions.length === 1
+						? conditions[0]
+						: and(...conditions),
+				with: {
+					children: { with: { classes: true } },
+					classes: true,
+					parent: true
+				}
 			})
 			.catch(handleDatabaseErr)
 	}
