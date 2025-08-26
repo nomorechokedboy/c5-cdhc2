@@ -8,7 +8,7 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import useStudentData from '@/hooks/useStudents'
-import useUnitsData from '@/hooks/useUnitsData'
+import useUnitData from '@/hooks/useUnitData'
 import { createFileRoute } from '@tanstack/react-router'
 import z from 'zod'
 
@@ -32,25 +32,13 @@ function RouteComponent() {
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
 	} = useStudentData({ unitAlias: alias, unitLevel: level })
-	const { data: units, refetch: refetchUnits } = useUnitsData({
-		level: 'battalion'
-	})
+	const { data: unit } = useUnitData({ alias, level })
 	const filename = `danh-sach-hoc-vien-${alias}`
 	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
 	const handleFormSuccess = () => {
 		refetchStudents()
 	}
-	const flatUnits = units
-		?.map((unit) => {
-			if (unit.children.length !== 0) {
-				return [unit, ...unit.children]
-			}
-
-			return [unit]
-		})
-		.flat()
-	const unit = flatUnits?.find((unit) => unit.alias === alias)
 	const unitClasses = unit?.children.map((c) => ({
 		classes: c.classes,
 		unit: c
@@ -117,7 +105,13 @@ function RouteComponent() {
 					columns={battalionStudentColumns}
 					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
-					exportConfig={{ filename }}
+					exportConfig={{
+						filename,
+						defaultExportValues: {
+							unitName: 'Trường Cao đẳng hậu cần 2'.toUpperCase(),
+							underUnitName: unit?.name.toUpperCase()
+						}
+					}}
 					onDeleteRows={handleDeleteStudents}
 					onCreateSuccess={handleFormSuccess}
 					enableCreation

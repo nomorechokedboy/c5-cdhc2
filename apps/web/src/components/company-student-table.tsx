@@ -4,12 +4,12 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
-import useUnitsData from '@/hooks/useUnitsData'
 import type { UnitLevel } from '@/types'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import useUnitData from '@/hooks/useUnitData'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -27,22 +27,9 @@ export default function CompanyStudentTable({
 		refetchStudents()
 	}
 	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
-
-	const { data: units, refetch: _refetchUnits } = useUnitsData({
-		level: 'battalion'
-	})
-	const flatUnits = units
-		?.map((unit) => {
-			if (unit.children.length !== 0) {
-				return [unit, ...unit.children]
-			}
-
-			return [unit]
-		})
-		.flat()
+	const { data: unit } = useUnitData({ alias, level })
 	const filename = `danh-sach-hoc-vien-${alias}`
 
-	const unit = flatUnits?.find((unit) => unit.alias === alias)
 	const unitClasses = unit?.classes
 
 	if (isLoadingStudents) {
@@ -102,7 +89,13 @@ export default function CompanyStudentTable({
 					columns={columns}
 					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
-					exportConfig={{ filename }}
+					exportConfig={{
+						filename,
+						defaultExportValues: {
+							underUnitName: unit?.name.toUpperCase(),
+							unitName: unit?.parent?.name.toUpperCase()
+						}
+					}}
 					onDeleteRows={handleDeleteStudents}
 					onCreateSuccess={handleFormSuccess}
 					enableCreation
