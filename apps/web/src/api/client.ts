@@ -965,6 +965,13 @@ export namespace students {
 }
 
 export namespace units {
+	export interface GetUnitRequest {
+		id?: number
+		name?: string
+		level?: 'battalion' | 'company'
+		parentId?: number | null
+	}
+
 	export interface GetUnitResponse {
 		data?: Unit
 	}
@@ -1011,11 +1018,30 @@ export namespace units {
 			this.GetUnits = this.GetUnits.bind(this)
 		}
 
-		public async GetUnit(id: number): Promise<GetUnitResponse> {
+		public async GetUnit(
+			alias: string,
+			params: GetUnitRequest
+		): Promise<GetUnitResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				id: params.id === undefined ? undefined : String(params.id),
+				level:
+					params.level === undefined
+						? undefined
+						: String(params.level),
+				name: params.name,
+				parentId:
+					params.parentId === undefined
+						? undefined
+						: String(params.parentId)
+			})
+
 			// Now make the actual call to the API
 			const resp = await this.baseClient.callTypedAPI(
 				'GET',
-				`/units/${encodeURIComponent(id)}`
+				`/units/${encodeURIComponent(alias)}`,
+				undefined,
+				{ query }
 			)
 			return (await resp.json()) as GetUnitResponse
 		}

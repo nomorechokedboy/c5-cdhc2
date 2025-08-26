@@ -21,7 +21,7 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios, { appFetcher } from '@/lib/axios'
-import Client, { auth, students } from './client'
+import Client, { auth, students, units } from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
@@ -108,6 +108,13 @@ export function GetUnits(params?: GetUnitQuery) {
 	return axios
 		.get<GetUnitResponse>('/units', { params })
 		.then((resp) => resp.data.data)
+}
+
+export function GetUnit({
+	alias,
+	...params
+}: units.GetUnitRequest & { alias: string }) {
+	return requestClient.units.GetUnit(alias, params).then((resp) => resp.data)
 }
 
 export function GetUnreadNotificationsCount(): Promise<number> {
