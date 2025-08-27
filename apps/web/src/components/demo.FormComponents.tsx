@@ -7,7 +7,7 @@ import * as ShadcnSelect from '@/components/ui/select'
 import { Slider as ShadcnSlider } from '@/components/ui/slider'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { useEffect, useRef, useState, type JSX } from 'react'
+import { useState, type JSX } from 'react'
 import {
 	Command,
 	CommandEmpty,
@@ -224,9 +224,6 @@ export function Combobox({
 	onChange?: (value: string) => void
 }) {
 	const [open, setOpen] = useState(false)
-	const triggerRef = useRef<HTMLButtonElement>(null)
-	const [triggerWidth, setTriggerWidth] = useState<number>(0)
-
 	const field = useFieldContext<string>()
 	const errors = useStore(field.store, (state) => state.meta.errors)
 
@@ -234,12 +231,6 @@ export function Combobox({
 	const selectedLabel = values.find(
 		(item) => item.value === selectedValue
 	)?.label
-
-	useEffect(() => {
-		if (open && triggerRef.current) {
-			setTriggerWidth(triggerRef.current.offsetWidth)
-		}
-	}, [open])
 
 	return (
 		<div>
@@ -249,7 +240,6 @@ export function Combobox({
 			<Popover open={open} onOpenChange={setOpen} modal={true}>
 				<PopoverTrigger asChild>
 					<Button
-						ref={triggerRef}
 						variant='outline'
 						role='combobox'
 						aria-expanded={open}
@@ -259,17 +249,10 @@ export function Combobox({
 						<ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent
-					className='p-0 z-[100]'
-					style={{
-						width: triggerWidth > 0 ? `${triggerWidth}px` : 'auto'
-					}}
-					align='start'
-					sideOffset={4}
-				>
+				<PopoverContent className='p-0'>
 					<Command>
 						<CommandInput
-							placeholder={`Search ${label.toLowerCase()}...`}
+							placeholder={`Tìm ${label.toLowerCase()}...`}
 						/>
 						<CommandList>
 							<CommandEmpty>No option found.</CommandEmpty>
