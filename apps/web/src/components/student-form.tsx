@@ -13,14 +13,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from './ui/dialog'
-import { Button, buttonVariants } from './ui/button'
+} from '@/components/ui/dialog'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { useMutation } from '@tanstack/react-query'
 import { CreateStudent } from '@/api'
 import type { Student, StudentBody } from '@/types'
-import MilitaryStep from './military-step'
+import MilitaryStep from '@/components/military-step'
 import { toast } from 'sonner'
 import type { VariantProps } from 'class-variance-authority'
+import { convertToIso } from '@/lib/utils'
 
 export interface StudentFormProps {
 	onSuccess: (
@@ -30,11 +31,6 @@ export interface StudentFormProps {
 	) => unknown
 	buttonProps?: React.ComponentProps<'button'> &
 		VariantProps<typeof buttonVariants> & { asChild?: boolean }
-}
-
-function convertToIso(dateStr: string): string {
-	const [day, month, year] = dateStr.split('/')
-	return `${year}-${month}-${day}`
 }
 
 export default function StudentForm({
