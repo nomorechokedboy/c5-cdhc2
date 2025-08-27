@@ -26,7 +26,8 @@ import {
 	CommandEmpty,
 	CommandGroup,
 	CommandInput,
-	CommandItem
+	CommandItem,
+	CommandList
 } from '@/components/ui/command'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -41,6 +42,7 @@ import {
 import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
 import { EllipsisText } from './data-table/ellipsis-text'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 // Types
 type Option = {
@@ -331,6 +333,7 @@ export default function ToggleInput<T extends InputType>(
 					<Popover
 						open={isPopoverOpen}
 						onOpenChange={setIsPopoverOpen}
+						modal={true}
 					>
 						<PopoverTrigger asChild>
 							<Button
@@ -356,33 +359,40 @@ export default function ToggleInput<T extends InputType>(
 										'Search...'
 									}
 								/>
-								<CommandEmpty>
-									{comboboxProps.emptyMessage ||
-										'No options found.'}
-								</CommandEmpty>
-								<CommandGroup>
-									{comboboxProps.options.map((option) => (
-										<CommandItem
-											key={option.value}
-											value={option.value}
-											onSelect={() =>
-												handleComboboxSelect(
-													option.value
+								<CommandList>
+									<CommandEmpty>
+										{comboboxProps.emptyMessage ||
+											'No options found.'}
+									</CommandEmpty>
+									<CommandGroup>
+										<ScrollArea>
+											{comboboxProps.options.map(
+												(option) => (
+													<CommandItem
+														key={option.value}
+														value={option.value}
+														onSelect={() =>
+															handleComboboxSelect(
+																option.value
+															)
+														}
+													>
+														<Check
+															className={cn(
+																'mr-2 h-4 w-4',
+																tempValue ===
+																	option.value
+																	? 'opacity-100'
+																	: 'opacity-0'
+															)}
+														/>
+														{option.label}
+													</CommandItem>
 												)
-											}
-										>
-											<Check
-												className={cn(
-													'mr-2 h-4 w-4',
-													tempValue === option.value
-														? 'opacity-100'
-														: 'opacity-0'
-												)}
-											/>
-											{option.label}
-										</CommandItem>
-									))}
-								</CommandGroup>
+											)}
+										</ScrollArea>
+									</CommandGroup>
+								</CommandList>
 							</Command>
 						</PopoverContent>
 					</Popover>
@@ -441,7 +451,6 @@ export default function ToggleInput<T extends InputType>(
 				disabled || isLoading ? undefined : handleDoubleClick
 			}
 		>
-			{getDisplayIcon()}
 			<EllipsisText
 				className={`flex-1 ${!value ? 'text-muted-foreground' : ''}`}
 				maxWidth={ellipsisMaxWidth}
