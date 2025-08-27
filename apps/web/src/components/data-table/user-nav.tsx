@@ -15,6 +15,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 export function UserNav() {
 	const { logout, user } = useAuth()
+	const splittedDisplayName = user?.displayName.split(' ') ?? 'A D'
+
+	const firstName = splittedDisplayName[0]
+	let fallbackDisplayName = firstName[0]
+	if (splittedDisplayName.length > 1) {
+		const lastName = splittedDisplayName[splittedDisplayName?.length - 1]
+		const firstNameChar = firstName[0],
+			lastNameChar = lastName[0]
+		fallbackDisplayName = `${firstNameChar}${lastNameChar}`
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -24,7 +35,7 @@ export function UserNav() {
 				>
 					<Avatar className='h-9 w-9'>
 						<AvatarImage src='/avatars/03.png' alt='@shadcn' />
-						<AvatarFallback>AD</AvatarFallback>
+						<AvatarFallback>{fallbackDisplayName}</AvatarFallback>
 					</Avatar>
 				</Button>
 			</DropdownMenuTrigger>
