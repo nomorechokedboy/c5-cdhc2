@@ -113,3 +113,8 @@ export function transformPoliticsQualityData(
 
 	return [traverse(unit as unknown as Unit)]
 }
+
+export function convertToIso(dateStr: string): string {
+	const [day, month, year] = dateStr.split('/')
+	return `${year}-${month}-${day}`
+}
