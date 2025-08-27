@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '../data-table/data-table-column-header'
 import { DataTableRowActions } from '../data-table/data-table-row-actions'
 import EditableCell from '../data-table/editable-cell'
+import EditableMilitaryRank from '../data-table/editable-military-rank'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	const [year, month, day] = isoDate.split('-')
@@ -304,13 +305,7 @@ export const columns: ColumnDef<Student>[] = [
 	{
 		accessorKey: 'rank',
 		header: 'Cấp bậc',
-		cell: ({ row }) => (
-			<div className='min-w-20'>
-				<Badge className='bg-[#3A5F0B] text-white font-bold'>
-					{row.getValue('rank')}
-				</Badge>
-			</div>
-		),
+		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
@@ -748,13 +743,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	{
 		accessorKey: 'rank',
 		header: 'Cấp bậc',
-		cell: ({ row }) => (
-			<div className='min-w-20'>
-				<Badge className='bg-[#3A5F0B] text-white font-bold'>
-					{row.getValue('rank')}
-				</Badge>
-			</div>
-		),
+		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
@@ -1149,13 +1138,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 	{
 		accessorKey: 'rank',
 		header: 'Cấp bậc',
-		cell: ({ row }) => (
-			<div className='min-w-20'>
-				<Badge className='bg-[#3A5F0B] text-white font-bold'>
-					{row.getValue('rank')}
-				</Badge>
-			</div>
-		),
+		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
 		},
