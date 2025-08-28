@@ -290,15 +290,7 @@ export function Combobox({
 					</Command>
 				</PopoverContent>
 			</Popover>
-			{field.state.meta.isTouched && errors.length > 0 && (
-				<div className='mt-1'>
-					{errors.map((error: string, index: number) => (
-						<p key={index} className='text-sm text-red-600'>
-							{error}
-						</p>
-					))}
-				</div>
-			)}
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
 	)
 }
