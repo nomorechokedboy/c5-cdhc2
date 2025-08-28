@@ -17,17 +17,7 @@ export default function MilitaryStep({ form }: { form: any }) {
 						/>
 					)}
 				</form.AppField>
-				<form.AppField
-					name='enlistmentPeriod'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Ngày nhập ngũ không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='enlistmentPeriod'>
 					{(field: any) => <field.TextField label='Ngày nhập ngũ' />}
 				</form.AppField>
 				<form.AppField name='policyBeneficiaryGroup'>
@@ -37,47 +27,17 @@ export default function MilitaryStep({ form }: { form: any }) {
 				</form.AppField>
 			</div>
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-				<form.AppField
-					name='previousUnit'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Đơn vị cũ không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='previousUnit'>
 					{(field: any) => <field.TextField label='Đơn vị cũ' />}
 				</form.AppField>
-				<form.AppField
-					name='previousPosition'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Chức vụ công tác tại đơn vị cũ không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='previousPosition'>
 					{(field: any) => (
 						<field.TextField label='Chức vụ công tác tại đơn vị cũ' />
 					)}
 				</form.AppField>
 			</div>
 			<div className='grid grid-cols-2 gap-6'>
-				<form.AppField
-					name='politicalOrg'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Đoàn/Đảng không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='politicalOrg'>
 					{(field: any) => (
 						<field.Select
 							label='Đoàn/Đảng'
@@ -102,17 +62,7 @@ export default function MilitaryStep({ form }: { form: any }) {
 						></field.Select>
 					)}
 				</form.AppField>
-				<form.AppField
-					name='politicalOrgOfficialDate'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Ngày vào Đoàn/Đảng không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='politicalOrgOfficialDate'>
 					{(field: any) => (
 						<field.DatePicker
 							className={`${!isCpv ? 'col-span-2' : ''}`}
@@ -127,17 +77,7 @@ export default function MilitaryStep({ form }: { form: any }) {
 					{(field: any) => <field.TextField label='Số thẻ Đảng' />}
 				</form.AppField>
 
-				<form.AppField
-					name='cpvOfficalAt'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Ngày vào Đảng chính thức không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='cpvOfficalAt'>
 					{(field: any) => (
 						<field.DatePicker
 							className={`${!isCpv ? 'col-span-2' : ''}`}
