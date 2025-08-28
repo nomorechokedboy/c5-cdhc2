@@ -1,9 +1,17 @@
+import {
+	familyInfoSchema,
+	militaryInfoSchema,
+	parentInfoSchema,
+	personalInfoSchema
+} from '@/components/student-form-schema'
+
 export const STEPS = [
 	{
 		id: 'personal',
 		title: 'Thông tin cá nhân',
 		fields: [
 			'fullName',
+			'classId',
 			'birthPlace',
 			'address',
 			'ethnic',
@@ -12,32 +20,60 @@ export const STEPS = [
 			'schoolName',
 			'major',
 			'phone',
-			'classId'
-		]
+			'dob'
+		],
+		validationSchema: personalInfoSchema
 	},
 	{
 		id: 'other',
 		title: 'Thông tin khác',
 		fields: [
 			'rank',
+			'enlistmentPeriod',
+			'policyBeneficiaryGroup',
 			'previousUnit',
 			'previousPosition',
-			'enlistmentPeriod',
 			'politicalOrg',
-			'politicalOrgOfficialDate'
-		]
+			'politicalOrgOfficialDate',
+			'cpvId',
+			'cpvOfficialAt',
+			'talent',
+			'shortcoming',
+			'achievement',
+			'disciplinaryHistory'
+		],
+		validationSchema: militaryInfoSchema
 	},
 	{
 		id: 'parent',
 		title: 'Thông tin bố mẹ',
-		fields: []
+		fields: [
+			'familySize',
+			'familyBirthOrder',
+			'familyBackground',
+			'fatherName',
+			'fatherDob',
+			'fatherJob',
+			'fatherPhoneNumber',
+			'motherName',
+			'motherDob',
+			'motherJob',
+			'motherPhoneNumber'
+		],
+		validationSchema: parentInfoSchema
 	},
 	{
 		id: 'family',
 		title: 'Thông tin vợ/chồng và con',
-		fields: []
-	},
-	{ id: 'review', title: 'Xem lại thông tin', fields: [] }
+		fields: [
+			'spouseName',
+			'spouseDob',
+			'spouseJob',
+			'spousePhoneNumber',
+			'childrenInfos'
+		],
+		validationSchema: familyInfoSchema
+	}
 ]
 
 interface Notification {
