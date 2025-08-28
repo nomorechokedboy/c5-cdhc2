@@ -43,9 +43,6 @@ export default function StudentForm({
 	const [currentStep, setCurrentStep] = useState(0)
 	const [completedSteps, setCompletedSteps] = useState<number[]>([])
 	const [open, setOpen] = useState(false)
-	const [validationErrors, setValidationErrors] = useState<
-		Record<string, string>
-	>({})
 
 	const { mutateAsync } = useMutation({
 		mutationFn: CreateStudent,
@@ -58,7 +55,6 @@ export default function StudentForm({
 	const handleResetStep = () => {
 		setCurrentStep(0)
 		setCompletedSteps([])
-		setValidationErrors({})
 	}
 
 	const form = useAppForm({
@@ -110,12 +106,25 @@ export default function StudentForm({
 		onSubmit: async ({ value, formApi }) => {
 			try {
 				// Validate all fields before submission
-				const validationResult = validateAllFields(value)
+				const currentStepValues: Record<string, any> = {}
+				STEPS[currentStep].fields.forEach((fieldName: any) => {
+					currentStepValues[fieldName] = form.getFieldValue(fieldName)
+				})
+				const validationResult =
+					STEPS[currentStep].validationSchema.safeParse(
+						currentStepValues
+					)
 				console.log({ validationResult })
 
 				if (!validationResult.success) {
-					setValidationErrors(validationResult.errors)
-					toast.error('Vui lòng kiểm tra lại thông tin nhập vào!')
+					validationResult.error.errors.forEach((err) => {
+						const fieldPath = err.path[0] as any
+						form.setFieldMeta(fieldPath, (prev) => ({
+							...prev,
+							errorMap: { onSubmit: { message: err.message } },
+							isTouched: true
+						}))
+					})
 					return
 				}
 
@@ -140,34 +149,17 @@ export default function StudentForm({
 				}
 
 				await mutateAsync(value)
-				setOpen(false)
 				toast.success('Thêm mới học viên thành công!', {})
 				formApi.reset()
 				handleResetStep()
+				setOpen(false)
 			} catch (err) {
 				console.error(err)
 				toast.error('Thêm mới học viên thất bại!')
 			}
-		}
+		},
+		validators: { onSubmit: StudentFormSchema }
 	})
-
-	const validateAllFields = (formValues: any) => {
-		try {
-			StudentFormSchema.parse(formValues)
-			return { success: true, errors: {} }
-		} catch (error) {
-			if (error instanceof z.ZodError) {
-				const errors: Record<string, string> = {}
-				error.errors.forEach((err) => {
-					if (err.path[0]) {
-						errors[err.path[0] as string] = err.message
-					}
-				})
-				return { success: false, errors }
-			}
-			return { success: false, errors: {} }
-		}
-	}
 
 	const handleNext = () => {
 		const currentStepValues: Record<string, any> = {}
@@ -206,16 +198,7 @@ export default function StudentForm({
 
 	const renderCurrentStep = () => {
 		const stepProps = {
-			form,
-			validationErrors,
-			onFieldChange: () => {
-				// Clear validation error when field changes
-				setValidationErrors((prev) => {
-					const newErrors = { ...prev }
-					// You might want to clear specific field errors here
-					return newErrors
-				})
-			}
+			form
 		}
 
 		switch (currentStep) {
@@ -292,17 +275,19 @@ export default function StudentForm({
 								state.canSubmit,
 								state.isSubmitting
 							]}
-							children={([canSubmit, isSubmitting]) => (
-								<Button
-									type='submit'
-									form='studentForm'
-									disabled={!canSubmit}
-								>
-									{isSubmitting
-										? 'Đang thêm học viên...'
-										: 'Thêm học viên'}
-								</Button>
-							)}
+							children={([canSubmit, isSubmitting]) => {
+								return (
+									<Button
+										type='submit'
+										form='studentForm'
+										disabled={!canSubmit}
+									>
+										{isSubmitting
+											? 'Đang thêm học viên...'
+											: 'Thêm học viên'}
+									</Button>
+								)
+							}}
 						/>
 					)}
 				</div>
