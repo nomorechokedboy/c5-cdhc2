@@ -78,10 +78,10 @@ export function TextField({ label, className, ...inputProps }: TextFieldProps) {
 				{label}
 			</Label>
 			<Input
+				{...inputProps}
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
-				{...inputProps}
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
