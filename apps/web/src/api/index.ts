@@ -14,7 +14,6 @@ import type {
 	MarkAsReadNotificationParams,
 	Student,
 	StudentBody,
-	StudentQueryParams,
 	StudentResponse,
 	Unit,
 	UnitLevel,
