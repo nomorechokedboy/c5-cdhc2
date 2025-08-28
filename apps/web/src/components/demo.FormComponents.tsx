@@ -52,9 +52,9 @@ export function ErrorMessages({
 }) {
 	return (
 		<>
-			{errors.map((error) => (
+			{errors.map((error, idx) => (
 				<div
-					key={typeof error === 'string' ? error : error.message}
+					key={`${typeof error === 'string' ? error : error.message}-${idx}`}
 					className='text-red-500 mt-1 font-bold'
 				>
 					{typeof error === 'string' ? error : error.message}
@@ -79,6 +79,8 @@ export function TextField({ label, className, ...inputProps }: TextFieldProps) {
 			</Label>
 			<Input
 				{...inputProps}
+				id={field.name}
+				name={field.name}
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
