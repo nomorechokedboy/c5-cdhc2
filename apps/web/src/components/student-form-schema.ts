@@ -73,9 +73,10 @@ const optionalDate = z
 	.refine((val) => val === '' || dateRegex.test(val), {
 		message: 'Hãy dùng định dạng Ngày/tháng/năm'
 	})
-	.refine((val) => val === '' || dayjs(val, 'DD/MM/YYYY', true).isValid(), {
-		message: 'Ngày không hợp lệ'
-	})
+	.refine((s) => {
+		const parsed = dayjs(s, 'DD/MM/YYYY', true)
+		return parsed.isValid() && parsed.format('DD/MM/YYYY') === s
+	}, 'Ngày sinh không hợp lệ')
 	.optional()
 
 export const personalInfoSchema = z.object({
@@ -104,10 +105,10 @@ export const personalInfoSchema = z.object({
 			/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
 			'Hãy dùng định dạng Ngày/tháng/năm'
 		)
-		.refine(
-			(s) => dayjs(s, 'DD/MM/YYYY', true).isValid(),
-			'Ngày sinh không hợp lệ'
-		)
+		.refine((s) => {
+			const parsed = dayjs(s, 'DD/MM/YYYY', true)
+			return parsed.isValid() && parsed.format('DD/MM/YYYY') === s
+		}, 'Ngày sinh không hợp lệ')
 })
 
 export const militaryInfoSchema = z.object({
@@ -148,10 +149,10 @@ export const ChildrenInfoSchema = z.object({
 			/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
 			'Hãy dùng định dạng Ngày/tháng/năm'
 		)
-		.refine(
-			(s) => dayjs(s, 'DD/MM/YYYY', true).isValid(),
-			'Ngày sinh con không hợp lệ'
-		)
+		.refine((s) => {
+			const parsed = dayjs(s, 'DD/MM/YYYY', true)
+			return parsed.isValid() && parsed.format('DD/MM/YYYY') === s
+		}, 'Ngày sinh không hợp lệ')
 })
 
 export const familyInfoSchema = z.object({
