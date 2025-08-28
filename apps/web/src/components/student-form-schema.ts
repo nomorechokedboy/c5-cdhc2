@@ -1,5 +1,8 @@
 import dayjs from 'dayjs'
 import * as z from 'zod'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+dayjs.extend(customParseFormat)
 
 export const studentSchema = z.object({
 	// Personal Info Step
@@ -147,7 +150,7 @@ export const ChildrenInfoSchema = z.object({
 		)
 		.refine(
 			(s) => dayjs(s, 'DD/MM/YYYY', true).isValid(),
-			'Ngày sinh không hợp lệ'
+			'Ngày sinh con không hợp lệ'
 		)
 })
 
