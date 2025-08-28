@@ -2,7 +2,6 @@ import type { ChildrenInfo } from '@/types'
 import { Trash2, Plus } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ErrorMessages } from './demo.FormComponents'
 
 export interface ChildrenInfoProps {
 	form: any
@@ -35,9 +34,11 @@ export default function ChildrenInfo({ form }: ChildrenInfoProps) {
 																	i: number
 																) => i !== index
 															)
+
 														field.handleChange(
 															newValue
 														)
+														field.removeValue(index)
 													}}
 													className='text-red-500 hover:text-red-700 hover:bg-red-50'
 												>
@@ -50,54 +51,18 @@ export default function ChildrenInfo({ form }: ChildrenInfoProps) {
 										<form.AppField
 											name={`childrenInfos[${index}].fullName`}
 											defaultValue=''
-											validators={{
-												onChange: ({ value }) => {
-													if (
-														!value ||
-														value.trim().length ===
-															0
-													) {
-														return 'Full name is required'
-													}
-													if (
-														value.trim().length < 2
-													) {
-														return 'Full name must be at least 2 characters'
-													}
-													return undefined
-												}
-											}}
 										>
 											{(field: any) => (
-												<field.TextField label='Họ và tên' />
+												<field.TextField
+													label='Họ và tên con'
+													placeholder='Họ và tên con...'
+												/>
 											)}
 										</form.AppField>
 
 										<form.AppField
 											name={`childrenInfos[${index}].dob`}
 											defaultValue=''
-											validators={{
-												onBlur: ({
-													value
-												}: {
-													value: any
-												}) => {
-													if (
-														!value ||
-														value.trim().length ===
-															0
-													) {
-														return 'Ngày sinh không được bỏ trống'
-													}
-													const selectedDate =
-														new Date(value)
-													const today = new Date()
-													if (selectedDate > today) {
-														return 'Date of birth cannot be in the future'
-													}
-													return undefined
-												}
-											}}
 										>
 											{(field: any) => (
 												<field.TextField
@@ -132,10 +97,6 @@ export default function ChildrenInfo({ form }: ChildrenInfoProps) {
 							Thêm thông tin con cái
 						</Button>
 					</div>
-
-					{field.state.meta.errors.length > 0 && (
-						<ErrorMessages errors={field.state.meta.errors} />
-					)}
 				</div>
 			)}
 		</form.AppField>
