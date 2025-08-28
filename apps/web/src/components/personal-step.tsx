@@ -18,17 +18,7 @@ export default function PersonalStep({ form }: { form: any }) {
 		<div className='space-y-6'>
 			{/* Full Name - Full Width */}
 			<div className='grid grid-cols-3 gap-6'>
-				<form.AppField
-					name='fullName'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Họ và tên không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='fullName'>
 					{(field: any) => (
 						<field.TextField
 							className='col-span-2'
@@ -110,17 +100,7 @@ export default function PersonalStep({ form }: { form: any }) {
 
 			{/* Phone - Full Width */}
 			<div className='grid grid-cols-2 gap-6'>
-				<form.AppField
-					name='phone'
-					validators={{
-						onBlur: ({ value }: { value: string }) => {
-							if (!value || value.trim().length === 0) {
-								return 'Số điện thoại không được để trống'
-							}
-							return undefined
-						}
-					}}
-				>
+				<form.AppField name='phone'>
 					{(field: any) => (
 						<field.TextField
 							label='Số điện thoại'
