@@ -16,48 +16,48 @@ export interface ClassBody {
 export type PoliticalOrg = 'hcyu' | 'cpv'
 
 export type StudentBody = {
-	fullName: string
-	birthPlace: string
-	address: string
-	class: Class
-	cpvId: string
-	dob: string
-	educationLevel: string
-	enlistmentPeriod: string
-	ethnic: string
-	fatherJob: string
-	fatherDob: string
-	fatherName: string
-	fatherPhoneNumber: string
-	isGraduated: boolean
-	major: string
-	motherJob: string
-	motherDob: string
-	motherName: string
-	motherPhoneNumber: string
-	phone: string
-	policyBeneficiaryGroup: string
-	politicalOrg: PoliticalOrg
-	politicalOrgOfficialDate: string
-	position: string
-	previousPosition: string
-	previousUnit: string
-	rank: string
-	religion: string
-	schoolName: string
-	shortcoming: string
-	talent: string
-	isMarried: boolean
-	spouseName: string
-	spouseDob: string
-	spousePhoneNumber: string
-	childrenInfos: ChildrenInfo[]
-	familySize: number
-	familyBackground: string
-	familyBirthOrder: string
-	achievement: string
-	disciplinaryHistory: string
-	cpvOfficialAt: string
+	fullName?: string
+	birthPlace?: string
+	address?: string
+	class?: Class
+	cpvId?: string
+	dob?: string
+	educationLevel?: string
+	enlistmentPeriod?: string
+	ethnic?: string
+	fatherJob?: string
+	fatherDob?: string
+	fatherName?: string
+	fatherPhoneNumber?: string
+	isGraduated?: boolean
+	major?: string
+	motherJob?: string
+	motherDob?: string
+	motherName?: string
+	motherPhoneNumber?: string
+	phone?: string
+	policyBeneficiaryGroup?: string
+	politicalOrg?: PoliticalOrg
+	politicalOrgOfficialDate?: string
+	position?: string
+	previousPosition?: string
+	previousUnit?: string
+	rank?: string
+	religion?: string
+	schoolName?: string
+	shortcoming?: string
+	talent?: string
+	isMarried?: boolean
+	spouseName?: string
+	spouseDob?: string
+	spousePhoneNumber?: string
+	childrenInfos?: ChildrenInfo[]
+	familySize?: number
+	familyBackground?: string
+	familyBirthOrder?: string
+	achievement?: string
+	disciplinaryHistory?: string
+	cpvOfficialAt?: string
 }
 
 type Base = {
@@ -121,6 +121,8 @@ export interface StudentQueryParams {
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
 }
+
+
 
 export type ChildrenInfo = {
 	fullName: string

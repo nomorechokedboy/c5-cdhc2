@@ -57,6 +57,14 @@ export function CreateStudent(body: StudentBody) {
 		.then((resp) => resp.data.data)
 }
 
+// export function CreateStudent, body: StudentBody[])
+export function CreateStudents(body: StudentBody[]) {
+	return axios
+		.post<StudentResponse>('/students/bulk', { data: body })
+		.then((resp) => resp.data.data)
+}
+
+
 export function GetStudents(
 	params?: students.GetStudentsQuery
 ): Promise<Student[]> {

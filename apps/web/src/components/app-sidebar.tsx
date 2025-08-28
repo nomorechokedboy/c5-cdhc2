@@ -101,6 +101,19 @@ const data = {
 					icon: HeartHandshake
 				}
 			]
+		},
+		// Chức năng khác -> import học viên
+		{
+			title: 'Chức năng khác',
+			url: '#',
+			icon: Star,
+			items: [
+				{
+					title: 'Import học viên',
+					url: '/import-students',
+					icon: UserPlus
+				}
+			]
 		}
 	]
 }
