@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useMemo } from 'react'
 import XLSX from 'xlsx'
 import {
 	FileUp,
@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import useCreateStudents from '@/hooks/useCreateStudents'
 import { toIsoDate } from '@/common'
+import type { StudentBody } from '@/types'
+import useClassData from '@/hooks/useClasses'
 export interface ImportStudentsDialogProps {
 	isOpen: boolean
 	onClose: () => void
@@ -30,6 +32,17 @@ export function ImportStudentsDialog({
 	onClose,
 	onSuccess
 }: ImportStudentsDialogProps) {
+	const { data: classes = [] } = useClassData()
+	// options cho select lớp
+	const classOptions = useMemo(
+		() =>
+			classes.map((c) => ({
+				value: c.id.toString(),
+				label: `${c.name} - ${c.unit.name}`
+			})),
+		[classes]
+	)
+
 	const createStudentsMutation = useCreateStudents()
 	const [students, setStudents] = useState<StudentBody[]>([])
 	const [selectedFile, setSelectedFile] = useState(null)
@@ -228,50 +241,57 @@ export function ImportStudentsDialog({
 
 		// Create instruction sheet
 		const instructionData = [
-			['HƯỚNG DẪN SỬ DỤNG FILE IMPORT'],
+			['📘 HƯỚNG DẪN SỬ DỤNG FILE IMPORT'],
 			[''],
-			['1. ĐỊNH DẠNG DỮ LIỆU:'],
+
+			['1. ĐỊNH DẠNG DỮ LIỆU'],
 			['• Ngày tháng: DD/MM/YYYY (ví dụ: 03/05/2000)'],
 			["• Đã tốt nghiệp: Nhập 'Có' hoặc 'Không'"],
 			["• Đã kết hôn: Nhập 'Có' hoặc 'Không'"],
 			['• Số điện thoại: Định dạng 10-11 số'],
 			[''],
-			['2. CÁC TRƯỜNG BẮT BUỘC:'],
+
+			['2. CÁC TRƯỜNG BẮT BUỘC'],
 			['• Họ và tên (không được để trống)'],
 			['• Ngày sinh (định dạng DD/MM/YYYY)'],
 			['• Số điện thoại (10-11 số)'],
-			['• ID Lớp (số nguyên)'],
+			['• ID Lớp (số nguyên, xem tại sheet Danh sách lớp)'],
 			[''],
-			['3. GHI CHÚ QUAN TRỌNG:'],
+
+			['3. GHI CHÚ QUAN TRỌNG'],
 			['• KHÔNG được xóa hoặc thay đổi tên cột'],
 			['• KHÔNG được xóa dòng 2 (chứa tên trường API)'],
 			['• Nhập dữ liệu từ dòng 4 trở đi'],
 			['• Các trường để trống nếu không có thông tin'],
 			['• Dữ liệu mẫu ở dòng 3 có thể xóa hoặc chỉnh sửa'],
 			[''],
-			['4. MÃ TỔ CHỨC CHÍNH TRỊ:'],
-			['• hcyu: Đoàn'],
-			['• cpv: Đảng'],
+
+			['4. MÃ TỔ CHỨC CHÍNH TRỊ'],
+			['• hcyu: Đoàn Thanh niên Cộng sản Hồ Chí Minh'],
+			['• cpv: Đảng Cộng sản Việt Nam'],
 			[''],
-			['5. CÁC GIÁ TRỊ BOOLEAN:'],
+
+			['5. CÁC GIÁ TRỊ BOOLEAN'],
 			['• isGraduated: true hoặc false'],
 			['• isMarried: true hoặc false'],
 			[''],
-			['6. LIÊN HỆ HỖ TRỢ:'],
-			['Nếu có thắc mắc, vui lòng liên hệ bộ phận IT để được hỗ trợ.'],
-			[''],
-			['7. CẤP BẬC:'],
+
+			['6. CẤP BẬC'],
 			[
 				'Binh nhất, Binh nhì, Hạ sĩ, Trung sĩ, Thượng sĩ, Thiếu úy chuyên nghiệp, Trung úy chuyên nghiệp, Thượng úy chuyên nghiệp, Đại úy chuyên nghiệp, Thiếu tá chuyên nghiệp, Trung tá chuyên nghiệp, Thượng tá chuyên nghiệp'
 			],
 			[''],
-			['8. TRÌNH ĐỘ HỌC VẤN:'],
+
+			['7. TRÌNH ĐỘ HỌC VẤN'],
 			['9/12, 10/12, 11/12, 12/12, Cao đẳng, Đại học, Sau đại học'],
 			[''],
-			['9. Tôn giáo'],
-			[
-				'• Không, Phật giáo, Công giáo, Cao Đài, Tin Lành, Hòa hảo, . . .'
-			],
+
+			['8. TÔN GIÁO'],
+			['Không, Phật giáo, Công giáo, Cao Đài, Tin Lành, Hòa Hảo, ...'],
+			[''],
+
+			['9. LIÊN HỆ HỖ TRỢ'],
+			['Nếu có thắc mắc, vui lòng liên hệ bộ phận IT để được hỗ trợ.'],
 			['']
 		]
 
@@ -294,6 +314,27 @@ export function ImportStudentsDialog({
 
 		// Add instruction sheet to workbook
 		XLSX.utils.book_append_sheet(wb, wsInstruction, 'Hướng dẫn')
+
+		// thêm sheet Danh sách lớp hiện tại
+		const classData = [
+			['ID Lớp', 'Tên lớp - Tên đơn vị'],
+			...classOptions.map((c) => [c.value, c.label])
+		]
+		const wsClasses = XLSX.utils.aoa_to_sheet(classData)
+		wsClasses['!cols'] = [{ wch: 15 }, { wch: 40 }]
+		// Style header
+		const classHeaderStyle = {
+			fill: { fgColor: { rgb: '4472C4' } },
+			font: { color: { rgb: 'FFFFFF' }, bold: true },
+			alignment: { horizontal: 'center' }
+		}
+		for (let i = 0; i < classData[0].length; i++) {
+			const cellAddress = XLSX.utils.encode_cell({ r: 0, c: i })
+			if (!wsClasses[cellAddress])
+				wsClasses[cellAddress] = { v: classData[0][i] }
+			wsClasses[cellAddress].s = classHeaderStyle
+		}
+		XLSX.utils.book_append_sheet(wb, wsClasses, 'Danh sách lớp')
 
 		// Download the Excel file
 		XLSX.writeFile(wb, 'Mau_Import_Hoc_Vien.xlsx')
@@ -375,7 +416,6 @@ export function ImportStudentsDialog({
 						headers.forEach((header, index) => {
 							let value = row[index] ?? '' // giữ nguyên false, 0
 
-							
 							if (booleanFields.includes(header)) {
 								if (typeof value === 'string') {
 									const normalized = value
@@ -412,13 +452,17 @@ export function ImportStudentsDialog({
 							}
 
 							if (
-								['dob', 'fatherDob', 'motherDob', 'spouseDob', 'politicalOrgOfficialDate'].includes(
-									header
-								) &&
+								[
+									'dob',
+									'fatherDob',
+									'motherDob',
+									'spouseDob',
+									'politicalOrgOfficialDate'
+								].includes(header) &&
 								typeof value === 'string' &&
 								value.trim() !== ''
 							) {
-								value = toIsoDate(value);
+								value = toIsoDate(value)
 							}
 
 							student[header] = value
@@ -499,7 +543,6 @@ export function ImportStudentsDialog({
 		try {
 			console.log('request body:', JSON.stringify(students, null, 2))
 			const result = await createStudentsMutation.mutateAsync(students)
-			
 
 			const mockResults = {
 				successCount: students.length,
@@ -551,7 +594,6 @@ export function ImportStudentsDialog({
 	return (
 		<div className=' flex items-center justify-center z-50 p-4'>
 			<div className='bg-white rounded-xl w-[90vw] max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl'>
-
 				{/* Header */}
 				<div className='flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-xl'>
 					<div className='flex items-center space-x-3'>
