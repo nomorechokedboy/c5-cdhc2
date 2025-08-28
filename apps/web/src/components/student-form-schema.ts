@@ -108,12 +108,12 @@ export const personalInfoSchema = z.object({
 })
 
 export const militaryInfoSchema = z.object({
-	rank: z.string(),
+	rank: z.string().nonempty('Cấp bậc không được bỏ trống'),
 	enlistmentPeriod: z.string().optional(),
 	policyBeneficiaryGroup: z.string().optional(),
 	previousUnit: z.string().optional(),
 	previousPosition: z.string().optional(),
-	politicalOrg: z.string(),
+	politicalOrg: z.string().nonempty('Đoàn/Đảng không được bỏ trống'),
 	politicalOrgOfficialDate: optionalDate,
 	cpvId: z.string().optional(),
 	cpvOfficialAt: optionalDate.nullish(),

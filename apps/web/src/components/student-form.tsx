@@ -22,6 +22,9 @@ import MilitaryStep from '@/components/military-step'
 import { toast } from 'sonner'
 import type { VariantProps } from 'class-variance-authority'
 import { convertToIso } from '@/lib/utils'
+import { StudentFormSchema } from './student-form-schema'
+import { z } from 'zod'
+import type { StudentFormSchemaType } from './student-form/schema'
 
 export interface StudentFormProps {
 	onSuccess: (
@@ -40,18 +43,24 @@ export default function StudentForm({
 	const [currentStep, setCurrentStep] = useState(0)
 	const [completedSteps, setCompletedSteps] = useState<number[]>([])
 	const [open, setOpen] = useState(false)
+	const [validationErrors, setValidationErrors] = useState<
+		Record<string, string>
+	>({})
+
 	const { mutateAsync } = useMutation({
 		mutationFn: CreateStudent,
 		onSuccess,
 		onError: (error) => {
-			console.error('Failed to create class:', error)
+			console.error('Failed to create student:', error)
 		}
 	})
 
 	const handleResetStep = () => {
 		setCurrentStep(0)
 		setCompletedSteps([])
+		setValidationErrors({})
 	}
+
 	const form = useAppForm({
 		defaultValues: {
 			fullName: '',
@@ -97,10 +106,19 @@ export default function StudentForm({
 			phone: '',
 			classId: 0,
 			cpvOfficialAt: null
-		},
-		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
+		} as StudentFormSchemaType,
+		onSubmit: async ({ value, formApi }) => {
 			try {
-				console.log(value)
+				// Validate all fields before submission
+				const validationResult = validateAllFields(value)
+				console.log({ validationResult })
+
+				if (!validationResult.success) {
+					setValidationErrors(validationResult.errors)
+					toast.error('Vui lòng kiểm tra lại thông tin nhập vào!')
+					return
+				}
+
 				const classId = value.classId
 				value.classId = Number(classId)
 
@@ -113,7 +131,10 @@ export default function StudentForm({
 					value.isMarried = true
 				}
 
-				if (value.cpvOfficialAt !== null) {
+				if (
+					value.cpvOfficialAt !== null &&
+					value.cpvOfficialAt !== undefined
+				) {
 					const cpvOfficialAt = value.cpvOfficialAt
 					value.cpvOfficialAt = convertToIso(cpvOfficialAt)
 				}
@@ -130,49 +151,44 @@ export default function StudentForm({
 		}
 	})
 
-	const validateCurrentStep = () => {
-		const currentStepData = STEPS[currentStep]
-		const formState = form.state
-		let isValid = true
-
-		// Force validation on all current step fields
-		for (const fieldName of currentStepData.fields) {
-			// Get the current field value
-			const fieldValue = fieldName.includes('.')
-				? fieldName
-						.split('.')
-						.reduce((obj, key) => obj?.[key], formState.values)
-				: formState.values[fieldName]
-
-			// Check if required fields have values
-			if (
-				!fieldValue ||
-				(typeof fieldValue === 'string' &&
-					fieldValue.trim().length === 0)
-			) {
-				isValid = false
-				break
+	const validateAllFields = (formValues: any) => {
+		try {
+			StudentFormSchema.parse(formValues)
+			return { success: true, errors: {} }
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				const errors: Record<string, string> = {}
+				error.errors.forEach((err) => {
+					if (err.path[0]) {
+						errors[err.path[0] as string] = err.message
+					}
+				})
+				return { success: false, errors }
 			}
-
-			// Check for existing validation errors
-			const fieldState = formState.fieldMeta[fieldName]
-			if (fieldState?.errors?.length > 0) {
-				isValid = false
-				break
-			}
+			return { success: false, errors: {} }
 		}
-
-		return isValid
 	}
 
 	const handleNext = () => {
-		if (validateCurrentStep()) {
-			setCompletedSteps((prev) => [
-				...prev.filter((step) => step !== currentStep),
-				currentStep
-			])
-			setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1))
+		const currentStepValues: Record<string, any> = {}
+		STEPS[currentStep].fields.forEach((fieldName: any) => {
+			currentStepValues[fieldName] = form.getFieldValue(fieldName)
+		})
+		const validationResult =
+			STEPS[currentStep].validationSchema.safeParse(currentStepValues)
+		if (!validationResult.success) {
+			validationResult.error.errors.forEach((err) => {
+				const fieldPath = err.path[0] as any
+				form.setFieldMeta(fieldPath, (prev) => ({
+					...prev,
+					errorMap: { onSubmit: { message: err.message } },
+					isTouched: true
+				}))
+			})
+			return
 		}
+
+		setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1))
 	}
 
 	const handlePrevious = () => {
@@ -189,17 +205,30 @@ export default function StudentForm({
 	}
 
 	const renderCurrentStep = () => {
+		const stepProps = {
+			form,
+			validationErrors,
+			onFieldChange: () => {
+				// Clear validation error when field changes
+				setValidationErrors((prev) => {
+					const newErrors = { ...prev }
+					// You might want to clear specific field errors here
+					return newErrors
+				})
+			}
+		}
+
 		switch (currentStep) {
 			case 0:
-				return <PersonalStep form={form} />
+				return <PersonalStep {...stepProps} />
 			case 1:
-				return <MilitaryStep form={form} />
+				return <MilitaryStep {...stepProps} />
 			case 2:
-				return <ParentInfoStep form={form} />
+				return <ParentInfoStep {...stepProps} />
 			case 3:
-				return <FamilyStep form={form} />
-			case 4:
-				return <ReviewStep values={form.state.values} />
+				return <FamilyStep {...stepProps} />
+			/* case 4:
+                return <ReviewStep values={form.state.values} /> */
 			default:
 				return null
 		}
@@ -258,12 +287,23 @@ export default function StudentForm({
 							<ChevronRight className='w-4 h-4 ml-1' />
 						</button>
 					) : (
-						<form.AppForm>
-							<form.SubscribeButton
-								label='Thêm mới'
-								form='studentForm'
-							/>
-						</form.AppForm>
+						<form.Subscribe
+							selector={(state) => [
+								state.canSubmit,
+								state.isSubmitting
+							]}
+							children={([canSubmit, isSubmitting]) => (
+								<Button
+									type='submit'
+									form='studentForm'
+									disabled={!canSubmit}
+								>
+									{isSubmitting
+										? 'Đang thêm học viên...'
+										: 'Thêm học viên'}
+								</Button>
+							)}
+						/>
 					)}
 				</div>
 			</DialogContent>
