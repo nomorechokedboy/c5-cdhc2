@@ -6,7 +6,7 @@ export default function useUnitData(
 	params: units.GetUnitRequest & { alias: string }
 ) {
 	return useQuery({
-		queryKey: ['unit'],
+		queryKey: ['unit', params],
 		queryFn: () => GetUnit(params)
 	})
 }
