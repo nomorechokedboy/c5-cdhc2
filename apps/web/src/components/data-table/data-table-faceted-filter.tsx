@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { Column } from '@tanstack/react-table'
-import { FacetedFilter } from '@/components/faceted-filter'
+import FacetedFilter from '@/components/faceted-filter'
 
 interface DataTableFacetedFilterProps<TData, TValue> {
 	column?: Column<TData, TValue>
@@ -40,7 +40,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 			options={options}
 			facets={facets}
 			selectedValues={selectedValues}
-			onSelectValue={handleSelect}
+			onSelect={handleSelect}
 			onClear={handleClear}
 		/>
 	)
