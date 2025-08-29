@@ -1,10 +1,7 @@
 import { battalionStudentColumns } from '@/components/student-table/columns'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
-import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
 import { useState } from 'react'
 import type { StudentQueryParams } from '@/types'
@@ -25,10 +22,6 @@ export default function BirthdayByWeek() {
 	} = useStudentData(studentQueryParams)
 	const weekNumber = getCurrentWeekNumber()
 	const facetedFilters = useStudentFacetedFilters(students)
-
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
 
 	return (
 		<>

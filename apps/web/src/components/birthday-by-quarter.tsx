@@ -1,8 +1,4 @@
 import { battalionStudentColumns } from '@/components/student-table/columns'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import type { Quarter, StudentQueryParams } from '@/types'
 import { useState } from 'react'
@@ -16,9 +12,9 @@ import {
 } from '@/components/ui/select'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentQuarter } from '@/lib/utils'
-import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
 import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
+import { useStudentFacetedFilters } from '@/hooks/useStudentFacetedFilters'
 
 const quarterOptions = [
 	{
@@ -49,52 +45,13 @@ export default function BirthdayByQuarter() {
 		birthdayInQuarter: quarter,
 		classIds: filteredClassIds
 	}
+	const filename = `danh-sach-sinh-nhat-dong-doi-${quarter}`
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
 	} = useStudentData(studentQueryParams)
-	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter } = useDataTableToolbarConfig()
-	const filename = `danh-sach-sinh-nhat-dong-doi-${quarter}`
-
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
-
-	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
-	)
-	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-		label: rank,
-		value: rank
-	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: `${c.name} - ${c.unit.alias}`,
-				value: `${c.name} - ${c.unit.alias}`
-			}))
-		: []
-
-	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	)
-	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-		label: pu,
-		value: pu
-	}))
-
-	const facetedFilters = [
-		createFacetedFilter('class.name', 'Lớp', classOptions),
-		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-		createFacetedFilter(
-			'educationLevel',
-			'Trình độ học vấn',
-			EduLevelOptions
-		)
-	]
+	const facetedFilters = useStudentFacetedFilters(students)
 	return (
 		<>
 			<div className='flex items-center justify-between space-y-2'>

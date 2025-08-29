@@ -2,7 +2,6 @@ import { battalionStudentColumns } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
-import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
 import { useStudentFacetedFilters } from '@/hooks/useStudentFacetedFilters'
 import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
@@ -22,10 +21,6 @@ export default function CpvOfficialThisWeek() {
 		refetch: refetchStudents
 	} = useStudentData(studentQueryParams)
 	const facetedFilters = useStudentFacetedFilters(students)
-
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
 
 	return (
 		<>
