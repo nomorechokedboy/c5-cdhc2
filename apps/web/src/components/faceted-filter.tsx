@@ -19,27 +19,73 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 
-interface FacetedFilterUIProps {
-	title?: string
-	options: {
-		label: string
-		value: string
-		icon?: React.ComponentType<{ className?: string }>
-	}[]
-	selectedValues: Set<string>
-	facets?: Map<any, number>
-	onSelectValue: (value: string, isSelected: boolean) => void
-	onClear?: () => void
+type Option = {
+	label: string
+	value: string
+	icon?: React.ComponentType<{ className?: string }>
+	key?: React.Key
 }
 
-export function FacetedFilter({
+type GroupedOption = {
+	label: string
+	options: Option[]
+}
+
+interface FacetedFilterUIProps {
+	title?: string
+	options: (Option | GroupedOption)[]
+	selectedValues: Set<string>
+	facets?: Map<any, number>
+	onSelect: (value: string, isSelected: boolean) => void
+	onClear: () => void
+}
+
+function isGroup(opt: Option | GroupedOption): opt is GroupedOption {
+	return (opt as GroupedOption).options !== undefined
+}
+
+export default function FacetedFilter({
 	title,
 	options,
 	selectedValues,
 	facets,
-	onSelectValue,
+	onSelect,
 	onClear
 }: FacetedFilterUIProps) {
+	const renderOption = (option: Option) => {
+		const isSelected = selectedValues.has(option.value)
+		return (
+			<CommandItem
+				key={option.key ?? option.value}
+				onSelect={() => onSelect(option.value, isSelected)}
+			>
+				<div
+					className={cn(
+						'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+						isSelected
+							? 'bg-primary text-primary-foreground'
+							: 'opacity-50 [&_svg]:invisible'
+					)}
+				>
+					<Check />
+				</div>
+				{option.icon && (
+					<option.icon className='mr-2 h-4 w-4 text-muted-foreground' />
+				)}
+				<span>{option.label}</span>
+				{facets?.get(option.value) && (
+					<span className='ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs'>
+						{facets.get(option.value)}
+					</span>
+				)}
+			</CommandItem>
+		)
+	}
+
+	const flatOptions: Option[] = options.flatMap((opt) =>
+		isGroup(opt) ? opt.options : opt
+	)
+
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
@@ -71,68 +117,53 @@ export function FacetedFilter({
 										{selectedValues.size} selected
 									</Badge>
 								) : (
-									options
-										.filter((option) =>
-											selectedValues.has(option.value)
+									Array.from(selectedValues).map((value) => {
+										const found = flatOptions.find(
+											(o) => o.value === value
 										)
-										.map((option) => (
-											<Badge
-												variant='secondary'
-												key={option.value}
-												className='rounded-sm px-1 font-normal'
-											>
-												{option.label}
-											</Badge>
-										))
+										return (
+											found && (
+												<Badge
+													variant='secondary'
+													key={
+														found.key ?? found.value
+													}
+													className='rounded-sm px-1 font-normal'
+												>
+													{found.label}
+												</Badge>
+											)
+										)
+									})
 								)}
 							</div>
 						</>
 					)}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className='w-[200px] p-0' align='start'>
+			<PopoverContent className='w-[240px] p-0' align='start'>
 				<Command>
 					<CommandInput placeholder={title} />
 					<CommandList>
 						<CommandEmpty>No results found.</CommandEmpty>
-						<CommandGroup>
-							{options.map((option) => {
-								const isSelected = selectedValues.has(
-									option.value
-								)
-								return (
-									<CommandItem
-										key={option.value}
-										onSelect={() =>
-											onSelectValue(
-												option.value,
-												isSelected
-											)
-										}
-									>
-										<div
-											className={cn(
-												'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-												isSelected
-													? 'bg-primary text-primary-foreground'
-													: 'opacity-50 [&_svg]:invisible'
-											)}
-										>
-											<Check />
-										</div>
-										{option.icon && (
-											<option.icon className='mr-2 h-4 w-4 text-muted-foreground' />
-										)}
-										<span>{option.label}</span>
-										{facets?.get(option.value) && (
-											<span className='ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs'>
-												{facets.get(option.value)}
-											</span>
-										)}
-									</CommandItem>
-								)
-							})}
-						</CommandGroup>
+
+						{options.map((opt, idx) =>
+							isGroup(opt) ? (
+								<React.Fragment key={idx}>
+									<CommandGroup heading={opt.label}>
+										{opt.options.map(renderOption)}
+									</CommandGroup>
+									{idx < options.length - 1 && (
+										<CommandSeparator />
+									)}
+								</React.Fragment>
+							) : (
+								<CommandGroup key={opt.key ?? opt.value}>
+									{renderOption(opt)}
+								</CommandGroup>
+							)
+						)}
+
 						{selectedValues.size > 0 && (
 							<>
 								<CommandSeparator />
