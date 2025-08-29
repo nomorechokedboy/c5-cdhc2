@@ -1,61 +1,31 @@
 import { battalionStudentColumns } from '@/components/student-table/columns'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import { useStudentFacetedFilters } from '@/hooks/useStudentFacetedFilters'
+import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
+import { useState } from 'react'
+import type { StudentQueryParams } from '@/types'
 
 export default function CpvOfficialThisWeek() {
+	const [selectedUnits, setSelectedUnits] = useState<number[]>([])
+	const filteredClassIds = useFilteredClassIds(selectedUnits)
+	const studentQueryParams: StudentQueryParams = {
+		isCpvOfficialThisWeek: true,
+		classIds: filteredClassIds
+	}
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
-	} = useStudentData({ isCpvOfficialThisWeek: true })
-	const { data: classes, refetch: refetchClasses } = useClassData()
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
+	} = useStudentData(studentQueryParams)
+	const facetedFilters = useStudentFacetedFilters(students)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
-	)
-	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-		label: rank,
-		value: rank
-	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: `${c.name} - ${c.unit.alias}`,
-				value: `${c.name} - ${c.unit.alias}`
-			}))
-		: []
-
-	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	)
-	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-		label: pu,
-		value: pu
-	}))
-
-	const facetedFilters = [
-		createFacetedFilter('class.name', 'Lớp', classOptions),
-		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-		createFacetedFilter(
-			'educationLevel',
-			'Trình độ học vấn',
-			EduLevelOptions
-		)
-	]
 
 	return (
 		<>
@@ -79,6 +49,12 @@ export default function CpvOfficialThisWeek() {
 				exportConfig={{
 					filename: `danh-sach-chuyen-dang-chinh-thuc-tuan-${getCurrentWeekNumber()}`
 				}}
+				leftSection={
+					<UnitFacetedFilter
+						selectedUnits={selectedUnits}
+						onSelectionChange={setSelectedUnits}
+					/>
+				}
 				showRefreshButton
 			/>
 		</>

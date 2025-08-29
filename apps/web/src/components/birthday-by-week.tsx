@@ -1,92 +1,34 @@
 import { battalionStudentColumns } from '@/components/student-table/columns'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
-import FacetedFilter, {
-	type GroupedOption,
-	type Option
-} from './faceted-filter'
-import useUnitsData from '@/hooks/useUnitsData'
 import { useState } from 'react'
+import type { StudentQueryParams } from '@/types'
+import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
+import { useStudentFacetedFilters } from '@/hooks/useStudentFacetedFilters'
 
 export default function BirthdayByWeek() {
-	const {
-		data: units,
-		isLoading: isLoadingUnits,
-		refetch: refetchUnits
-	} = useUnitsData({ level: 'battalion' })
-	const unitOptions: (Option | GroupedOption)[] =
-		units?.map((unit) => {
-			if (unit.children !== undefined) {
-				const childrenOpts: Option[] = unit.children.map((child) => ({
-					label: child.name,
-					value: child.id.toString()
-				}))
-				return { label: unit.name, options: childrenOpts }
-			}
-
-			return { label: unit.name, value: unit.alias }
-		}) ?? []
-	const [filterValues, setFilterValues] = useState<number[]>([])
+	const [selectedUnits, setSelectedUnits] = useState<number[]>([])
+	const filteredClassIds = useFilteredClassIds(selectedUnits)
+	const studentQueryParams: StudentQueryParams = {
+		birthdayInWeek: true,
+		classIds: filteredClassIds
+	}
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
-	} = useStudentData({ birthdayInWeek: true })
-	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter } = useDataTableToolbarConfig()
+	} = useStudentData(studentQueryParams)
 	const weekNumber = getCurrentWeekNumber()
-	const selectedValues = new Set(filterValues.map((el) => el.toString()))
-	const filteredClassIds =
-		units?.flatMap((unit) =>
-			unit.children
-				.filter((child) => filterValues.includes(child.id))
-				.flatMap((child) => child.classes?.map((cls) => cls.id) ?? [])
-		) ?? []
+	const facetedFilters = useStudentFacetedFilters(students)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
-
-	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
-	)
-	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-		label: rank,
-		value: rank
-	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: `${c.name} - ${c.unit.alias}`,
-				value: `${c.name} - ${c.unit.alias}`
-			}))
-		: []
-
-	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	)
-	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-		label: pu,
-		value: pu
-	}))
-
-	const facetedFilters = [
-		createFacetedFilter('class.name', 'Lớp', classOptions),
-		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-		createFacetedFilter(
-			'educationLevel',
-			'Trình độ học vấn',
-			EduLevelOptions
-		)
-	]
 
 	return (
 		<>
@@ -102,28 +44,13 @@ export default function BirthdayByWeek() {
 				</div>
 			</div>
 			<StudentTable
-				params={{ birthdayInWeek: true }}
+				params={studentQueryParams}
 				columnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
 				leftSection={
-					<FacetedFilter
-						options={unitOptions}
-						title='Đơn vị'
-						selectedValues={selectedValues}
-						onSelect={(value, isSelected) => {
-							if (isSelected) {
-								selectedValues.delete(value)
-							} else {
-								selectedValues.add(value)
-							}
-							const filteredValues = Array.from(
-								selectedValues
-							).map((el) => Number(el))
-							setFilterValues(filteredValues)
-						}}
-						onClear={() => {
-							setFilterValues([])
-						}}
+					<UnitFacetedFilter
+						selectedUnits={selectedUnits}
+						onSelectionChange={setSelectedUnits}
 					/>
 				}
 				facetedFilters={facetedFilters}
