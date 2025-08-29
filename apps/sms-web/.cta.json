@@ -1,0 +1,11 @@
+{
+	"projectName": "sms-web",
+	"mode": "file-router",
+	"typescript": true,
+	"tailwind": true,
+	"packageManager": "pnpm",
+	"git": true,
+	"version": 1,
+	"framework": "react-cra",
+	"chosenAddOns": ["form", "shadcn", "table", "tanstack-query"]
+}
