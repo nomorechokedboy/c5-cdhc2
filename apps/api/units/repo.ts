@@ -3,7 +3,7 @@ import { Repository } from '.'
 import orm, { DrizzleDatabase } from '../database'
 import { UnitParams, UnitDB, Unit, units, UnitQuery } from '../schema/units'
 import { handleDatabaseErr } from '../utils'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, SQL } from 'drizzle-orm'
 
 class repo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -30,28 +30,24 @@ class repo implements Repository {
 
 	async find(query: UnitQuery): Promise<Unit[]> {
 		const baseQuery = this.db.query.units
-		switch (query.level) {
-			case 'battalion':
-				return baseQuery
-					.findMany({
-						where: eq(units.level, 'battalion'),
-						with: {
-							children: { with: { classes: true } }
-						}
-					})
-					.catch(handleDatabaseErr) as unknown as Array<Unit>
-			case 'company':
-				return baseQuery
-					.findMany({
-						where: eq(units.level, 'company'),
-						with: {
-							classes: true
-						}
-					})
-					.catch(handleDatabaseErr) as unknown as Array<Unit>
-			default:
-				return []
+		const conditions: SQL[] = []
+		if (query.level !== undefined) {
+			conditions.push(eq(units.level, query.level))
 		}
+
+		return baseQuery
+			.findMany({
+				where:
+					conditions.length === 1
+						? conditions[0]
+						: and(...conditions),
+				with: {
+					children: { with: { classes: true } },
+					classes: true,
+					parent: true
+				}
+			})
+			.catch(handleDatabaseErr) as unknown as Array<Unit>
 	}
 
 	async findOne(params: {

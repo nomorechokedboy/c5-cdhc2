@@ -53,7 +53,10 @@ class controller {
 
 	find(q: GetUnitsQuery): Promise<Unit[]> {
 		log.trace('UnitController.find params', { params: q })
-		const unitQuery: UnitQuery = { level: q.level }
+		const unitQuery: UnitQuery = {}
+		if (q.level !== undefined) {
+			unitQuery.level = q.level
+		}
 
 		return this.repo.find(unitQuery)
 	}
