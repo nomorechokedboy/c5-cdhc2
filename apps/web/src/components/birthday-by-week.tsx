@@ -5,22 +5,35 @@ import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
-/* import useUnitsData from '@/hooks/useUnitsData'
-import { useState } from 'react'
-import UnitDropdown from './unit-dropdown' */
 import { getCurrentWeekNumber } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import FacetedFilter, {
+	type GroupedOption,
+	type Option
+} from './faceted-filter'
+import useUnitsData from '@/hooks/useUnitsData'
+import { useState } from 'react'
 
 export default function BirthdayByWeek() {
-	/* const {
-        data: units,
-        isLoading: isLoadingUnits,
-        refetch: refetchUnits
-    } = useUnitsData()
-    const unitOptions =
-        units?.map((unit) => ({ label: unit.name, value: unit.alias })) ?? []
-    const [selectedValues, setSelectedValues] = useState<Set<string>>(new Set()) */
+	const {
+		data: units,
+		isLoading: isLoadingUnits,
+		refetch: refetchUnits
+	} = useUnitsData({ level: 'battalion' })
+	const unitOptions: (Option | GroupedOption)[] =
+		units?.map((unit) => {
+			if (unit.children !== undefined) {
+				const childrenOpts: Option[] = unit.children.map((child) => ({
+					label: child.name,
+					value: child.id.toString()
+				}))
+				return { label: unit.name, options: childrenOpts }
+			}
+
+			return { label: unit.name, value: unit.alias }
+		}) ?? []
+	const [filterValues, setFilterValues] = useState<number[]>([])
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
@@ -29,6 +42,13 @@ export default function BirthdayByWeek() {
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const weekNumber = getCurrentWeekNumber()
+	const selectedValues = new Set(filterValues.map((el) => el.toString()))
+	const filteredClassIds =
+		units?.flatMap((unit) =>
+			unit.children
+				.filter((child) => filterValues.includes(child.id))
+				.flatMap((child) => child.classes?.map((cls) => cls.id) ?? [])
+		) ?? []
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
@@ -85,6 +105,27 @@ export default function BirthdayByWeek() {
 				params={{ birthdayInWeek: true }}
 				columnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
+				leftSection={
+					<FacetedFilter
+						options={unitOptions}
+						title='Đơn vị'
+						selectedValues={selectedValues}
+						onSelect={(value, isSelected) => {
+							if (isSelected) {
+								selectedValues.delete(value)
+							} else {
+								selectedValues.add(value)
+							}
+							const filteredValues = Array.from(
+								selectedValues
+							).map((el) => Number(el))
+							setFilterValues(filteredValues)
+						}}
+						onClear={() => {
+							setFilterValues([])
+						}}
+					/>
+				}
 				facetedFilters={facetedFilters}
 				exportConfig={{
 					filename: `danh-sach-sinh-nhat-dong-doi-tuan-${weekNumber}`
