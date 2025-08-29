@@ -19,19 +19,19 @@ import {
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 
-type Option = {
+export type Option = {
 	label: string
 	value: string
 	icon?: React.ComponentType<{ className?: string }>
 	key?: React.Key
 }
 
-type GroupedOption = {
+export type GroupedOption = {
 	label: string
 	options: Option[]
 }
 
-interface FacetedFilterUIProps {
+export interface FacetedFilterUIProps {
 	title?: string
 	options: (Option | GroupedOption)[]
 	selectedValues: Set<string>
