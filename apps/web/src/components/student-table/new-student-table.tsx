@@ -38,6 +38,7 @@ interface StudentTableProps {
 	showRefreshButton?: boolean
 	columnVisibility?: VisibilityState
 	placeholder?: string
+	leftSection?: ReactNode
 
 	// Custom toolbar sections
 	leftToolbarSection?: ReactNode
@@ -60,6 +61,7 @@ export default function StudentTable({
 	showRefreshButton = false,
 	columnVisibility = defaultStudentColumnVisibility,
 	placeholder,
+	leftSection,
 	leftToolbarSection,
 	rightToolbarSection,
 	onRefresh,
@@ -108,6 +110,7 @@ export default function StudentTable({
 				defaultColumnVisibility={columnVisibility}
 				placeholder={placeholder}
 				toolbarProps={{
+					leftSection,
 					rightSection,
 					facetedFilters
 				}}
