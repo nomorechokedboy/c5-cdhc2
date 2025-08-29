@@ -4,7 +4,7 @@ import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
-import type { Quarter } from '@/types'
+import type { Quarter, StudentQueryParams } from '@/types'
 import { useState } from 'react'
 import {
 	Select,
@@ -18,6 +18,7 @@ import { defaultBirthdayColumnVisibility } from './student-table/default-columns
 import { getCurrentQuarter } from '@/lib/utils'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
 
 const quarterOptions = [
 	{
@@ -39,14 +40,20 @@ const quarterOptions = [
 ]
 
 export default function BirthdayByQuarter() {
+	const [selectedUnits, setSelectedUnits] = useState<number[]>([])
+	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const [quarter, setQuarter] = useState<Quarter>(
 		`Q${getCurrentQuarter()}` as Quarter
 	)
+	const studentQueryParams: StudentQueryParams = {
+		birthdayInQuarter: quarter,
+		classIds: filteredClassIds
+	}
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
-	} = useStudentData({ birthdayInQuarter: quarter })
+	} = useStudentData(studentQueryParams)
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter } = useDataTableToolbarConfig()
 	const filename = `danh-sach-sinh-nhat-dong-doi-${quarter}`
@@ -125,11 +132,19 @@ export default function BirthdayByQuarter() {
 				</div>
 			</div>
 			<StudentTable
-				params={{ cpvOfficialInQuarter: quarter }}
+				params={studentQueryParams}
 				columnVisibility={defaultBirthdayColumnVisibility}
 				columns={battalionStudentColumns}
 				facetedFilters={facetedFilters}
 				exportConfig={{ filename }}
+				leftSection={
+					<UnitFacetedFilter
+						level='battalion'
+						selectedUnits={selectedUnits}
+						onSelectionChange={setSelectedUnits}
+						title='Đơn vị'
+					/>
+				}
 				showRefreshButton
 			/>
 		</>

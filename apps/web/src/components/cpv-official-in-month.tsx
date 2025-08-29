@@ -1,10 +1,6 @@
 import { battalionStudentColumns } from '@/components/student-table/columns'
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import { EduLevelOptions } from '@/components/data-table/data/data'
-import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
-import type { Month } from '@/types'
+import type { Month, StudentQueryParams } from '@/types'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import {
@@ -16,8 +12,9 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
-import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
+import { useStudentFacetedFilters } from '@/hooks/useStudentFacetedFilters'
 
 const monthOptions = [
 	{
@@ -71,53 +68,18 @@ const monthOptions = [
 ]
 
 export default function CpvOfficialInMonth() {
+	const [selectedUnits, setSelectedUnits] = useState<number[]>([])
+	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
-	const {
-		data: students = [],
-		isLoading: isLoadingStudents,
-		refetch: refetchStudents
-	} = useStudentData({ cpvOfficialInMonth: month })
-	const { data: classes, refetch } = useClassData()
-	const { createFacetedFilter } = useDataTableToolbarConfig()
+	const studentQueryParams: StudentQueryParams = {
+		cpvOfficialInMonth: month,
+		classIds: filteredClassIds
+	}
+	const { data: students = [], refetch: refetchStudents } =
+		useStudentData(studentQueryParams)
+	const facetedFilters = useStudentFacetedFilters(students)
 	const filename = `danh-sach-chuyen-dang-chinh-thuc-thang-${month}`
 
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
-
-	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
-	)
-	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-		label: rank,
-		value: rank
-	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: `${c.name} - ${c.unit.alias}`,
-				value: `${c.name} - ${c.unit.alias}`
-			}))
-		: []
-
-	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	)
-	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-		label: pu,
-		value: pu
-	}))
-
-	const facetedFilters = [
-		createFacetedFilter('class.name', 'Lớp', classOptions),
-		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-		createFacetedFilter(
-			'educationLevel',
-			'Trình độ học vấn',
-			EduLevelOptions
-		)
-	]
 	return (
 		<>
 			<div className='flex items-center justify-between space-y-2'>
@@ -156,11 +118,17 @@ export default function CpvOfficialInMonth() {
 				</div>
 			</div>
 			<StudentTable
-				params={{ cpvOfficialInMonth: month }}
+				params={studentQueryParams}
 				columnVisibility={defaultCpvOfficialColumnVisibility}
 				columns={battalionStudentColumns}
 				facetedFilters={facetedFilters}
 				exportConfig={{ filename }}
+				leftSection={
+					<UnitFacetedFilter
+						selectedUnits={selectedUnits}
+						onSelectionChange={setSelectedUnits}
+					/>
+				}
 				showRefreshButton
 			/>
 		</>

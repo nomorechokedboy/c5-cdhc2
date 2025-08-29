@@ -4,7 +4,7 @@ import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
-import type { Month } from '@/types'
+import type { Month, StudentQueryParams } from '@/types'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import {
@@ -18,6 +18,7 @@ import {
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
+import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
 
 const monthOptions = [
 	{
@@ -72,11 +73,17 @@ const monthOptions = [
 
 export default function BirthdayByMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
+	const [selectedUnits, setSelectedUnits] = useState<number[]>([])
+	const filteredClassIds = useFilteredClassIds(selectedUnits)
+	const studentQueryParams: StudentQueryParams = {
+		birthdayInMonth: month,
+		classIds: filteredClassIds
+	}
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
-	} = useStudentData({ birthdayInMonth: month })
+	} = useStudentData(studentQueryParams)
 	const { data: classes, refetch } = useClassData()
 	const { createFacetedFilter } = useDataTableToolbarConfig()
 	if (isLoadingStudents) {
@@ -138,7 +145,7 @@ export default function BirthdayByMonth() {
 							<SelectContent>
 								<SelectGroup>
 									{monthOptions.map(({ label, value }) => (
-										<SelectItem value={value}>
+										<SelectItem value={value} key={value}>
 											{label}
 										</SelectItem>
 									))}
@@ -153,8 +160,16 @@ export default function BirthdayByMonth() {
 				</div>
 			</div>
 			<StudentTable
-				params={{ birthdayInMonth: month }}
+				params={studentQueryParams}
 				columns={battalionStudentColumns}
+				leftSection={
+					<UnitFacetedFilter
+						level='battalion'
+						selectedUnits={selectedUnits}
+						onSelectionChange={setSelectedUnits}
+						title='Đơn vị'
+					/>
+				}
 				facetedFilters={facetedFilters}
 				exportConfig={{
 					filename: `danh-sach-sinh-nhat-thang-${month}`
