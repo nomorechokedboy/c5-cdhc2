@@ -52,12 +52,6 @@ function RouteComponent() {
 		label: rank,
 		value: rank
 	}))
-	const classOptions = classes
-		? classes.map((c) => ({
-				label: c.name,
-				value: c.name
-			}))
-		: []
 
 	const previousUnitSet = new Set(
 		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
@@ -68,7 +62,6 @@ function RouteComponent() {
 	}))
 
 	const facetedFilters = [
-		createFacetedFilter('class.name', 'Lớp', classOptions),
 		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
 		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
 		createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
