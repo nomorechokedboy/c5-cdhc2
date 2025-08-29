@@ -29,7 +29,6 @@ export default function StudentEditForm({
 	onClose
 }: StudentEditFormProps) {
 	const currentYear = new Date().getFullYear()
-
 	const { handlePatchStudentInfo, isPending } = usePatchStudentInfo(student)
 
 	const { data: classes = [], refetch } = useClassData()
