@@ -49,7 +49,7 @@ export type Unit = unit & {
 }
 
 export interface GetUnitsQuery {
-	level: 'battalion' | 'company'
+	level?: 'battalion' | 'company'
 }
 
 interface GetUnitsResponse {
