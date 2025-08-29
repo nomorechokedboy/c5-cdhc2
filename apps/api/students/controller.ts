@@ -44,6 +44,7 @@ export class Controller {
 		unitAlias,
 		unitLevel,
 		classId,
+		classIds,
 		...q
 	}: GetStudentsQuery): Promise<Student[]> {
 		const isUnitAliasExist = unitAlias !== undefined
@@ -94,8 +95,18 @@ export class Controller {
 			}
 		}
 
-		const classIds = classId ? [classId] : undefined
-		return this.repo.find({ ...q, classIds }).catch(AppError.handleAppErr)
+		const cIds: number[] = []
+		if (classIds !== undefined) {
+			cIds.push(...classIds)
+		}
+
+		if (classId !== undefined) {
+			cIds.push(classId)
+		}
+
+		return this.repo
+			.find({ ...q, classIds: cIds.length !== 0 ? cIds : undefined })
+			.catch(AppError.handleAppErr)
 	}
 
 	async update(params: StudentDB[]): Promise<StudentDB[]> {
