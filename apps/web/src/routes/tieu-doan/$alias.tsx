@@ -1,10 +1,11 @@
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import { defaultBirthdayColumnVisibility } from '@/components/student-table/default-columns-visibility'
 import StudentTable from '@/components/student-table/new-student-table'
 import TableSkeleton from '@/components/table-skeleton'
 import { EhtnicOptions } from '@/data/ethnics'
+import useActionColumn from '@/hooks/useActionColumn'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import useStudentData from '@/hooks/useStudents'
@@ -43,6 +44,9 @@ function RouteComponent() {
 		classes: c.classes,
 		unit: c
 	}))
+	const actionColumn = useActionColumn(() => {
+		return refetchStudents()
+	})
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
@@ -102,7 +106,10 @@ function RouteComponent() {
 				<StudentTable
 					params={{ unitAlias: alias, unitLevel: level }}
 					columnVisibility={defaultBirthdayColumnVisibility}
-					columns={battalionStudentColumns}
+					columns={[
+						...battalionStudentColumnsWithoutAction,
+						actionColumn
+					]}
 					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
 					exportConfig={{

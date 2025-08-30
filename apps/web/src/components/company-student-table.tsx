@@ -1,5 +1,8 @@
 import { EduLevelOptions } from '@/components/data-table/data/data'
-import { columns } from '@/components/student-table/columns'
+import {
+	columns,
+	columnsWithoutAction
+} from '@/components/student-table/columns'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { EhtnicOptions } from '@/data/ethnics'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
@@ -10,6 +13,7 @@ import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 import TableSkeleton from './table-skeleton'
 import StudentTable from './student-table/new-student-table'
 import useUnitData from '@/hooks/useUnitData'
+import useActionColumn from '@/hooks/useActionColumn'
 
 type CompanyStudentTableProps = { alias: string; level: UnitLevel }
 
@@ -29,6 +33,9 @@ export default function CompanyStudentTable({
 	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 	const { data: unit } = useUnitData({ alias, level })
 	const filename = `danh-sach-hoc-vien-${alias}`
+	const actionColumn = useActionColumn(() => {
+		return refetchStudents()
+	})
 
 	const unitClasses = unit?.classes
 
@@ -86,7 +93,7 @@ export default function CompanyStudentTable({
 				<StudentTable
 					params={{ unitAlias: alias, unitLevel: level }}
 					columnVisibility={defaultBirthdayColumnVisibility}
-					columns={columns}
+					columns={[...columnsWithoutAction, actionColumn]}
 					facetedFilters={facetedFilters}
 					placeholder='Chưa có thông tin học viên.'
 					exportConfig={{
