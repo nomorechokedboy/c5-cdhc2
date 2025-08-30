@@ -42,9 +42,10 @@ export function DataTableRowActions<TData>({
 
 	async function handleDeleteRow(_: MouseEvent<HTMLDivElement>) {
 		try {
-			await deleteStudentMutate({ ids: [student.id] })
+			await deleteStudentMutate({ ids: [student.id] }).then(() =>
+				onDeleteRows?.([student.id])
+			)
 			toast.success('Xóa dữ liệu thành công!')
-			onDeleteRows?.([student.id])
 		} catch (err) {
 			toast.error('Xóa dữ liệu bị lỗi!')
 			if (err instanceof AxiosError) {
@@ -72,8 +73,7 @@ export function DataTableRowActions<TData>({
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						// disabled={isDeletingStudent}
-						disabled
+						disabled={isDeletingStudent}
 						onClick={handleDeleteRow}
 					>
 						Xóa
