@@ -46,7 +46,7 @@
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
 		"dayjs": "^1.11.13",
-		"exceljs": "^4.4.0"
+		"exceljs": "^4.4.0",
 		"framer-motion": "^12.23.12",
 		"input-otp": "^1.4.2",
 		"lucide-react": "^0.476.0",
@@ -61,7 +61,7 @@
 		"tailwindcss": "^4.0.6",
 		"tailwindcss-animate": "^1.0.7",
 		"xlsx": "0.15.4",
-		"zod": "^3.24.2",
+		"zod": "^3.24.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
