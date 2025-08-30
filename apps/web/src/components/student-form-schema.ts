@@ -73,10 +73,9 @@ const optionalDate = z
 	.refine((val) => val === '' || dateRegex.test(val), {
 		message: 'Hãy dùng định dạng Ngày/tháng/năm'
 	})
-	.refine((s) => {
-		const parsed = dayjs(s, 'DD/MM/YYYY', true)
-		return parsed.isValid() && parsed.format('DD/MM/YYYY') === s
-	}, 'Ngày sinh không hợp lệ')
+	.refine((val) => val === '' || dayjs(val, 'DD/MM/YYYY', true).isValid(), {
+		message: 'Ngày không hợp lệ'
+	})
 	.optional()
 
 export const personalInfoSchema = z.object({
