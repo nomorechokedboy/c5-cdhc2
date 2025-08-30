@@ -10,7 +10,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import StudentTable from './student-table/new-student-table'
 import UnitFacetedFilter, { useFilteredClassIds } from './unit-filter'
@@ -77,7 +77,7 @@ export default function CpvOfficialInQuarter() {
 
 			<StudentTable
 				params={studentQueryParams}
-				columns={battalionStudentColumns}
+				columns={battalionStudentColumnsWithoutAction}
 				facetedFilters={facetedFilters}
 				exportConfig={{
 					filename: `danh-sach-chuyen-dang-chinh-thuc-${quarter}`

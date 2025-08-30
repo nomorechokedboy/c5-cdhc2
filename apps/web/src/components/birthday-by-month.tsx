@@ -1,4 +1,4 @@
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import type { Month, StudentQueryParams } from '@/types'
 import dayjs from 'dayjs'
@@ -119,7 +119,7 @@ export default function BirthdayByMonth() {
 			</div>
 			<StudentTable
 				params={studentQueryParams}
-				columns={battalionStudentColumns}
+				columns={battalionStudentColumnsWithoutAction}
 				leftSection={
 					<UnitFacetedFilter
 						level='battalion'
