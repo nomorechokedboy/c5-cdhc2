@@ -151,7 +151,9 @@ export function ChartsSection({ data }: ChartsSectionProps) {
 		<div className='space-y-6'>
 			<Card>
 				<CardHeader>
-					<CardTitle>Biểu đồ nhân sự theo đơn vị & lớp</CardTitle>
+					<CardTitle>
+						Biểu đồ trình độ học viên theo đơn vị & lớp
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<ChartContainer
