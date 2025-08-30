@@ -13,8 +13,6 @@ import { Button } from '../ui/button'
 import { ArrowDownToLine } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import StudentForm from '../student-form'
-import useActionColumn from '@/hooks/useActionColumn'
-import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 
 interface StudentTableProps {
 	params: StudentQueryParams
@@ -34,10 +32,6 @@ export default function StudentTable({
 	} = useStudentData(params)
 
 	const { createFacetedFilter } = useDataTableToolbarConfig()
-	const actionColumn = useActionColumn(() => {
-		return refetchStudents()
-	})
-	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />

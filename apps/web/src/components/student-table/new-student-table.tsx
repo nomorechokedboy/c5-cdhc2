@@ -115,6 +115,9 @@ export default function StudentTable({
 					facetedFilters
 				}}
 				onDeleteRows={onDeleteRows}
+				getRowId={(originalRow) => {
+					return originalRow.id.toString()
+				}}
 				renderToolbarActions={
 					exportConfig?.disabled === true
 						? undefined
