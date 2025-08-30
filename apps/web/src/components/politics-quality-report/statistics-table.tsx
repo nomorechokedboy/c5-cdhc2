@@ -3,11 +3,12 @@ import {
 	Table,
 	TableBody,
 	TableCell,
+	TableFooter,
 	TableHead,
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import type { UnitPoliticsQualitySummary } from '@/types'
+import type { PoliticsQualityReport, UnitPoliticsQualitySummary } from '@/types'
 
 interface StatisticsTableProps {
 	data: UnitPoliticsQualitySummary[]
@@ -25,16 +26,20 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 	const renderRow = (
 		name: string,
 		report: UnitPoliticsQualitySummary['politicsQualityReport'] | null,
-		depth: number = 0
+		depth: number = 0,
+		parentName?: string
 	) => (
-		<TableRow key={name}>
+		<TableRow key={`${name}-${parentName}`}>
 			<TableCell
 				className={`font-medium sticky left-0 border-r ${depth > 0 ? 'bg-gray-50' : 'bg-white'}  ${depth === 1 && 'pl-4'} ${depth === 2 && 'pl-6'}`}
 			>
 				{name}
 			</TableCell>
-			<TableCell className='text-center'>{report?.total ?? 0}</TableCell>
 
+			<TableCell className='text-center'>0</TableCell>
+			<TableCell className='text-center'>0</TableCell>
+			<TableCell className='text-center'>0</TableCell>
+			<TableCell className='text-center'>0</TableCell>
 			{ethnicKeys.map((key) => (
 				<TableCell key={key} className='text-center'>
 					{report?.ethnic[key] ?? 0}
@@ -67,14 +72,22 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 		entity:
 			| UnitPoliticsQualitySummary
 			| UnitPoliticsQualitySummary['classes'][number],
-		depth: number = 0
+		depth: number = 0,
+		entityName?: string
 	): React.ReactNode[] => {
 		const rows: React.ReactNode[] = []
-		rows.push(renderRow(entity.name, entity.politicsQualityReport, depth))
+		rows.push(
+			renderRow(
+				entity.name,
+				entity.politicsQualityReport,
+				depth,
+				entityName
+			)
+		)
 
 		if (entity.classes) {
 			entity.classes.forEach((cls) =>
-				rows.push(...renderEntity(cls, depth + 1))
+				rows.push(...renderEntity(cls, depth + 1, entity.name))
 			)
 		}
 
@@ -86,6 +99,21 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 
 		return rows
 	}
+
+	const totalCpv = data
+		.map((d) => d.politicsQualityReport?.politicalOrg['cpv'] ?? 0)
+		.reduce((accum, curr) => accum + curr, 0)
+	const totalHcyu = data
+		.map((d) => d.politicsQualityReport?.politicalOrg['hcyu'] ?? 0)
+		.reduce((accum, curr) => accum + curr, 0)
+	const calculateTotalReportField =
+		(fieldname: keyof PoliticsQualityReport) => (key: string) => (
+			<TableCell key={key} className='text-center'>
+				{data
+					.map((d) => d.politicsQualityReport?.[fieldname][key] ?? 0)
+					.reduce((accum, curr) => accum + curr, 0)}
+			</TableCell>
+		)
 
 	return (
 		<Card>
@@ -105,11 +133,10 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 								</TableHead>
 								<TableHead
 									className='text-center border-b-0 border-r border-t'
-									rowSpan={2}
+									colSpan={4}
 								>
-									Tổng số
+									Phân cấp
 								</TableHead>
-
 								<TableHead
 									className='text-center border-b-0 border-r border-t'
 									colSpan={ethnicKeys.length}
@@ -155,6 +182,18 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 								</TableHead>
 							</TableRow>
 							<TableRow>
+								<TableHead className='text-center border-r'>
+									Tá
+								</TableHead>
+								<TableHead className='text-center border-r'>
+									Úy
+								</TableHead>
+								<TableHead className='text-center border-r'>
+									QNCN (Cán bộ quản lý)
+								</TableHead>
+								<TableHead className='text-center border-r'>
+									QNCN
+								</TableHead>
 								{ethnicKeys.map((key) => (
 									<TableHead
 										key={key}
@@ -194,6 +233,48 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 						<TableBody>
 							{data.flatMap((unit) => renderEntity(unit))}
 						</TableBody>
+						<TableFooter>
+							<TableRow>
+								<TableCell
+									className='border-b-0 border-r border-t sticky left-0'
+									rowSpan={2}
+								>
+									Tổng số
+								</TableCell>
+
+								<TableCell className='text-center'>0</TableCell>
+								<TableCell className='text-center'>0</TableCell>
+								<TableCell className='text-center'>0</TableCell>
+								<TableCell className='text-center'>0</TableCell>
+
+								{/* Ethnics */}
+								{ethnicKeys.map(
+									calculateTotalReportField('ethnic')
+								)}
+
+								{/* Religions */}
+								{religionKeys.map(
+									calculateTotalReportField('religion')
+								)}
+
+								{/* Education */}
+								{educationKeys.map(
+									calculateTotalReportField('educationLevel')
+								)}
+
+								{/* politicalOrg */}
+								<TableCell className='text-center'>
+									{totalCpv}
+								</TableCell>
+								<TableCell className='text-center'>
+									{totalHcyu}
+								</TableCell>
+
+								<TableCell className='text-center'>0</TableCell>
+								<TableCell className='text-center'>0</TableCell>
+								<TableCell className='text-center'>0</TableCell>
+							</TableRow>
+						</TableFooter>
 					</Table>
 				</div>
 			</CardContent>
