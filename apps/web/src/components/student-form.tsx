@@ -180,6 +180,17 @@ export default function StudentForm({
 			return
 		}
 
+		// Clear errors for current step fields since validation passed
+		STEPS[currentStep].fields.forEach((fieldName) => {
+			form.setFieldMeta(
+				fieldName as keyof StudentFormSchemaType,
+				(prev) => ({
+					...prev,
+					errorMap: {}
+				})
+			)
+		})
+
 		setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1))
 	}
 

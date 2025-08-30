@@ -1,9 +1,6 @@
 import { rankOptions } from '@/data/ethnics'
-import { useState } from 'react'
 
 export default function MilitaryStep({ form }: { form: any }) {
-	const [isCpv, setIsCpv] = useState(false)
-
 	return (
 		<div className='space-y-6'>
 			<div className='grid grid-cols-3 gap-6'>
@@ -51,23 +48,12 @@ export default function MilitaryStep({ form }: { form: any }) {
 									value: 'cpv'
 								}
 							]}
-							onChange={(val: string) => {
-								if (val === 'cpv') {
-									setIsCpv(true)
-									return
-								}
-
-								setIsCpv(false)
-							}}
 						></field.Select>
 					)}
 				</form.AppField>
 				<form.AppField name='politicalOrgOfficialDate'>
 					{(field: any) => (
-						<field.DatePicker
-							className={`${!isCpv ? 'col-span-2' : ''}`}
-							label='Ngày vào Đoàn/Đảng'
-						/>
+						<field.TextField label='Ngày vào Đoàn/Đảng' />
 					)}
 				</form.AppField>
 			</div>
@@ -79,10 +65,7 @@ export default function MilitaryStep({ form }: { form: any }) {
 
 				<form.AppField name='cpvOfficalAt'>
 					{(field: any) => (
-						<field.DatePicker
-							className={`${!isCpv ? 'col-span-2' : ''}`}
-							label='Ngày vào Đảng chính thức'
-						/>
+						<field.TextField label='Ngày vào Đảng chính thức' />
 					)}
 				</form.AppField>
 			</div>
