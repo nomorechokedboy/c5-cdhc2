@@ -4,7 +4,6 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import { EhtnicOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
 import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import useActionColumn from '@/hooks/useActionColumn'
@@ -26,7 +25,6 @@ function RouteComponent() {
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
 	} = useStudentData({ classId: Number(classId) })
-	const { data: classes } = useClassData()
 	const { data: thisClass } = useQuery({
 		queryKey: ['classById', classId],
 		queryFn: () => GetClassById(Number(classId)),
