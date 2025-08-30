@@ -1,4 +1,4 @@
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import { defaultBirthdayColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
@@ -39,7 +39,7 @@ export default function BirthdayByWeek() {
 			<StudentTable
 				params={studentQueryParams}
 				columnVisibility={defaultBirthdayColumnVisibility}
-				columns={battalionStudentColumns}
+				columns={battalionStudentColumnsWithoutAction}
 				leftSection={
 					<UnitFacetedFilter
 						selectedUnits={selectedUnits}

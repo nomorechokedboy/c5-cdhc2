@@ -5,7 +5,7 @@ import {
 	type StudentQueryParams
 } from '@/types'
 import { DataTable } from '../data-table'
-import { columns } from '@/components/student-table/columns'
+import { columnsWithoutAction } from '@/components/student-table/columns'
 import { EhtnicOptions } from '@/data/ethnics'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import TableSkeleton from '../table-skeleton'
@@ -13,6 +13,8 @@ import { Button } from '../ui/button'
 import { ArrowDownToLine } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import StudentForm from '../student-form'
+import useActionColumn from '@/hooks/useActionColumn'
+import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
 
 interface StudentTableProps {
 	params: StudentQueryParams
@@ -28,23 +30,22 @@ export default function StudentTable({
 	const {
 		data: students = [],
 		isLoading: isLoadingStudents,
-		refetch: refetchStudent
+		refetch: refetchStudents
 	} = useStudentData(params)
 
-	const { createFacetedFilter, createSearchConfig } =
-		useDataTableToolbarConfig()
+	const { createFacetedFilter } = useDataTableToolbarConfig()
+	const actionColumn = useActionColumn(() => {
+		return refetchStudents()
+	})
+	const handleDeleteStudents = useOnDeleteStudents(refetchStudents)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
 
 	const handleFormSuccess = () => {
-		refetchStudent()
+		refetchStudents()
 	}
-
-	const searchConfig = [
-		createSearchConfig('fullName', 'Tìm kiếm theo tên...')
-	]
 
 	const militaryRankSet = new Set(
 		students.filter((s) => !!s.rank).map((s) => s.rank)
@@ -76,14 +77,13 @@ export default function StudentTable({
 		<div>
 			<DataTable
 				data={students}
-				columns={columns}
+				columns={columnsWithoutAction}
 				defaultColumnVisibility={defaultStudentColumnVisibility}
 				toolbarProps={{
 					rightSection:
 						enabledCreation === true ? (
 							<StudentForm onSuccess={handleFormSuccess} />
 						) : undefined,
-					searchConfig,
 					facetedFilters
 				}}
 				renderToolbarActions={({ exportHook }) => (

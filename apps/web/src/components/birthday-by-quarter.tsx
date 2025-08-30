@@ -1,4 +1,4 @@
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import type { Quarter, StudentQueryParams } from '@/types'
 import { useState } from 'react'
@@ -91,7 +91,7 @@ export default function BirthdayByQuarter() {
 			<StudentTable
 				params={studentQueryParams}
 				columnVisibility={defaultBirthdayColumnVisibility}
-				columns={battalionStudentColumns}
+				columns={battalionStudentColumnsWithoutAction}
 				facetedFilters={facetedFilters}
 				exportConfig={{ filename }}
 				leftSection={

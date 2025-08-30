@@ -1,4 +1,4 @@
-import { battalionStudentColumns } from '@/components/student-table/columns'
+import { battalionStudentColumnsWithoutAction } from '@/components/student-table/columns'
 import useStudentData from '@/hooks/useStudents'
 import { defaultCpvOfficialColumnVisibility } from './student-table/default-columns-visibility'
 import { getCurrentWeekNumber } from '@/lib/utils'
@@ -37,9 +37,9 @@ export default function CpvOfficialThisWeek() {
 				</div>
 			</div>
 			<StudentTable
-				params={{ isCpvOfficialThisWeek: true }}
+				params={studentQueryParams}
 				columnVisibility={defaultCpvOfficialColumnVisibility}
-				columns={battalionStudentColumns}
+				columns={battalionStudentColumnsWithoutAction}
 				facetedFilters={facetedFilters}
 				exportConfig={{
 					filename: `danh-sach-chuyen-dang-chinh-thuc-tuan-${getCurrentWeekNumber()}`
