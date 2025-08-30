@@ -58,6 +58,7 @@ interface DataTableProps<TData, TValue> {
 		table: TanStackTable<TData>
 		exportHook: DataTableExportHook
 	}) => React.ReactNode
+	getRowId?: Parameters<typeof useReactTable<TData>>[0]['getRowId']
 }
 
 type ViewMode = 'table' | 'card'
@@ -75,7 +76,8 @@ export function DataTable<TData, TValue>({
 	toolbarVisible = true,
 	placeholder = 'Không có dữ liệu nào',
 	onDeleteRows,
-	renderToolbarActions
+	renderToolbarActions,
+	getRowId
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = useState({})
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -105,7 +107,8 @@ export function DataTable<TData, TValue>({
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
-		getFacetedUniqueValues: getFacetedUniqueValues()
+		getFacetedUniqueValues: getFacetedUniqueValues(),
+		getRowId
 	})
 
 	// Only create export hook
@@ -146,7 +149,7 @@ export function DataTable<TData, TValue>({
 		if (!onDeleteRows) return
 
 		if (selectedRows.length === 0) {
-			toast.dismiss()
+			toast.dismiss(deleteDataToastId)
 			return
 		}
 
