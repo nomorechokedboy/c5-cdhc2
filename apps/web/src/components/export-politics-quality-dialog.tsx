@@ -16,13 +16,16 @@ import useExportPoliticsQualityReport from '@/hooks/useExportPoliticsQualityRepo
 
 export interface ExportPoliticsQualityDialogProps {
 	children: ReactNode
-	data: ExportPoliticsQualitySummary[]
+	data: {
+		data: ExportPoliticsQualitySummary[]
+		total: Omit<ExportPoliticsQualitySummary, 'idx' | 'className' | 'note'>
+	}
 	defaultFilename: string
 }
 
 export default function ExportPoliticsQualityDialog({
 	children,
-	data,
+	data: { total, data },
 	defaultFilename
 }: ExportPoliticsQualityDialogProps) {
 	const { onExport } = useExportPoliticsQualityReport({
@@ -32,6 +35,7 @@ export default function ExportPoliticsQualityDialog({
 	const form = useAppForm({
 		defaultValues: {
 			data,
+			total,
 			title: '',
 			filename: defaultFilename
 		},
