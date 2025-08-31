@@ -509,12 +509,12 @@ export namespace students {
 	}
 
 	export interface GetPoliticsQualityReportRequest {
-		unitId: number
+		unitIds: number[]
 	}
 
 	export interface GetPoliticsQualityReportResponse {
 		data: { [key: number]: { [key: string]: any } }
-		unit: units.Unit
+		units: units.Unit[]
 	}
 
 	export interface GetStudentsQuery {
@@ -857,7 +857,7 @@ export namespace students {
 		): Promise<GetPoliticsQualityReportResponse> {
 			// Convert our params into the objects we need for the request
 			const query = makeRecord<string, string | string[]>({
-				unitId: String(params.unitId)
+				unitIds: params.unitIds.map((v) => String(v))
 			})
 
 			// Now make the actual call to the API
