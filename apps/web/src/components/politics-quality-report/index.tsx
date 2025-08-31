@@ -13,6 +13,7 @@ import {
 	TooltipContent,
 	TooltipTrigger
 } from '@/components/ui/tooltip'
+import useUnitsData from '@/hooks/useUnitsData'
 
 // Recursive renderer for children + classes
 function UnitBlock({
@@ -63,9 +64,12 @@ function UnitBlock({
 }
 
 export function PoliticalQualityDashboard() {
+	const { data: units = [] } = useUnitsData({ level: 'battalion' })
+	const unitIds = units?.map((u) => u.id)
 	const { data: politicsQualityData } = useQuery({
+		enabled: unitIds.length !== 0,
 		queryKey: ['politics-quality-report'],
-		queryFn: GetPoliticsQualityReport
+		queryFn: () => GetPoliticsQualityReport(unitIds)
 	})
 	const transformData = transformPoliticsQualityData(politicsQualityData)
 
@@ -76,12 +80,23 @@ export function PoliticalQualityDashboard() {
 	const totalPersonnel = transformData
 		.map((unit) => unit.politicsQualityReport?.total ?? 0)
 		.reduce((accum, curr) => accum + curr, 0)
-	const totalUnit = (politicsQualityData?.unit?.children?.length ?? 0) + 1
+	const totalUnit =
+		(politicsQualityData?.units
+			.map((unit) => unit?.children?.length ?? 0)
+			.reduce((accum, curr) => accum + curr),
+		0) + 1
 	const totalChildrenClasses =
-		politicsQualityData?.unit?.children
-			?.map((u) => u.classes.length ?? 0)
+		politicsQualityData?.units
+			.map((unit) =>
+				unit?.children
+					?.map((u) => u.classes.length ?? 0)
+					.reduce((accum, curr) => accum + curr, 0)
+			)
 			.reduce((accum, curr) => accum + curr, 0) ?? 0
-	const totalUnitClasses = politicsQualityData?.unit?.classes?.length ?? 0
+	const totalUnitClasses =
+		politicsQualityData?.units
+			.map((unit) => unit?.classes?.length)
+			.reduce((accum, curr) => accum + curr, 0) ?? 0
 
 	return (
 		<div className='container mx-auto p-6 space-y-6'>

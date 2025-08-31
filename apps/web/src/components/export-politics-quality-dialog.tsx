@@ -46,6 +46,7 @@ export default function ExportPoliticsQualityDialog({
 			setOpen(false)
 		}
 	})
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<form

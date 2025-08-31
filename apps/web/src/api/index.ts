@@ -71,7 +71,6 @@ export function CreateStudents(body: StudentBody[]) {
 		.then((resp) => resp.data.data)
 }
 
-
 export function GetStudents(
 	params?: students.GetStudentsQuery
 ): Promise<Student[]> {
@@ -140,8 +139,8 @@ export function ExportPoliticsQualityData(data: ExportPoliticsQualityReport) {
 	})
 }
 
-export function GetPoliticsQualityReport() {
-	return requestClient.students.GetPoliticsQualityReport({ unitId: 7 })
+export function GetPoliticsQualityReport(unitIds: number[]) {
+	return requestClient.students.GetPoliticsQualityReport({ unitIds })
 }
 
 export function Login(req: auth.LoginRequest) {
