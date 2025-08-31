@@ -103,4 +103,5 @@ export type Unit = unit & { parent?: Unit; children: Unit[]; classes: Class[] }
 
 export type UnitQuery = {
 	level?: 'battalion' | 'company'
+	ids?: number[]
 }

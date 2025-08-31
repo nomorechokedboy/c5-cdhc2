@@ -35,6 +35,10 @@ class repo implements Repository {
 			conditions.push(eq(units.level, query.level))
 		}
 
+		if (query.ids !== undefined && query.ids.length > 0) {
+			conditions.push(inArray(units.id, query.ids))
+		}
+
 		return baseQuery
 			.findMany({
 				where:

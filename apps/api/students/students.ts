@@ -465,24 +465,24 @@ export const StudentCronjob = api(
 )
 
 interface GetPoliticsQualityReportRequest {
-	unitId: number
+	unitIds: number[]
 }
 
 interface GetPoliticsQualityReportResponse {
 	data: Record<number, Record<string, any>>
-	unit: Unit
+	units: Unit[]
 }
 
 export const GetPoliticsQualityReport = api(
 	{ expose: true, method: 'GET', path: '/students/politics-quality-report' },
 	async ({
-		unitId
+		unitIds
 	}: GetPoliticsQualityReportRequest): Promise<GetPoliticsQualityReportResponse> => {
-		const { data, unit: u } =
-			await studentController.politicsQualityReport(unitId)
-		const unit = { ...u } as Unit
+		const { data, units: us } =
+			await studentController.politicsQualityReport(unitIds)
+		const units = us.map((u) => ({ ...u }) as Unit)
 
-		return { data, unit }
+		return { data, units }
 	}
 )
 
