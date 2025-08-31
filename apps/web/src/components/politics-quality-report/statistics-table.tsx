@@ -15,7 +15,9 @@ interface StatisticsTableProps {
 }
 
 export function StatisticsTable({ data }: StatisticsTableProps) {
-	const sampleReport = data[0]?.politicsQualityReport
+	const sampleReport = data.find(
+		(d) => d.politicsQualityReport !== null
+	)?.politicsQualityReport
 
 	const ethnicKeys = sampleReport ? Object.keys(sampleReport.ethnic) : []
 	const religionKeys = sampleReport ? Object.keys(sampleReport.religion) : []

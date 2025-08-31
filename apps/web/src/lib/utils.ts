@@ -46,7 +46,7 @@ export function transformPoliticsQualityData(
 		return []
 	}
 
-	const { data, unit } = params
+	const { data, units } = params
 
 	function mergeReports(
 		target: Record<string, any>,
@@ -111,7 +111,7 @@ export function transformPoliticsQualityData(
 		return unitSummary
 	}
 
-	return [traverse(unit as unknown as Unit)]
+	return units.map((unit) => traverse(unit as unknown as Unit))
 }
 
 export function convertToIso(dateStr: string): string {
