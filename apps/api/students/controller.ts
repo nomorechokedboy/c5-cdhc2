@@ -179,29 +179,25 @@ export class Controller {
 		return this.repo.find(cronEvent.getQueryParams())
 	}
 
-	async politicsQualityReport(unitId: number) {
-		const unitDB = await this.unitRepo
-			.findById(unitId)
-			.catch(AppError.handleAppErr)
-		if (unitDB === undefined) {
+	async politicsQualityReport(unitIds: number[]) {
+		const units = await this.unitRepo.find({
+			ids: unitIds
+		})
+		if (units.length === 0) {
 			throw AppError.handleAppErr(
-				AppError.invalidArgument('Invalid unit')
+				AppError.invalidArgument('Invalid unitIds')
 			)
 		}
 
-		const unit = await this.unitRepo.findOne({
-			level: unitDB.level,
-			alias: unitDB.alias
+		const classIds = units.flatMap((unit) => {
+			if (unit.level === 'battalion') {
+				return unit.children.flatMap((child) =>
+					child.classes.map((c) => c.id)
+				)
+			}
+
+			return unit.classes.map((c) => c.id)
 		})
-		let classIds: number[]
-		const isBattalionUnit = unitDB.level === 'battalion'
-		if (isBattalionUnit) {
-			classIds = unit!.children
-				.map((child) => child.classes.map((cl) => cl.id))
-				.flat()
-		} else {
-			classIds = unit!.classes.map((c) => c.id)
-		}
 
 		const educationLevelMap = {
 			'7/12': 'Cấp II',
@@ -249,7 +245,7 @@ export class Controller {
 			}
 		}
 
-		return { data, unit }
+		return { data, units }
 	}
 }
 
