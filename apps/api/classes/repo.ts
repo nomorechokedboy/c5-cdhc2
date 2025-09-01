@@ -1,4 +1,4 @@
-import { and, count, eq, getTableColumns, inArray } from 'drizzle-orm'
+import { and, count, eq, getTableColumns, inArray, SQL } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database.js'
 import {
@@ -60,10 +60,15 @@ class SqliteRepo implements Repository {
 			.groupBy(classes.id, units.id)
 		log.info('ClassRepo.find query: ', { query: q })
 
-		const whereConds = []
+		const whereConds: SQL[] = []
 		const isIdsExist = q.ids !== undefined
 		if (isIdsExist) {
 			whereConds.push(inArray(classes.id, q.ids!))
+		}
+
+		const isUnitIdsExist = q.unitIds !== undefined
+		if (isUnitIdsExist) {
+			whereConds.push(inArray(classes.unitId, q.unitIds))
 		}
 
 		const isWhereCondEmpty = whereConds.length === 0
