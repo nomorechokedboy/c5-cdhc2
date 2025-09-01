@@ -297,7 +297,7 @@ export const ExportStudentData = api.raw(
 			// Read the template file
 			const templatePath = path.join(
 				'./templates',
-				'dynamic-docx-template.docx'
+				'dynamic-docx-template-report.docx'
 			)
 			const template = await readFile(templatePath)
 
@@ -327,6 +327,10 @@ export const ExportStudentData = api.raw(
 
 				return cellValues
 			})
+			const dataWithIdx = data.map(
+				(s, idx) =>
+					({ idx: ++idx, ...s }) as unknown as Record<string, string>
+			)
 
 			const dateObj = dayjs(date)
 			const day = dateObj.format('DD')
@@ -342,7 +346,7 @@ export const ExportStudentData = api.raw(
 				day,
 				month,
 				reportTitle,
-				rows: data,
+				rows: dataWithIdx,
 				underUnitName,
 				unitName,
 				year
