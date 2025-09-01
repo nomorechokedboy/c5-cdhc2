@@ -53,7 +53,7 @@ export const CreateClass = api(
 
 interface GetClassesRequest {
 	ids?: number[]
-	unitsIds?: number[]
+	unitIds?: number[]
 }
 
 interface GetClassesResponse extends BulkClassResponse {}
@@ -62,7 +62,7 @@ export const GetClasses = api(
 	{ expose: true, method: 'GET', path: '/classes' },
 	async ({
 		ids,
-		unitsIds
+		unitIds
 	}: GetClassesRequest): Promise<GetClassesResponse> => {
 		const classes = await classController.find({ ids, unitIds })
 		const resp = classes.map(
