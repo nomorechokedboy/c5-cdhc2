@@ -559,9 +559,10 @@ export const ExportPoliticsQualityReport = api.raw(
 			const template = new XlsxTemplate(templateFile)
 			template.substitute(sheetNumber, {
 				data,
-				endRowNum: 10 + data.length - 1,
 				title,
 				total,
+				unitName: 'Trường Cao Đẳng Hậu Cần 2',
+				upperUnitName: 'Tổng cục Hậu Cần Kỹ Thuật ',
 				day,
 				month,
 				year
