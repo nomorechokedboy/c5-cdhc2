@@ -20,7 +20,7 @@ import type {
 	UpdateStudentsBody
 } from '@/types'
 import axios, { appFetcher } from '@/lib/axios'
-import Client, { auth, students, units } from './client'
+import Client, { auth, classes, students, units } from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
@@ -46,8 +46,12 @@ export function UpdateClasses(data: Class[]) {
 		.then((resp) => resp.data.data)
 }
 
-export async function GetClasses(): Promise<Class[]> {
-	return axios.get<ClassResponse>('/classes').then((resp) => resp.data.data)
+export async function GetClasses(
+	params: classes.GetClassesRequest = {}
+): Promise<Class[]> {
+	return requestClient.classes
+		.GetClasses(params)
+		.then((resp) => resp.data.map((d) => ({ ...d }) as unknown as Class))
 }
 
 export function GetClassById(id: number): Promise<Class | undefined> {

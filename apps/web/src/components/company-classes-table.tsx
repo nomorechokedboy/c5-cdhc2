@@ -3,10 +3,11 @@ import ClassCard from '@/components/class-table/class-card'
 import { columns } from '@/components/class-table/columns'
 import { DataTable } from '@/components/data-table'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import useUnitsData from '@/hooks/useUnitsData'
 import type { FacetedFilterConfig } from '@/types'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
+import useUnitData from '@/hooks/useUnitData'
+import useClassData from '@/hooks/useClasses'
 
 type CompanyClassesTableProps = {
 	companyAlias: string
@@ -16,19 +17,12 @@ export default function CompanyClassesTable({
 	companyAlias
 }: CompanyClassesTableProps) {
 	const { createSearchConfig } = useDataTableToolbarConfig()
-	const { data: units, refetch: refetchUnits } = useUnitsData({
-		level: 'battalion'
+	const { data: company, refetch: refetchUnits } = useUnitData({
+		alias: companyAlias
 	})
-	const flatUnits = units
-		?.map((unit) => {
-			if (unit.children.length !== 0) {
-				return [unit, ...unit.children]
-			}
-
-			return [unit]
-		})
-		.flat()
-	const company = flatUnits?.find((unit) => unit.alias === companyAlias)
+	const { data: classes } = useClassData({
+		unitIds: company?.id !== undefined ? [company?.id] : []
+	})
 	const handleFormSuccess = () => {
 		refetchUnits()
 	}
@@ -51,14 +45,14 @@ export default function CompanyClassesTable({
 				placeholder='Đại đội chưa có lớp nào'
 				columns={columns}
 				cardComponent={({ data }) => (
-											<ClassCard
-												data={data}
-												onEdit={() => refetchUnits()}
-												onDelete={() => refetchUnits()}
-											/>
-										)}
+					<ClassCard
+						data={data}
+						onEdit={() => refetchUnits()}
+						onDelete={() => refetchUnits()}
+					/>
+				)}
 				cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-				data={company?.classes ?? []}
+				data={classes ?? []}
 				defaultViewMode='card'
 				toolbarProps={{
 					rightSection: (
