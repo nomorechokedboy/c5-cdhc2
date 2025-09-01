@@ -230,6 +230,11 @@ export namespace classes {
 		data?: Class
 	}
 
+	export interface GetClassesRequest {
+		ids?: number[]
+		unitIds?: number[]
+	}
+
 	export interface GetClassesResponse {
 		data: ClassResponse[]
 	}
@@ -297,9 +302,26 @@ export namespace classes {
 			return (await resp.json()) as GetClassByIdResponse
 		}
 
-		public async GetClasses(): Promise<GetClassesResponse> {
+		public async GetClasses(
+			params: GetClassesRequest
+		): Promise<GetClassesResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				ids: params.ids?.map((v) =>
+					v === undefined ? undefined : String(v)
+				),
+				unitIds: params.unitIds?.map((v) =>
+					v === undefined ? undefined : String(v)
+				)
+			})
+
 			// Now make the actual call to the API
-			const resp = await this.baseClient.callTypedAPI('GET', `/classes`)
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/classes`,
+				undefined,
+				{ query }
+			)
 			return (await resp.json()) as GetClassesResponse
 		}
 
@@ -992,6 +1014,9 @@ export namespace units {
 		alias: string
 		name: string
 		level: 'battalion' | 'company'
+		id: number
+		createdAt: string
+		updatedAt: string
 		parent: unit | null
 		children: Unit[]
 		classes: classes.ClassResponse[]
@@ -1011,6 +1036,9 @@ export namespace units {
 		alias: string
 		name: string
 		level: 'battalion' | 'company'
+		id: number
+		createdAt: string
+		updatedAt: string
 	}
 
 	export class ServiceClient {
