@@ -40,7 +40,7 @@ export const CreateUnit = api(
 	}
 )
 
-type unit = Omit<UnitBody, 'parentId'>
+type unit = Omit<UnitDB, 'parentId'>
 
 export type Unit = unit & {
 	parent: unit | null
