@@ -80,6 +80,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								(c) => c.value === student.class.id.toString()
 							)?.label || 'Chưa có lớp'}
 						</p>
+						<p className='text-gray-600'>Ngày nhập ngũ: {student.enlistmentPeriod}</p>
 					</div>
 					<Dialog open={open} onOpenChange={setOpen}>
 						<DialogTrigger asChild>

@@ -11,7 +11,7 @@ export default function useCreateStudents() {
             queryClient.invalidateQueries({ queryKey: ['students'] });
         },
         onError: (error: any) => {
-            console.error('Error creating students:', error);
+            console.error('Error creating students:', error.request.responseText);
         }
     });
 }

@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from '../data-table/data-table-column-header'
 import { DataTableRowActions } from '../data-table/data-table-row-actions'
 import EditableCell from '../data-table/editable-cell'
 import EditableMilitaryRank from '../data-table/editable-military-rank'
+import { toDdMmYyyy } from '@/common'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	const [year, month, day] = isoDate.split('-')
@@ -48,7 +49,7 @@ export const baseStudentsColumns: ColumnDef<Student>[] = [
 		accessorKey: 'dob',
 		header: 'Năm sinh',
 		cell: ({ row }) => (
-			<div className=''>{isoToDdMmYyyy(row.getValue('dob'))}</div>
+			<div className=''>{toDdMmYyyy(row.getValue('dob'))}</div>
 		),
 		meta: {
 			label: 'Năm sinh'

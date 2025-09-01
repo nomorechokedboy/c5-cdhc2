@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react'
-import XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
+import * as XLSX from 'xlsx'
 import {
 	FileUp,
 	Download,
@@ -16,6 +17,8 @@ import useCreateStudents from '@/hooks/useCreateStudents'
 import { toIsoDate } from '@/common'
 import type { StudentBody } from '@/types'
 import useClassData from '@/hooks/useClasses'
+import { array } from 'zod'
+import { de } from '@faker-js/faker'
 export interface ImportStudentsDialogProps {
 	isOpen: boolean
 	onClose: () => void
@@ -57,287 +60,326 @@ export function ImportStudentsDialog({
 	} | null>(null)
 	const fileInputRef = useRef(null)
 
-	const downloadTemplate = () => {
-		// Headers mapping
-		const headers = [
-			'fullName',
-			'birthPlace',
-			'address',
-			'dob',
-			'rank',
-			'previousUnit',
-			'previousPosition',
-			'ethnic',
-			'religion',
-			'enlistmentPeriod',
-			'politicalOrg',
-			'politicalOrgOfficialDate',
-			'cpvId',
-			'educationLevel',
-			'schoolName',
-			'major',
-			'isGraduated',
-			'talent',
-			'shortcoming',
-			'policyBeneficiaryGroup',
-			'fatherName',
-			'fatherDob',
-			'fatherPhoneNumber',
-			'fatherJob',
-			'motherName',
-			'motherDob',
-			'motherPhoneNumber',
-			'motherJob',
-			'isMarried',
-			'spouseName',
-			'spouseDob',
-			'spouseJob',
-			'spousePhoneNumber',
-			'familySize',
-			'familyBackground',
-			'familyBirthOrder',
-			'achievement',
-			'disciplinaryHistory',
-			'childrenInfos',
-			'phone',
-			'classId'
-		]
-		const vietnameseHeaders = [
-			'Họ và tên',
-			'Nơi sinh',
-			'Địa chỉ',
-			'Ngày sinh',
-			'Cấp bậc',
-			'Đơn vị cũ',
-			'Chức vụ cũ',
-			'Dân tộc',
-			'Tôn giáo',
-			'Thời gian nhập ngũ',
-			'Đoàn/Đảng',
-			'Ngày chính thức vào Đảng/Đoàn',
-			'ID Đảng viên',
-			'Trình độ học vấn',
-			'Tên trường',
-			'Chuyên ngành',
-			'Đã tốt nghiệp',
-			'Tài năng',
-			'Thiếu sót',
-			'Nhóm thụ hưởng chính sách',
-			'Tên cha',
-			'Ngày sinh cha',
-			'Số điện thoại cha',
-			'Nghề nghiệp cha',
-			'Tên mẹ',
-			'Ngày sinh mẹ',
-			'Số điện thoại mẹ',
-			'Nghề nghiệp mẹ',
-			'Đã kết hôn',
-			'Tên vợ/chồng',
-			'Ngày sinh vợ/chồng',
-			'Nghề nghiệp vợ/chồng',
-			'Số điện thoại vợ/chồng',
-			'Quy mô gia đình',
-			'Hoàn cảnh gia đình',
-			'Thứ tự sinh trong gia đình',
-			'Thành tích',
-			'Lịch sử kỷ luật',
-			'Thông tin con cái',
-			'Số điện thoại',
-			'ID Lớp'
-		]
-		// Sample data
-		const sampleData = [
-			{
-				fullName: 'Nguyễn Văn A',
-				birthPlace: 'Hà Nội',
-				address: '123 Đường ABC, Hà Nội',
-				dob: '01/01/2000',
-				rank: 'Binh nhất',
-				previousUnit: 'Đại đội 1',
-				previousPosition: '',
-				ethnic: 'Kinh',
-				religion: 'Không',
-				enlistmentPeriod: '2024',
-				politicalOrg: 'hcyu',
-				politicalOrgOfficialDate: '26/03/2020',
-				cpvId: '',
-				educationLevel: '12/12',
-				schoolName: 'THPT Hà Nội',
-				major: 'Toán',
-				isGraduated: false,
-				talent: 'Văn nghệ',
-				shortcoming: 'Chưa có',
-				policyBeneficiaryGroup: 'Không',
-				fatherName: 'Nguyễn Văn B',
-				fatherDob: '01/01/1970',
-				fatherPhoneNumber: '0912345678',
-				fatherJob: 'Công nhân',
-				motherName: 'Trần Thị C',
-				motherDob: '02/02/1972',
-				motherPhoneNumber: '0987654321',
-				motherJob: 'Giáo viên',
-				isMarried: false,
-				spouseName: '',
-				spouseDob: '',
-				spouseJob: '',
-				spousePhoneNumber: '',
-				familySize: 4,
-				familyBackground: 'Không',
-				familyBirthOrder: 'Con cả',
-				achievement: 'Học sinh giỏi',
-				disciplinaryHistory: '',
-				childrenInfos: [],
-				phone: '0911222333',
-				classId: 1
+	const downloadTemplate = async () => {
+		try {
+			const workbook = new ExcelJS.Workbook()
+
+			// Headers mapping
+			const headers = [
+				'fullName',
+				'birthPlace',
+				'address',
+				'dob',
+				'rank',
+				'previousUnit',
+				'previousPosition',
+				'ethnic',
+				'religion',
+				'enlistmentPeriod',
+				'politicalOrg',
+				'politicalOrgOfficialDate',
+				'cpvId',
+				'educationLevel',
+				'schoolName',
+				'major',
+				'isGraduated',
+				'talent',
+				'shortcoming',
+				'policyBeneficiaryGroup',
+				'fatherName',
+				'fatherDob',
+				'fatherPhoneNumber',
+				'fatherJob',
+				'motherName',
+				'motherDob',
+				'motherPhoneNumber',
+				'motherJob',
+				'isMarried',
+				'spouseName',
+				'spouseDob',
+				'spouseJob',
+				'spousePhoneNumber',
+				'familySize',
+				'familyBackground',
+				'familyBirthOrder',
+				'achievement',
+				'disciplinaryHistory',
+				'childrenInfos',
+				'phone',
+				'classId'
+			]
+
+			const vietnameseHeaders = [
+				'Họ và tên',
+				'Nơi sinh',
+				'Địa chỉ',
+				'Ngày sinh',
+				'Cấp bậc',
+				'Đơn vị cũ',
+				'Chức vụ cũ',
+				'Dân tộc',
+				'Tôn giáo',
+				'Thời gian nhập ngũ',
+				'Đoàn/Đảng',
+				'Ngày chính thức vào Đảng/Đoàn',
+				'ID Đảng viên',
+				'Trình độ học vấn',
+				'Tên trường',
+				'Chuyên ngành',
+				'Đã tốt nghiệp',
+				'Tài năng',
+				'Thiếu sót',
+				'Nhóm thụ hưởng chính sách',
+				'Tên cha',
+				'Ngày sinh cha',
+				'SĐT cha',
+				'Nghề nghiệp cha',
+				'Tên mẹ',
+				'Ngày sinh mẹ',
+				'SĐT mẹ',
+				'Nghề nghiệp mẹ',
+				'Đã kết hôn',
+				'Tên vợ/chồng',
+				'Ngày sinh vợ/chồng',
+				'Nghề nghiệp vợ/chồng',
+				'SĐT vợ/chồng',
+				'Số lượng thành viên gia đình',
+				'Hoàn cảnh gia đình',
+				'Thứ tự sinh',
+				'Thành tích',
+				'Lịch sử kỷ luật',
+				'Thông tin con cái',
+				'Số điện thoại',
+				'ID Lớp'
+			]
+
+			const sampleData = [
+				'Nguyễn Văn A',
+				'Hà Nội',
+				'123 Đường ABC',
+				'01/01/2000',
+				'Binh nhất',
+				'Đại đội 1',
+				'',
+				'Kinh',
+				'Không',
+				'2024',
+				'Đoàn',
+				'26/03/2020',
+				'',
+				'12/12',
+				'THPT Hà Nội',
+				'Toán',
+				'Không',
+				'Văn nghệ',
+				'Chưa có',
+				'Không',
+				'Nguyễn Văn B',
+				'01/01/1970',
+				'0912345678',
+				'Công nhân',
+				'Trần Thị C',
+				'02/02/1972',
+				'0987654321',
+				'Giáo viên',
+				'Không',
+				'',
+				'',
+				'',
+				'',
+				'4',
+				'Không',
+				'Con cả',
+				'Học sinh giỏi',
+				'',
+				[],
+				'0911222333',
+				classOptions.length ? classOptions[0].value : '1'
+			]
+
+			
+
+			// ===== Sheet Mẫu Import =====
+			const sheet = workbook.addWorksheet('Mẫu Import')
+			const headerRowVN = sheet.addRow(vietnameseHeaders)
+			const headerRowAPI = sheet.addRow(headers)
+			sheet.addRow(sampleData)
+
+			headerRowVN.eachCell((cell) => {
+				cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+				cell.fill = {
+					type: 'pattern',
+					pattern: 'solid',
+					fgColor: { argb: '4472C4' }
+				}
+				cell.alignment = { horizontal: 'center', vertical: 'middle' }
+			})
+
+			headerRowAPI.eachCell((cell) => {
+				cell.font = { bold: true, color: { argb: 'FF2F5597' } }
+				cell.fill = {
+					type: 'pattern',
+					pattern: 'solid',
+					fgColor: { argb: 'D9E1F2' }
+				}
+				cell.alignment = { horizontal: 'center', vertical: 'middle' }
+			})
+
+			// Dropdown lists
+			const dropdowns: Record<string, string[]> = {
+				rank: [
+					'Binh nhất',
+					'Binh nhì',
+					'Hạ sĩ',
+					'Trung sĩ',
+					'Thượng sĩ',
+					'Thiếu úy chuyên nghiệp',
+					'Trung úy chuyên nghiệp',
+					'Thượng úy chuyên nghiệp',
+					'Đại úy chuyên nghiệp',
+					'Thiếu tá chuyên nghiệp',
+					'Trung tá chuyên nghiệp',
+					'Thượng tá chuyên nghiệp'
+				],
+				religion: [
+					'Không',
+					'Phật giáo',
+					'Công giáo',
+					'Cao Đài',
+					'Tin Lành',
+					'Hòa Hảo'
+				],
+				educationLevel: [
+					'9/12',
+					'10/12',
+					'11/12',
+					'12/12',
+					'Cao đẳng',
+					'Đại học',
+					'Sau đại học'
+				],
+				ethnic: [
+					'Kinh',
+					'Tày',
+					'Thái',
+					'Mường',
+					'Hoa',
+					'Khơ-me',
+					'Nùng',
+					'H’mông'
+				],
+				isGraduated: ['Có', 'Không'],
+				isMarried: ['Có', 'Không'],
+				politicalOrg: ['Đoàn', 'Đảng', 'Chưa tham gia']
 			}
-		]
 
-		// Create workbook and worksheet
-		const wb = XLSX.utils.book_new()
+			Object.entries(dropdowns).forEach(([field, values]) => {
+				const col = headers.indexOf(field)
+				if (col >= 0) {
+					const colLetter = sheet.getColumn(col + 1).letter
+					sheet.dataValidations.add(
+						`${colLetter}4:${colLetter}1000`,
+						{
+							type: 'list',
+							allowBlank: true,
+							formulae: [`"${values.join(',')}"`]
+						}
+					)
+				}
+			})
 
-		// Create data array with headers and sample data
-		const data = [
-			vietnameseHeaders, // Row 0: Vietnamese headers
-			headers, // Row 1: API field names
-			headers.map((h) => (sampleData[0] as any)[h] ?? '')
-		]
+			// Dropdown cho classId
+			const classCol = headers.indexOf('classId')
+			if (
+				classCol >= 0 &&
+				Array.isArray(classOptions) &&
+				classOptions.length
+			) {
+				const colLetter = sheet.getColumn(classCol + 1).letter
+				const classValues = classOptions.map((c) => c.value)
+				sheet.dataValidations.add(`${colLetter}4:${colLetter}1000`, {
+					type: 'list',
+					allowBlank: true,
+					formulae: [`"${classValues.join(',')}"`]
+				})
+			}
+			const textDateFields = [
+				'dob',
+				'politicalOrgOfficialDate',
+				'fatherDob',
+				'motherDob',
+				'spouseDob'
+			]
+			const numberFields = ['familySize']
 
-		// Convert array to worksheet
-		const ws = XLSX.utils.aoa_to_sheet(data)
+			// set format cho từng column
+			headers.forEach((field, index) => {
+				const col = sheet.getColumn(index + 1)
+				if (textDateFields.includes(field)) {
+					col.numFmt = '@' // format text
+				}
+				if (numberFields.includes(field)) {
+					col.numFmt = '0' // number format
+				}
+				col.width = 20 // cho dễ nhìn
+			})
+			// ===== Sheet Hướng dẫn =====
+			const instructionData = [
+				['📘 HƯỚNG DẪN NHẬP THÔNG TIN HỌC VIÊN'],
+				[''],
+				[
+					'1. Dòng thứ 3 (Nguyễn Văn A) chỉ là dữ liệu mẫu, KHÔNG được copy/sửa/xóa. ' +
+						'Khi nhập xong toàn bộ dữ liệu có thể xóa dòng này đi, hoặc giữ nguyên thì học viên đó sẽ được thêm vào hệ thống.'
+				],
+				[''],
+				[
+					'2. Các cột ngày (dob, fatherDob, motherDob, spouseDob, politicalOrgOfficialDate...) ' +
+						'bắt buộc nhập theo định dạng DD/MM/YYYY. Chỉ nhập dữ liệu, KHÔNG được đổi định dạng ô.'
+				],
+				[''],
+				[
+					'3. Trường childrenInfos: luôn nhập giá trị mặc định [] (nếu chưa có dữ liệu), nếu có dữ liệu sẽ được bổ sung sau trên hệ thống.'
+				],
+				[''],
+				[
+					'4. Các cột có danh sách chọn (dropdown) vui lòng chỉ chọn từ danh sách có sẵn.'
+				],
+				[''],
+				[
+					'5. KHÔNG được thay đổi tên cột (row 1, row 2) và chỉ nhập dữ liệu từ dòng 4 trở đi.'
+				],
+				[''],
+				[
+					'6. Nếu có thắc mắc, vui lòng liên hệ bộ phận IT để được hỗ trợ.'
+				],
+				['']
+			]
 
-		// Set column widths for better readability
-		const colWidths = headers.map(() => ({ wch: 20 }))
-		ws['!cols'] = colWidths
+			const instructionSheet = workbook.addWorksheet('Hướng dẫn')
+			instructionData.forEach((r) => instructionSheet.addRow(r))
+			instructionSheet.getColumn(1).width = 100
 
-		// Style the header rows
-		const headerStyle = {
-			fill: { fgColor: { rgb: '4472C4' } },
-			font: { color: { rgb: 'FFFFFF' }, bold: true },
-			alignment: { horizontal: 'center' }
+			// ===== Sheet Danh sách lớp =====
+			const classSheet = workbook.addWorksheet('Danh sách lớp')
+			classSheet.addRow(['ID Lớp', 'Tên lớp - Tên đơn vị'])
+			classOptions.forEach((c) => classSheet.addRow([c.value, c.label]))
+
+			// Export file
+			const buffer = await workbook.xlsx.writeBuffer()
+			const blob = new Blob([buffer], {
+				type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			})
+			const url = URL.createObjectURL(blob)
+
+			const link = document.createElement('a')
+			link.href = url
+			link.download = 'Mau_Import_Hoc_Vien_Co_Dropdown.xlsx'
+			link.click()
+			URL.revokeObjectURL(url)
+		} catch (err) {
+			console.error('Error:', err)
+			alert('Lỗi tạo file: ' + err.message)
 		}
-
-		const apiHeaderStyle = {
-			fill: { fgColor: { rgb: 'D9E1F2' } },
-			font: { color: { rgb: '2F5597' }, bold: true },
-			alignment: { horizontal: 'center' }
-		}
-
-		// Apply styles to Vietnamese headers (row 0)
-		for (let i = 0; i < vietnameseHeaders.length; i++) {
-			const cellAddress = XLSX.utils.encode_cell({ r: 0, c: i })
-			if (!ws[cellAddress]) ws[cellAddress] = { v: vietnameseHeaders[i] }
-			ws[cellAddress].s = headerStyle
-		}
-
-		// Apply styles to API headers (row 1)
-		for (let i = 0; i < headers.length; i++) {
-			const cellAddress = XLSX.utils.encode_cell({ r: 1, c: i })
-			if (!ws[cellAddress]) ws[cellAddress] = { v: headers[i] }
-			ws[cellAddress].s = apiHeaderStyle
-		}
-
-		// Add main sheet to workbook
-		XLSX.utils.book_append_sheet(wb, ws, 'Mẫu Import')
-
-		// Create instruction sheet
-		const instructionData = [
-			['📘 HƯỚNG DẪN SỬ DỤNG FILE IMPORT'],
-			[''],
-
-			['1. ĐỊNH DẠNG DỮ LIỆU'],
-			['• Ngày tháng: DD/MM/YYYY (ví dụ: 03/05/2000)'],
-			["• Đã tốt nghiệp: Nhập 'Có' hoặc 'Không'"],
-			["• Đã kết hôn: Nhập 'Có' hoặc 'Không'"],
-			['• Số điện thoại: Định dạng 10-11 số'],
-			[''],
-
-			['2. CÁC TRƯỜNG BẮT BUỘC'],
-			['• Họ và tên (không được để trống)'],
-			['• Ngày sinh (định dạng DD/MM/YYYY)'],
-			['• Số điện thoại (10-11 số)'],
-			['• ID Lớp (số nguyên, xem tại sheet Danh sách lớp)'],
-			[''],
-
-			['3. GHI CHÚ QUAN TRỌNG'],
-			['• KHÔNG được xóa hoặc thay đổi tên cột'],
-			['• KHÔNG được xóa dòng 2 (chứa tên trường API)'],
-			['• Nhập dữ liệu từ dòng 4 trở đi'],
-			['• Các trường để trống nếu không có thông tin'],
-			['• Dữ liệu mẫu ở dòng 3 có thể xóa hoặc chỉnh sửa'],
-			[''],
-
-			['4. MÃ TỔ CHỨC CHÍNH TRỊ'],
-			['• hcyu: Đoàn Thanh niên Cộng sản Hồ Chí Minh'],
-			['• cpv: Đảng Cộng sản Việt Nam'],
-			[''],
-
-			['5. CÁC GIÁ TRỊ BOOLEAN'],
-			['• isGraduated: true hoặc false'],
-			['• isMarried: true hoặc false'],
-			[''],
-
-			['6. CẤP BẬC'],
-			[
-				'Binh nhất, Binh nhì, Hạ sĩ, Trung sĩ, Thượng sĩ, Thiếu úy chuyên nghiệp, Trung úy chuyên nghiệp, Thượng úy chuyên nghiệp, Đại úy chuyên nghiệp, Thiếu tá chuyên nghiệp, Trung tá chuyên nghiệp, Thượng tá chuyên nghiệp'
-			],
-			[''],
-
-			['7. TRÌNH ĐỘ HỌC VẤN'],
-			['9/12, 10/12, 11/12, 12/12, Cao đẳng, Đại học, Sau đại học'],
-			[''],
-
-			['8. TÔN GIÁO'],
-			['Không, Phật giáo, Công giáo, Cao Đài, Tin Lành, Hòa Hảo, ...'],
-			[''],
-
-			['9. LIÊN HỆ HỖ TRỢ'],
-			['Nếu có thắc mắc, vui lòng liên hệ bộ phận IT để được hỗ trợ.'],
-			['']
-		]
-
-		const wsInstruction = XLSX.utils.aoa_to_sheet(instructionData)
-
-		// Style instruction sheet
-		const titleStyle = {
-			fill: { fgColor: { rgb: '4472C4' } },
-			font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 14 },
-			alignment: { horizontal: 'center' }
-		}
-		// Apply title style
-		const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 })
-		if (!wsInstruction[titleCell])
-			wsInstruction[titleCell] = { v: 'HƯỚNG DẪN SỬ DỤNG FILE IMPORT' }
-		wsInstruction[titleCell].s = titleStyle
-
-		// Set column width for instruction sheet
-		wsInstruction['!cols'] = [{ wch: 60 }]
-
-		// Add instruction sheet to workbook
-		XLSX.utils.book_append_sheet(wb, wsInstruction, 'Hướng dẫn')
-
-		// thêm sheet Danh sách lớp hiện tại
-		const classData = [
-			['ID Lớp', 'Tên lớp - Tên đơn vị'],
-			...classOptions.map((c) => [c.value, c.label])
-		]
-		const wsClasses = XLSX.utils.aoa_to_sheet(classData)
-		wsClasses['!cols'] = [{ wch: 15 }, { wch: 40 }]
-		// Style header
-		const classHeaderStyle = {
-			fill: { fgColor: { rgb: '4472C4' } },
-			font: { color: { rgb: 'FFFFFF' }, bold: true },
-			alignment: { horizontal: 'center' }
-		}
-		for (let i = 0; i < classData[0].length; i++) {
-			const cellAddress = XLSX.utils.encode_cell({ r: 0, c: i })
-			if (!wsClasses[cellAddress])
-				wsClasses[cellAddress] = { v: classData[0][i] }
-			wsClasses[cellAddress].s = classHeaderStyle
-		}
-		XLSX.utils.book_append_sheet(wb, wsClasses, 'Danh sách lớp')
-
-		// Download the Excel file
-		XLSX.writeFile(wb, 'Mau_Import_Hoc_Vien.xlsx')
 	}
 
 	const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -371,15 +413,10 @@ export function ImportStudentsDialog({
 				file.name.endsWith('.xlsx') ||
 				file.name.endsWith('.xls'))
 		) {
-			// Reset states
-			setUploadStatus('idle')
-			setUploadMessage('')
-			setImportResults(null)
+			resetDialog()
 
-			// Create FileReader
 			const reader = new FileReader()
 
-			// Handle successful file read
 			reader.onload = (e) => {
 				try {
 					const data = new Uint8Array(e.target.result)
@@ -387,35 +424,59 @@ export function ImportStudentsDialog({
 					const sheetName = workbook.SheetNames[0]
 					const worksheet = workbook.Sheets[sheetName]
 
-					// Parse to JSON array
 					const jsonData = XLSX.utils.sheet_to_json(worksheet, {
 						defval: '',
-						header: 1 // Read as array of arrays first
+						header: 1
 					})
-
-					// Skip header rows if needed (row 0: Vietnamese headers, row 1: API field names)
-					// const dataRows = jsonData.slice(2) // Start from row 2 (actual data)
+					debugger
 					const dataRows = jsonData
 						.slice(2)
 						.filter((row) =>
-							row.some(
-								(cell) =>
-									cell !== '' &&
-									cell !== null &&
-									cell !== undefined
-							)
+							row.some((cell) => cell !== '' && cell != null)
 						)
 
-					// Convert to objects using API field names from row 1
 					const headers = jsonData[1] // API field names
 
 					const booleanFields = ['isGraduated', 'isMarried']
+					const dateFields = [
+						'dob',
+						'fatherDob',
+						'motherDob',
+						'spouseDob',
+						'politicalOrgOfficialDate'
+					]
 
 					const students = dataRows.map((row) => {
 						const student: Record<string, any> = {}
-						headers.forEach((header, index) => {
-							let value = row[index] ?? '' // giữ nguyên false, 0
 
+						headers.forEach((header, index) => {
+							let value = row[index] ?? ''
+							console.log(header + ': ' + value)
+
+							// hcyu/cpv/none → Đoàn/Đảng/Chưa tham gia
+							if (header === 'politicalOrg') {
+								if (typeof value === 'string') {
+									const normalized = value
+										.trim()
+										.toLowerCase()
+
+									if (
+										normalized.includes('đoàn') ||
+										normalized === 'hcyu'
+									) {
+										value = 'hcyu'
+									} else if (
+										normalized.includes('đảng') ||
+										normalized === 'cpv'
+									) {
+										value = 'cpv'
+									} else {
+										value = ''
+									}
+								}
+							}
+
+							// ✅ Boolean fields
 							if (booleanFields.includes(header)) {
 								if (typeof value === 'string') {
 									const normalized = value
@@ -431,50 +492,57 @@ export function ImportStudentsDialog({
 										normalized === 'false'
 									)
 										value = false
-									else value = '' // trường hợp để trống hoặc không hợp lệ
+									else value = false // mặc định false nếu không hợp lệ
 								}
 							}
 
-							if (header === 'childrenInfos') {
-								if (
-									typeof value === 'string' &&
-									value.trim() !== ''
-								) {
-									try {
-										value = JSON.parse(value)
-										if (!Array.isArray(value)) value = []
-									} catch {
-										value = []
-									}
+							// ✅ familySize → số
+							if (header === 'familySize') {
+								if (typeof value === 'string') {
+									const parsed = parseInt(value, 10)
+									value = isNaN(parsed) ? 0 : parsed
+								} else if (typeof value === 'number') {
+									value = value
 								} else {
-									value = []
+									value = 0
 								}
 							}
 
-							if (
-								[
-									'dob',
-									'fatherDob',
-									'motherDob',
-									'spouseDob',
-									'politicalOrgOfficialDate'
-								].includes(header) &&
-								typeof value === 'string' &&
-								value.trim() !== ''
-							) {
+							// ✅ cpvId luôn string
+							if (header === 'cpvId') {
+								value = value != null ? String(value) : ''
+							}
+
+							// ✅ classId → number
+							if (header === 'classId') {
+								if (typeof value === 'string') {
+									const parsed = parseInt(value)
+									value = isNaN(parsed) ? null : parsed
+								}
+							}
+
+							// ✅ childrenInfos
+							if (header === 'childrenInfos') {
+								value = []
+							}
+
+							// ✅ Date fields
+							if (dateFields.includes(header)) {
 								value = toIsoDate(value)
 							}
-
 							student[header] = value
 						})
+
 						return student
 					})
 
-					console.log('Parsed students data:', students)
-					// Update states
 					setStudents(students)
 					setSelectedFile(file)
-					setUploadStatus('ready') // or whatever status you want
+					setUploadStatus('ready')
+					console.log(
+						'request body:',
+						JSON.stringify(students, null, 2)
+					)
 				} catch (error) {
 					console.error('Error parsing file:', error)
 					setUploadMessage(
@@ -484,14 +552,12 @@ export function ImportStudentsDialog({
 				}
 			}
 
-			// Handle file read error
 			reader.onerror = (error) => {
 				console.error('FileReader error:', error)
 				setUploadMessage('Lỗi đọc file. Vui lòng thử lại.')
 				setUploadStatus('error')
 			}
 
-			// Actually read the file as ArrayBuffer
 			reader.readAsArrayBuffer(file)
 		} else {
 			setUploadMessage('Vui lòng chọn file CSV hoặc Excel (.xlsx, .xls)')
@@ -515,33 +581,9 @@ export function ImportStudentsDialog({
 		setUploadStatus('uploading')
 		setUploadMessage('Đang xử lý file...')
 
-		console.log('Importing students:', students)
-
-		// For demo: simulate API call
-		/* setTimeout(() => {
-			// Mock success response
-			const mockResults = {
-				successCount: 25,
-				errorCount: 2,
-				totalCount: 27,
-				errors: [
-					{ row: 3, message: 'Số điện thoại không hợp lệ' },
-					{ row: 8, message: 'Ngày sinh không đúng định dạng' }
-				]
-			}
-
-			setUploadStatus('success')
-			setImportResults(mockResults)
-			setUploadMessage(
-				`Import hoàn tất! Thành công: ${mockResults.successCount}/${mockResults.totalCount} học viên`
-			)
-			onSuccess?.(mockResults)
-		}, 2000) */
-
-		// Real API call - uncomment when ready
+		console.log('"Data:"', JSON.stringify(students))
 
 		try {
-			console.log('request body:', JSON.stringify(students, null, 2))
 			const result = await createStudentsMutation.mutateAsync(students)
 
 			const mockResults = {
