@@ -1,5 +1,11 @@
 import { AppError } from '../errors/index'
-import { Class, ClassDB, ClassParam, UpdateClassMap } from '../schema/classes'
+import {
+	Class,
+	ClassDB,
+	ClassParam,
+	ClassQuery,
+	UpdateClassMap
+} from '../schema/classes'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
 import sqliteRepo from './repo'
@@ -39,14 +45,20 @@ class Controller {
 	}
 
 	delete(classes: ClassDB[]) {
+		log.trace('classController.delete params', { params: classes })
+
 		return this.repo.delete(classes).catch(AppError.handleAppErr)
 	}
 
-	find(): Promise<ClassDB[]> {
-		return this.repo.find({}).catch(AppError.handleAppErr)
+	find(params: ClassQuery): Promise<ClassDB[]> {
+		log.trace('classController.find params', { params })
+
+		return this.repo.find(params).catch(AppError.handleAppErr)
 	}
 
 	async update(params: ClassDB[]): Promise<ClassDB[]> {
+		log.trace('classController.update params', { params })
+
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
 		const isIdsValid = !ids || isIdsEmpty

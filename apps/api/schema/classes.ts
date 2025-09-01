@@ -59,6 +59,7 @@ export type ClassParam = {
 
 export type ClassQuery = {
 	ids?: Array<number>
+	unitIds: number[]
 }
 
 export type UpdateClassMap = {
