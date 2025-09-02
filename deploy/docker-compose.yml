@@ -10,7 +10,7 @@ services:
                 limits:
                     memory: 1G
                     cpus: '1.0'
-        image: quanlyhocvien-cdhc2:test
+        image: quanlyhocvien-cdhc2:api
         env_file:
             - .env.prod
         restart: unless-stopped
@@ -34,7 +34,7 @@ services:
         depends_on:
             app:
                 condition: service_healthy
-        image: quanlyhocvien-cdhc2:test-web
+        image: quanlyhocvien-cdhc2:web
         ports:
             - '3005:80'
         restart: unless-stopped
