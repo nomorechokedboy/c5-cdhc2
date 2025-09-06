@@ -24,4 +24,5 @@ const (
 	Default LoggerType = iota
 	File
 	FileAndCentralized
+	Slog
 )
