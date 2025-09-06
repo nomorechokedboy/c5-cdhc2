@@ -7,6 +7,7 @@ import Header from '../components/Header'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import type { QueryClient } from '@tanstack/react-query'
+import '@repo/ui/globals.css'
 
 interface MyRouterContext {
 	queryClient: QueryClient
