@@ -11,6 +11,8 @@ import (
 
 	"encore.app/internal/config"
 	"encore.app/internal/entities"
+	"encore.app/internal/logger"
+	// "github.com/joshuapare/moodle-client-go/v4"
 )
 
 var _ UserInfoProvider = (*HTTPUserInfoProvider)(nil)
@@ -34,7 +36,10 @@ func (p *HTTPUserInfoProvider) GetUserInfo(
 	ctx context.Context,
 	token *entities.OAuth2Token,
 ) (*entities.UserInfo, error) {
-	userInfoEndpoint := fmt.Sprintf("%s/local/oauth/user_info.php", p.config.Oauth2Config.OriginUrl)
+	userInfoEndpoint := fmt.Sprintf(
+		"%s/local/oauth2/user_info.php",
+		p.config.Oauth2Config.OriginUrl,
+	)
 
 	userInfoData := url.Values{}
 	userInfoData.Set("access_token", token.AccessToken)
@@ -60,6 +65,7 @@ func (p *HTTPUserInfoProvider) GetUserInfo(
 
 	var userInfo entities.UserInfo
 	if err := json.Unmarshal(respBody, &userInfo); err != nil {
+		logger.Error("GetUserInfo.Unmarshal err", "err", err, "respBody", string(respBody))
 		return nil, fmt.Errorf("failed to unmarshal user info: %w", err)
 	}
 
