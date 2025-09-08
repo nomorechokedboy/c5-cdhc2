@@ -22,7 +22,7 @@ type OAuth2CallbackRequest struct {
 }
 
 type UserInfo struct {
-	Id          string `json:"id"`
+	Id          int64  `json:"id"`
 	Address     string `json:"address"`
 	Description string `json:"description"`
 	Email       string `json:"email"`

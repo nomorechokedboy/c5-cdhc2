@@ -32,5 +32,9 @@ func (p *MoodleOauth2Provider) ExchangeCodeForToken(
 		return nil, err
 	}
 
-	return &entities.OAuth2Token{AccessToken: token.AccessToken}, nil
+	return &entities.OAuth2Token{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		ExpiresIn:    token.ExpiresIn,
+	}, nil
 }

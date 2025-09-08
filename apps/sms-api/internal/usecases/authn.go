@@ -41,6 +41,7 @@ func (uc *AuthnUseCase) HandleCallback(
 		return nil, fmt.Errorf("token exchange failed: %w", err)
 	}
 
+	logger.Debug("Token", "token", token)
 	// Get user info using the token
 	userInfo, err := uc.userInfoProvider.GetUserInfo(ctx, token)
 	if err != nil {

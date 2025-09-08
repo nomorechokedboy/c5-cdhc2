@@ -1,11 +1,13 @@
 package entities
 
 type OAuth2Token struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
 }
 
 type UserInfo struct {
-	Id          string `json:"id"`
+	Id          int64  `json:"id"`
 	Address     string `json:"address"`
 	Description string `json:"description"`
 	Email       string `json:"email"`
@@ -15,4 +17,17 @@ type UserInfo struct {
 	Lastname    string `json:"lastname"`
 	Phone1      string `json:"phone1"`
 	Username    string `json:"username"`
+}
+
+type MoodleOauth2AccessToken struct {
+	ID          int64  `json:"id"           db:"id"`
+	AccessToken string `json:"access_token" db:"access_token"`
+	ClientID    string `json:"client_id"    db:"client_id"`
+	UserID      int64  `json:"user_id"      db:"user_id"`
+	Expires     int64  `json:"expires"      db:"expires"`
+	Scope       string `json:"scope"        db:"scope"`
+}
+
+func (e *MoodleOauth2AccessToken) TableName() string {
+	return "mdl_local_oauth2_access_token"
 }
