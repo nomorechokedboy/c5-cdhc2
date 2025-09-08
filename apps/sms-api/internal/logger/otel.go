@@ -73,6 +73,13 @@ func WithLevel(level slog.Level) Option {
 	})
 }
 
+func WithHandleOptions(opts *slog.HandlerOptions) Option {
+	return optFunc(func(c *config) *config {
+		c.HandlerOptions = opts
+		return c
+	})
+}
+
 type config struct {
 	provider  log.LoggerProvider
 	version   string

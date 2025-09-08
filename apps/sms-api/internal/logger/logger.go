@@ -40,7 +40,7 @@ func SetGlobalLogger(loggerType LoggerType, options ...Option) {
 			Error("SetCompositeLogger err", "err", apperr.New(err))
 			return
 		} */
-	case Slog:
+	case Otel:
 		logger = initDefaultLogger(env, options...)
 	case Default:
 	default:
@@ -48,8 +48,16 @@ func SetGlobalLogger(loggerType LoggerType, options ...Option) {
 	globalLogger.Store(logger)
 }
 
-func initRlogLogger(env string, options ...Option) *RlogLogger {
-	return NewRlogLogger()
+func initRlogLogger(env string, options ...Option) *SlogLogger {
+	logLevel := slog.LevelDebug
+	if env == "prod" {
+		logLevel = slog.LevelInfo
+	}
+
+	// Merge default options with provided options
+	defaultOptions := []Option{WithLevel(logLevel)}
+	allOptions := append(defaultOptions, options...)
+	return NewSlogLoggerWithRlog("sms-api", allOptions...)
 }
 
 func initDefaultLogger(env string, options ...Option) *SlogLogger {
