@@ -4,8 +4,10 @@ go 1.24.2
 
 require (
 	encore.dev v1.48.13
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/mdobak/go-xerrors v1.0.0
+	github.com/pocketbase/dbx v1.11.0
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/log v0.14.0
 	go.opentelemetry.io/otel/trace v1.38.0
@@ -13,6 +15,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
