@@ -29,7 +29,7 @@ var (
 )
 
 type Config struct {
-	// DatabaseSecret
+	DatabaseConfig
 	Oauth2Config
 	ClientOriginUrl string `env:"CLIENT_ORIGIN_URL" env-default:"http://localhost:5173" json:"client_origin_url"`
 	Env             string `env:"ENV"               env-default:"dev"                   json:"env"`
@@ -44,8 +44,8 @@ func (c *Config) GetOauth2Config() oauth2.Config {
 		ClientSecret: c.Oauth2Config.ClientSecret,
 		Scopes:       []string{"user_info"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  fmt.Sprintf("%s/local/oauth/login.php", c.Oauth2Config.OriginUrl),
-			TokenURL: fmt.Sprintf("%s/local/oauth/token.php", c.Oauth2Config.OriginUrl),
+			AuthURL:  fmt.Sprintf("%s%s", c.Oauth2Config.OriginUrl, c.Oauth2Config.AuthUrl),
+			TokenURL: fmt.Sprintf("%s%s", c.Oauth2Config.OriginUrl, c.Oauth2Config.TokenUrl),
 		},
 	}
 }
@@ -55,8 +55,9 @@ func (c *Config) LogValue() slog.Value {
 		slog.Int("port", c.Port),
 
 		slog.String("client_origin_url", c.ClientOriginUrl),
-		slog.String("oauth2_cfg", fmt.Sprintf("**%s**", c.Oauth2Config)),
+		slog.Any("oauth2_cfg", &c.Oauth2Config),
 		slog.String("env", c.Env),
+		slog.Any("db_config", &c.DatabaseConfig),
 	)
 }
 
