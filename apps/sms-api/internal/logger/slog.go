@@ -116,6 +116,13 @@ func NewSlogLogger(name string, options ...Option) *SlogLogger {
 	return &SlogLogger{logger: logger}
 }
 
+func NewSlogLoggerWithRlog(name string, options ...Option) *SlogLogger {
+	cfg := newConfig(options)
+	logger := slog.New(NewRlogHandler(cfg.HandlerOptions))
+	slog.SetDefault(logger)
+	return &SlogLogger{logger: logger}
+}
+
 func (l *SlogLogger) Debug(msg string, args ...any) {
 	l.DebugContext(context.Background(), msg, args...)
 }
