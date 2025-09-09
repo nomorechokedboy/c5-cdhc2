@@ -31,3 +31,12 @@ type MoodleOauth2AccessToken struct {
 func (e *MoodleOauth2AccessToken) TableName() string {
 	return "mdl_local_oauth2_access_token"
 }
+
+type CallbackResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type TokenPayload struct {
+	UserID int64
+}

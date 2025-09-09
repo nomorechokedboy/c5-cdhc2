@@ -38,7 +38,8 @@ func NewContainer() *Container {
 
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
 	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
-	useCase := usecases.NewAuthnUseCase(oauth2Provider, userInfoProvider)
+	tokenProvider := oauth2.NewAppTokenProvider(&cfg.AuthnConfig)
+	useCase := usecases.NewAuthnUseCase(oauth2Provider, userInfoProvider, tokenProvider)
 	controller := NewAuthnController(useCase)
 
 	return &Container{

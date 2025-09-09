@@ -12,15 +12,18 @@ import (
 type AuthnUseCase struct {
 	oauth2Provider   oauth2.OAuth2Provider
 	userInfoProvider oauth2.UserInfoProvider
+	tokenProvider    oauth2.TokenProvider
 }
 
 func NewAuthnUseCase(
 	oauth2Provider oauth2.OAuth2Provider,
 	userInfoProvider oauth2.UserInfoProvider,
+	tokenProvider oauth2.TokenProvider,
 ) *AuthnUseCase {
 	return &AuthnUseCase{
 		oauth2Provider:   oauth2Provider,
 		userInfoProvider: userInfoProvider,
+		tokenProvider:    tokenProvider,
 	}
 }
 
@@ -31,7 +34,7 @@ func (uc *AuthnUseCase) GetLoginURL(state string) string {
 func (uc *AuthnUseCase) HandleCallback(
 	ctx context.Context,
 	state, code string,
-) (*entities.UserInfo, error) {
+) (*entities.CallbackResponse, error) {
 	logger.InfoContext(ctx, "Processing OAuth2 callback", "state", state, "code", code)
 
 	// Exchange code for token
@@ -41,7 +44,6 @@ func (uc *AuthnUseCase) HandleCallback(
 		return nil, fmt.Errorf("token exchange failed: %w", err)
 	}
 
-	logger.Debug("Token", "token", token)
 	// Get user info using the token
 	userInfo, err := uc.userInfoProvider.GetUserInfo(ctx, token)
 	if err != nil {
@@ -49,5 +51,12 @@ func (uc *AuthnUseCase) HandleCallback(
 		return nil, fmt.Errorf("user info retrieval failed: %w", err)
 	}
 
-	return userInfo, nil
+	req := &entities.TokenPayload{UserID: userInfo.Id}
+	resp, err := uc.tokenProvider.GenTokens(ctx, req)
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to generate tokens", "err", err, "request", req)
+		return nil, err
+	}
+
+	return resp, nil
 }
