@@ -3,6 +3,8 @@ package authn
 import (
 	"context"
 	"net/http"
+
+	"encore.app/internal/entities"
 )
 
 // Oauth2 login endpoint
@@ -34,16 +36,12 @@ type UserInfo struct {
 	Username    string `json:"username"`
 }
 
-type OAuth2CallbackResponse struct {
-	Data *UserInfo `json:"data"`
-}
-
 // Oauth2 callback endpoint
 //
 //encore:api public method=GET path=/oauth2/callback
 func OAuth2Callback(
 	ctx context.Context,
 	req *OAuth2CallbackRequest,
-) (*OAuth2CallbackResponse, error) {
+) (*entities.CallbackResponse, error) {
 	return container.GetController().HandleCallback(ctx, req)
 }
