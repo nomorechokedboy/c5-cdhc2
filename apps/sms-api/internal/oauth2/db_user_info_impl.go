@@ -63,6 +63,6 @@ func (p *DBUserInfoProvider) GetUserInfo(
 func NewDBUserInfoProvider(
 	userRepo users.Repository,
 	authTokenRepo authtokens.Repository,
-) UserInfoProvider {
+) *DBUserInfoProvider {
 	return &DBUserInfoProvider{userRepo: userRepo, authTokenRepo: authTokenRepo}
 }
