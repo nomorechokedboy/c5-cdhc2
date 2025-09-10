@@ -17,6 +17,6 @@ type OAuth2CallbackRequest struct {
 func OAuth2Callback(
 	ctx context.Context,
 	req *OAuth2CallbackRequest,
-) (*entities.CallbackResponse, error) {
+) (*entities.HttpCallbackResponse, error) {
 	return container.GetController().HandleCallback(ctx, req)
 }
