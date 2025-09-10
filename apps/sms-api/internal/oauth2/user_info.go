@@ -7,5 +7,5 @@ import (
 )
 
 type UserInfoProvider interface {
-	GetUserInfo(ctx context.Context, token *entities.OAuth2Token) (*entities.UserInfo, error)
+	GetUserInfo(context.Context, string) (*entities.UserInfo, error)
 }
