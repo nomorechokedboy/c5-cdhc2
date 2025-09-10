@@ -40,3 +40,8 @@ type CallbackResponse struct {
 type TokenPayload struct {
 	UserID int64
 }
+
+type HttpCallbackResponse struct {
+	Location string `header:"Location"`
+	Status   int    `                  encore:"httpstatus"`
+}

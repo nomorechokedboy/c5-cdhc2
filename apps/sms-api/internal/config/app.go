@@ -32,9 +32,10 @@ type Config struct {
 	AuthnConfig
 	DatabaseConfig
 	Oauth2Config
-	ClientOriginUrl string `env:"CLIENT_ORIGIN_URL" env-default:"http://localhost:5173" json:"client_origin_url"`
-	Env             string `env:"ENV"               env-default:"dev"                   json:"env"`
-	Port            int    `env:"PORT"              env-default:"4000"                  json:"port"`
+	ClientOriginUrl      string `env:"CLIENT_ORIGIN_URL"      env-default:"http://localhost:3000" json:"client_origin_url"`
+	ClientOauth2Callback string `env:"CLIENT_OAUTH2_CALLBACK" env-default:"oauth2/callback"       json:"client_oauth2_callback"`
+	Env                  string `env:"ENV"                    env-default:"dev"                   json:"env"`
+	Port                 int    `env:"PORT"                   env-default:"4000"                  json:"port"`
 	// OtelEndpoint    string `env:"OTEL_ENDPOINT" env-default:"localhost:4318" json:"otel_endpoint"`
 }
 
