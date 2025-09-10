@@ -18,9 +18,9 @@ var _ UserInfoProvider = (*DBUserInfoProvider)(nil)
 
 func (p *DBUserInfoProvider) GetUserInfo(
 	ctx context.Context,
-	token *entities.OAuth2Token,
+	token string,
 ) (*entities.UserInfo, error) {
-	accessToken := &entities.MoodleOauth2AccessToken{AccessToken: token.AccessToken}
+	accessToken := &entities.MoodleOauth2AccessToken{AccessToken: token}
 	if err := p.authTokenRepo.FindOne(ctx, accessToken); err != nil {
 		logger.ErrorContext(
 			ctx,
