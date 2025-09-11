@@ -34,7 +34,7 @@ func NewHTTPUserInfoProvider(cfg *config.Config, client *http.Client) *HTTPUserI
 
 func (p *HTTPUserInfoProvider) GetUserInfo(
 	ctx context.Context,
-	token *entities.OAuth2Token,
+	token string,
 ) (*entities.UserInfo, error) {
 	userInfoEndpoint := fmt.Sprintf(
 		"%s/local/oauth2/user_info.php",
@@ -42,7 +42,7 @@ func (p *HTTPUserInfoProvider) GetUserInfo(
 	)
 
 	userInfoData := url.Values{}
-	userInfoData.Set("access_token", token.AccessToken)
+	userInfoData.Set("access_token", token)
 
 	resp, err := p.client.Post(
 		userInfoEndpoint,
