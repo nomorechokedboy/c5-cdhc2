@@ -2,6 +2,7 @@ package authn
 
 import (
 	"context"
+	"strings"
 
 	"encore.app/internal/entities"
 	"encore.app/internal/logger"
@@ -55,4 +56,16 @@ func OAuth2Callback(
 	req *OAuth2CallbackRequest,
 ) (*entities.HttpCallbackResponse, error) {
 	return container.GetController().HandleCallback(ctx, req)
+}
+
+// GetUserInfo endpoint
+//
+//encore:api auth method=GET path=/authn/me
+func Me(ctx context.Context) (*entities.UserInfo, error) {
+	uid, ok := auth.UserID()
+	if !ok {
+		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
+	}
+
+	return container.GetController().HandleGetUserInfo(ctx, string(uid))
 }
