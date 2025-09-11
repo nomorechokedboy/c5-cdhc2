@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"encore.app/internal/authtokens"
+	"encore.app/internal/cache"
 	"encore.app/internal/config"
 	"encore.app/internal/db"
 	"encore.app/internal/logger"
@@ -33,13 +34,22 @@ func NewContainer() *Container {
 		log.Fatal(err)
 	}
 
+	rdb := cache.New(&cfg.CacheConfig)
+
 	mdlUserRepo := users.NewRepo(db)
 	mdlAuthToken := authtokens.NewRepo(db)
+	tokenRepo := oauth2.NewOauth2Repository(rdb)
 
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
 	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
 	tokenProvider := oauth2.NewAppTokenProvider(&cfg.AuthnConfig)
-	useCase := usecases.NewAuthnUseCase(oauth2Provider, userInfoProvider, tokenProvider)
+	useCase := usecases.NewAuthnUseCase(
+		oauth2Provider,
+		userInfoProvider,
+		tokenProvider,
+		tokenRepo,
+		&cfg.AuthnConfig,
+	)
 	controller := NewAuthnController(useCase)
 
 	return &Container{
