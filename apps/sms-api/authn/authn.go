@@ -69,3 +69,14 @@ func Me(ctx context.Context) (*entities.UserInfo, error) {
 
 	return container.GetController().HandleGetUserInfo(ctx, string(uid))
 }
+
+type RefreshTokenRequest struct {
+	Token string `json:"token"`
+}
+
+// RefreshToken endpoint
+//
+//encore:api public method=POST path=/authn/refresh
+func RefreshToken(ctx context.Context, req *RefreshTokenRequest) (*entities.CallbackResponse, error) {
+	return container.GetController().HandleRefreshToken(ctx, req.Token)
+}

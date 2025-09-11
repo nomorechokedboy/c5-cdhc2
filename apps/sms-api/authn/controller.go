@@ -52,9 +52,9 @@ func (c *AuthnController) VerifyAccessToken(
 	return c.useCase.VerifyAccessToken(ctx, token)
 }
 
-func (c *AuthnController) VerifyRefreshToken(
+func (c *AuthnController) HandleRefreshToken(
 	ctx context.Context,
 	token string,
-) (*entities.TokenPayload, error) {
-	return c.useCase.VerifyRefreshToken(ctx, token)
+) (*entities.CallbackResponse, error) {
+	return c.useCase.RefreshToken(ctx, token)
 }
