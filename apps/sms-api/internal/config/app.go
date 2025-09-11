@@ -30,6 +30,7 @@ var (
 
 type Config struct {
 	AuthnConfig
+	CacheConfig
 	DatabaseConfig
 	Oauth2Config
 	ClientOriginUrl      string `env:"CLIENT_ORIGIN_URL"      env-default:"http://localhost:3000" json:"client_origin_url"`
@@ -59,6 +60,7 @@ func (c *Config) LogValue() slog.Value {
 		slog.String("client_origin_url", c.ClientOriginUrl),
 		slog.Any("oauth2_cfg", &c.Oauth2Config),
 		slog.String("env", c.Env),
+		slog.Any("cache_config", &c.CacheConfig),
 		slog.Any("db_config", &c.DatabaseConfig),
 	)
 }
