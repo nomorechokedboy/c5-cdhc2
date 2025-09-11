@@ -13,7 +13,10 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/login')({
-	component: Login
+	component: Login,
+	validateSearch: (search: Record<string, unknown>) => ({
+		redirect: (search.redirect as string) || '/'
+	})
 })
 
 export default function Login() {
