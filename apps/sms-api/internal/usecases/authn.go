@@ -197,3 +197,24 @@ func (uc *AuthnUseCase) VerifyRefreshToken(
 
 	return payload, nil
 }
+
+func (uc *AuthnUseCase) RefreshToken(
+	ctx context.Context,
+	token string,
+) (*entities.CallbackResponse, error) {
+	payload, err := uc.VerifyRefreshToken(ctx, token)
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to verify refresh token", "err", err)
+		return nil, err
+	}
+
+	req := &entities.TokenPayload{UserID: payload.UserID}
+	resp, err := uc.tokenProvider.GenTokens(ctx, req)
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to generate tokens", "err", err, "request", req)
+		return nil, err
+	}
+	resp.RefreshToken = token
+
+	return resp, nil
+}
