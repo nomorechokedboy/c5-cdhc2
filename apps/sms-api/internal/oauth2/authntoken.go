@@ -2,6 +2,8 @@ package oauth2
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"encore.app/internal/config"
@@ -94,6 +96,39 @@ func (a *appTokenProvider) GenTokens(
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (a *appTokenProvider) Verify(
+	ctx context.Context,
+	req *VerifyRequest,
+) (*entities.TokenPayload, error) {
+	token, err := jwt.ParseWithClaims(
+		req.TokenStr,
+		&AppClaims{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(req.Secret), nil
+		},
+	)
+	if err != nil {
+		logger.ErrorContext(ctx, "Verify token error", "err", err)
+	}
+
+	switch {
+	case token.Valid:
+		if claims, ok := token.Claims.(*AppClaims); ok {
+			return claims.TokenPayload, nil
+		}
+
+		return nil, fmt.Errorf("Token is not AppToken")
+	case errors.Is(err, jwt.ErrTokenMalformed):
+		return nil, fmt.Errorf("Token is malformed")
+	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+		return nil, fmt.Errorf("Error token signature is invalid")
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
+		return nil, fmt.Errorf("Token is expired")
+	default:
+		return nil, fmt.Errorf("Couldn't handle this token")
+	}
 }
 
 func NewAppTokenProvider(authnConfig *config.AuthnConfig) *appTokenProvider {

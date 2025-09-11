@@ -3,7 +3,6 @@ package authn
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"encore.app/internal/config"
 	"encore.app/internal/entities"
@@ -17,11 +16,6 @@ type AuthnController struct {
 
 func NewAuthnController(useCase *usecases.AuthnUseCase) *AuthnController {
 	return &AuthnController{useCase: useCase}
-}
-
-func (c *AuthnController) HandleLogin(w http.ResponseWriter, req *http.Request) {
-	loginURL := c.useCase.GetLoginURL("randomstate")
-	http.Redirect(w, req, loginURL, http.StatusTemporaryRedirect)
 }
 
 func (c *AuthnController) HandleCallback(
@@ -42,4 +36,25 @@ func (c *AuthnController) HandleCallback(
 		resp.RefreshToken,
 	)
 	return &entities.HttpCallbackResponse{Status: 308, Location: location}, nil
+}
+
+func (c *AuthnController) HandleGetUserInfo(
+	ctx context.Context,
+	userId string,
+) (*entities.UserInfo, error) {
+	return c.useCase.GetUserInfo(ctx, userId)
+}
+
+func (c *AuthnController) VerifyAccessToken(
+	ctx context.Context,
+	token string,
+) (*entities.TokenPayload, error) {
+	return c.useCase.VerifyAccessToken(ctx, token)
+}
+
+func (c *AuthnController) VerifyRefreshToken(
+	ctx context.Context,
+	token string,
+) (*entities.TokenPayload, error) {
+	return c.useCase.VerifyRefreshToken(ctx, token)
 }
