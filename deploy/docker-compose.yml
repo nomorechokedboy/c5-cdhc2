@@ -55,12 +55,11 @@ services:
             start_period: 40s
             retries: 3
     cron-scheduler:
-        image: alpine:latest
+        image: quanlyhocvien-cdhc2:cron
         environment:
             - TZ=Asia/Ho_Chi_Minh
             - APP_URL=http://app:8080
         volumes:
-            - ./cron/scripts:/scripts:ro
             - ./cron/logs:/var/log/cron:rw
         depends_on:
             app:
@@ -72,18 +71,13 @@ services:
             sh -c "
 
 
-              apk add --no-cache curl tzdata &&
-              cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime &&
-              echo 'Asia/Ho_Chi_Minh' > /etc/timezone &&
-
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
-              # echo '0 0 * * 1 /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
-              echo '30 * * * * /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
-              echo '0 0 1 * * /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
-              echo '0 0 1 */3 * /scripts/quarterly_birthday.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
-              echo '0 0 * * 1 /scripts/weekly_cpv_official.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
-              echo '0 0 1 * * /scripts/monthly_cpv_official.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
-              echo '0 0 1 */3 * /scripts/quarterly_cpv_official.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 * * 1 /bin/sh /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 1 * * /bin/sh /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 1 */3 * /bin/sh /scripts/quarterly_birthday.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 * * 1 /bin/sh /scripts/weekly_cpv_official.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 1 * * /bin/sh /scripts/monthly_cpv_official.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
+              echo '0 0 1 */3 * /bin/sh /scripts/quarterly_cpv_official.sh >> /var/log/cron/quarterly.log 2>&1' >> /etc/crontabs/root &&
 
               echo 'Current time after timezone setup:' &&
               date &&
