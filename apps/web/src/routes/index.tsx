@@ -26,7 +26,7 @@ function RouteComponent() {
 				{/* Gradient background */}
 				<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 animate-fadeIn'>
 					{/* Hero */}
-					<div className='flex flex-col items-center text-center space-y-4 mb-12'>
+					<div className='flex flex-col items-center text-center space-y-4'>
 						<img
 							src='logo.png'
 							alt='Logo'
@@ -66,7 +66,7 @@ function RouteComponent() {
 					</div>
 
 					{/* Thống kê */}
-					<div className='cursor-pointer grid grid-cols-1 md:grid-cols-3 gap-6'>
+					{/* <div className='cursor-pointer grid grid-cols-1 md:grid-cols-3 gap-6'>
 						<StatCard
 							icon={<Users className='w-6 h-6' />}
 							title='Tổng số học viên'
@@ -88,7 +88,7 @@ function RouteComponent() {
 							color='purple'
 							delay={300}
 						/>
-					</div>
+					</div> */}
 				</div>
 				{/* Student Form Dialog */}
 				{showStudentForm && (
