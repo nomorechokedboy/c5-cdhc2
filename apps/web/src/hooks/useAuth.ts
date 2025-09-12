@@ -32,7 +32,7 @@ export default function useAuth() {
 			AuthController.setTokens({ accessToken, refreshToken })
 			toast.info('Đăng nhập thành công')
 
-			const user = await refetchUser()
+			const { data: user } = await refetchUser()
 
 			// Update auth query cache
 			queryClient.setQueryData(['auth', 'user'], user)

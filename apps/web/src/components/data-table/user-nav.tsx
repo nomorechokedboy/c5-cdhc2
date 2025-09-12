@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 export function UserNav() {
 	const { logout, user } = useAuth()
+
 	const splittedDisplayName = user?.displayName?.split(' ') ?? 'A D'
 
 	const firstName = splittedDisplayName[0]
