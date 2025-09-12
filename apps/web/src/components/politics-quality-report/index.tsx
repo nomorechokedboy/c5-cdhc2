@@ -1,7 +1,15 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileSpreadsheet, Users, Target, School, Download } from 'lucide-react'
+import {
+	FileSpreadsheet,
+	Users,
+	Target,
+	School,
+	Download,
+	ChevronRight,
+	ChevronDown
+} from 'lucide-react'
 import { StatisticsTable } from './statistics-table'
 import { ChartsSection } from './charts-section'
 import { ExportButton } from './export-button'
@@ -14,6 +22,11 @@ import {
 	TooltipTrigger
 } from '@/components/ui/tooltip'
 import useUnitsData from '@/hooks/useUnitsData'
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '../ui/collapsible'
 
 // Recursive renderer for children + classes
 function UnitBlock({
@@ -26,6 +39,67 @@ function UnitBlock({
 		children?: any[]
 	}
 }) {
+	const [isOpen, setIsOpen] = useState(false)
+	const isParent =
+		(unit.children !== undefined && unit.children?.length > 0) ||
+		(unit.classes !== undefined && unit.classes.length > 0)
+
+	if (isParent) {
+		return (
+			<Collapsible
+				className='flex flex-col gap-4 p-4 border rounded-lg'
+				open={isOpen}
+				onOpenChange={setIsOpen}
+			>
+				<div>
+					<CollapsibleTrigger asChild>
+						<Button
+							variant='ghost'
+							className='hover:bg-transparent dark:hover:bg-transparent cursor-pointer'
+						>
+							{isOpen ? (
+								<ChevronRight className='h-4 w-4' />
+							) : (
+								<ChevronDown className='h-4 w-4' />
+							)}
+							<h3 className='font-semibold'>{unit.name}</h3>
+						</Button>
+					</CollapsibleTrigger>
+					<p className='text-sm text-muted-foreground'>
+						Tổng quân số: {unit.politicsQualityReport?.total ?? 0}
+					</p>
+				</div>
+
+				<CollapsibleContent className='flex flex-col gap-4 p-4 border rounded-lg'>
+					{/* Render classes */}
+					{unit.classes &&
+						unit.classes.map((cls) => (
+							<div
+								key={cls.name}
+								className='flex items-center justify-between p-4 border rounded-lg ml-4'
+							>
+								<div>
+									<h4 className='font-medium'>{cls.name}</h4>
+									<p className='text-sm text-muted-foreground'>
+										Tổng quân số:{' '}
+										{cls.politicsQualityReport?.total ?? 0}
+									</p>
+								</div>
+							</div>
+						))}
+
+					{/* Render children recursively */}
+					{unit.children &&
+						unit.children.map((child) => (
+							<div key={child.name} className='ml-4'>
+								<UnitBlock unit={child} />
+							</div>
+						))}
+				</CollapsibleContent>
+			</Collapsible>
+		)
+	}
+
 	return (
 		<div className='flex flex-col gap-4 p-4 border rounded-lg'>
 			<div>

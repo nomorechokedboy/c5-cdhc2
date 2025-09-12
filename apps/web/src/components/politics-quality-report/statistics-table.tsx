@@ -1,3 +1,4 @@
+import type React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
 	Table,
@@ -8,6 +9,8 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 import type { PoliticsQualityReport, UnitPoliticsQualitySummary } from '@/types'
 
 interface StatisticsTableProps {
@@ -15,6 +18,42 @@ interface StatisticsTableProps {
 }
 
 export function StatisticsTable({ data }: StatisticsTableProps) {
+	const [collapsedRows, setCollapsedRows] = useState<Set<string>>(() => {
+		const initialCollapsed = new Set<string>()
+
+		const addCollapsibleRows = (
+			entity: UnitPoliticsQualitySummary,
+			depth = 0,
+			entityName?: string
+		) => {
+			const rowId = `${entity.name}-${entityName || 'root'}-${depth}`
+
+			// Add to collapsed set if this row can be collapsed
+			if (
+				(depth === 0 || depth === 1) &&
+				((entity.classes && entity.classes.length > 0) ||
+					(entity.children && entity.children.length > 0))
+			) {
+				initialCollapsed.add(rowId)
+			}
+
+			// Recursively check children and classes
+			if (entity.classes) {
+				entity.classes.forEach((cls) =>
+					addCollapsibleRows(cls, depth + 1, entity.name)
+				)
+			}
+			if (entity.children) {
+				entity.children.forEach((child) =>
+					addCollapsibleRows(child, depth + 1)
+				)
+			}
+		}
+
+		data.forEach((unit) => addCollapsibleRows(unit))
+		return initialCollapsed
+	})
+
 	const sampleReport = data.find(
 		(d) => d.politicsQualityReport !== null
 	)?.politicsQualityReport
@@ -25,78 +64,130 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 		? Object.keys(sampleReport.educationLevel)
 		: []
 
+	const toggleCollapse = (rowId: string) => {
+		const newCollapsed = new Set(collapsedRows)
+		if (newCollapsed.has(rowId)) {
+			newCollapsed.delete(rowId)
+		} else {
+			newCollapsed.add(rowId)
+		}
+		setCollapsedRows(newCollapsed)
+	}
+
+	const canCollapse = (entity: UnitPoliticsQualitySummary, depth: number) => {
+		return (
+			(depth === 0 || depth === 1) &&
+			((entity.classes && entity.classes.length > 0) ||
+				(entity.children && entity.children.length > 0))
+		)
+	}
+
 	const renderRow = (
 		name: string,
 		report: UnitPoliticsQualitySummary['politicsQualityReport'] | null,
-		depth: number = 0,
-		parentName?: string
-	) => (
-		<TableRow key={`${name}-${parentName}`}>
-			<TableCell
-				className={`font-medium sticky left-0 border-r ${depth > 0 ? 'bg-gray-50' : 'bg-white'}  ${depth === 1 && 'pl-4'} ${depth === 2 && 'pl-6'}`}
-			>
-				{name}
-			</TableCell>
+		depth = 0,
+		parentName?: string,
+		entity?: UnitPoliticsQualitySummary,
+		rowId?: string
+	) => {
+		const isCollapsible = entity && rowId && canCollapse(entity, depth)
+		const isCollapsed = rowId && collapsedRows.has(rowId)
 
-			<TableCell className='text-center'>0</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-			{ethnicKeys.map((key) => (
-				<TableCell key={key} className='text-center'>
-					{report?.ethnic[key] ?? 0}
+		return (
+			<TableRow key={`${name}-${parentName}`}>
+				<TableCell
+					className={`font-medium sticky left-0 border-r ${depth > 0 ? 'bg-gray-50' : 'bg-white'}  ${depth === 1 && 'pl-4'} ${depth === 2 && 'pl-6'}`}
+				>
+					<div className='flex items-center gap-2'>
+						{isCollapsible && (
+							<button
+								onClick={() => toggleCollapse(rowId)}
+								className='p-1 hover:bg-gray-200 rounded transition-colors'
+								aria-label={
+									isCollapsed ? 'Expand row' : 'Collapse row'
+								}
+							>
+								{isCollapsed ? (
+									<ChevronRight className='h-4 w-4' />
+								) : (
+									<ChevronDown className='h-4 w-4' />
+								)}
+							</button>
+						)}
+						{!isCollapsible && depth <= 1 && (
+							<div className='w-6' /> // Spacer for alignment
+						)}
+						<span>{name}</span>
+					</div>
 				</TableCell>
-			))}
-			{religionKeys.map((key) => (
-				<TableCell key={key} className='text-center'>
-					{report?.religion[key] ?? 0}
-				</TableCell>
-			))}
-			{educationKeys.map((key) => (
-				<TableCell key={key} className='text-center'>
-					{report?.educationLevel[key] ?? 0}
-				</TableCell>
-			))}
 
-			<TableCell className='text-center'>
-				{report?.politicalOrg['cpv'] ?? 0}
-			</TableCell>
-			<TableCell className='text-center'>
-				{report?.politicalOrg['hcyu'] ?? 0}
-			</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-			<TableCell className='text-center'>0</TableCell>
-		</TableRow>
-	)
+				<TableCell className='text-center'>0</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+				{ethnicKeys.map((key) => (
+					<TableCell key={key} className='text-center'>
+						{report?.ethnic[key] ?? 0}
+					</TableCell>
+				))}
+				{religionKeys.map((key) => (
+					<TableCell key={key} className='text-center'>
+						{report?.religion[key] ?? 0}
+					</TableCell>
+				))}
+				{educationKeys.map((key) => (
+					<TableCell key={key} className='text-center'>
+						{report?.educationLevel[key] ?? 0}
+					</TableCell>
+				))}
+
+				<TableCell className='text-center'>
+					{report?.politicalOrg['cpv'] ?? 0}
+				</TableCell>
+				<TableCell className='text-center'>
+					{report?.politicalOrg['hcyu'] ?? 0}
+				</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+				<TableCell className='text-center'>0</TableCell>
+			</TableRow>
+		)
+	}
 
 	const renderEntity = (
 		entity:
 			| UnitPoliticsQualitySummary
 			| UnitPoliticsQualitySummary['classes'][number],
-		depth: number = 0,
+		depth = 0,
 		entityName?: string
 	): React.ReactNode[] => {
 		const rows: React.ReactNode[] = []
+		const rowId = `${entity.name}-${entityName || 'root'}-${depth}`
+		const isCollapsed = collapsedRows.has(rowId)
+
 		rows.push(
 			renderRow(
 				entity.name,
 				entity.politicsQualityReport,
 				depth,
-				entityName
+				entityName,
+				entity,
+				rowId
 			)
 		)
 
-		if (entity.classes) {
-			entity.classes.forEach((cls) =>
-				rows.push(...renderEntity(cls, depth + 1, entity.name))
-			)
-		}
+		if (!isCollapsed) {
+			if (entity.classes) {
+				entity.classes.forEach((cls) =>
+					rows.push(...renderEntity(cls, depth + 1, entity.name))
+				)
+			}
 
-		if (entity.children) {
-			entity.children.forEach((child) =>
-				rows.push(...renderEntity(child, depth + 1))
-			)
+			if (entity.children) {
+				entity.children.forEach((child) =>
+					rows.push(...renderEntity(child, depth + 1))
+				)
+			}
 		}
 
 		return rows
@@ -116,6 +207,7 @@ export function StatisticsTable({ data }: StatisticsTableProps) {
 					.reduce((accum, curr) => accum + curr, 0)}
 			</TableCell>
 		)
+	console.log({ test: data.map((el) => renderEntity(el)) })
 
 	return (
 		<Card>
