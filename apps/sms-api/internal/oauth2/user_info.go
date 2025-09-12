@@ -7,5 +7,6 @@ import (
 )
 
 type UserInfoProvider interface {
-	GetUserInfo(context.Context, string) (*entities.UserInfo, error)
+	GetUserInfoByMdlToken(context.Context, string) (*entities.UserInfo, error)
+	GetUserInfo(context.Context, int64) (*entities.UserInfo, error)
 }

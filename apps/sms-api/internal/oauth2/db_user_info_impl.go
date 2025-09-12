@@ -16,7 +16,7 @@ type DBUserInfoProvider struct {
 
 var _ UserInfoProvider = (*DBUserInfoProvider)(nil)
 
-func (p *DBUserInfoProvider) GetUserInfo(
+func (p *DBUserInfoProvider) GetUserInfoByMdlToken(
 	ctx context.Context,
 	token string,
 ) (*entities.UserInfo, error) {
@@ -32,6 +32,39 @@ func (p *DBUserInfoProvider) GetUserInfo(
 	}
 
 	mdlUser := &entities.MoodleUser{ID: accessToken.UserID}
+	if err := p.userRepo.FindOne(ctx, mdlUser); err != nil {
+		logger.ErrorContext(
+			ctx,
+			"DBUserInfoProvider.GetUserInfo.FindOneMoodleUser error",
+			"err",
+			err,
+		)
+		return nil, err
+	}
+
+	userInfo := &entities.UserInfo{
+		Id:        mdlUser.ID,
+		Address:   mdlUser.Address,
+		Email:     mdlUser.Email,
+		Firstname: mdlUser.FirstName,
+		Idnumber:  mdlUser.IDNumber,
+		Lang:      mdlUser.Lang,
+		Lastname:  mdlUser.LastName,
+		Phone1:    mdlUser.Phone1,
+		Username:  mdlUser.Username,
+	}
+	if mdlUser.Description != nil {
+		userInfo.Description = *mdlUser.Description
+	}
+
+	return userInfo, nil
+}
+
+func (p *DBUserInfoProvider) GetUserInfo(
+	ctx context.Context,
+	userId int64,
+) (*entities.UserInfo, error) {
+	mdlUser := &entities.MoodleUser{ID: userId}
 	if err := p.userRepo.FindOne(ctx, mdlUser); err != nil {
 		logger.ErrorContext(
 			ctx,
