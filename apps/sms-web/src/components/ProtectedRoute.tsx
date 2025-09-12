@@ -14,9 +14,7 @@ export default function ProtectedRoute({
 	fallback,
 	redirectTo = '/login'
 }: ProtectedRouteProps) {
-	const { isAuthenticated, isAuthLoading, user } = useAuth()
-	console.log({ isAuthenticated, user })
-
+	const { isAuthenticated, isAuthLoading } = useAuth()
 	const location = useLocation()
 
 	// Show loading spinner while checking auth
