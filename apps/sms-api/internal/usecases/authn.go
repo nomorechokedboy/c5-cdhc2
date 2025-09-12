@@ -7,7 +7,6 @@ import (
 
 	"encore.app/internal/config"
 	"encore.app/internal/entities"
-	"encore.app/internal/helper"
 	"encore.app/internal/logger"
 	"encore.app/internal/oauth2"
 )
@@ -137,7 +136,7 @@ func (uc *AuthnUseCase) getUserInfoByMdlToken(
 	ctx context.Context,
 	accessToken string,
 ) (*entities.UserInfo, error) {
-	return uc.userInfoProvider.GetUserInfo(ctx, accessToken)
+	return uc.userInfoProvider.GetUserInfoByMdlToken(ctx, accessToken)
 }
 
 func (uc *AuthnUseCase) getCacheVal(ctx context.Context, key string) (string, error) {
@@ -146,20 +145,11 @@ func (uc *AuthnUseCase) getCacheVal(ctx context.Context, key string) (string, er
 
 func (uc *AuthnUseCase) GetUserInfo(
 	ctx context.Context,
-	userId string,
+	userId int64,
 ) (*entities.UserInfo, error) {
-	mdlToken, err := uc.getCacheVal(ctx, userId)
-	if helper.IsKeyDoesNotExistErr(err) {
-		logger.ErrorContext(ctx, "Can't get appToken from userId", "userId", userId)
-		return nil, fmt.Errorf("Internal error")
-	} else if err != nil {
-		logger.ErrorContext(ctx, "Get cache value error", "err", err, "key", userId)
-		return nil, err
-	}
-
-	userInfo, err := uc.getUserInfoByMdlToken(ctx, mdlToken)
+	userInfo, err := uc.userInfoProvider.GetUserInfo(ctx, userId)
 	if err != nil {
-		logger.ErrorContext(ctx, "Get UserInfo by mdl token error", "err", err, "token", mdlToken)
+		logger.ErrorContext(ctx, "Get UserInfo by mdl token error", "err", err, "userId", userId)
 		return nil, err
 	}
 
