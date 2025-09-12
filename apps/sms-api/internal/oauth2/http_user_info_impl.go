@@ -15,7 +15,7 @@ import (
 	// "github.com/joshuapare/moodle-client-go/v4"
 )
 
-var _ UserInfoProvider = (*HTTPUserInfoProvider)(nil)
+// var _ UserInfoProvider = (*HTTPUserInfoProvider)(nil)
 
 type HTTPUserInfoProvider struct {
 	config *config.Config
@@ -32,7 +32,7 @@ func NewHTTPUserInfoProvider(cfg *config.Config, client *http.Client) *HTTPUserI
 	}
 }
 
-func (p *HTTPUserInfoProvider) GetUserInfo(
+func (p *HTTPUserInfoProvider) GetUserInfoByMdlToken(
 	ctx context.Context,
 	token string,
 ) (*entities.UserInfo, error) {
