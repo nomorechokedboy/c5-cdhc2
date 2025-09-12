@@ -40,7 +40,7 @@ func (c *AuthnController) HandleCallback(
 
 func (c *AuthnController) HandleGetUserInfo(
 	ctx context.Context,
-	userId string,
+	userId int64,
 ) (*entities.UserInfo, error) {
 	return c.useCase.GetUserInfo(ctx, userId)
 }

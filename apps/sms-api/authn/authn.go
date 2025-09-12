@@ -64,10 +64,12 @@ func OAuth2Callback(
 func Me(ctx context.Context) (*entities.UserInfo, error) {
 	uid, ok := auth.UserID()
 	if !ok {
+		logger.ErrorContext(ctx, "Failed to get UserID")
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	return container.GetController().HandleGetUserInfo(ctx, string(uid))
+	userID := int64(uid[0])
+	return container.GetController().HandleGetUserInfo(ctx, userID)
 }
 
 type RefreshTokenRequest struct {
