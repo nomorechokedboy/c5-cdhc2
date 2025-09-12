@@ -1,5 +1,6 @@
 import { AuthController } from '@/biz'
 import { initiateOAuth2Login } from '@/biz/oauth2'
+import useAuth from '@/hooks/useAuth'
 import type { TokenEvent } from '@/types'
 import { Button } from '@repo/ui/components/ui/button'
 import {
@@ -9,7 +10,7 @@ import {
 	CardTitle,
 	CardContent
 } from '@repo/ui/components/ui/card'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/login')({
@@ -21,6 +22,8 @@ export const Route = createFileRoute('/login')({
 
 export default function Login() {
 	const navigate = useNavigate()
+	const { isAuthenticated, isAuthLoading } = useAuth()
+	const { redirect } = Route.useSearch()
 
 	const handleLoginWithMoodle = () => {
 		initiateOAuth2Login()
@@ -41,6 +44,10 @@ export default function Login() {
 			window.removeEventListener('message', handleEventListener)
 		}
 	}, [])
+
+	if (isAuthenticated && !isAuthLoading) {
+		return <Navigate to={redirect} replace />
+	}
 
 	return (
 		<div className='min-h-screen flex items-center justify-center bg-background p-4'>
