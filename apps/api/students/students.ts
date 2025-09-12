@@ -93,7 +93,7 @@ export const CreateStudent = api(
 		const studentParam: StudentParam = {
 			...body
 		}
-		log.trace('students.CreateStudents body', { studentParam })
+		log.trace('students.CreateStudent body', { studentParam })
 
 		const createdStudent = await studentController.create([studentParam])
 
@@ -108,7 +108,7 @@ interface StudentBulkBody {
 }
 
 export const CreateStudents = api(
-	{ expose: false, method: 'POST', path: '/students/bulk' },
+	{ expose: true, method: 'POST', path: '/students/bulk' },
 	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
 		const studentParams = body.data.map((b) => ({ ...b }) as StudentParam)
 
