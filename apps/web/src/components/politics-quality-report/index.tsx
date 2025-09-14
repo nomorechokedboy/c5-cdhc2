@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -154,11 +154,13 @@ export function PoliticalQualityDashboard() {
 	const totalPersonnel = transformData
 		.map((unit) => unit.politicsQualityReport?.total ?? 0)
 		.reduce((accum, curr) => accum + curr, 0)
-	const totalUnit =
-		(politicsQualityData?.units
-			.map((unit) => unit?.children?.length ?? 0)
-			.reduce((accum, curr) => accum + curr),
-		0) + 1
+	const totalCompanyUnits =
+		politicsQualityData?.units
+			.map((unit) => unit.children.length ?? 0)
+			.reduce((accum, curr) => accum + curr, 0) ?? 0
+	const totalBattalionUnits = politicsQualityData?.units.length ?? 0
+	const totalUnit = totalBattalionUnits + totalCompanyUnits
+
 	const totalChildrenClasses =
 		politicsQualityData?.units
 			.map((unit) =>
