@@ -205,3 +205,12 @@ export type ExcelTemplateData = {
 	unitName: string
 	year: number
 }
+
+export const templateTypes = [
+	'CpvTempl',
+	'HcyuTempl',
+	'StudentInfoTempl',
+	'StudentWithAdversityTempl'
+] as const
+
+export type TemplateType = (typeof templateTypes)[number]

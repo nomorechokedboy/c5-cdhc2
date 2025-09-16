@@ -1,9 +1,9 @@
 import { api, APIError } from 'encore.dev/api'
 import {
-	ExcelTemplateData,
 	StudentCronEvent,
 	StudentDB,
-	StudentParam
+	StudentParam,
+	templateTypes
 } from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
@@ -14,7 +14,6 @@ import {
 } from '../schema/notifications.js'
 import dayjs from 'dayjs'
 import { readFile } from 'fs/promises'
-import { createReport } from 'docx-templates'
 import path from 'path'
 import { AppError } from '../errors/index.js'
 import { Unit } from '../units/units.js'
@@ -232,14 +231,15 @@ async function getTypedRequestBody<T>(
 
 	try {
 		const rawBody = JSON.parse(body)
+		log.debug('Yahooo lmao')
 
 		// Validate and parse using valibot schema
 		const result = v.safeParse(schema, rawBody)
+		log.debug('Yahooo help me')
 
 		if (!result.success) {
 			log.error('Request body validation failed', {
-				issues: result.issues,
-				body: rawBody
+				issues: result.issues
 			})
 			throw AppError.invalidArgument(
 				`Invalid request body: ${result.issues.map((issue) => issue.message).join(', ')}`
@@ -262,18 +262,28 @@ const ExportStudentDataRequestSchema = v.object({
 	commanderName: v.string(),
 	commanderPosition: v.string(),
 	commanderRank: v.string(),
-	data: v.pipe(v.array(v.record(v.string(), v.string())), v.minLength(1)),
+	data: v.pipe(v.array(v.record(v.string(), v.any())), v.minLength(1)),
 	date: v.optional(
 		v.pipe(v.string(), v.isoDate()),
 		dayjs().format('YYYY-MM-DD')
 	),
 	reportTitle: v.string(),
 	underUnitName: v.string(),
-	unitName: v.string()
+	unitName: v.string(),
+	templateType: v.optional(v.picklist(templateTypes), 'StudentInfoTempl')
 })
 
+export type ExportStudentDataRequest = v.InferInput<
+	typeof ExportStudentDataRequestSchema
+>
+
 export const ExportStudentData = api.raw(
-	{ expose: true, method: 'POST', path: '/students/export' },
+	{
+		expose: true,
+		method: 'POST',
+		path: '/students/export',
+		bodyLimit: null
+	},
 	async (req, resp) => {
 		try {
 			const body = await getTypedRequestBody(
@@ -281,83 +291,7 @@ export const ExportStudentData = api.raw(
 				ExportStudentDataRequestSchema
 			)
 
-			log.info('ExportStudentData request body: ', { body })
-			const {
-				city,
-				data,
-				date,
-				underUnitName,
-				reportTitle,
-				unitName,
-				commanderPosition,
-				commanderName,
-				commanderRank
-			} = body
-
-			// Read the template file
-			const templatePath = path.join(
-				'./templates',
-				'dynamic-docx-template-report.docx'
-			)
-			const template = await readFile(templatePath)
-
-			// Prepare data for template
-			const selectedColumns = Object.keys(data[0] || {})
-
-			// Prepare rows data
-			const rows = data.map((student) => {
-				// Create an array of cell values in the same order as columns
-				const cellValues = selectedColumns.map((col) => {
-					let cellValue = student[col]
-
-					// Format different data types
-					if (cellValue === null || cellValue === undefined) {
-						cellValue = ''
-					} else if (typeof cellValue === 'boolean') {
-						cellValue = cellValue ? 'Có' : 'Không'
-					} else if (Array.isArray(cellValue)) {
-						cellValue =
-							cellValue.length > 0 ? cellValue.join(', ') : ''
-					} else {
-						cellValue = String(cellValue)
-					}
-
-					return cellValue
-				})
-
-				return cellValues
-			})
-			const dataWithIdx = data.map(
-				(s, idx) =>
-					({ idx: ++idx, ...s }) as unknown as Record<string, string>
-			)
-
-			const dateObj = dayjs(date)
-			const day = dateObj.format('DD')
-			const month = dateObj.format('MM')
-			const year = dateObj.year()
-
-			const templateData: ExcelTemplateData = {
-				city,
-				columns: selectedColumns,
-				commanderName,
-				commanderPosition,
-				commanderRank,
-				day,
-				month,
-				reportTitle,
-				rows: dataWithIdx,
-				underUnitName,
-				unitName,
-				year
-			}
-
-			// Generate the report
-			const buffer = await createReport({
-				template,
-				data: templateData,
-				cmdDelimiter: ['{', '}']
-			})
+			const buffer = await studentController.handleExportStudentData(body)
 
 			resp.setHeader(
 				'Content-Type',
@@ -366,9 +300,12 @@ export const ExportStudentData = api.raw(
 			resp.writeHead(200, { Connection: 'close' })
 			return resp.end(buffer)
 		} catch (err) {
-			console.error('SOS', err)
-
 			log.error('Template processing error', { err })
+
+			if (err instanceof APIError) {
+				throw err
+			}
+
 			throw APIError.internal('Internal error for exporting file')
 		}
 	}
