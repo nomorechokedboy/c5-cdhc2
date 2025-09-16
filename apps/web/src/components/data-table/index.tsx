@@ -59,6 +59,7 @@ interface DataTableProps<TData, TValue> {
 		exportHook: DataTableExportHook
 	}) => React.ReactNode
 	getRowId?: Parameters<typeof useReactTable<TData>>[0]['getRowId']
+	withDynamicColsData?: boolean
 }
 
 type ViewMode = 'table' | 'card'
@@ -77,7 +78,8 @@ export function DataTable<TData, TValue>({
 	placeholder = 'Không có dữ liệu nào',
 	onDeleteRows,
 	renderToolbarActions,
-	getRowId
+	getRowId,
+	withDynamicColsData = true
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = useState({})
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -112,7 +114,10 @@ export function DataTable<TData, TValue>({
 	})
 
 	// Only create export hook
-	const exportHook = useDataTableExport(table)
+	const exportHook = useDataTableExport({
+		table,
+		isDynamic: withDynamicColsData
+	})
 
 	// Deletion logic remains in the component
 	const selectedRows = table.getSelectedRowModel().rows

@@ -96,9 +96,9 @@ const data = {
 					icon: Calendar
 				},
 				{
-					title: 'Chuyển Đảng chính thức ',
-					url: '/chuyen-dang-chinh-thuc',
-					icon: HeartHandshake
+					title: '☭ Chuyển Đảng chính thức ',
+					url: '/chuyen-dang-chinh-thuc'
+					// icon: HeartHandshake
 				}
 			]
 		},
