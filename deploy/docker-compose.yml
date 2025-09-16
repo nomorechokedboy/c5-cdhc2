@@ -71,6 +71,10 @@ services:
             sh -c "
 
 
+
+
+
+
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
               echo '0 0 * * 1 /bin/sh /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 * * /bin/sh /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
@@ -173,6 +177,4 @@ networks:
     nsq-network:
         driver: bridge
 volumes:
-    cron_logs:
-        driver: local
     nsq-data:
