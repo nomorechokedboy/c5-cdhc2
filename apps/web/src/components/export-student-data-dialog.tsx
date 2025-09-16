@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { useAppForm } from '@/hooks/demo.form'
 import useExportButton from '@/hooks/useExportButton'
-import useUnitsData from '@/hooks/useUnitsData'
 import { useState, type ReactNode } from 'react'
 
 export interface ExportStudentDataDialogProps {
@@ -51,18 +50,6 @@ export function ExportStudentDataDialog({
 			setOpen(false)
 		}
 	})
-	const {
-		data: units,
-		refetch: refetchUnits,
-		isLoading: isLoadingUnits
-	} = useUnitsData({ level: 'battalion' })
-	const unitOptions = units
-		?.map((unit) => [unit, ...unit.children])
-		.flat()
-		.map((unit) => ({
-			value: unit.name.toUpperCase(),
-			label: unit.name.toUpperCase()
-		}))
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<form
