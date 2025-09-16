@@ -1,5 +1,5 @@
 import React from 'react'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { SidebarInset } from '@/components/ui/sidebar'
 import StudentTable from '@/components/student-table'
 import type { StudentQueryParams } from '@/types'

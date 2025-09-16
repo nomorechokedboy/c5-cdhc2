@@ -80,6 +80,7 @@ export default function StudentTable({
 						) : undefined,
 					facetedFilters
 				}}
+				withDynamicColsData={false}
 				renderToolbarActions={({ exportHook }) => (
 					<ExportStudentDataDialog
 						data={exportHook.exportableData.data}

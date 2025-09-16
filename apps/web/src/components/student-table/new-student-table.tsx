@@ -118,6 +118,7 @@ export default function StudentTable({
 				getRowId={(originalRow) => {
 					return originalRow.id.toString()
 				}}
+				withDynamicColsData={false}
 				renderToolbarActions={
 					exportConfig?.disabled === true
 						? undefined

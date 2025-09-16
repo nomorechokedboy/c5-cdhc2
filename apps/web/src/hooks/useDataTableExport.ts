@@ -20,11 +20,18 @@ export interface DataTableExportHook {
 
 type AccessorColumn<T> = AccessorKeyColumnDef<T, any> | DisplayColumnDef<T, any>
 
-export default function useDataTableExport<TData>(
-	table: TanStackTable<TData>,
-	excludeKeys: string[] = ['actions', 'select']
-): DataTableExportHook {
-	const exportableData = useMemo((): ExportableData => {
+export type useDataTableExportProps<TData> = {
+	table: TanStackTable<TData>
+	excludeKeys?: string[]
+	isDynamic?: boolean
+}
+
+export default function useDataTableExport<TData>({
+	table,
+	excludeKeys = ['actions', 'select'],
+	isDynamic = true
+}: useDataTableExportProps<TData>): DataTableExportHook {
+	const exporTableDataDynamically = useMemo((): ExportableData => {
 		const visibleColumns = table
 			.getVisibleLeafColumns()
 			.filter((column) => !excludeKeys.includes(column.id))
@@ -81,9 +88,33 @@ export default function useDataTableExport<TData>(
 		}
 	}, [table, excludeKeys])
 
+	const exporTableDataStatically = useMemo((): ExportableData => {
+		const selectedRows = table.getSelectedRowModel().rows
+		let rows = table.getPrePaginationRowModel().rows
+		const hasSelection = selectedRows.length > 0
+
+		if (hasSelection) {
+			rows = selectedRows
+		}
+
+		// Extract data
+		const data = rows.map((row) => {
+			return row.original as Record<string, string>
+		})
+
+		return {
+			data,
+			selectedCount: selectedRows.length,
+			totalCount: table.getPrePaginationRowModel().rows.length,
+			hasSelection
+		}
+	}, [table, excludeKeys])
+
 	return {
-		exportableData,
-		hasSelectedRows: exportableData.selectedCount > 0,
-		selectedRowCount: exportableData.selectedCount
+		exportableData: isDynamic
+			? exporTableDataDynamically
+			: exporTableDataStatically,
+		hasSelectedRows: exporTableDataDynamically.selectedCount > 0,
+		selectedRowCount: exporTableDataDynamically.selectedCount
 	}
 }
