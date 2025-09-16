@@ -25,6 +25,7 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ToggleInput from './toggle-input'
+import PasswordInput from './password-input'
 
 export function SubscribeButton({
 	label,
@@ -77,14 +78,24 @@ export function TextField({ label, className, ...inputProps }: TextFieldProps) {
 			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
 				{label}
 			</Label>
-			<Input
-				{...inputProps}
-				id={field.name}
-				name={field.name}
-				value={field.state.value}
-				onBlur={field.handleBlur}
-				onChange={(e) => field.handleChange(e.target.value)}
-			/>
+			{inputProps.type === 'password' ? (
+				<PasswordInput
+					{...inputProps}
+					id={field.name}
+					value={field.state.value}
+					onBlur={field.handleBlur}
+					onChange={(e) => field.handleChange(e.target.value)}
+				/>
+			) : (
+				<Input
+					{...inputProps}
+					id={field.name}
+					name={field.name}
+					value={field.state.value}
+					onBlur={field.handleBlur}
+					onChange={(e) => field.handleChange(e.target.value)}
+				/>
+			)}
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
 	)
