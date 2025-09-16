@@ -13,20 +13,33 @@ import {
 	CpvOfficialThisQuarter,
 	CpvOfficialThisWeek,
 	BirthdayThisQuarter,
-	StudentCronEvent
+	StudentCronEvent,
+	ExcelTemplateData,
+	TemplateType
 } from '../schema/student'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
 import studentRepo from './repo'
-import { GetStudentsQuery } from './students'
+import { ExportStudentDataRequest, GetStudentsQuery } from './students'
 import unitRepo from '../units/repo'
 import log from 'encore.dev/log'
 import dayjs from 'dayjs'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear.js'
+import path from 'path'
+import { createReport } from 'docx-templates'
+import { APIError } from 'encore.dev/api'
+import { readFile } from 'fs/promises'
 
 dayjs.extend(quarterOfYear)
 
 export class Controller {
+	private templateMap: Record<TemplateType, string> = {
+		CpvTempl: 'cpv-templ.docx',
+		HcyuTempl: 'hcyu-templ.docx',
+		StudentInfoTempl: 'student-info-templ.docx',
+		StudentWithAdversityTempl: 'student-with-adversity-templ.docx'
+	}
+
 	constructor(
 		private readonly repo: Repository,
 		private readonly unitRepo: UnitRepository
@@ -246,6 +259,103 @@ export class Controller {
 		}
 
 		return { data, units }
+	}
+
+	getTemplate(templateType: TemplateType): Promise<Buffer> {
+		if (this.templateMap[templateType] === undefined || '') {
+			throw AppError.invalidArgument('Invalid template file')
+		}
+
+		const templateFile = this.templateMap[templateType]
+		const templatePath = path.join('./templates', templateFile)
+		return readFile(templatePath)
+	}
+
+	async handleExportStudentData(
+		req: ExportStudentDataRequest
+	): Promise<Uint8Array> {
+		try {
+			log.info('ExportStudentData starting')
+			const {
+				city,
+				data,
+				date,
+				underUnitName,
+				reportTitle,
+				unitName,
+				commanderPosition,
+				commanderName,
+				commanderRank,
+				templateType
+			} = req
+
+			// Prepare data for template
+			const selectedColumns = Object.keys(data[0] || {})
+
+			// Prepare rows data
+			const rows = data.map((student) => {
+				// Create an array of cell values in the same order as columns
+				const cellValues = selectedColumns.map((col) => {
+					let cellValue = student[col]
+
+					// Format different data types
+					if (cellValue === null || cellValue === undefined) {
+						cellValue = ''
+					} else if (typeof cellValue === 'boolean') {
+						cellValue = cellValue ? 'Có' : 'Không'
+					} else if (Array.isArray(cellValue)) {
+						cellValue =
+							cellValue.length > 0 ? cellValue.join(', ') : ''
+					} else {
+						cellValue = String(cellValue)
+					}
+
+					return cellValue
+				})
+
+				return cellValues
+			})
+			const dataWithIdx = data.map(
+				(s, idx) =>
+					({ idx: ++idx, ...s }) as unknown as Record<string, string>
+			)
+
+			const dateObj = dayjs(date)
+			const day = dateObj.format('DD')
+			const month = dateObj.format('MM')
+			const year = dateObj.year()
+
+			const templateData: ExcelTemplateData = {
+				city,
+				columns: selectedColumns,
+				commanderName,
+				commanderPosition,
+				commanderRank,
+				day,
+				month,
+				reportTitle,
+				rows: dataWithIdx,
+				underUnitName,
+				unitName,
+				year
+			}
+
+			const template = await this.getTemplate(templateType!)
+
+			// Generate the report
+			const buffer = await createReport({
+				template,
+				data: templateData,
+				cmdDelimiter: ['{', '}']
+			})
+
+			return buffer
+		} catch (err) {
+			console.error('handleExportStudentData error', err)
+			log.error('handleExportStudentData error', { err })
+
+			throw APIError.internal('Internal error for exporting file')
+		}
 	}
 }
 
