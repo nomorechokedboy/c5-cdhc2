@@ -193,7 +193,6 @@ export type PoliticsQualityRow = {
 
 export type ExcelTemplateData = {
 	city: string
-	columns: string[]
 	commanderName: string
 	commanderPosition: string
 	commanderRank: string

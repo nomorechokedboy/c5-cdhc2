@@ -279,8 +279,7 @@ export const ExportStudentData = api.raw(
 	{
 		expose: true,
 		method: 'POST',
-		path: '/students/export',
-		bodyLimit: null
+		path: '/students/export'
 	},
 	async (req, resp) => {
 		try {
