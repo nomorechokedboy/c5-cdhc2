@@ -262,6 +262,7 @@ export class Controller {
 	}
 
 	getTemplate(templateType: TemplateType): Promise<Buffer> {
+		log.debug('getTemplate templateType', { templateType })
 		if (this.templateMap[templateType] === undefined || '') {
 			throw AppError.invalidArgument('Invalid template file')
 		}
@@ -289,13 +290,11 @@ export class Controller {
 				templateType
 			} = req
 
-			// Prepare data for template
-			const selectedColumns = Object.keys(data[0] || {})
-
+			log.debug('Row', { row: data[0] })
 			// Prepare rows data
-			const rows = data.map((student) => {
+			const rows: Record<string, any>[] = data.map((student, idx) => {
 				// Create an array of cell values in the same order as columns
-				const cellValues = selectedColumns.map((col) => {
+				Object.keys(student).forEach((col) => {
 					let cellValue = student[col]
 
 					// Format different data types
@@ -312,29 +311,34 @@ export class Controller {
 
 					return cellValue
 				})
+				if (templateType === 'CpvTempl') {
+					const ethnic = student['ethnic']
+					const isKinh = ethnic === 'Kinh'
+					const isTay = ethnic === 'Tày'
+					const isNung = ethnic === 'Nùng '
+					if (isKinh || isTay || isNung) {
+						student['ethnic'] = 'Không'
+					}
+				}
 
-				return cellValues
+				return { idx: ++idx, ...student }
 			})
-			const dataWithIdx = data.map(
-				(s, idx) =>
-					({ idx: ++idx, ...s }) as unknown as Record<string, string>
-			)
 
 			const dateObj = dayjs(date)
 			const day = dateObj.format('DD')
 			const month = dateObj.format('MM')
 			const year = dateObj.year()
+			log.debug('DEBUG', { row: rows[0] })
 
 			const templateData: ExcelTemplateData = {
 				city,
-				columns: selectedColumns,
 				commanderName,
 				commanderPosition,
 				commanderRank,
 				day,
 				month,
 				reportTitle,
-				rows: dataWithIdx,
+				rows,
 				underUnitName,
 				unitName,
 				year
