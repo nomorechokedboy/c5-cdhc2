@@ -198,7 +198,6 @@ export type ExcelTemplateData = {
 	commanderRank: string
 	day: string
 	month: string
-	reportTitle: string
 	rows: Record<string, string>[]
 	underUnitName: string
 	unitName: string

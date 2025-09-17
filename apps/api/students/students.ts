@@ -265,7 +265,6 @@ const ExportStudentDataRequestSchema = v.object({
 		v.pipe(v.string(), v.isoDate()),
 		dayjs().format('YYYY-MM-DD')
 	),
-	reportTitle: v.string(),
 	underUnitName: v.string(),
 	unitName: v.string(),
 	templateType: v.optional(v.picklist(templateTypes), 'StudentInfoTempl')

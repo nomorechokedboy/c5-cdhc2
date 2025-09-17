@@ -6,6 +6,11 @@ export type ExportConfig = {
 	filename?: string
 }
 
+function isoToDdMmYyyy(isoDate: string): string {
+	const [year, month, day] = isoDate.split('-')
+	return `${day}/${month}/${year}`
+}
+
 export default function useExportButton({
 	filename = 'my-file'
 }: ExportConfig) {
@@ -33,6 +38,10 @@ export default function useExportButton({
 							] as keyof typeof politicalOrgMap
 						]
 				}
+
+				d.dob = isoToDdMmYyyy(d.dob)
+				d.fatherDob = isoToDdMmYyyy(d.fatherDob)
+				d.motherDob = isoToDdMmYyyy(d.motherDob)
 
 				return d
 			})

@@ -43,7 +43,6 @@ export function ExportStudentDataDialog({
 			commanderPosition: 'CHỈ HUY ĐƠN VỊ',
 			commanderRank: '',
 			data,
-			reportTitle: '',
 			underUnitName: defaultValues?.underUnitName ?? '',
 			unitName: defaultValues?.unitName ?? '',
 			filename: defaultFilename,
@@ -74,20 +73,7 @@ export function ExportStudentDataDialog({
 							Hãy điền những thông tin cần thiết để xuất dữ liệu
 						</DialogDescription>
 					</DialogHeader>
-					<div className='grid grid-cols-2 gap-4'>
-						<form.AppField
-							name='reportTitle'
-							validators={{
-								onBlur: ({ value }) =>
-									!value
-										? 'Tiêu đề của file thống kê không được bỏ trống'
-										: undefined
-							}}
-						>
-							{(field) => (
-								<field.TextField label='Tiêu đề của file thống kê' />
-							)}
-						</form.AppField>
+					<div className='grid grid-cols-3 gap-4'>
 						<form.AppField
 							name='filename'
 							validators={{
@@ -104,8 +90,6 @@ export function ExportStudentDataDialog({
 								/>
 							)}
 						</form.AppField>
-					</div>
-					<div className='grid grid-cols-2 gap-4'>
 						<form.AppField
 							name='unitName'
 							validators={{
