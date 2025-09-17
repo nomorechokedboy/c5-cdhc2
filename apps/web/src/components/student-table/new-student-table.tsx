@@ -3,7 +3,8 @@ import {
 	defaultStudentColumnVisibility,
 	type FacetedFilterConfig,
 	type Student,
-	type StudentQueryParams
+	type StudentQueryParams,
+	type TemplType
 } from '@/types'
 import { DataTable } from '../data-table'
 import TableSkeleton from '../table-skeleton'
@@ -50,6 +51,7 @@ interface StudentTableProps {
 	onDeleteRows?: (
 		ids: number[]
 	) => Promise<QueryObserverResult<Student[], unknown>>
+	templType?: TemplType
 }
 
 export default function StudentTable({
@@ -66,7 +68,8 @@ export default function StudentTable({
 	rightToolbarSection,
 	onRefresh,
 	onCreateSuccess,
-	onDeleteRows
+	onDeleteRows,
+	templType = 'StudentInfoTempl'
 }: StudentTableProps) {
 	const {
 		data: students = [],
@@ -130,6 +133,7 @@ export default function StudentTable({
 										defaultValues={
 											exportConfig.defaultExportValues
 										}
+										templType={templType}
 									>
 										<Button>
 											<ArrowDownToLine />

@@ -2,7 +2,8 @@ import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useStudentData from '@/hooks/useStudents'
 import {
 	defaultStudentColumnVisibility,
-	type StudentQueryParams
+	type StudentQueryParams,
+	type TemplType
 } from '@/types'
 import { DataTable } from '../data-table'
 import { columnsWithoutAction } from '@/components/student-table/columns'
@@ -18,12 +19,14 @@ interface StudentTableProps {
 	params: StudentQueryParams
 	filename: string
 	enabledCreation?: boolean
+	templType?: TemplType
 }
 
 export default function StudentTable({
 	params,
 	filename,
-	enabledCreation = false
+	enabledCreation = false,
+	templType = 'StudentInfoTempl'
 }: StudentTableProps) {
 	const {
 		data: students = [],
@@ -85,6 +88,7 @@ export default function StudentTable({
 					<ExportStudentDataDialog
 						data={exportHook.exportableData.data}
 						defaultFilename={filename}
+						templType={templType}
 					>
 						<Button>
 							<ArrowDownToLine />
