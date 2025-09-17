@@ -228,7 +228,6 @@ export type ExportData = {
 	commanderRank: string
 	data: Record<string, string>[]
 	date?: string
-	reportTitle: string
 	underUnitName: string
 	unitName: string
 }
