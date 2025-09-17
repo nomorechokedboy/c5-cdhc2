@@ -327,7 +327,6 @@ export class Controller {
 			const day = dateObj.format('DD')
 			const month = dateObj.format('MM')
 			const year = dateObj.year()
-			log.debug('DEBUG', { row: rows[0] })
 
 			const templateData: ExcelTemplateData = {
 				city,
