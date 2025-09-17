@@ -1,5 +1,5 @@
 import { SidebarFooter, useSidebar } from '@/components/ui/sidebar'
-import type * as React from 'react'
+import * as React from 'react'
 import {
 	UserPlus,
 	Calendar,
@@ -136,9 +136,6 @@ function NavMenuItems({
 	items: NavItem[]
 	level?: number
 }) {
-	const { state } = useSidebar()
-	const isCollapsed = state === 'collapsed'
-
 	if (level === 0) {
 		// Top level items
 		return (
@@ -175,7 +172,7 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 				<SidebarMenuItem>
 					<Collapsible
 						className='group/collapsible'
-						defaultOpen={!isCollapsed}
+						defaultOpen={false}
 					>
 						<CollapsibleTrigger asChild>
 							<SidebarMenuButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
@@ -221,7 +218,7 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 	return (
 		<SidebarMenuSubItem>
 			{hasChildren ? (
-				<Collapsible className='group/collapsible' defaultOpen>
+				<Collapsible className='group/collapsible'>
 					<CollapsibleTrigger asChild>
 						<SidebarMenuSubButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
 							{Icon && <Icon className='w-5 h-5  ' />}
@@ -340,7 +337,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<Collapsible
 						key={item.title}
 						className='group/collapsible'
-						defaultOpen={!isCollapsed}
+						defaultOpen={false}
 					>
 						<SidebarGroup>
 							{!isCollapsed && (
