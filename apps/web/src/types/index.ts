@@ -311,3 +311,12 @@ export interface ExportPoliticsQualityReport {
 	data: ExportPoliticsQualitySummary[]
 	title: string
 }
+
+export const templTypes = [
+	'CpvTempl',
+	'HcyuTempl',
+	'StudentInfoTempl',
+	'StudentWithAdversityTempl'
+] as const
+
+export type TemplType = (typeof templTypes)[number]

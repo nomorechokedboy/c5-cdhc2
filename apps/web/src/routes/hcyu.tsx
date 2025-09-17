@@ -176,6 +176,7 @@ function RouteComponent() {
 						<StudentTable
 							params={studentParams}
 							filename='danh-sach-doan-vien'
+							templType='HcyuTempl'
 						/>
 					</div>
 				</div>
