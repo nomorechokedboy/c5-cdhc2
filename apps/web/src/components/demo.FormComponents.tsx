@@ -328,12 +328,13 @@ export function EditableInput({
 				{label}
 			</Label>
 			<ToggleInput
+				{...inputProps}
 				initialValue={field.state.value}
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
 				ellipsisMaxWidth={ellipsisMaxWidth}
-				{...inputProps}
+				type='text'
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
