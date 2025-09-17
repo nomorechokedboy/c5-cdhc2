@@ -10,7 +10,9 @@ import {
 	DialogTrigger
 } from '@/components/ui/dialog'
 import { useAppForm } from '@/hooks/demo.form'
+import useAuth from '@/hooks/useAuth'
 import useExportButton from '@/hooks/useExportButton'
+import type { TemplType } from '@/types'
 import { useState, type ReactNode } from 'react'
 
 export interface ExportStudentDataDialogProps {
@@ -21,27 +23,31 @@ export interface ExportStudentDataDialogProps {
 		unitName?: string
 		underUnitName?: string
 	}
+	templType: TemplType
 }
 
 export function ExportStudentDataDialog({
 	children,
 	data,
 	defaultFilename,
-	defaultValues
+	defaultValues,
+	templType
 }: ExportStudentDataDialogProps) {
+	const { user } = useAuth()
 	const { onExport } = useExportButton({ filename: defaultFilename })
 	const [open, setOpen] = useState(false)
 	const form = useAppForm({
 		defaultValues: {
 			city: 'Thành phố Hồ Chí Minh',
-			commanderName: '',
+			commanderName: user?.displayName ?? '',
 			commanderPosition: 'CHỈ HUY ĐƠN VỊ',
 			commanderRank: '',
 			data,
 			reportTitle: '',
 			underUnitName: defaultValues?.underUnitName ?? '',
 			unitName: defaultValues?.unitName ?? '',
-			filename: defaultFilename
+			filename: defaultFilename,
+			templateType: templType
 		},
 		onSubmit: async ({ value, formApi }) => {
 			onExport(value).then(() => {
