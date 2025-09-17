@@ -231,11 +231,9 @@ async function getTypedRequestBody<T>(
 
 	try {
 		const rawBody = JSON.parse(body)
-		log.debug('Yahooo lmao')
 
 		// Validate and parse using valibot schema
 		const result = v.safeParse(schema, rawBody)
-		log.debug('Yahooo help me')
 
 		if (!result.success) {
 			log.error('Request body validation failed', {
