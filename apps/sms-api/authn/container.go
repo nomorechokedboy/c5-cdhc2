@@ -6,6 +6,7 @@ import (
 	"encore.app/internal/authtokens"
 	"encore.app/internal/cache"
 	"encore.app/internal/config"
+	"encore.app/internal/courses"
 	"encore.app/internal/db"
 	"encore.app/internal/logger"
 	"encore.app/internal/oauth2"
@@ -24,6 +25,7 @@ type Container struct {
 	oauth2Provider   oauth2.OAuth2Provider
 	userInfoProvider oauth2.UserInfoProvider
 	controller       *AuthnController
+	courseController *courses.CourseController
 }
 
 func NewContainer() *Container {
@@ -39,6 +41,7 @@ func NewContainer() *Container {
 	mdlUserRepo := users.NewRepo(db)
 	mdlAuthToken := authtokens.NewRepo(db)
 	tokenRepo := oauth2.NewOauth2Repository(rdb)
+	mdlCourseRepo := courses.NewRepository(db)
 
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
 	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
@@ -51,15 +54,25 @@ func NewContainer() *Container {
 		&cfg.AuthnConfig,
 	)
 	controller := NewAuthnController(useCase)
+	courseController := courses.NewCourseController(mdlCourseRepo)
 
 	return &Container{
 		config:           cfg,
 		oauth2Provider:   oauth2Provider,
 		userInfoProvider: userInfoProvider,
 		controller:       controller,
+		courseController: courseController,
 	}
 }
 
 func (c *Container) GetController() *AuthnController {
 	return c.controller
+}
+
+func (c *Container) GetCourseController() *courses.CourseController {
+	return c.courseController
+}
+
+func GetContainer() *Container {
+	return container
 }
