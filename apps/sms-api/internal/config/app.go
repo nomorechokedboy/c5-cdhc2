@@ -33,6 +33,7 @@ type Config struct {
 	CacheConfig
 	DatabaseConfig
 	Oauth2Config
+	MoodleApiConfig
 	ClientOriginUrl      string `env:"CLIENT_ORIGIN_URL"      env-default:"http://localhost:3000" json:"client_origin_url"`
 	ClientOauth2Callback string `env:"CLIENT_OAUTH2_CALLBACK" env-default:"oauth2/callback"       json:"client_oauth2_callback"`
 	Env                  string `env:"ENV"                    env-default:"dev"                   json:"env"`
