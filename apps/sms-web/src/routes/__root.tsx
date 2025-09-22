@@ -4,28 +4,43 @@ import { TanstackDevtools } from '@tanstack/react-devtools'
 import Header from '../components/Header'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import type { QueryClient } from '@tanstack/react-query'
+import { Fragment } from 'react/jsx-runtime'
+import { SidebarProvider } from '@repo/ui/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
+import useAuth from '@/hooks/useAuth'
 
 interface MyRouterContext {
 	queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	component: () => (
-		<>
-			<Header />
-			<Outlet />
-			<TanstackDevtools
-				config={{
-					position: 'bottom-left'
-				}}
-				plugins={[
-					{
-						name: 'Tanstack Router',
-						render: <TanStackRouterDevtoolsPanel />
-					},
-					TanStackQueryDevtools
-				]}
-			/>
-		</>
-	)
+	component: () => {
+		const { isAuthenticated } = useAuth()
+
+		return (
+			<Fragment>
+				<SidebarProvider>
+					{isAuthenticated === true && (
+						<AppSidebar collapsible='icon' />
+					)}
+					<div className='flex flex-col w-full'>
+						<Header />
+						<Outlet />
+					</div>
+					<TanstackDevtools
+						config={{
+							position: 'bottom-left'
+						}}
+						plugins={[
+							{
+								name: 'Tanstack Router',
+								render: <TanStackRouterDevtoolsPanel />
+							},
+							TanStackQueryDevtools
+						]}
+					/>
+				</SidebarProvider>
+			</Fragment>
+		)
+	}
 })
