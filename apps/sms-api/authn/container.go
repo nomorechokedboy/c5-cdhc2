@@ -5,6 +5,7 @@ import (
 
 	"encore.app/internal/authtokens"
 	"encore.app/internal/cache"
+	"encore.app/internal/categories"
 	"encore.app/internal/config"
 	"encore.app/internal/courses"
 	"encore.app/internal/db"
@@ -21,11 +22,12 @@ func init() {
 }
 
 type Container struct {
-	config           *config.Config
-	oauth2Provider   oauth2.OAuth2Provider
-	userInfoProvider oauth2.UserInfoProvider
-	controller       *AuthnController
-	courseController *courses.CourseController
+	config             *config.Config
+	oauth2Provider     oauth2.OAuth2Provider
+	userInfoProvider   oauth2.UserInfoProvider
+	controller         *AuthnController
+	courseController   *courses.CourseController
+	categoryController *categories.CategoryController
 }
 
 func NewContainer() *Container {
@@ -42,6 +44,7 @@ func NewContainer() *Container {
 	mdlAuthToken := authtokens.NewRepo(db)
 	tokenRepo := oauth2.NewOauth2Repository(rdb)
 	mdlCourseRepo := courses.NewRepository(db)
+	categoryRepo := categories.NewRepository(db)
 
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
 	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
@@ -53,15 +56,18 @@ func NewContainer() *Container {
 		tokenRepo,
 		&cfg.AuthnConfig,
 	)
+
 	controller := NewAuthnController(useCase)
 	courseController := courses.NewCourseController(mdlCourseRepo)
+	categoryController := categories.NewCategoryController(categoryRepo)
 
 	return &Container{
-		config:           cfg,
-		oauth2Provider:   oauth2Provider,
-		userInfoProvider: userInfoProvider,
-		controller:       controller,
-		courseController: courseController,
+		config:             cfg,
+		oauth2Provider:     oauth2Provider,
+		userInfoProvider:   userInfoProvider,
+		controller:         controller,
+		courseController:   courseController,
+		categoryController: categoryController,
 	}
 }
 
@@ -71,6 +77,10 @@ func (c *Container) GetController() *AuthnController {
 
 func (c *Container) GetCourseController() *courses.CourseController {
 	return c.courseController
+}
+
+func (c *Container) GetCategoryController() *categories.CategoryController {
+	return c.categoryController
 }
 
 func GetContainer() *Container {
