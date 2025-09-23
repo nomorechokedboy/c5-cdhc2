@@ -17,7 +17,7 @@ func NewCourseController(repo Repository) *CourseController {
 
 func (c *CourseController) GetUserCourses(
 	ctx context.Context,
-	req *entities.GetUsersCoursesRequest,
+	req *entities.GetUsersCoursesParams,
 ) (*entities.GetUsersCoursesResponse, error) {
 	logger.InfoContext(ctx, "GetUserCourses request", "request", req)
 	resp, err := c.repo.Find(ctx, req)

@@ -9,6 +9,6 @@ import (
 type Repository interface {
 	Find(
 		context.Context,
-		*entities.GetUsersCoursesRequest,
+		*entities.GetUsersCoursesParams,
 	) (*entities.GetUsersCoursesResponse, error)
 }

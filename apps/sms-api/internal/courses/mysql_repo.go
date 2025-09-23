@@ -20,7 +20,7 @@ var _ Repository = (*repository)(nil)
 
 func (r *repository) Find(
 	ctx context.Context,
-	req *entities.GetUsersCoursesRequest,
+	req *entities.GetUsersCoursesParams,
 ) (*entities.GetUsersCoursesResponse, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Request is nil")
@@ -53,6 +53,7 @@ func (r *repository) Find(
 		InnerJoin("mdl_role r", dbx.NewExp("r.id = ra.roleid")).
 		Where(dbx.And(
 			dbx.HashExp{"ra.userid": req.UserId},
+			dbx.HashExp{"c.category": req.CategoryId},
 			dbx.NewExp("r.archetype IN ('editingteacher', 'teacher')"),
 			dbx.NewExp("c.id != 1"),
 		)).

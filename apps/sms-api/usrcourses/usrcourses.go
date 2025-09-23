@@ -13,15 +13,23 @@ import (
 // Get courses endpoint
 //
 //encore:api auth method=GET path=/courses
-func GetCourses(ctx context.Context) (*entities.GetUsersCoursesResponse, error) {
+func GetCourses(
+	ctx context.Context,
+	req *entities.GetUsersCoursesRequest,
+) (*entities.GetUsersCoursesResponse, error) {
 	uid, ok := auth.UserID()
 	if !ok {
 		logger.ErrorContext(ctx, "Failed to get UserID from mdw")
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
+	if req == nil {
+		logger.ErrorContext(ctx, "Request is nil")
+		return nil, &errs.Error{Code: errs.InvalidArgument, Message: errs.InvalidArgument.String()}
+	}
+
 	userId := int64(uid[0])
 	return authn.GetContainer().
 		GetCourseController().
-		GetUserCourses(ctx, &entities.GetUsersCoursesRequest{UserId: userId})
+		GetUserCourses(ctx, &entities.GetUsersCoursesParams{UserId: userId, CategoryId: req.CategoryId})
 }
