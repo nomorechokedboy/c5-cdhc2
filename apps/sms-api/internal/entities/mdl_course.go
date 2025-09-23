@@ -19,8 +19,13 @@ type Course struct {
 	TimeModified     int64  `json:"timemodified"`
 }
 
+type GetUsersCoursesParams struct {
+	UserId     int64
+	CategoryId int64
+}
+
 type GetUsersCoursesRequest struct {
-	UserId int64
+	CategoryId int64 `query:"categoryId"`
 }
 
 type GetUsersCoursesResponse struct {
