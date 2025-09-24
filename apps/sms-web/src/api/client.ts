@@ -33,6 +33,8 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
  */
 export default class Client {
 	public readonly authn: authn.ServiceClient
+	public readonly usrcategories: usrcategories.ServiceClient
+	public readonly usrcourses: usrcourses.ServiceClient
 	private readonly options: ClientOptions
 	private readonly target: string
 
@@ -65,6 +67,8 @@ export default class Client {
 		this.options = options ?? {}
 		const base = new BaseClient(this.target, this.options)
 		this.authn = new authn.ServiceClient(base)
+		this.usrcategories = new usrcategories.ServiceClient(base)
+		this.usrcourses = new usrcourses.ServiceClient(base)
 	}
 
 	/**
@@ -181,10 +185,105 @@ export namespace authn {
 	}
 }
 
+export namespace usrcategories {
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.GetCategories = this.GetCategories.bind(this)
+		}
+
+		/**
+		 * Get user categories endpoint
+		 */
+		public async GetCategories(): Promise<entities.GetUsersCategoriesResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/categories`
+			)
+			return (await resp.json()) as entities.GetUsersCategoriesResponse
+		}
+	}
+}
+
+export namespace usrcourses {
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.GetCourses = this.GetCourses.bind(this)
+		}
+
+		/**
+		 * Get courses endpoint
+		 */
+		public async GetCourses(
+			params: entities.GetUsersCoursesRequest
+		): Promise<entities.GetUsersCoursesResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				categoryId: String(params.CategoryId)
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/courses`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as entities.GetUsersCoursesResponse
+		}
+	}
+}
+
 export namespace entities {
 	export interface CallbackResponse {
 		accessToken: string
 		refreshToken: string
+	}
+
+	export interface Category {
+		id: number
+		name: string
+		idnumber: string
+		description: string
+		visible: boolean
+		timemodified: number
+	}
+
+	export interface Course {
+		id: number
+		shortname: string
+		fullname: string
+		idnumber: string
+		visible: number
+		summary: string
+		summaryformat: number
+		format: string
+		showgrades: boolean
+		lang: string
+		enablecompletion: boolean
+		category: number
+		startdate: number
+		enddate: number
+		marker: number
+		timemodified: number
+	}
+
+	export interface GetUsersCategoriesResponse {
+		Data: Category[]
+	}
+
+	export interface GetUsersCoursesRequest {
+		CategoryId: number
+	}
+
+	export interface GetUsersCoursesResponse {
+		Data: Course[]
 	}
 
 	export interface HttpCallbackResponse {
