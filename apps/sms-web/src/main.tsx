@@ -29,6 +29,11 @@ declare module '@tanstack/react-router' {
 	interface Register {
 		router: typeof router
 	}
+
+	interface HistoryState {
+		category?: { id: number }
+		course?: { id: number }
+	}
 }
 
 // Render the app
