@@ -1,6 +1,7 @@
 import { ApiUrl } from '@/const'
 import Client from './client'
 import { AuthController } from '@/biz'
+import { CourseCategory } from '@/types'
 
 const client = new Client(ApiUrl, { fetcher: appFetcher })
 const tempClient = new Client(ApiUrl, {})
@@ -62,3 +63,23 @@ class authnApi {
 }
 
 export const AuthApi = new authnApi()
+
+class categoryApi {
+	async GetCategories() {
+		return client.usrcategories
+			.GetCategories()
+			.then((resp) => resp.Data.map(CourseCategory.fromEntity))
+	}
+}
+
+export const CategoryApi = new categoryApi()
+
+class courseApi {
+	async GetCourses({ CategoryId }: { CategoryId: number }) {
+		return client.usrcourses
+			.GetCourses({ CategoryId })
+			.then((resp) => resp.Data)
+	}
+}
+
+export const CourseApi = new courseApi()
