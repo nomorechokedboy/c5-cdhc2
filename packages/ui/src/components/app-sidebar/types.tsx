@@ -5,7 +5,7 @@ export interface NavItem {
 	url: string
 	isActive?: boolean
 	items?: NavItem[]
-	search?: { [k: string]: string }
+	search?: Record<string, string>
 	icon?: ElementType
 	metadata?: Record<string, any> // For custom data
 }
