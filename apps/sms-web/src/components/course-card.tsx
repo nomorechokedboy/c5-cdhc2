@@ -6,29 +6,22 @@ import {
 	CardTitle
 } from '@repo/ui/components/ui/card'
 import { Badge } from '@repo/ui/components/ui/badge'
-import { Button } from '@repo/ui/components/ui/button'
 
-interface Course {
+export interface Course {
 	id: number
 	title: string
 	code: string
 	description: string
-	instructor: string
 	students: number
 	semester: string
 	status: string
 	color: string
-	schedule: string
 	room: string
 	credits: number
-	assignments: any[]
-	grades: {
-		average: number
-		distribution: Record<string, number>
-	}
+	isActive: boolean
 }
 
-interface CourseCardProps {
+export interface CourseCardProps {
 	course: Course
 }
 
@@ -38,10 +31,12 @@ export default function CourseCard({ course }: CourseCardProps) {
 			<CardHeader>
 				<div className='flex items-start justify-between'>
 					<div className='flex items-center gap-3'>
-						<div
-							className={`w-3 h-3 rounded-full ${course.color}`}
-						/>
-						<div>
+						<div className='flex-shrink-0'>
+							<div
+								className={`w-3 h-3 rounded-full  ${course.color}`}
+							/>
+						</div>
+						<div className='flex-1'>
 							<CardTitle className='text-lg'>
 								{course.title}
 							</CardTitle>
@@ -51,8 +46,11 @@ export default function CourseCard({ course }: CourseCardProps) {
 						</div>
 					</div>
 					<Badge
+						className={`${course.isActive == true ? 'bg-green-500' : ''} font-bold`}
 						variant={
-							course.status === 'Active' ? 'default' : 'secondary'
+							course.isActive === false
+								? 'destructive'
+								: 'default'
 						}
 					>
 						{course.status}
@@ -73,24 +71,6 @@ export default function CourseCard({ course }: CourseCardProps) {
 						<span className='text-muted-foreground'>Semester:</span>
 						<span className='font-medium'>{course.semester}</span>
 					</div>
-				</div>
-
-				<div className='flex gap-2 mt-4'>
-					<Button
-						size='sm'
-						className='flex-1'
-						onClick={() => console.log('HI')}
-					>
-						View Details
-					</Button>
-					<Button
-						size='sm'
-						variant='outline'
-						className='flex-1 bg-transparent'
-						onClick={() => console.log('HI')}
-					>
-						Manage
-					</Button>
 				</div>
 			</CardContent>
 		</Card>
