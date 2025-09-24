@@ -14,8 +14,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as Oauth2CallbackRouteImport } from './routes/oauth2/callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
+import { Route as KhoaHocCategoryIdnumberIndexRouteImport } from './routes/khoa-hoc/$categoryIdnumber/index'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
+import { Route as KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport } from './routes/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -42,6 +44,12 @@ const DemoTableRoute = DemoTableRouteImport.update({
   path: '/demo/table',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KhoaHocCategoryIdnumberIndexRoute =
+  KhoaHocCategoryIdnumberIndexRouteImport.update({
+    id: '/khoa-hoc/$categoryIdnumber/',
+    path: '/khoa-hoc/$categoryIdnumber/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
   id: '/demo/form/simple',
   path: '/demo/form/simple',
@@ -52,6 +60,12 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
   path: '/demo/form/address',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KhoaHocCategoryIdnumberMonHocCourseShortnameRoute =
+  KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport.update({
+    id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
+    path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/oauth2/callback': typeof Oauth2CallbackRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
+  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +86,8 @@ export interface FileRoutesByTo {
   '/oauth2/callback': typeof Oauth2CallbackRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
+  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +98,8 @@ export interface FileRoutesById {
   '/oauth2/callback': typeof Oauth2CallbackRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
+  '/khoa-hoc/$categoryIdnumber/': typeof KhoaHocCategoryIdnumberIndexRoute
+  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +111,8 @@ export interface FileRouteTypes {
     | '/oauth2/callback'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/khoa-hoc/$categoryIdnumber'
+    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +122,8 @@ export interface FileRouteTypes {
     | '/oauth2/callback'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/khoa-hoc/$categoryIdnumber'
+    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
   id:
     | '__root__'
     | '/'
@@ -109,6 +133,8 @@ export interface FileRouteTypes {
     | '/oauth2/callback'
     | '/demo/form/address'
     | '/demo/form/simple'
+    | '/khoa-hoc/$categoryIdnumber/'
+    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +145,8 @@ export interface RootRouteChildren {
   Oauth2CallbackRoute: typeof Oauth2CallbackRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
+  KhoaHocCategoryIdnumberIndexRoute: typeof KhoaHocCategoryIdnumberIndexRoute
+  KhoaHocCategoryIdnumberMonHocCourseShortnameRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/khoa-hoc/$categoryIdnumber/': {
+      id: '/khoa-hoc/$categoryIdnumber/'
+      path: '/khoa-hoc/$categoryIdnumber'
+      fullPath: '/khoa-hoc/$categoryIdnumber'
+      preLoaderRoute: typeof KhoaHocCategoryIdnumberIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/form/simple': {
       id: '/demo/form/simple'
       path: '/demo/form/simple'
@@ -172,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoFormAddressRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': {
+      id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+      path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+      fullPath: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+      preLoaderRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +225,9 @@ const rootRouteChildren: RootRouteChildren = {
   Oauth2CallbackRoute: Oauth2CallbackRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
+  KhoaHocCategoryIdnumberIndexRoute: KhoaHocCategoryIdnumberIndexRoute,
+  KhoaHocCategoryIdnumberMonHocCourseShortnameRoute:
+    KhoaHocCategoryIdnumberMonHocCourseShortnameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
