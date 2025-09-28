@@ -24,6 +24,10 @@ type UserGrade struct {
 func (e *UserGrade) ToGrades() []entities.Grade {
 	grades := make([]entities.Grade, len(e.GradeItems))
 	for i, gradeItem := range e.GradeItems {
+		if gradeItem.ItemType == "course" {
+			continue
+		}
+
 		grades[i] = *gradeItem.ToGrade()
 	}
 
