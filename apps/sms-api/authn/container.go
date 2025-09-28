@@ -73,6 +73,7 @@ func NewContainer() *Container {
 		enrolledUserProvider,
 		mdlCourseRepo,
 		userGradeItemsProvider,
+		p,
 	)
 
 	controller := NewAuthnController(useCase)
@@ -90,14 +91,23 @@ func NewContainer() *Container {
 }
 
 func (c *Container) GetController() *AuthnController {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	return c.controller
 }
 
 func (c *Container) GetCourseController() *controllers.CourseController {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	return c.courseController
 }
 
 func (c *Container) GetCategoryController() *categories.CategoryController {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	return c.categoryController
 }
 
