@@ -7,9 +7,11 @@ import (
 	"encore.app/internal/cache"
 	"encore.app/internal/categories"
 	"encore.app/internal/config"
+	"encore.app/internal/controllers"
 	"encore.app/internal/courses"
 	"encore.app/internal/db"
 	"encore.app/internal/logger"
+	"encore.app/internal/mdlapi"
 	"encore.app/internal/oauth2"
 	"encore.app/internal/usecases"
 	"encore.app/internal/users"
@@ -26,7 +28,7 @@ type Container struct {
 	oauth2Provider     oauth2.OAuth2Provider
 	userInfoProvider   oauth2.UserInfoProvider
 	controller         *AuthnController
-	courseController   *courses.CourseController
+	courseController   *controllers.CourseController
 	categoryController *categories.CategoryController
 }
 
@@ -57,8 +59,17 @@ func NewContainer() *Container {
 		&cfg.AuthnConfig,
 	)
 
+	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
+	enrolledUserProvider := mdlapi.NewMdwlApiEnrolledUserProvider(mdlApi)
+	userGradeItemsProvider := mdlapi.NewMdlApiUserGradeItemsProvider(mdlApi)
+	courseUseCase := usecases.NewCourseUseCase(
+		enrolledUserProvider,
+		mdlCourseRepo,
+		userGradeItemsProvider,
+	)
+
 	controller := NewAuthnController(useCase)
-	courseController := courses.NewCourseController(mdlCourseRepo)
+	courseController := controllers.NewCourseController(courseUseCase)
 	categoryController := categories.NewCategoryController(categoryRepo)
 
 	return &Container{
@@ -75,7 +86,7 @@ func (c *Container) GetController() *AuthnController {
 	return c.controller
 }
 
-func (c *Container) GetCourseController() *courses.CourseController {
+func (c *Container) GetCourseController() *controllers.CourseController {
 	return c.courseController
 }
 
