@@ -1,3 +1,4 @@
+import ProtectedRoute from '@/components/ProtectedRoute'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
@@ -10,8 +11,10 @@ function RouteComponent() {
 	const { courseShortname, categoryIdnumber } = Route.useParams()
 
 	return (
-		<div>
-			Hello "/khoa-hoc/{categoryIdnumber}/mon-hoc/{courseShortname}"!
-		</div>
+		<ProtectedRoute>
+			<div>
+				Hello "/khoa-hoc/{categoryIdnumber}/mon-hoc/{courseShortname}"!
+			</div>
+		</ProtectedRoute>
 	)
 }

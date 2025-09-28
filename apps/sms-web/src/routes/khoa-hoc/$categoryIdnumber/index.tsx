@@ -1,4 +1,5 @@
 import { CourseApi } from '@/api'
+import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseCard, { type Course } from '@/components/course-card'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useRouterState } from '@tanstack/react-router'
@@ -62,16 +63,21 @@ function RouteComponent() {
 	)
 
 	return (
-		<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6'>
-			{courses.map((course) => (
-				<Link
-					to='/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-					params={{ categoryIdnumber, courseShortname: course.code }}
-					state={{ course: { id: course.id } }}
-				>
-					<CourseCard key={course.id} course={course} />
-				</Link>
-			))}
-		</div>
+		<ProtectedRoute>
+			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6'>
+				{courses.map((course) => (
+					<Link
+						to='/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+						params={{
+							categoryIdnumber,
+							courseShortname: course.code
+						}}
+						state={{ course: { id: course.id } }}
+					>
+						<CourseCard key={course.id} course={course} />
+					</Link>
+				))}
+			</div>
+		</ProtectedRoute>
 	)
 }
