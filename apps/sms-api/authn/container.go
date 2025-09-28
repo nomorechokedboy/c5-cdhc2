@@ -2,6 +2,7 @@ package authn
 
 import (
 	"log"
+	"sync"
 
 	"encore.app/internal/authtokens"
 	"encore.app/internal/cache"
@@ -13,6 +14,7 @@ import (
 	"encore.app/internal/logger"
 	"encore.app/internal/mdlapi"
 	"encore.app/internal/oauth2"
+	"encore.app/internal/pool"
 	"encore.app/internal/usecases"
 	"encore.app/internal/users"
 )
@@ -30,6 +32,8 @@ type Container struct {
 	controller         *AuthnController
 	courseController   *controllers.CourseController
 	categoryController *categories.CategoryController
+
+	mu sync.RWMutex
 }
 
 func NewContainer() *Container {
@@ -58,6 +62,9 @@ func NewContainer() *Container {
 		tokenRepo,
 		&cfg.AuthnConfig,
 	)
+
+	p := pool.New(nil)
+	p.Start()
 
 	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
 	enrolledUserProvider := mdlapi.NewMdwlApiEnrolledUserProvider(mdlApi)
