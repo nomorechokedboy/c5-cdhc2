@@ -33,3 +33,21 @@ func GetCourses(
 		GetCourseController().
 		GetUserCourses(ctx, &entities.GetUsersCoursesParams{UserId: userId, CategoryId: req.CategoryId})
 }
+
+// Get course details endpoint
+//
+//encore:api auth method=GET path=/courses/:id
+func GetCourseDetails(
+	ctx context.Context,
+	id int64,
+) (*entities.GetUserCourseDetailsResponse, error) {
+	uid, ok := auth.UserID()
+	if !ok {
+		logger.ErrorContext(ctx, "Failed to get UserID from mdw")
+		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
+	}
+
+	userId := int64(uid[0])
+	req := &entities.FindOneCourseParams{Id: id, UserId: userId}
+	return authn.GetContainer().GetCourseController().GetCourseDetails(ctx, req)
+}
