@@ -11,4 +11,5 @@ type Repository interface {
 		context.Context,
 		*entities.GetUsersCoursesParams,
 	) (*entities.GetUsersCoursesResponse, error)
+	FindOne(context.Context, *entities.FindOneCourseParams) (*entities.Course, error)
 }
