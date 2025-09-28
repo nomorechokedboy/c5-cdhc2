@@ -39,8 +39,8 @@ type GetUsersCoursesResponse struct {
 
 type CourseDetails struct {
 	*Course       `json:"course"`
-	Students      []Student      `json:"students"`
-	GradedModules []GradedModule `json:"gradedModules"`
+	Students      []*Student      `json:"students"`
+	GradedModules []*GradedModule `json:"gradedModules"`
 }
 
 type GradedModule struct {
