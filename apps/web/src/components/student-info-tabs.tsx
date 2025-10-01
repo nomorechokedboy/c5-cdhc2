@@ -12,6 +12,7 @@ import {
 	politicalOptions
 } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
+import { getMediaUri } from '@/lib/utils'
 
 interface StudentInfoTabsProps {
 	student: Student
@@ -52,6 +53,10 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 			</div>
 		)
 	}
+	const avatarUri =
+		student.avatar === undefined || student.avatar === ''
+			? '/avt.jpg'
+			: student.avatar
 
 	return (
 		<>
@@ -60,7 +65,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<CardHeader className='flex flex-col sm:flex-row items-center sm:items-start gap-4'>
 					<div className='w-32 h-32 bg-gray-200 rounded-md overflow-hidden'>
 						<img
-							src='/avt.jpg'
+							src={getMediaUri(avatarUri)}
 							alt={student.fullName}
 							className='object-cover w-full h-full'
 						/>
@@ -80,7 +85,9 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								(c) => c.value === student.class.id.toString()
 							)?.label || 'Chưa có lớp'}
 						</p>
-						<p className='text-gray-600'>Ngày nhập ngũ: {student.enlistmentPeriod}</p>
+						<p className='text-gray-600'>
+							Ngày nhập ngũ: {student.enlistmentPeriod}
+						</p>
 					</div>
 					<Dialog open={open} onOpenChange={setOpen}>
 						<DialogTrigger asChild>

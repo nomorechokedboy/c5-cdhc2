@@ -23,8 +23,8 @@ import { toast } from 'sonner'
 import type { VariantProps } from 'class-variance-authority'
 import { convertToIso } from '@/lib/utils'
 import { StudentFormSchema } from './student-form-schema'
-import { z } from 'zod'
-import type { StudentFormSchemaType } from './student-form/schema'
+import type { StudentFormSchemaType } from './student-form-schema'
+import useUploadFiles from '@/hooks/useUploadFiles'
 
 export interface StudentFormProps {
 	onSuccess: (
@@ -51,6 +51,7 @@ export default function StudentForm({
 			console.error('Failed to create student:', error)
 		}
 	})
+	const { mutateAsync: uploadFilesMutate } = useUploadFiles()
 
 	const handleResetStep = () => {
 		setCurrentStep(0)
@@ -101,9 +102,10 @@ export default function StudentForm({
 			disciplinaryHistory: '',
 			phone: '',
 			classId: 0,
-			cpvOfficialAt: null
+			cpvOfficialAt: null,
+			avatar: null as File | null
 		} as StudentFormSchemaType,
-		onSubmit: async ({ value, formApi }) => {
+		onSubmit: async ({ value: { avatar, ...value }, formApi }) => {
 			try {
 				// Validate all fields before submission
 				const currentStepValues: Record<string, any> = {}
@@ -146,8 +148,15 @@ export default function StudentForm({
 					const cpvOfficialAt = value.cpvOfficialAt
 					value.cpvOfficialAt = convertToIso(cpvOfficialAt)
 				}
+				let avatarUri: string | undefined = undefined
+				if (avatar !== null) {
+					const formData = new FormData()
+					formData.append('avatarImg', avatar)
+					const resp = await uploadFilesMutate(formData)
+					avatarUri = resp.uris[0]
+				}
 
-				await mutateAsync(value)
+				await mutateAsync({ ...value, avatar: avatarUri })
 				toast.success('Thêm mới học viên thành công!', {})
 				formApi.reset()
 				handleResetStep()
