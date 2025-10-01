@@ -114,10 +114,9 @@ export default function StudentForm({
 					STEPS[currentStep].validationSchema.safeParse(
 						currentStepValues
 					)
-				console.log({ validationResult })
 
 				if (!validationResult.success) {
-					validationResult.error.errors.forEach((err) => {
+					validationResult.error.issues.forEach((err) => {
 						const fieldPath = err.path[0] as any
 						form.setFieldMeta(fieldPath, (prev) => ({
 							...prev,
@@ -169,7 +168,7 @@ export default function StudentForm({
 		const validationResult =
 			STEPS[currentStep].validationSchema.safeParse(currentStepValues)
 		if (!validationResult.success) {
-			validationResult.error.errors.forEach((err) => {
+			validationResult.error.issues.forEach((err) => {
 				const fieldPath = err.path[0] as any
 				form.setFieldMeta(fieldPath, (prev) => ({
 					...prev,
