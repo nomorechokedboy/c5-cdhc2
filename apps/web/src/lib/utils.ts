@@ -9,6 +9,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { type students } from '@/api/client'
 import type { UnitPoliticsQualitySummary, Unit } from '@/types'
+import { ApiUrl } from '@/lib/const'
 
 dayjs.locale('vi')
 dayjs.extend(relativeTime)
@@ -117,4 +118,10 @@ export function transformPoliticsQualityData(
 export function convertToIso(dateStr: string): string {
 	const [day, month, year] = dateStr.split('/')
 	return `${year}-${month}-${day}`
+}
+
+export function getMediaUri(uri: string) {
+	const mediaUrl = 'media'
+
+	return `${ApiUrl}/${mediaUrl}/${uri}`
 }
