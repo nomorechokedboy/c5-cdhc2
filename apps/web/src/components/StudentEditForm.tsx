@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { useForm } from '@tanstack/react-form'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,6 +17,10 @@ import {
 } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import ChildrenInfo from './children-info'
+import { getMediaUri } from '../lib/utils'
+import { useAppForm } from '@/hooks/demo.form'
+import { toast } from 'sonner'
+import useUploadFiles from '@/hooks/useUploadFiles'
 
 interface StudentEditFormProps {
 	student: Student
@@ -30,6 +33,7 @@ export default function StudentEditForm({
 }: StudentEditFormProps) {
 	const currentYear = new Date().getFullYear()
 	const { handlePatchStudentInfo, isPending } = usePatchStudentInfo(student)
+	const { mutateAsync: uploadFilesMutate } = useUploadFiles()
 
 	const { data: classes = [], refetch } = useClassData()
 	// options cho select lớp
@@ -42,18 +46,29 @@ export default function StudentEditForm({
 		[classes]
 	)
 
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			...student,
-			politicalOrgOfficialDate:
-				student.politicalOrgOfficialDate || `26/03/${currentYear}`,
-			enlistmentPeriod:
-				student.enlistmentPeriod || `13/02/${currentYear}`,
-			rank: student.rank || 'Binh nhất'
+			politicalOrgOfficialDate: student.politicalOrgOfficialDate,
+			enlistmentPeriod: student.enlistmentPeriod,
+			rank: student.rank || 'Binh nhất',
+			avatarFile: null as File | null
 		},
-		onSubmit: async ({ value }) => {
-			await handlePatchStudentInfo({ ...value })
-			if (onClose) onClose()
+		onSubmit: async ({ value: { avatarFile, ...value } }) => {
+			try {
+				if (avatarFile !== null) {
+					const formData = new FormData()
+					formData.append('avatarImg', avatarFile)
+					const resp = await uploadFilesMutate(formData)
+					value.avatar = resp.uris[0]
+				}
+
+				await handlePatchStudentInfo({ ...value })
+				if (onClose) onClose()
+			} catch (err) {
+				console.error('UpdateStudentInfo err: ', err)
+				toast.error('Chỉnh sửa thông tin học viên không thành công!')
+			}
 		}
 	})
 
@@ -137,6 +152,10 @@ export default function StudentEditForm({
 			)}
 		/>
 	)
+	const avatarUri =
+		student.avatar === undefined || student.avatar === ''
+			? 'avt.jpg'
+			: student.avatar
 
 	return (
 		<form
@@ -149,15 +168,25 @@ export default function StudentEditForm({
 			<Card>
 				{/* Header cố định */}
 				<CardHeader className='flex flex-col sm:flex-row items-center sm:items-start gap-4'>
-					<div className='w-32 h-32 bg-gray-200 rounded-md overflow-hidden'>
+					<form.AppField name='avatarFile'>
+						{(field: any) => (
+							<field.AvatarField
+								alt={student.fullName}
+								className='rounded-md'
+								src={getMediaUri(avatarUri)}
+								size='xl'
+							/>
+						)}
+					</form.AppField>
+					{/* <div className='w-32 h-32 bg-gray-200 rounded-md overflow-hidden'>
 						<img
-							src='avt.jpg'
+							src={getMediaUri(avatarUri)}
 							alt={student.fullName}
 							width={128}
 							height={128}
 							className='object-cover w-full h-full'
 						/>
-					</div>
+					</div> */}
 					<div className='text-center sm:text-left'>
 						<CardTitle className='text-xl'>
 							{student.fullName}

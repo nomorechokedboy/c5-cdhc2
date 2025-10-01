@@ -19,10 +19,17 @@ export default function PersonalStep({ form }: { form: any }) {
 			{/* Full Name - Full Width */}
 			<div className='grid grid-cols-3 gap-6'>
 				<form.AppField name='fullName'>
+					{(field: any) => <field.TextField label='Họ và tên' />}
+				</form.AppField>
+
+				<form.AppField name='avatar'>
 					{(field: any) => (
-						<field.TextField
-							className='col-span-2'
-							label='Họ và tên'
+						<field.UploadField
+							label='Ảnh học viên'
+							accept='image/*'
+							maxSize={10 * 1024 * 1024}
+							dragDropSize='small'
+							showBrowseButton={false}
 						/>
 					)}
 				</form.AppField>
