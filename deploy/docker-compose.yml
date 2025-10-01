@@ -27,16 +27,17 @@ services:
             retries: 3
             start_period: 40s
         networks:
-            - nsq-network
-            - cron-network
             - app-network
+            - cron-network
+            - minio-network
+            - nsq-network
     web:
         depends_on:
             app:
                 condition: service_healthy
         image: quanlyhocvien-cdhc2:web
         ports:
-            - '3000:80'
+            - '3005:80'
         restart: unless-stopped
         networks:
             - app-network
@@ -69,10 +70,6 @@ services:
             - cron-network
         command: >
             sh -c "
-
-
-
-
 
 
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
@@ -169,6 +166,27 @@ services:
             timeout: 5s
             retries: 3
             start_period: 20s
+    minio:
+        image: docker.io/bitnami/minio:latest
+        ports:
+            - '9000:9000'
+            - '9001:9001'
+        environment:
+            - MINIO_ROOT_USER=admin.cdhc2
+            - MINIO_ROOT_PASSWORD=Cntt@Hc2
+            - MINIO_DEFAULT_BUCKETS=my-first-bucket
+        volumes:
+            - 'minio_data:/bitnami/minio/data'
+        networks:
+            - minio_network
+        healthcheck:
+            test:
+                ['CMD', 'curl', '-I', 'http://localhost:9000/minio/health/live']
+            interval: 10s
+            retries: 5
+            start_period: 10s
+            timeout: 5s
+        restart: unless-stopped
 networks:
     app-network:
         driver: bridge
@@ -176,5 +194,9 @@ networks:
         driver: bridge
     nsq-network:
         driver: bridge
+    minio-network:
+        driver: bridge
 volumes:
     nsq-data:
+    minio_data:
+        driver: local
