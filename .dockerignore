@@ -7,3 +7,4 @@ out
 build
 **/.env
 .dockerignore
+*.db
