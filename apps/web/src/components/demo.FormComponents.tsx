@@ -7,7 +7,7 @@ import * as ShadcnSelect from '@/components/ui/select'
 import { Slider as ShadcnSlider } from '@/components/ui/slider'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { useState, type JSX } from 'react'
+import { useRef, useState, type JSX } from 'react'
 import {
 	Command,
 	CommandEmpty,
@@ -21,11 +21,20 @@ import {
 	PopoverContent,
 	PopoverTrigger
 } from '@/components/ui/popover'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import {
+	AlertCircle,
+	Check,
+	ChevronsUpDown,
+	FileText,
+	Paperclip,
+	Upload
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ToggleInput from './toggle-input'
 import PasswordInput from './password-input'
+import { EllipsisText } from './data-table/ellipsis-text'
+import { AvatarUpload, type AvatarUploadProps } from './avatar-upload'
 
 export function SubscribeButton({
 	label,
@@ -335,6 +344,219 @@ export function EditableInput({
 				onChange={(e) => field.handleChange(e.target.value)}
 				ellipsisMaxWidth={ellipsisMaxWidth}
 				type='text'
+			/>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+export type UploadFieldProps = JSX.IntrinsicElements['input'] & {
+	label: string
+	value?: File | null
+	accept?: string
+	maxSize?: number // in bytes
+	showBrowseButton?: boolean
+	browseButtonText?: string
+	dragDropText?: string
+	browseText?: string
+	dragDropSize?: 'small' | 'default'
+}
+
+export function UploadField({
+	label,
+	value,
+	accept,
+	maxSize = 10 * 1024 * 1024, // 10MB default
+	className,
+	showBrowseButton = true,
+	browseButtonText = 'Choose file',
+	dragDropText = 'Drag & Drop a file here',
+	browseText = 'or click to browse files',
+	dragDropSize = 'default'
+}: UploadFieldProps) {
+	const field = useFieldContext<File | null>()
+	const errors = useStore(field.store, (s) => s.meta.errors)
+	const [isDragOver, setIsDragOver] = useState(false)
+	const fileInputRef = useRef<HTMLInputElement>(null)
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault()
+		setIsDragOver(true)
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		setIsDragOver(false)
+	}
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault()
+		setIsDragOver(false)
+
+		const files = Array.from(e.dataTransfer.files)
+		if (files.length > 0) {
+			const file = files[0]
+			if (validateFile(file)) {
+				field.handleChange(file)
+			}
+		}
+	}
+
+	const handleFileSelect = () => {
+		fileInputRef.current?.click()
+	}
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0] || null
+		if (file && validateFile(file)) {
+			field.handleChange(file)
+		} else if (!file) {
+			field.handleChange(null)
+		}
+	}
+
+	const validateFile = (file: File): boolean => {
+		if (file.size > maxSize) {
+			return false
+		}
+		return true
+	}
+
+	const formatFileSize = (bytes: number): string => {
+		return (bytes / 1024 / 1024).toFixed(2) + ' MB'
+	}
+
+	return (
+		<div className={cn('space-y-4', className)}>
+			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+				{label}
+			</Label>
+
+			{/* Browse Button */}
+			{showBrowseButton && (
+				<div className='flex gap-4 items-center'>
+					<Button
+						type='button'
+						variant='outline'
+						onClick={handleFileSelect}
+						className='border-2 border-foreground bg-background text-foreground hover:bg-secondary px-8 py-3 text-base font-medium'
+					>
+						{browseButtonText}
+					</Button>
+				</div>
+			)}
+
+			{/* Hidden file input */}
+			<Input
+				ref={fileInputRef}
+				type='file'
+				className='hidden'
+				accept={accept}
+				onChange={handleFileChange}
+				onBlur={field.handleBlur}
+			/>
+
+			{/* Drag and Drop Area */}
+
+			<div
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
+				onClick={handleFileSelect}
+				className={cn(
+					`bg-background ${dragDropSize === 'default' ? 'border-2 border-foreground p-8 text-center' : ''} cursor-pointer transition-colors duration-200',
+                    isDragOver && 'bg-secondary`,
+					value && 'border-primary'
+				)}
+			>
+				{dragDropSize === 'default' && (
+					<div className='flex flex-col items-center gap-3'>
+						<Upload />
+						<p className='text-foreground font-medium text-lg'>
+							{dragDropText}
+						</p>
+						<p className='text-muted-foreground'>{browseText}</p>
+					</div>
+				)}
+				{dragDropSize === 'small' && (
+					<div className='flex items-center gap-3 py-1'>
+						<Paperclip />
+						<EllipsisText>
+							{field.state.value === null
+								? 'Chọn hoặc kéo thả để tải lên'
+								: field.state.value.name}
+						</EllipsisText>
+					</div>
+				)}
+			</div>
+
+			{/* Selected File Display */}
+			{value && (
+				<div className='border-2 border-foreground bg-background p-4'>
+					<div className='flex items-center gap-3'>
+						<FileText />
+						<div className='flex-1'>
+							<p className='font-medium text-foreground'>
+								{value.name}
+							</p>
+							<p className='text-sm text-muted-foreground'>
+								{formatFileSize(value.size)}
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Error Display */}
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+export type AvatarField = Omit<
+	AvatarUploadProps,
+	'onChange' | 'onBlur' | 'enableUpload'
+> & {
+	maxSize?: number
+	label?: string
+}
+
+export function AvatarField({
+	label,
+	maxSize = 2 * 1024 * 1024,
+	...props
+}: AvatarField) {
+	const field = useFieldContext<File | null>()
+	const errors = useStore(field.store, (s) => s.meta.errors)
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0] || null
+		if (file && validateFile(file)) {
+			field.handleChange(file)
+		} else if (!file) {
+			field.handleChange(null)
+		}
+	}
+
+	const validateFile = (file: File): boolean => {
+		if (file.size > maxSize) {
+			return false
+		}
+		return true
+	}
+
+	return (
+		<div className='space-y-4'>
+			{label !== undefined && (
+				<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+					{label}
+				</Label>
+			)}
+			<AvatarUpload
+				{...props}
+				onChange={handleFileChange}
+				onBlur={field.handleBlur}
+				id={label}
+				enableUpload
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>
