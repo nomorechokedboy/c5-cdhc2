@@ -154,3 +154,10 @@ export function Login(req: auth.LoginRequest) {
 export function GetUserInfo() {
 	return requestClient.auth.GetUserInfo().then((resp) => resp.data)
 }
+
+export function UploadFiles(body: BodyInit) {
+	return requestClient.media
+		.UploadFiles('POST', body)
+		.then((resp) => resp.json() as Promise<{ data: { uris: string[] } }>)
+		.then((resp) => resp.data)
+}
