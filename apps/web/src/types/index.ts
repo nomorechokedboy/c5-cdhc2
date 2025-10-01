@@ -58,6 +58,7 @@ export type StudentBody = {
 	achievement?: string
 	disciplinaryHistory?: string
 	cpvOfficialAt?: string
+	avatar?: string
 }
 
 type Base = {
