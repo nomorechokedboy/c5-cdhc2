@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `classId` integer REFERENCES classes(id);
