@@ -70,7 +70,12 @@ export const students = sqlite.sqliteTable('students', {
 		.integer()
 		.notNull()
 		.references(() => classes.id),
-	cpvOfficialAt: sqlite.text()
+	cpvOfficialAt: sqlite.text(),
+	avatar: sqlite.text(),
+	siblings: sqlite.text({ mode: 'json' }).default(sql`'[]'`),
+	contactPerson: sqlite.text({ mode: 'json' }).default(sql`'{}'`),
+	studentId: sqlite.text().unique(),
+	relatedDocumentations: sqlite.text()
 })
 
 export const studentsRelations = relations(students, ({ one }) => ({
