@@ -26,6 +26,12 @@ interface ChildrenInfo {
 	dob: string
 }
 
+interface ContactPerson {
+	name: string
+	phoneNumber: string
+	address: string
+}
+
 interface StudentBody {
 	fullName: string
 	birthPlace: string
@@ -71,6 +77,10 @@ interface StudentBody {
 	phone: string
 	classId: number
 	avatar?: string
+	siblings?: ChildrenInfo[]
+	contactPerson?: Partial<ContactPerson>
+	studentId: string
+	relatedDocumentations?: string
 }
 
 interface StudentDBResponse extends StudentBody {
