@@ -3,16 +3,19 @@ import { Base, baseSchema } from './base'
 import { relations } from 'drizzle-orm'
 import { Role } from './roles'
 import { userRoles } from './user-roles'
+import { units } from './units'
 
 export const users = p.sqliteTable('users', {
 	...baseSchema,
 	username: p.text().notNull().unique(),
 	password: p.text().notNull(),
-	displayName: p.text().notNull().default('')
+	displayName: p.text().notNull().default(''),
+	unitId: p.int().references(() => units.id)
 })
 
-export const usersRelations = relations(users, ({ many }) => ({
-	roles: many(userRoles)
+export const usersRelations = relations(users, ({ many, one }) => ({
+	roles: many(userRoles),
+	unit: one(units)
 }))
 
 export interface UserDB extends Base {
