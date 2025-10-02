@@ -95,6 +95,7 @@ export class Controller {
 					classIds,
 					query: q
 				})
+				// AppError.handleAppErr(AppError.unauthorized("You don't have permission to read one of those classId"))
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
