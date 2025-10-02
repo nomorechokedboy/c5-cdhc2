@@ -4,6 +4,7 @@ import { baseSchema } from './base'
 import { AppError } from '../errors'
 import { Unit, units } from './units'
 import { students } from './student'
+import { users } from './users'
 
 const StatusEnum = sqlite.customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -43,7 +44,8 @@ export const classes = sqlite.sqliteTable(
 
 export const classesRelations = relations(classes, ({ one, many }) => ({
 	unit: one(units, { fields: [classes.unitId], references: [units.id] }),
-	students: many(students)
+	students: many(students),
+	users: many(users)
 }))
 
 export type ClassDB = InferSelectModel<typeof classes>

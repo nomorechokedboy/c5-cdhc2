@@ -42,6 +42,10 @@ export class AppError extends Error {
 		return new AppError('NotFound', msg)
 	}
 
+	public static unauthorized(msg: string) {
+		return new AppError('Unauthorized', msg)
+	}
+
 	public static handleAppErr(err: unknown): never {
 		log.error('Error from handleAppErr!', { err })
 
@@ -63,3 +67,4 @@ export type AppErrorType =
 	| 'Unavailable'
 	| 'Unimplemented'
 	| 'Unauthenticated'
+	| 'Unauthorized'
