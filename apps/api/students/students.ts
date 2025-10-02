@@ -70,6 +70,7 @@ interface StudentBody {
 	childrenInfos: ChildrenInfo[]
 	phone: string
 	classId: number
+	avatar?: string
 }
 
 interface StudentDBResponse extends StudentBody {
