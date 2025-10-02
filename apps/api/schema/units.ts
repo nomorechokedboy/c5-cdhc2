@@ -3,6 +3,7 @@ import { baseSchema } from './base'
 import { AppError } from '../errors'
 import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm'
 import { Class, classes } from './classes'
+import { users } from './users'
 
 export class UnitLevel {
 	static readonly BATTALION = new UnitLevel(0, 'battalion')
@@ -90,7 +91,8 @@ export const unitsRelations = relations(units, ({ one, many }) => ({
 	children: many(units, {
 		relationName: 'parentChild'
 	}),
-	classes: many(classes)
+	classes: many(classes),
+	commanders: many(users)
 }))
 
 export type UnitDB = InferSelectModel<typeof units>
