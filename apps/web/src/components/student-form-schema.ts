@@ -17,12 +17,21 @@ const optionalDate = z
 	})
 	.optional()
 
+const isoDateSchema = z
+	.string()
+	.regex(
+		/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+		'Hãy dùng định dạng Ngày/tháng/năm'
+	)
+	.refine((s) => dayjs(s, 'DD/MM/YYYY', true).isValid(), 'Ngày không hợp lệ')
+	.transform((s) => dayjs(s, 'DD/MM/YYYY').toISOString())
+
 export const personalInfoSchema = z.object({
 	avatar: z
 		.file()
 		.mime(['image/png', 'image/webp', 'image/jpeg', 'image/svg+xml'])
 		.max(2_000_000)
-		.optional(),
+		.nullable(),
 	fullName: z.string().nonempty('Họ và tên không được bỏ trống'),
 	classId: z.preprocess(
 		(val) => {
@@ -42,16 +51,8 @@ export const personalInfoSchema = z.object({
 	schoolName: z.string().optional(),
 	major: z.string().optional(),
 	phone: z.string().optional(),
-	dob: z
-		.string()
-		.regex(
-			/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
-			'Hãy dùng định dạng Ngày/tháng/năm'
-		)
-		.refine(
-			(s) => dayjs(s, 'DD/MM/YYYY', true).isValid(),
-			'Ngày sinh không hợp lệ'
-		)
+	dob: isoDateSchema,
+	studentId: z.string().nonempty('Mã học viên không được bỏ trống')
 })
 
 export const militaryInfoSchema = z.object({
@@ -67,11 +68,25 @@ export const militaryInfoSchema = z.object({
 	talent: z.string().optional(),
 	shortcoming: z.string().optional(),
 	achievement: z.string().optional(),
-	disciplinaryHistory: z.string().optional()
+	disciplinaryHistory: z.string().optional(),
+	contactPerson: z
+		.object({
+			name: z.string().optional(),
+			phoneNumber: z.string().optional(),
+			address: z.string().optional()
+		})
+		.optional()
+		.default({}),
+	relatedDocumentations: z.string().optional().default('')
+})
+
+export const ChildrenInfoSchema = z.object({
+	fullName: z.string().nonempty('Họ tên không được bỏ trống'),
+	dob: isoDateSchema
 })
 
 export const parentInfoSchema = z.object({
-	familySize: z.number().optional(),
+	familySize: z.coerce.number().optional(),
 	familyBirthOrder: z.string().optional(),
 	familyBackground: z.string().optional(),
 	fatherName: z.string().optional(),
@@ -81,21 +96,8 @@ export const parentInfoSchema = z.object({
 	motherName: z.string().optional(),
 	motherDob: optionalDate,
 	motherJob: z.string().optional(),
-	motherPhoneNumber: z.string().optional()
-})
-
-export const ChildrenInfoSchema = z.object({
-	fullName: z.string().nonempty('Họ tên không được bỏ trống'),
-	dob: z
-		.string()
-		.regex(
-			/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
-			'Hãy dùng định dạng Ngày/tháng/năm'
-		)
-		.refine(
-			(s) => dayjs(s, 'DD/MM/YYYY', true).isValid(),
-			'Ngày sinh không hợp lệ'
-		)
+	motherPhoneNumber: z.string().optional(),
+	siblings: z.array(ChildrenInfoSchema).optional()
 })
 
 export const familyInfoSchema = z.object({

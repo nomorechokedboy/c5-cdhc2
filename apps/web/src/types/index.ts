@@ -59,6 +59,10 @@ export type StudentBody = {
 	disciplinaryHistory?: string
 	cpvOfficialAt?: string
 	avatar?: string
+	siblings?: ChildrenInfo[]
+	contactPerson?: ContactPerson
+	studentId: string
+	relatedDocumentations?: string
 }
 
 type Base = {
@@ -127,6 +131,12 @@ export interface StudentQueryParams {
 export type ChildrenInfo = {
 	fullName: string
 	dob: string
+}
+
+export type ContactPerson = {
+	name: string
+	phoneNumber: string
+	address: string
 }
 
 export type DeleteStudentsBody = {
