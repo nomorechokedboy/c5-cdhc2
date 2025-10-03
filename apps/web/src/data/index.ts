@@ -20,7 +20,9 @@ export const STEPS = [
 			'schoolName',
 			'major',
 			'phone',
-			'dob'
+			'dob',
+			'avatar',
+			'studentId'
 		],
 		validationSchema: personalInfoSchema
 	},
@@ -40,7 +42,9 @@ export const STEPS = [
 			'talent',
 			'shortcoming',
 			'achievement',
-			'disciplinaryHistory'
+			'disciplinaryHistory',
+			'contactPerson',
+			'relatedDocumentations'
 		],
 		validationSchema: militaryInfoSchema
 	},
@@ -58,7 +62,8 @@ export const STEPS = [
 			'motherName',
 			'motherDob',
 			'motherJob',
-			'motherPhoneNumber'
+			'motherPhoneNumber',
+			'siblings'
 		],
 		validationSchema: parentInfoSchema
 	},
