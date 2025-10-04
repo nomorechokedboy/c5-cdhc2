@@ -148,6 +148,7 @@ export default function StudentTable({
 												exportConfig.defaultExportValues
 											}
 											templType={templType}
+											id='exportStudentTableForm'
 										>
 											<Button>
 												<ArrowDownToLine />

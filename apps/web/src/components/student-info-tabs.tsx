@@ -99,6 +99,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 							unitName: '	TỔNG CỤC HẬU CẦN – KỸ THUẬT'
 						}}
 						templType='StudentEnrollmentFormTempl'
+						id='ExportStudentEnrollmentFormDialog'
 					>
 						<Button>
 							<FileDown /> Tải phiếu học viên
