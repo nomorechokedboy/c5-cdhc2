@@ -15,6 +15,7 @@ import StudentForm from '../student-form'
 import { type ReactNode } from 'react'
 import type { VisibilityState, ColumnDef } from '@tanstack/react-table'
 import { type QueryObserverResult } from '@tanstack/react-query'
+import { DropdownMenu, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 interface StudentTableProps {
 	// Core data params
@@ -127,19 +128,33 @@ export default function StudentTable({
 						? undefined
 						: ({ exportHook }) =>
 								exportConfig ? (
-									<ExportStudentDataDialog
-										data={exportHook.exportableData.data}
-										defaultFilename={exportConfig.filename}
-										defaultValues={
-											exportConfig.defaultExportValues
-										}
-										templType={templType}
-									>
-										<Button>
-											<ArrowDownToLine />
-											Xuất file
-										</Button>
-									</ExportStudentDataDialog>
+									<>
+										<DropdownMenu>
+											<DropdownMenuTrigger>
+												<Button>
+													<ArrowDownToLine />
+													Xuất file
+												</Button>
+											</DropdownMenuTrigger>
+										</DropdownMenu>
+										<ExportStudentDataDialog
+											data={
+												exportHook.exportableData.data
+											}
+											defaultFilename={
+												exportConfig.filename
+											}
+											defaultValues={
+												exportConfig.defaultExportValues
+											}
+											templType={templType}
+										>
+											<Button>
+												<ArrowDownToLine />
+												Xuất file
+											</Button>
+										</ExportStudentDataDialog>
+									</>
 								) : null
 				}
 			/>
