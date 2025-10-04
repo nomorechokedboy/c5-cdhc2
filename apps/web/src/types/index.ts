@@ -241,6 +241,7 @@ export type ExportData = {
 	date?: string
 	underUnitName: string
 	unitName: string
+	templateType?: TemplType
 }
 
 export type OnDeleteRows = (
@@ -326,7 +327,8 @@ export const templTypes = [
 	'CpvTempl',
 	'HcyuTempl',
 	'StudentInfoTempl',
-	'StudentWithAdversityTempl'
+	'StudentWithAdversityTempl',
+	'StudentEnrollmentFormTempl'
 ] as const
 
 export type TemplType = (typeof templTypes)[number]

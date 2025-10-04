@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import {
 } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
 import { getMediaUri } from '@/lib/utils'
+import { FileDown, UserPen } from 'lucide-react'
+import { ExportStudentDataDialog } from './export-student-data-dialog'
 
 interface StudentInfoTabsProps {
 	student: Student
@@ -82,16 +84,31 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 							Lớp:
 							{/* tìm lớp bằng value trong classOptions */}
 							{classOptions.find(
-								(c) => c.value === student.class.id.toString()
+								(c) => c.value === student?.class?.id.toString()
 							)?.label || 'Chưa có lớp'}
 						</p>
 						<p className='text-gray-600'>
 							Ngày nhập ngũ: {student.enlistmentPeriod}
 						</p>
 					</div>
+					<ExportStudentDataDialog
+						data={[student as any]}
+						defaultFilename={`Phiếu-học-viên-${student.fullName?.replace(' ', '_')}`}
+						defaultValues={{
+							underUnitName: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2',
+							unitName: '	TỔNG CỤC HẬU CẦN – KỸ THUẬT'
+						}}
+						templType='StudentEnrollmentFormTempl'
+					>
+						<Button>
+							<FileDown /> Tải phiếu học viên
+						</Button>
+					</ExportStudentDataDialog>
 					<Dialog open={open} onOpenChange={setOpen}>
 						<DialogTrigger asChild>
-							<Button variant='outline'>Sửa</Button>
+							<Button variant='outline'>
+								<UserPen /> Sửa
+							</Button>
 						</DialogTrigger>
 						<DialogContent className='max-w-screen-lg w-full h-screen overflow-y-auto p-6'>
 							<StudentEditForm
@@ -197,9 +214,9 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 							)}
 							<Field
 								label='Số con'
-								value={`${student.childrenInfos.length}`}
+								value={`${student.childrenInfos?.length}`}
 							/>
-							{student.childrenInfos.map((child, idx) => (
+							{student.childrenInfos?.map((child, idx) => (
 								<Field
 									key={idx}
 									label={`Con ${idx + 1}`}
