@@ -1,6 +1,8 @@
+import SiblingInfo from './sibling-info'
+
 export default function ParentInfoStep({ form }: { form: any }) {
 	return (
-		<div className='space-y-8'>
+		<div className='space-y-8 py-2'>
 			<div className='space-y-6'>
 				<h3 className='text-lg font-semibold border-b border-border pb-2'>
 					Thông tin chung về gia cảnh
@@ -97,6 +99,10 @@ export default function ParentInfoStep({ form }: { form: any }) {
 						)}
 					</form.AppField>
 				</div>
+			</div>
+
+			<div className='space-y-6'>
+				<SiblingInfo form={form} />
 			</div>
 		</div>
 	)

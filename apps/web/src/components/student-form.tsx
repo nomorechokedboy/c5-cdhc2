@@ -17,7 +17,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useMutation } from '@tanstack/react-query'
 import { CreateStudent } from '@/api'
-import type { Student, StudentBody } from '@/types'
+import type { ContactPerson, Student, StudentBody } from '@/types'
 import MilitaryStep from '@/components/military-step'
 import { toast } from 'sonner'
 import type { VariantProps } from 'class-variance-authority'
@@ -34,6 +34,30 @@ export interface StudentFormProps {
 	) => unknown
 	buttonProps?: React.ComponentProps<'button'> &
 		VariantProps<typeof buttonVariants> & { asChild?: boolean }
+}
+
+const validateAndSetErrors = (form: any, validationResult: any) => {
+	if (!validationResult.success) {
+		validationResult.error.issues.forEach((err: any) => {
+			// Convert path array to string for nested fields
+			// e.g., ['siblings', 0, 'fullName'] -> 'siblings[0].fullName'
+			let fieldPath: string
+			if (err.path.length > 1 && typeof err.path[1] === 'number') {
+				// Handle array fields like siblings[0].fullName
+				fieldPath = `${err.path[0]}[${err.path[1]}].${err.path.slice(2).join('.')}`
+			} else {
+				fieldPath = err.path.join('.')
+			}
+
+			form.setFieldMeta(fieldPath as any, (prev) => ({
+				...prev,
+				errorMap: { onSubmit: { message: err.message } },
+				isTouched: true
+			}))
+		})
+		return false
+	}
+	return true
 }
 
 export default function StudentForm({
@@ -103,29 +127,19 @@ export default function StudentForm({
 			phone: '',
 			classId: 0,
 			cpvOfficialAt: null,
-			avatar: null as File | null
+			avatar: null as File | null,
+			siblings: [],
+			contactPerson: {} as ContactPerson,
+			relatedDocumentations: '',
+			studentId: ''
 		} as StudentFormSchemaType,
 		onSubmit: async ({ value: { avatar, ...value }, formApi }) => {
 			try {
 				// Validate all fields before submission
-				const currentStepValues: Record<string, any> = {}
-				STEPS[currentStep].fields.forEach((fieldName: any) => {
-					currentStepValues[fieldName] = form.getFieldValue(fieldName)
-				})
-				const validationResult =
-					STEPS[currentStep].validationSchema.safeParse(
-						currentStepValues
-					)
+				const allValues = form.state.values
+				const validationResult = StudentFormSchema.safeParse(allValues)
 
-				if (!validationResult.success) {
-					validationResult.error.issues.forEach((err) => {
-						const fieldPath = err.path[0] as any
-						form.setFieldMeta(fieldPath, (prev) => ({
-							...prev,
-							errorMap: { onSubmit: { message: err.message } },
-							isTouched: true
-						}))
-					})
+				if (!validateAndSetErrors(form, validationResult)) {
 					return
 				}
 
@@ -170,21 +184,18 @@ export default function StudentForm({
 	})
 
 	const handleNext = () => {
+		const allValues = form.state.values
+
+		// Build object with only current step fields for validation
 		const currentStepValues: Record<string, any> = {}
 		STEPS[currentStep].fields.forEach((fieldName: any) => {
-			currentStepValues[fieldName] = form.getFieldValue(fieldName)
+			currentStepValues[fieldName] = allValues[fieldName]
 		})
+
 		const validationResult =
 			STEPS[currentStep].validationSchema.safeParse(currentStepValues)
-		if (!validationResult.success) {
-			validationResult.error.issues.forEach((err) => {
-				const fieldPath = err.path[0] as any
-				form.setFieldMeta(fieldPath, (prev) => ({
-					...prev,
-					errorMap: { onSubmit: { message: err.message } },
-					isTouched: true
-				}))
-			})
+
+		if (!validateAndSetErrors(form, validationResult)) {
 			return
 		}
 
@@ -203,6 +214,7 @@ export default function StudentForm({
 	}
 
 	const handlePrevious = () => {
+		console.log({ values: form.state.values })
 		setCurrentStep((prev) => Math.max(prev - 1, 0))
 	}
 

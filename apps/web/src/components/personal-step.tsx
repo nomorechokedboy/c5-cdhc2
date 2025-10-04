@@ -15,9 +15,9 @@ export default function PersonalStep({ form }: { form: any }) {
 	)
 
 	return (
-		<div className='space-y-6'>
+		<div className='space-y-6 py-2'>
 			{/* Full Name - Full Width */}
-			<div className='grid grid-cols-3 gap-6'>
+			<div className='grid grid-cols-2 gap-6'>
 				<form.AppField name='fullName'>
 					{(field: any) => <field.TextField label='Họ và tên' />}
 				</form.AppField>
@@ -32,6 +32,12 @@ export default function PersonalStep({ form }: { form: any }) {
 							showBrowseButton={false}
 						/>
 					)}
+				</form.AppField>
+			</div>
+
+			<div className='grid grid-cols-2 gap-6'>
+				<form.AppField name='studentId'>
+					{(field: any) => <field.TextField label='Mã số học viên' />}
 				</form.AppField>
 
 				<form.AppField name='classId'>

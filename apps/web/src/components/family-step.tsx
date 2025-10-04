@@ -6,7 +6,7 @@ export interface FamilyStepProps {
 
 export default function FamilyStep({ form }: FamilyStepProps) {
 	return (
-		<div className='space-y-8'>
+		<div className='space-y-8 py-2'>
 			<div className='space-y-6'>
 				<h3 className='text-lg font-semibold border-b border-border pb-2'>
 					Thông tin về vợ/chồng
