@@ -1,69 +1,41 @@
 import { api } from 'encore.dev/api'
-import log from 'encore.dev/log'
-import busboy from 'busboy'
-import { MinIO } from '../objectStorage/minio'
 import { APICallMeta, currentRequest } from 'encore.dev'
 import { getAuthData } from '~encore/auth'
-
-type FileEntry = { data: any[]; filename: string }
+import { parseMultipartFiles } from './file-parser'
+import { logger } from '../logger/encore-logger'
+import {
+	getCacheHeaders,
+	retrieveFile,
+	saveFiles,
+	validateFileUri
+} from './controller'
+import { MinIO } from '../objectStorage/minio'
 
 export const UploadFiles = api.raw(
 	{ auth: true, expose: true, method: 'POST', path: '/media/upload' },
 	async (req, res) => {
-		const uId = getAuthData()!.userID
-		const bb = busboy({
-			headers: req.headers
-		})
-		const entries: FileEntry[] = []
+		try {
+			const userId = getAuthData()!.userID
 
-		bb.on('file', (_, file, info) => {
-			const entry: FileEntry = { filename: info.filename, data: [] }
-			file.on('data', (data) => {
-				entry.data.push(data)
-			})
-				.on('close', () => {
-					log.info(`File ${entry.filename} uploaded`)
-					entries.push(entry)
-				})
-				.on('error', (err) => {
-					log.error('busboy error', { err })
+			logger.info('Starting file upload', { userId })
 
-					bb.emit('error', err)
-				})
-		})
+			// Parse files from multipart form data
+			const files = await parseMultipartFiles(req, req.headers)
 
-		bb.on('close', async () => {
-			try {
-				const uris: string[] = []
+			logger.info('Files parsed', { count: files.length })
 
-				for (const entry of entries) {
-					log.info('Processing entry', { filename: entry.filename })
-					const buf = Buffer.concat(entry.data)
-					log.info(`File ${entry.filename} saved`)
-					const resp = await MinIO.PutObject({
-						Body: buf,
-						Key: `${uId}-${entry.filename}`
-					})
-					uris.push(resp.Key)
-				}
+			// Save files to storage
+			const uris = await saveFiles(files, userId, MinIO)
 
-				// Redirect to the root page
-				res.writeHead(200, { 'Content-Type': 'application/json' })
-				res.end(JSON.stringify({ data: { uris } }))
-			} catch (err) {
-				log.error('busboy error', { err })
+			logger.info('Files saved successfully', { count: uris.length })
 
-				bb.emit('error', err)
-			}
-		})
-
-		bb.on('error', async (err) => {
+			res.writeHead(200, { 'Content-Type': 'application/json' })
+			res.end(JSON.stringify({ data: { uris } }))
+		} catch (err) {
+			logger.error('Upload error', { err })
 			res.writeHead(500, { Connection: 'close' })
 			res.end(`Error: ${(err as Error).message}`)
-		})
-
-		req.pipe(bb)
-		return
+		}
 	}
 )
 
@@ -73,59 +45,53 @@ export const GetMedia = api.raw(
 		try {
 			const { fileUri } = (currentRequest() as APICallMeta).pathParams
 
-			if (!fileUri) {
+			// Validate input
+			const validatedUri = validateFileUri(fileUri)
+
+			logger.info('Fetching media file', { fileUri: validatedUri })
+
+			// Retrieve file from storage
+			const file = await retrieveFile(validatedUri, MinIO)
+
+			// Get cache headers
+			const cacheHeaders = getCacheHeaders()
+
+			// Set response headers
+			res.setHeader('Content-Type', file.contentType)
+
+			if (file.contentLength) {
+				res.setHeader('Content-Length', file.contentLength.toString())
+			}
+
+			res.setHeader('Cache-Control', cacheHeaders['Cache-Control'])
+			res.setHeader('ETag', `"${file.etag}"`)
+
+			// Stream the file to the response
+			file.stream.pipe(res)
+
+			// Handle streaming errors
+			file.stream.on('error', (err) => {
+				logger.error('Stream error', { err, fileUri: validatedUri })
+				if (!res.headersSent) {
+					res.writeHead(500, { connection: 'close' })
+					res.end(JSON.stringify({ error: 'Error streaming file' }))
+				}
+			})
+		} catch (err: any) {
+			logger.error('Error serving media', { err })
+
+			if (err.message === 'File URI is required') {
 				res.writeHead(400, {
 					'Content-Type': 'application/json',
 					connection: 'close'
 				})
-				res.end(JSON.stringify({ error: 'File URI is required' }))
-				return
-			}
-
-			log.info('Fetching media file', { fileUri })
-
-			// Get the file from S3/MinIO
-			const file = await MinIO.GetObject({
-				Key: fileUri
-			})
-
-			// Set appropriate headers
-			res.setHeader(
-				'Content-Type',
-				file.ContentType || 'application/octet-stream'
-			)
-
-			if (file.ContentLength) {
-				res.setHeader('Content-Length', file.ContentLength.toString())
-			}
-
-			// Set cache headers (optional but recommended)
-			res.setHeader('Cache-Control', 'public, max-age=31536000') // 1 year
-			res.setHeader('ETag', `"${fileUri}"`)
-
-			// Stream the file to the response
-			file.Body.pipe(res)
-
-			// Handle streaming errors
-			file.Body.on('error', (err) => {
-				log.error('Stream error', { err, fileUri })
-				if (!res.headersSent) {
-					res.writeHead(500, { connection: 'close' })
-					res.end(JSON.stringify({ error: 'Error streaming file' }))
-					return
-				}
-			})
-		} catch (err: any) {
-			log.error('Error serving media', { err })
-
-			if (err.message === 'File not found') {
+				res.end(JSON.stringify({ error: err.message }))
+			} else if (err.message === 'File not found') {
 				res.writeHead(404, { connection: 'close' })
 				res.end(JSON.stringify({ error: 'File not found' }))
-				return
 			} else {
 				res.writeHead(500, { connection: 'close' })
 				res.end(JSON.stringify({ error: 'Internal server error' }))
-				return
 			}
 		}
 	}
