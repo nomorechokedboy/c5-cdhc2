@@ -16,7 +16,7 @@ export default function useExportButton({
 }: ExportConfig) {
 	async function handleExport({ data, ...exportData }: ExportData) {
 		try {
-			const politicalOrgColLabel = 'Đoàn/Đảng'
+			const politicalOrgColLabel = 'politicalOrg'
 			const politicalOrgMap = { hcyu: 'Đoàn viên', cpv: 'Đảng viên' }
 			const sanitizedData = data.map((d) => {
 				for (const [key, val] of Object.entries(d)) {
