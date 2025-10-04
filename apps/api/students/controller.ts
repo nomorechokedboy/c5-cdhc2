@@ -29,6 +29,8 @@ import path from 'path'
 import { createReport } from 'docx-templates'
 import { APIError } from 'encore.dev/api'
 import { readFile } from 'fs/promises'
+import { createImageInjector } from './img-provider'
+import { ObjectStorageImageAdapter } from './minio-img-provider'
 
 dayjs.extend(quarterOfYear)
 
@@ -37,12 +39,14 @@ export class Controller {
 		CpvTempl: 'cpv-templ.docx',
 		HcyuTempl: 'hcyu-templ.docx',
 		StudentInfoTempl: 'student-info-templ.docx',
-		StudentWithAdversityTempl: 'student-with-adversity-templ.docx'
+		StudentWithAdversityTempl: 'student-with-adversity-templ.docx',
+		StudentEnrollmentFormTempl: 'student-enrollment-form-templ.docx'
 	}
 
 	constructor(
 		private readonly repo: Repository,
-		private readonly unitRepo: UnitRepository
+		private readonly unitRepo: UnitRepository,
+		private readonly imageStorage: ObjectStorageImageAdapter
 	) {}
 
 	create(params: StudentParam[]): Promise<StudentDB[]> {
@@ -289,14 +293,11 @@ export class Controller {
 				templateType
 			} = req
 
-			log.debug('Row', { row: data[0] })
 			// Prepare rows data
 			const rows: Record<string, any>[] = data.map((student, idx) => {
-				// Create an array of cell values in the same order as columns
 				Object.keys(student).forEach((col) => {
 					let cellValue = student[col]
 
-					// Format different data types
 					if (cellValue === null || cellValue === undefined) {
 						cellValue = ''
 					} else if (typeof cellValue === 'boolean') {
@@ -310,6 +311,7 @@ export class Controller {
 
 					return cellValue
 				})
+
 				if (templateType === 'CpvTempl') {
 					const ethnic = student['ethnic']
 					const isKinh = ethnic === 'Kinh'
@@ -343,11 +345,47 @@ export class Controller {
 
 			const template = await this.getTemplate(templateType!)
 
-			// Generate the report
+			let templData: any = {}
+			if (templateType !== 'StudentEnrollmentFormTempl') {
+				templData = { ...templateData }
+			} else {
+				const stu = rows.at(0)
+				if (stu === undefined) {
+					AppError.handleAppErr(
+						AppError.invalidArgument('Student data is empty')
+					)
+				}
+
+				const parentUnit = await this.unitRepo
+					.getOne({ id: stu.class.unit.parentId })
+					.catch(AppError.handleAppErr)
+
+				const { rows: _, ...templateDataWithoutRows } = templateData
+				templData = {
+					stu,
+					companyName: stu.class.unit.name,
+					batalionName: parentUnit?.name,
+					...templateDataWithoutRows
+				}
+			}
+
+			// Get the student's avatar key from storage
+			// Assuming the avatar key is stored in the student data
+			const studentAvatarKey = rows[0]?.avatarKey || 'default-avatar.png'
+
+			// Generate the report with image from object storage
 			const buffer = await createReport({
 				template,
-				data: templateData,
-				cmdDelimiter: ['{', '}']
+				data: templData,
+				cmdDelimiter: ['{', '}'],
+				additionalJsContext: {
+					// Use the image injector with object storage
+					injectAvt: createImageInjector(
+						studentAvatarKey,
+						this.imageStorage,
+						{ width: 3, height: 4 }
+					)
+				}
 			})
 
 			return buffer
@@ -360,6 +398,10 @@ export class Controller {
 	}
 }
 
-const studentController = new Controller(studentRepo, unitRepo)
+const studentController = new Controller(
+	studentRepo,
+	unitRepo,
+	ObjectStorageImageAdapter
+)
 
 export default studentController
