@@ -213,7 +213,8 @@ export const templateTypes = [
 	'CpvTempl',
 	'HcyuTempl',
 	'StudentInfoTempl',
-	'StudentWithAdversityTempl'
+	'StudentWithAdversityTempl',
+	'StudentEnrollmentFormTempl'
 ] as const
 
 export type TemplateType = (typeof templateTypes)[number]

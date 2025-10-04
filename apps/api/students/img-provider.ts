@@ -48,8 +48,8 @@ export async function getImageData(
  * Extract file extension from key
  */
 function extractExtension(key: string): string {
-	const match = key.match(/\.[^.]+$/)
-	return match ? match[0] : '.jpg'
+	const parts = key.split('.')
+	return parts[parts.length - 1]
 }
 
 /**

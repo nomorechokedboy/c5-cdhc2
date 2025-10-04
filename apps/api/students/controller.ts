@@ -371,7 +371,7 @@ export class Controller {
 
 			// Get the student's avatar key from storage
 			// Assuming the avatar key is stored in the student data
-			const studentAvatarKey = rows[0]?.avatarKey || 'default-avatar.png'
+			const studentAvatarKey = rows[0]?.avatar || 'default-avatar.png'
 
 			// Generate the report with image from object storage
 			const buffer = await createReport({
