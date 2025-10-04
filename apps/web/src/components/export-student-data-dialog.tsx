@@ -24,6 +24,7 @@ export interface ExportStudentDataDialogProps {
 		underUnitName?: string
 	}
 	templType: TemplType
+	id?: string
 }
 
 export function ExportStudentDataDialog({
@@ -31,7 +32,8 @@ export function ExportStudentDataDialog({
 	data,
 	defaultFilename,
 	defaultValues,
-	templType
+	templType,
+	id = 'exportFileForm'
 }: ExportStudentDataDialogProps) {
 	const { user } = useAuth()
 	const { onExport } = useExportButton({ filename: defaultFilename })
@@ -49,6 +51,8 @@ export function ExportStudentDataDialog({
 			templateType: templType
 		},
 		onSubmit: async ({ value, formApi }) => {
+			console.log({ value, errors: form.state.errors })
+
 			onExport(value).then(() => {
 				formApi.reset()
 			})
@@ -58,7 +62,7 @@ export function ExportStudentDataDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<form
-				id='exportFileForm'
+				id={id}
 				onSubmit={(e) => {
 					e.preventDefault()
 					e.stopPropagation()
@@ -66,7 +70,7 @@ export function ExportStudentDataDialog({
 				}}
 			>
 				<DialogTrigger asChild>{children}</DialogTrigger>
-				<DialogContent className='container'>
+				<DialogContent className='container' key={id}>
 					<DialogHeader>
 						<DialogTitle>Xuất dữ liệu</DialogTitle>
 						<DialogDescription>
@@ -177,7 +181,7 @@ export function ExportStudentDataDialog({
 							children={([canSubmit, isSubmitting]) => (
 								<Button
 									type='submit'
-									form='exportFileForm'
+									form={id}
 									disabled={!canSubmit}
 								>
 									{isSubmitting
