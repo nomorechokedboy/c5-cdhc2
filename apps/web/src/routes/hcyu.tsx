@@ -1,10 +1,14 @@
 import React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { SidebarInset } from '@/components/ui/sidebar'
-import StudentTable from '@/components/student-table'
+import StudentTable from '@/components/student-table/new-student-table'
 import type { StudentQueryParams } from '@/types'
 import useUnitsData from '@/hooks/useUnitsData'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import {
+	hcyuColumnVisibility,
+	hcyuTableColumns
+} from '@/components/student-table/columns'
 
 export const Route = createFileRoute('/hcyu')({
 	component: RouteComponent
@@ -174,8 +178,12 @@ function RouteComponent() {
 					{/* Student table for selected class */}
 					<div className='mt-4'>
 						<StudentTable
+							columns={hcyuTableColumns}
+							columnVisibility={hcyuColumnVisibility}
 							params={studentParams}
-							filename='danh-sach-doan-vien'
+							exportConfig={{
+								filename: 'danh-sach-doan-vien'
+							}}
 							templType='HcyuTempl'
 						/>
 					</div>
