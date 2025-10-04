@@ -2,8 +2,8 @@ import { rankOptions } from '@/data/ethnics'
 
 export default function MilitaryStep({ form }: { form: any }) {
 	return (
-		<div className='space-y-6'>
-			<div className='grid grid-cols-3 gap-6'>
+		<div className='space-y-6 py-2'>
+			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 				<form.AppField name='rank'>
 					{(field: any) => (
 						<field.Combobox
@@ -20,6 +20,11 @@ export default function MilitaryStep({ form }: { form: any }) {
 				<form.AppField name='policyBeneficiaryGroup'>
 					{(field: any) => (
 						<field.TextField label='Diện chính sách' />
+					)}
+				</form.AppField>
+				<form.AppField name='relatedDocumentations'>
+					{(field: any) => (
+						<field.TextField label='Hồ sơ nộp tại đơn vị mới' />
 					)}
 				</form.AppField>
 			</div>
@@ -69,6 +74,24 @@ export default function MilitaryStep({ form }: { form: any }) {
 					)}
 				</form.AppField>
 			</div>
+
+			<div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+				<form.AppField name='contactPerson.name'>
+					{(field: any) => (
+						<field.TextField label='Khi cần báo tin cho' />
+					)}
+				</form.AppField>
+
+				<form.AppField name='contactPerson.phoneNumber'>
+					{(field: any) => <field.TextField label='Số điện thoại' />}
+				</form.AppField>
+
+				<form.AppField name='contactPerson.address'>
+					{(field: any) => <field.TextField label='Địa chỉ' />}
+				</form.AppField>
+			</div>
+
+			<div className='grid grid-cols-1'></div>
 
 			<div className='grid grid-cols-1 gap-6'>
 				<form.AppField name='talent'>
