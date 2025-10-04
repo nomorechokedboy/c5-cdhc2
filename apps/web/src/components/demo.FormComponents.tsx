@@ -338,12 +338,22 @@ export function EditableInput({
 			</Label>
 			<ToggleInput
 				{...inputProps}
-				initialValue={field.state.value}
-				value={field.state.value}
-				onBlur={field.handleBlur}
-				onChange={(e) => field.handleChange(e.target.value)}
-				ellipsisMaxWidth={ellipsisMaxWidth}
 				type='text'
+				initialValue={field.state.value}
+				ellipsisMaxWidth={ellipsisMaxWidth}
+				onChange={(value) => {
+					// Update form state immediately on change to clear errors
+					field.handleChange(value)
+				}}
+				onSave={(value) => {
+					// Save and trigger blur validation
+					field.handleChange(value)
+					field.handleBlur()
+				}}
+				onCancel={() => {
+					// Trigger blur when canceling to validate
+					field.handleBlur()
+				}}
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
 		</div>

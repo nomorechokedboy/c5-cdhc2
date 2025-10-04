@@ -4,7 +4,6 @@ import {
 	useRef,
 	useEffect,
 	type ReactNode,
-	type JSX,
 	type ChangeEventHandler
 } from 'react'
 import { Button } from '@/components/ui/button'
@@ -59,6 +58,8 @@ type BaseToggleInputProps = {
 	disabled?: boolean
 	isLoading?: boolean
 	ellipsisMaxWidth?: string
+	onChange?: (value: any) => void
+	onCancel?: () => void
 }
 
 // Type-specific props using conditional types
@@ -67,10 +68,7 @@ type TypeSpecificProps<T extends InputType> = T extends 'text'
 			type: 'text'
 			initialValue?: string
 			onSave?: (value: string) => void
-		} & Omit<
-			JSX.IntrinsicElements['input'],
-			'placeholder' | 'type' | 'value' | 'onChange'
-		>
+		}
 	: T extends 'date'
 		? {
 				type: 'date'
@@ -83,14 +81,14 @@ type TypeSpecificProps<T extends InputType> = T extends 'text'
 					type: 'select'
 					initialValue?: string
 					onSave?: (value: string) => void
-					options: Option[] // Required for select
+					options: Option[]
 				}
 			: T extends 'combobox'
 				? {
 						type: 'combobox'
 						initialValue?: string
 						onSave?: (value: string) => void
-						options: Option[] // Required for combobox
+						options: Option[]
 						searchPlaceholder?: string
 						emptyMessage?: string
 						allowCustomValue?: boolean
@@ -109,6 +107,8 @@ export default function ToggleInput<T extends InputType>(
 		initialValue,
 		placeholder = 'Click to edit...',
 		onSave,
+		onChange,
+		onCancel,
 		className = '',
 		disabled = false,
 		isLoading = false,
@@ -125,6 +125,12 @@ export default function ToggleInput<T extends InputType>(
 	)
 	const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	// Sync with initialValue changes
+	useEffect(() => {
+		setValue(initialValue ?? (type === 'date' ? null : ''))
+		setTempValue(initialValue ?? (type === 'date' ? null : ''))
+	}, [initialValue, type])
 
 	// Focus input when editing starts (text input only)
 	useEffect(() => {
@@ -146,6 +152,7 @@ export default function ToggleInput<T extends InputType>(
 		setTempValue(value)
 		setIsEditing(false)
 		setIsPopoverOpen(false)
+		onCancel?.()
 	}
 
 	const handleDoubleClick = () => {
@@ -168,23 +175,27 @@ export default function ToggleInput<T extends InputType>(
 
 	// Type-specific handlers
 	const handleTextChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-		setTempValue(e.target.value)
-		if (type === 'text' && 'onChange' in restProps) {
-			restProps.onChange?.(e)
-		}
+		const newValue = e.target.value
+		setTempValue(newValue)
+		// Call onChange immediately for real-time validation
+		onChange?.(newValue)
 	}
 
 	const handleDateSelect = (date: Date | undefined) => {
-		setTempValue(date || null)
+		const newValue = date || null
+		setTempValue(newValue)
+		onChange?.(newValue)
 		setIsPopoverOpen(false)
 	}
 
 	const handleSelectChange = (newValue: string) => {
 		setTempValue(newValue)
+		onChange?.(newValue)
 	}
 
 	const handleComboboxSelect = (selectedValue: string) => {
 		setTempValue(selectedValue)
+		onChange?.(selectedValue)
 		setIsPopoverOpen(false)
 	}
 
@@ -242,12 +253,10 @@ export default function ToggleInput<T extends InputType>(
 			case 'text':
 				return (
 					<Input
-						{...(restProps as any)}
 						ref={inputRef}
 						value={tempValue || ''}
 						onChange={handleTextChange}
 						onKeyDown={handleKeyDown}
-						onBlur={handleCancel}
 						className='flex-1'
 						disabled={disabled || isLoading}
 					/>
