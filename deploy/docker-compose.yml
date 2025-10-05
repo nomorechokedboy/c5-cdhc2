@@ -31,6 +31,9 @@ services:
             - cron-network
             - minio-network
             - nsq-network
+        volumes:
+            - ../apps/api/templates/:/workspace/apps/api/templates
+            - ../apps/api/local.db/:/workspace/apps/api/local.db
     web:
         depends_on:
             app:
