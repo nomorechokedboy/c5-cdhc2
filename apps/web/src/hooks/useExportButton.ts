@@ -24,9 +24,9 @@ export default function useExportButton({
 			const politicalOrgMap = { hcyu: 'Đoàn viên', cpv: 'Đảng viên' }
 			const sanitizedData = data.map((d) => {
 				for (const [key, val] of Object.entries(d)) {
-					if (val === '') {
+					/* if (val === '') {
 						d[key] = 'Chưa có thông tin'
-					}
+					} */
 				}
 
 				const isPoliticalOrgExist =
