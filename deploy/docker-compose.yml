@@ -73,8 +73,6 @@ services:
             - cron-network
         command: >
             sh -c "
-
-
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
               echo '0 0 * * 1 /bin/sh /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 * * /bin/sh /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
@@ -170,7 +168,7 @@ services:
             retries: 3
             start_period: 20s
     minio:
-        image: docker.io/bitnamilegacy/minio:latest
+        image: docker.io/bitnami/minio:latest
         ports:
             - '9000:9000'
             - '9001:9001'
