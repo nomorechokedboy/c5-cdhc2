@@ -51,8 +51,6 @@ export function ExportStudentDataDialog({
 			templateType: templType
 		},
 		onSubmit: async ({ value, formApi }) => {
-			console.log({ value, errors: form.state.errors })
-
 			onExport(value).then(() => {
 				formApi.reset()
 			})

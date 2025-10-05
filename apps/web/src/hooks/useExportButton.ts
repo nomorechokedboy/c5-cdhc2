@@ -7,6 +7,10 @@ export type ExportConfig = {
 }
 
 function isoToDdMmYyyy(isoDate: string): string {
+	if (isoDate === 'Chưa có thông tin') {
+		return isoDate
+	}
+
 	const [year, month, day] = isoDate.split('-')
 	return `${day}/${month}/${year}`
 }
@@ -31,6 +35,8 @@ export default function useExportButton({
 					d[politicalOrgColLabel] !== ''
 
 				if (isPoliticalOrgExist) {
+					console.log('Hi', { isPoliticalOrgExist })
+
 					d[politicalOrgColLabel] =
 						politicalOrgMap[
 							d[
