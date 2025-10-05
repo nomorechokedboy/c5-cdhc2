@@ -52,7 +52,10 @@ export default function StudentEditForm({
 			politicalOrgOfficialDate: student.politicalOrgOfficialDate,
 			enlistmentPeriod: student.enlistmentPeriod,
 			rank: student.rank || 'Binh nhất',
-			avatarFile: null as File | null
+			avatar: student.avatar || (null as File | null),
+			relatedDocumentations: student.relatedDocumentations || '',
+			studentId: student.studentId || '',
+			classId: Number(student.classId)
 		},
 		onSubmit: async ({ value: { avatarFile, ...value } }) => {
 			try {
@@ -63,6 +66,9 @@ export default function StudentEditForm({
 					value.avatar = resp.uris[0]
 				}
 
+				if (typeof value.classId === 'string') {
+					value.classId = Number(value.classId)
+				}
 				await handlePatchStudentInfo({ ...value })
 				if (onClose) onClose()
 			} catch (err) {
