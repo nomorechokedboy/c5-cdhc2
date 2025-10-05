@@ -35,7 +35,7 @@
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.2",
     "duration": "link:dayjs/plugin/duration",
-    "encore.dev": "^1.50.0",
+    "encore.dev": "^1.50.4",
     "jsonwebtoken": "^9.0.2",
     "node": "link:@libsql/client/node",
     "uuid": "^11.1.0",

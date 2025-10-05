@@ -167,7 +167,7 @@ services:
             retries: 3
             start_period: 20s
     minio:
-        image: docker.io/bitnami/minio:latest
+        image: docker.io/bitnamilegacy/minio:latest
         ports:
             - '9000:9000'
             - '9001:9001'
@@ -178,7 +178,7 @@ services:
         volumes:
             - 'minio_data:/bitnami/minio/data'
         networks:
-            - minio_network
+            - minio-network
         healthcheck:
             test:
                 ['CMD', 'curl', '-I', 'http://localhost:9000/minio/health/live']
