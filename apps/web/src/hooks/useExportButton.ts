@@ -35,8 +35,6 @@ export default function useExportButton({
 					d[politicalOrgColLabel] !== ''
 
 				if (isPoliticalOrgExist) {
-					console.log('Hi', { isPoliticalOrgExist })
-
 					d[politicalOrgColLabel] =
 						politicalOrgMap[
 							d[
