@@ -35,21 +35,29 @@ export async function getImageData(
 	dimensions: { width: number; height: number }
 ): Promise<ImageData> {
 	const buffer = await provider.getImageBuffer(imageKey)
+	const extension = extractExtension(imageKey)
 
 	return {
 		width: dimensions.width,
 		height: dimensions.height,
 		data: buffer,
-		extension: extractExtension(imageKey)
+		extension
 	}
 }
+
+const validImgExt = ['.png', '.gif', '.jpg', '.jpeg', '.svg']
 
 /**
  * Extract file extension from key
  */
 function extractExtension(key: string): string {
 	const parts = key.split('.')
-	return parts[parts.length - 1]
+	const extension = `.${parts[parts.length - 1]}`
+	if (!validImgExt.includes(extension)) {
+		return '.png'
+	}
+
+	return extension
 }
 
 /**

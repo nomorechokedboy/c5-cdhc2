@@ -29,7 +29,7 @@ import path from 'path'
 import { createReport } from 'docx-templates'
 import { APIError } from 'encore.dev/api'
 import { readFile } from 'fs/promises'
-import { createImageInjector } from './img-provider'
+import { createImageInjector, ImageProvider } from './img-provider'
 import { ObjectStorageImageAdapter } from './minio-img-provider'
 
 dayjs.extend(quarterOfYear)
@@ -46,7 +46,7 @@ export class Controller {
 	constructor(
 		private readonly repo: Repository,
 		private readonly unitRepo: UnitRepository,
-		private readonly imageStorage: ObjectStorageImageAdapter
+		private readonly imageStorage: ImageProvider
 	) {}
 
 	create(params: StudentParam[]): Promise<StudentDB[]> {
