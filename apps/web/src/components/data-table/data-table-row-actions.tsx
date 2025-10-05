@@ -42,6 +42,13 @@ export function DataTableRowActions<TData>({
 
 	async function handleDeleteRow(_: MouseEvent<HTMLDivElement>) {
 		try {
+			if (
+				!confirm(
+					'Bạn có chắc chắn muốn xóa học viên này không? Hành động này không thể hoàn tác.'
+				)
+			) {
+				return
+			}
 			await deleteStudentMutate({ ids: [student.id] }).then(() =>
 				onDeleteRows?.([student.id])
 			)
