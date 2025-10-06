@@ -79,7 +79,7 @@ interface StudentBody {
 	avatar?: string
 	siblings?: ChildrenInfo[]
 	contactPerson?: Partial<ContactPerson>
-	studentId: string
+	studentId?: string
 	relatedDocumentations?: string
 }
 

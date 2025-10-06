@@ -74,7 +74,7 @@ export const students = sqlite.sqliteTable('students', {
 	avatar: sqlite.text(),
 	siblings: sqlite.text({ mode: 'json' }).default(sql`'[]'`),
 	contactPerson: sqlite.text({ mode: 'json' }).default(sql`'{}'`),
-	studentId: sqlite.text().unique(),
+	studentId: sqlite.text(),
 	relatedDocumentations: sqlite.text()
 })
 

@@ -1,0 +1,1 @@
+DROP INDEX `students_studentId_unique`;
