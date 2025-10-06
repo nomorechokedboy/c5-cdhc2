@@ -52,7 +52,7 @@ export const personalInfoSchema = z.object({
 	major: z.string().optional(),
 	phone: z.string().optional(),
 	dob: isoDateSchema,
-	studentId: z.string().nonempty('Mã học viên không được bỏ trống')
+	studentId: z.string()
 })
 
 export const militaryInfoSchema = z.object({
