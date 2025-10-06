@@ -20,11 +20,12 @@ export default function CompanyClassesTable({
 	const { data: company, refetch: refetchUnits } = useUnitData({
 		alias: companyAlias
 	})
-	const { data: classes } = useClassData({
+	const { data: classes, refetch: refetchClasses } = useClassData({
 		unitIds: company?.id !== undefined ? [company?.id] : []
 	})
 	const handleFormSuccess = () => {
 		refetchUnits()
+		refetchClasses()
 	}
 
 	const searchConfig = [
