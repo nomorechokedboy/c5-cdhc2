@@ -20,8 +20,7 @@ type TokenPayload = {
 	type: 'access' | 'refresh'
 	iat?: number
 	exp?: number
-	validClassId: number[]
-	validUnitId: number[]
+	validUnitId: number
 }
 
 type TokenResponse = {
@@ -52,7 +51,6 @@ class controller {
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				permissions,
-				validClassId: user.classId,
 				validUnitId: user.unitId,
 				type: 'access'
 			}
@@ -60,7 +58,6 @@ class controller {
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				permissions: [], // Refresh tokens don’t need permissions
-				validClassId: user.classId,
 				validUnitId: user.unitId,
 				type: 'refresh'
 			}
@@ -183,8 +180,7 @@ class controller {
 					userId,
 					permissions,
 					type: 'access',
-					validUnitId: [],
-					validClassId: []
+					validUnitId: 0
 				},
 				appConfig.JWT_PRIVATE_KEY,
 				{ expiresIn: '30m' }
