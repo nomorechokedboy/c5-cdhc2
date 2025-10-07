@@ -5,6 +5,7 @@ interface CreateUserRequest {
 	username: string
 	password: string
 	displayName: string
+	unitid: number
 }
 
 interface CreateUserResponse {
@@ -32,10 +33,23 @@ export interface User extends UserDB {
 export const CreateUser = api(
 	{ expose: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const { username, password, displayName } = req
+		const { username, password, displayName, unitid } = req
 
 		const data = await userController
-			.create({ password, username, displayName })
+			.create({ password, username, displayName, unitid })
+			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
+
+		return { data }
+	}
+)
+
+export const UpdateUser = api(
+	{ expose: true, method: 'POST', path: '/users' },
+	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
+		const { username, password, displayName, unitid } = req
+
+		const data = await userController
+			.create({ password, username, displayName, unitid })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }

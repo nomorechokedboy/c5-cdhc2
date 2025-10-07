@@ -18,15 +18,13 @@ export const users = p.sqliteTable('users', {
 export const usersRelations = relations(users, ({ many, one }) => ({
 	roles: many(userRoles),
 	unit: one(units)
-
 }))
 
 export interface UserDB extends Base {
 	username: string
 	password: string
 	displayName: string
-	unitId: number[]
-	classId: number[]
+	unitId: number
 }
 
 export interface User extends UserDB {
@@ -38,6 +36,7 @@ export interface CreateUserRequest {
 	password: string
 	roleIds?: number[]
 	displayName: string
+	unitid: number
 }
 
 export interface UpdateUserRequest {
