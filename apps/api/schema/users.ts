@@ -36,15 +36,15 @@ export interface CreateUserRequest {
 	password: string
 	roleIds?: number[]
 	displayName: string
-	unitid: number
+	unitId: number
 }
 
 export interface UpdateUserRequest {
 	id: number
-	username?: string
 	password?: string
 	roleIds?: number[]
 	displayName: string
+	unitId?: number
 }
 
 export interface AssignRoleRequest {
