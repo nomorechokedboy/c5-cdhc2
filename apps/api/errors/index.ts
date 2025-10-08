@@ -47,6 +47,8 @@ export class AppError extends Error {
 	}
 
 	public static handleAppErr(err: unknown): never {
+		console.error('handleAppErr - err:', err)
+
 		log.error('Error from handleAppErr!', { err })
 
 		if (err instanceof AppError) {

@@ -1,5 +1,6 @@
 import userRepo from '../users/repo'
 import { Repository as UserRepository } from '../users'
+import { Repository as UnitRespository } from '../units'
 import log from 'encore.dev/log'
 import { UserDB } from '../schema'
 import { AppError } from '../errors'
@@ -8,6 +9,7 @@ import { appConfig } from '../configs'
 import jwt from 'jsonwebtoken'
 import authzController from '../authz/controller'
 import type { StringValue } from 'ms'
+import unitRepo from '../units/repo'
 
 type LoginRequest = {
 	username: string
@@ -20,7 +22,8 @@ type TokenPayload = {
 	type: 'access' | 'refresh'
 	iat?: number
 	exp?: number
-	validUnitId: number
+	validUnitIds: number[]
+	validClassIds: number[]
 }
 
 type TokenResponse = {
@@ -39,7 +42,24 @@ type ChangePasswordRequest = {
 }
 
 class controller {
-	constructor(private readonly userRepo: UserRepository) {}
+	constructor(
+		private readonly userRepo: UserRepository,
+		private readonly unitRepo: UnitRespository,
+		private readonly repo = userRepo
+	) {}
+
+	// async getUserClassIds(userId: number): Promise<number[]> {
+	// 	try{
+	// 		const user  =await this.userRepo.findOne({id: userId} as UserDB)
+	// 		if(user!== null || user !== undefined){
+	// 		if(user.unitId === 1 || user.unitId === 2){
+	// 		}
+
+	// 	}
+	// 	}
+
+	// 	return []
+	// }
 
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
@@ -47,19 +67,34 @@ class controller {
 			const permissions = await authzController.getUserPermissions(
 				user.id
 			)
+			// const classIds  = await this.getUserClassIds(user.id)
+			const unit = await this.unitRepo.getOne({ id: user.unitId })
+			let classIds: number[] = []
+			let unitIds: number[] = []
+			if (unit?.level === 'battalion') {
+				classIds = unit.children
+					.map((c) => c.classes.map((cl) => cl.id))
+					.flat()
+				unitIds = unit.children.map((c) => c.id).flat()
+			} else if (unit?.level === 'company') {
+				classIds = unit.classes.map((cl) => cl.id)
+			}
+			unitIds.push(user.unitId)
 
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				permissions,
-				validUnitId: user.unitId,
-				type: 'access'
+				type: 'access',
+				validClassIds: classIds,
+				validUnitIds: unitIds
 			}
 
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				permissions: [], // Refresh tokens don’t need permissions
-				validUnitId: user.unitId,
-				type: 'refresh'
+				type: 'refresh',
+				validClassIds: [],
+				validUnitIds: []
 			}
 
 			// Use genToken for both
@@ -220,6 +255,6 @@ class controller {
 	}
 }
 
-const authController = new controller(userRepo)
+const authController = new controller(userRepo, unitRepo)
 
 export default authController
