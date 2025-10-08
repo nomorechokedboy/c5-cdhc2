@@ -5,10 +5,20 @@ interface CreateUserRequest {
 	username: string
 	password: string
 	displayName: string
-	unitid: number
+	unitId: number
+}
+
+interface UpdateUserRequest {
+	id: number
+	displayName: string
+	unitId?: number
 }
 
 interface CreateUserResponse {
+	data: UserDB
+}
+
+interface UpdateUserResponse {
 	data: UserDB
 }
 
@@ -33,10 +43,10 @@ export interface User extends UserDB {
 export const CreateUser = api(
 	{ expose: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const { username, password, displayName, unitid } = req
+		const { username, password, displayName, unitId } = req
 
 		const data = await userController
-			.create({ password, username, displayName, unitid })
+			.create({ password, username, displayName, unitId })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
@@ -44,12 +54,12 @@ export const CreateUser = api(
 )
 
 export const UpdateUser = api(
-	{ expose: true, method: 'POST', path: '/users' },
-	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const { username, password, displayName, unitid } = req
+	{ expose: true, method: 'PUT', path: '/users' },
+	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
+		const { id, displayName, unitId } = req
 
 		const data = await userController
-			.create({ password, username, displayName, unitid })
+			.update({ id, displayName, unitId })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
