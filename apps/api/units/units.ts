@@ -2,6 +2,8 @@ import { api, Query } from 'encore.dev/api'
 import { UnitParams } from '../schema'
 import unitController from './controller'
 import { ClassResponse } from '../classes/classes'
+import { getAuthData } from '~encore/auth'
+import { AppError } from '../errors'
 
 type UnitBody = {
 	alias: string
@@ -82,11 +84,15 @@ interface GetUnitResponse {
 
 export const GetUnit = api(
 	{ auth: true, expose: true, method: 'GET', path: '/units/:alias' },
-	async (params: GetUnitRequest): Promise<GetUnitResponse> => {
+	async ({ level, ...params }: GetUnitRequest): Promise<GetUnitResponse> => {
+		const validUnitIds = getAuthData()!.validUnitIds!
 		const data = await unitController
-			.findOne(params)
+			.findOne({
+				...params,
+				level: level as 'battalion' | 'company' | undefined,
+				validUnitIds
+			})
 			.then((resp) => (resp === undefined ? resp : ({ ...resp } as Unit)))
-
 		return { data }
 	}
 )

@@ -15,6 +15,8 @@ interface AuthParams {
 interface AuthData {
 	userID: string
 	permissions: string[]
+	validClassIds: number[]
+	validUnitIds: number[]
 }
 
 export const auth = authHandler<AuthParams, AuthData>(async (params) => {
@@ -34,7 +36,9 @@ export const auth = authHandler<AuthParams, AuthData>(async (params) => {
 		// Return auth data that will be available in all authenticated endpoints
 		return {
 			userID: payload.userId.toString(),
-			permissions: payload.permissions || []
+			permissions: payload.permissions || [],
+			validClassIds: payload.validClassIds || [],
+			validUnitIds: payload.validUnitIds || []
 		}
 	} catch (err) {
 		log.error('authHandler error', { err })

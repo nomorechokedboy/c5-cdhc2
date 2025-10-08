@@ -1,6 +1,7 @@
 import log from 'encore.dev/log'
 import { Repository } from '.'
 import { AppError } from '../errors'
+import { getAuthData } from '~encore/auth'
 import {
 	Unit,
 	UnitLevel,
@@ -11,6 +12,15 @@ import {
 import unitRepo from './repo'
 import { GetUnitsQuery, UnitDB } from './units'
 
+type findOneRequest = {
+	id?: number
+	alias: string
+	name?: string
+	level?: 'battalion' | 'company'
+
+	parentId?: number | null
+	validUnitIds: number[]
+}
 class controller {
 	constructor(private readonly repo: Repository) {}
 
@@ -71,11 +81,31 @@ class controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	findOne(p: UnitDB): Promise<Unit | undefined> {
+	async findOne({
+		validUnitIds,
+		...p
+	}: findOneRequest): Promise<Unit | undefined> {
 		const params = { ...p } as InteralUnitDB
-		log.trace('UnitController.findOne params', { params })
+		log.trace('UnitController.findOne params', {
+			params,
+			id: params.id,
+			validUnitIds
+		})
 
-		return this.repo.getOne(params).catch(AppError.handleAppErr)
+		const unit = await this.repo.getOne(params).catch(AppError.handleAppErr)
+		if (unit === undefined) {
+			AppError.handleAppErr(AppError.invalidArgument('Invalid unit'))
+		}
+
+		const isValidUnitId = validUnitIds.includes(unit.id)
+		if (isValidUnitId === false) {
+			AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission to read those units"
+				)
+			)
+		}
+		return unit
 	}
 }
 

@@ -79,6 +79,8 @@ export function mapAppErrorToAPIError(error: AppError): APIError {
 			return APIError.unimplemented(error.message)
 		case 'Unauthenticated':
 			return APIError.unauthenticated(error.message)
+		case 'Unauthorized':
+			return APIError.permissionDenied(error.message)
 		case 'NotFound':
 			return APIError.notFound(error.message)
 		case 'InternalError':
