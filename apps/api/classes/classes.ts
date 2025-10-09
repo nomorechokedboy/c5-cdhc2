@@ -3,6 +3,7 @@ import log from 'encore.dev/log'
 import { ClassDB, ClassParam } from '../schema/classes.js'
 import classController from './controller.js'
 import { UnitDB } from '../units/units.js'
+import { getAuthData } from '~encore/auth'
 
 interface ClassBody {
 	name: string
@@ -64,7 +65,8 @@ export const GetClasses = api(
 		ids,
 		unitIds
 	}: GetClassesRequest): Promise<GetClassesResponse> => {
-		const classes = await classController.find({ ids, unitIds })
+		const classIds = getAuthData()!.validClassIds
+		const classes = await classController.find({ ids: classIds, unitIds })
 		const resp = classes.map(
 			(c) =>
 				({
@@ -128,8 +130,9 @@ interface GetClassByIdResponse {
 export const GetClassById = api(
 	{ auth: true, expose: true, method: 'GET', path: '/classes/:id' },
 	async ({ id }: GetClassByIdRequest): Promise<GetClassByIdResponse> => {
+		const classIds = getAuthData()!.validClassIds
 		const data = await classController
-			.findOne(id)
+			.findOne(id, classIds)
 			.then((resp) =>
 				resp !== undefined ? ({ ...resp } as Class) : undefined
 			)
