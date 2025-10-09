@@ -20,6 +20,7 @@ import { Unit } from '../units/units.js'
 import { notiTopic } from '../topics/index.js'
 import * as v from 'valibot'
 import XlsxTemplate from 'xlsx-template'
+import { getAuthData } from '~encore/auth'
 
 interface ChildrenInfo {
 	fullName: string
@@ -169,9 +170,13 @@ export interface GetStudentsQuery {
 
 export const GetStudents = api(
 	{ expose: true, method: 'GET', path: '/students' },
-	async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
+	async ({ ...query }: GetStudentsQuery): Promise<GetStudentsResponse> => {
+		const validClassIds = getAuthData()!.validClassIds
 		log.trace('students.GetStudents query params', { params: query })
-		const students = await studentController.find(query)
+		const students = await studentController.find(
+			{ ...query },
+			validClassIds
+		)
 		const resp = students.map(
 			(s) => ({ ...s }) as unknown as StudentResponse
 		)

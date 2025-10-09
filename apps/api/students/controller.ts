@@ -57,13 +57,10 @@ export class Controller {
 		return this.repo.delete(students).catch(AppError.handleAppErr)
 	}
 
-	async find({
-		unitAlias,
-		unitLevel,
-		classId,
-		classIds,
-		...q
-	}: GetStudentsQuery): Promise<Student[]> {
+	async find(
+		{ unitAlias, unitLevel, classId, classIds, ...q }: GetStudentsQuery,
+		validClassIds: number[]
+	): Promise<Student[]> {
 		const isUnitAliasExist = unitAlias !== undefined
 		const isUnitLevelExist = unitLevel !== undefined
 		const isUnitQueryParamsValid = isUnitAliasExist && isUnitLevelExist
@@ -95,7 +92,25 @@ export class Controller {
 					classIds,
 					query: q
 				})
-				// AppError.handleAppErr(AppError.unauthorized("You don't have permission to read one of those classId"))
+
+				const classIdCheck = classIds?.every((id) =>
+					validClassIds.includes(id)
+				)
+
+				if (classIdCheck === false) {
+					AppError.handleAppErr(
+						AppError.unauthorized(
+							"You don't have permission to read one of those studentId"
+						)
+					)
+				}
+
+				if (classIds.length === 0) {
+					AppError.handleAppErr(
+						AppError.internal("You don't have classId")
+					)
+				}
+
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
@@ -107,6 +122,25 @@ export class Controller {
 					classIds,
 					query: q
 				})
+
+				const classIdCheck = classIds?.every((id) =>
+					validClassIds.includes(id)
+				)
+
+				if (classIdCheck === false) {
+					AppError.handleAppErr(
+						AppError.unauthorized(
+							"You don't have permission to read one of those studentId"
+						)
+					)
+				}
+
+				if (classIds.length === 0) {
+					AppError.handleAppErr(
+						AppError.internal("You don't have classId")
+					)
+				}
+
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
@@ -120,6 +154,9 @@ export class Controller {
 
 		if (classId !== undefined) {
 			cIds.push(classId)
+		}
+		if (cIds.length === 0) {
+			cIds.push(...validClassIds)
 		}
 
 		return this.repo
