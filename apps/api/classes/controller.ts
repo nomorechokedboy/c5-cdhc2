@@ -18,7 +18,10 @@ class Controller {
 		private readonly unitRepo: UnitRepository
 	) {}
 
-	async create(classParams: ClassParam[]): Promise<ClassDB[]> {
+	async create(
+		classParams: ClassParam[],
+		validUntiIds: number[]
+	): Promise<ClassDB[]> {
 		log.trace('classController.create params', { classParam: classParams })
 
 		const unitIds = classParams.map((p) => p.unitId)
@@ -27,6 +30,14 @@ class Controller {
 		if (isNotfoundUnit) {
 			throw AppError.handleAppErr(
 				AppError.invalidArgument('There are invalid unit ids')
+			)
+		}
+		const checkUnitIds = unitIds.every((a) => validUntiIds.includes(a))
+		if (checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission create class in this unit"
+				)
 			)
 		}
 

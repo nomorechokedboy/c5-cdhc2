@@ -60,7 +60,7 @@ interface GetUnitsResponse {
 }
 
 export const GetUnits = api(
-	{ expose: true, method: 'GET', path: '/units' },
+	{ auth: true, expose: true, method: 'GET', path: '/units' },
 	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
 		const unitIds = getAuthData()!.validUnitIds
 		const resp = await unitController.find(q, unitIds)

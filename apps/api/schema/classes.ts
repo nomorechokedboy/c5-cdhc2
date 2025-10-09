@@ -55,7 +55,7 @@ export type Class = ClassDB & { studentCount: number; unit: Unit }
 export type ClassParam = {
 	name: string
 	description?: string
-	graduatedAt: string
+	graduatedAt?: string
 	unitId: number
 }
 
