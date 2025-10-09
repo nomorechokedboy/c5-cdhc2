@@ -80,6 +80,11 @@ class controller {
 			)
 			// const classIds  = await this.getUserClassIds(user.id)
 			const unit = await this.unitRepo.getOne({ id: user.unitId })
+			if (unit === null || unit === undefined) {
+				AppError.handleAppErr(
+					AppError.invalidArgument("User don'have unit")
+				)
+			}
 			let classIds: number[] = []
 			let unitIds: number[] = []
 			if (unit?.level === 'battalion') {
@@ -104,8 +109,8 @@ class controller {
 				userId: user.id,
 				permissions,
 				type: 'access',
-				validClassIds: classIds,
-				validUnitIds: unitIds
+				validClassIds: classIds || [],
+				validUnitIds: unitIds || []
 			}
 
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
