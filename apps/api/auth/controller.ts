@@ -48,37 +48,49 @@ class controller {
 		private readonly repo = userRepo
 	) {}
 
+	async getValidIds(unitId: number) {
+		const unit = await this.unitRepo.getOne({ id: unitId })
+		if (unit === null || unit === undefined) {
+			AppError.handleAppErr(
+				AppError.invalidArgument("User don'have unit")
+			)
+		}
+		let classIds: number[] = []
+		let unitIds: number[] = []
+		if (unit?.level === 'battalion') {
+			classIds = unit.children
+				.map((c) => c.classes.map((cl) => cl.id))
+				.flat()
+			unitIds = unit.children.map((c) => c.id).flat()
+		} else if (unit?.level === 'company') {
+			classIds = unit.classes.map((cl) => cl.id)
+		}
+		unitIds.push(unitId)
+
+		return { validClassIds: classIds, validUnitIds: unitIds }
+	}
+
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
 			// Get user permissions from RBAC system
 			const permissions = await authzController.getUserPermissions(
 				user.id
 			)
-			// const classIds  = await this.getUserClassIds(user.id)
-			const unit = await this.unitRepo.getOne({ id: user.unitId })
-			if (unit === null || unit === undefined) {
-				AppError.handleAppErr(
-					AppError.invalidArgument("User don'have unit")
-				)
+
+			let classIds: number[] = [],
+				unitIds: number[] = []
+			if (user.unitId !== null) {
+				const validIds = await this.getValidIds(user.unitId)
+				classIds = validIds.validClassIds
+				unitIds = validIds.validUnitIds
 			}
-			let classIds: number[] = []
-			let unitIds: number[] = []
-			if (unit?.level === 'battalion') {
-				classIds = unit.children
-					.map((c) => c.classes.map((cl) => cl.id))
-					.flat()
-				unitIds = unit.children.map((c) => c.id).flat()
-			} else if (unit?.level === 'company') {
-				classIds = unit.classes.map((cl) => cl.id)
-			}
-			unitIds.push(user.unitId)
 
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				permissions,
 				type: 'access',
-				validClassIds: classIds || [],
-				validUnitIds: unitIds || []
+				validClassIds: classIds,
+				validUnitIds: unitIds
 			}
 
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
