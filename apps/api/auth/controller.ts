@@ -109,8 +109,8 @@ class controller {
 				userId: user.id,
 				permissions,
 				type: 'access',
-				validClassIds: classIds || [],
-				validUnitIds: unitIds || []
+				validClassIds: classIds,
+				validUnitIds: unitIds
 			}
 
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
