@@ -93,9 +93,23 @@ class Controller {
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
 	}
 
-	findOne(id: number): Promise<Class | undefined> {
+	async findOne(id: number, classIds: number[]): Promise<Class | undefined> {
 		log.trace('classController.findOne params', { params: { id } })
-		return this.repo.findOne({ id } as ClassDB).catch(AppError.handleAppErr)
+		const classData = await this.repo
+			.findOne({ id } as ClassDB)
+			.catch(AppError.handleAppErr)
+		if (classData === undefined) {
+			AppError.handleAppErr(AppError.invalidArgument('Validate classId'))
+		}
+		const isClassId = classIds.includes(id)
+		if (isClassId === false) {
+			AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission to read those class"
+				)
+			)
+		}
+		return classData
 	}
 }
 

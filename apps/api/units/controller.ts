@@ -11,6 +11,7 @@ import {
 } from '../schema'
 import unitRepo from './repo'
 import { GetUnitsQuery, UnitDB } from './units'
+import { length } from 'valibot'
 
 type findOneRequest = {
 	id?: number
@@ -61,9 +62,17 @@ class controller {
 		return this.repo.create(validParams).catch(AppError.handleAppErr)
 	}
 
-	find(q: GetUnitsQuery): Promise<Unit[]> {
+	find(q: GetUnitsQuery, unitIds: number[]): Promise<Unit[]> {
 		log.trace('UnitController.find params', { params: q })
-		const unitQuery: UnitQuery = {}
+
+		if (unitIds === undefined || unitIds.length === 0) {
+			AppError.handleAppErr(AppError.invalidArgument('Validate unitIds'))
+		}
+		const unitId = unitIds[unitIds.length - 1]
+		const unitQuery: UnitQuery = {
+			ids: [unitId]
+		}
+
 		if (q.level !== undefined) {
 			unitQuery.level = q.level
 		}

@@ -4,6 +4,7 @@ import unitController from './controller'
 import { ClassResponse } from '../classes/classes'
 import { getAuthData } from '~encore/auth'
 import { AppError } from '../errors'
+import { validate } from 'uuid'
 
 type UnitBody = {
 	alias: string
@@ -61,7 +62,8 @@ interface GetUnitsResponse {
 export const GetUnits = api(
 	{ expose: true, method: 'GET', path: '/units' },
 	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
-		const resp = await unitController.find(q)
+		const unitIds = getAuthData()!.validUnitIds
+		const resp = await unitController.find(q, unitIds)
 		const data = resp.map((u) => ({ ...u }) as Unit)
 
 		return { data }
