@@ -48,8 +48,8 @@ export default function CompanyClassesTable({
 				cardComponent={({ data }) => (
 					<ClassCard
 						data={data}
-						onEdit={() => refetchUnits()}
-						onDelete={() => refetchUnits()}
+						onEdit={handleFormSuccess}
+						onDelete={handleFormSuccess}
 					/>
 				)}
 				cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
