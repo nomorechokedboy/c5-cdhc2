@@ -52,8 +52,7 @@ export default function useExportButton({
 
 			const resp = await ExportTableData({
 				data: sanitizedData,
-				...exportData,
-				templateType: 'StudentEnrollmentFormTempl'
+				...exportData
 			})
 			const blob = new Blob([resp.data], {
 				type: resp.headers['content-type']
