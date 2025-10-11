@@ -11,6 +11,12 @@ import { Repository as UnitRepository } from '../units'
 import sqliteRepo from './repo'
 import log from 'encore.dev/log'
 import unitRepo from '../units/repo'
+import { getAuthData } from '~encore/auth'
+
+type classData = {
+	ids?: number[] | undefined
+	unitIds: number[] | undefined
+}
 
 class Controller {
 	constructor(
@@ -61,6 +67,12 @@ class Controller {
 		return this.repo.delete(classes).catch(AppError.handleAppErr)
 	}
 
+	findByIds(ids: number[]): Promise<ClassDB[]> {
+		log.trace('classController.findByIds ids', { ids })
+
+		return this.repo.findByIds(ids).catch(AppError.handleAppErr)
+	}
+
 	find(params: ClassQuery): Promise<ClassDB[]> {
 		log.trace('classController.find params', { params })
 
@@ -78,7 +90,24 @@ class Controller {
 				AppError.invalidArgument('No record IDs provided')
 			)
 		}
-
+		const validUntiIds = getAuthData()!.validUnitIds
+		const checkParamUnitIds = params.every((c) =>
+			validUntiIds.includes(c.unitId)
+		)
+		const classes = await this.findByIds(ids)
+		const checkUnitIds = (await classes).every((c) =>
+			validUntiIds.includes(c.unitId)
+		)
+		log.trace('Data,', { ids })
+		log.trace('classData,', { classes })
+		log.trace('check', checkUnitIds)
+		if (checkParamUnitIds === false || checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					'You are not authorized update this unitid'
+				)
+			)
+		}
 		const updateMap: UpdateClassMap = params.map(
 			({ id, ...updatePayload }) => {
 				const cleanupPayload = Object.fromEntries(

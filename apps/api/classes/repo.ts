@@ -13,6 +13,7 @@ import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
 import { units } from '../schema/units.js'
+import { table } from 'console'
 
 class SqliteRepo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -35,6 +36,15 @@ class SqliteRepo implements Repository {
 			.where(inArray(classes.id, ids))
 			.returning()
 			.catch(handleDatabaseErr)
+	}
+	async findByIds(ids: number[]): Promise<Class[]> {
+		let query = this.db.select().from(classes)
+
+		if (ids && ids.length > 0) {
+			query = query.where(inArray(classes.id, ids))
+		}
+
+		return query.all().catch(handleDatabaseErr)
 	}
 
 	find(q: ClassQuery): Promise<Class[]> {
