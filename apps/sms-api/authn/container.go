@@ -67,13 +67,10 @@ func NewContainer() *Container {
 	p.Start()
 
 	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
-	enrolledUserProvider := mdlapi.NewMdwlApiEnrolledUserProvider(mdlApi)
-	userGradeItemsProvider := mdlapi.NewMdlApiUserGradeItemsProvider(mdlApi)
+	courseGradesProvider := mdlapi.NewLocalCourseGradesProvider(mdlApi)
 	courseUseCase := usecases.NewCourseUseCase(
-		enrolledUserProvider,
 		mdlCourseRepo,
-		userGradeItemsProvider,
-		p,
+		courseGradesProvider,
 	)
 
 	controller := NewAuthnController(useCase)
