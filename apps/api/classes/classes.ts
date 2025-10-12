@@ -95,9 +95,8 @@ export const DeleteClasss = api(
 	async (body: DeleteClassRequest): Promise<DeleteClassResponse> => {
 		log.trace('classes.DeleteClasss body', { body })
 		const validClassIds = getAuthData()!.validClassIds
-		const validUntiIds = getAuthData()!.validUnitIds
 		const classes: ClassDB[] = body.ids.map((id) => ({ id }) as ClassDB)
-		await classController.delete(classes, validClassIds, validUntiIds)
+		await classController.delete(classes, validClassIds)
 
 		return { ids: body.ids }
 	}

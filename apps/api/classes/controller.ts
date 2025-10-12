@@ -61,11 +61,7 @@ class Controller {
 		return this.repo.create(classParams).catch(AppError.handleAppErr)
 	}
 
-	delete(
-		classes: ClassDB[],
-		validClassIds: number[],
-		validUnitIds: number[]
-	) {
+	delete(classes: ClassDB[], validClassIds: number[]) {
 		log.trace('classController.delete params', { params: classes })
 		const checkClassIds = classes.every((c) => validClassIds.includes(c.id))
 		log.trace('classController.delete checkClassIds', { checkClassIds })
