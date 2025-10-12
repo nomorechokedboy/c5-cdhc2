@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"encore.app/internal/entities"
+	"encore.app/internal/mdlapi"
 	"encore.app/internal/usecases"
 )
 
@@ -25,6 +26,6 @@ func (c *CourseController) GetUserCourses(
 func (c *CourseController) GetCourseDetails(
 	ctx context.Context,
 	req *entities.FindOneCourseParams,
-) (*entities.GetUserCourseDetailsResponse, error) {
+) (*mdlapi.GetCourseGradesResponse, error) {
 	return c.useCase.GetUserCourseDetails(ctx, req)
 }

@@ -6,6 +6,7 @@ import (
 	"encore.app/authn"
 	"encore.app/internal/entities"
 	"encore.app/internal/logger"
+	"encore.app/internal/mdlapi"
 	"encore.dev/beta/auth"
 	"encore.dev/beta/errs"
 )
@@ -40,7 +41,7 @@ func GetCourses(
 func GetCourseDetails(
 	ctx context.Context,
 	id int64,
-) (*entities.GetUserCourseDetailsResponse, error) {
+) (*mdlapi.GetCourseGradesResponse, error) {
 	uid, ok := auth.UserID()
 	if !ok {
 		logger.ErrorContext(ctx, "Failed to get UserID from mdw")
