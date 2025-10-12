@@ -37,7 +37,7 @@ class SqliteRepo implements Repository {
 			.returning()
 			.catch(handleDatabaseErr)
 	}
-	async findByIds(ids: number[]): Promise<Class[]> {
+	findByIds(ids: number[]): Promise<Class[]> {
 		let query = this.db.select().from(classes)
 
 		if (ids && ids.length > 0) {

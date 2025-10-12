@@ -49,7 +49,15 @@ export class Controller {
 		private readonly imageStorage: ImageProvider
 	) {}
 
-	create(params: StudentParam[]): Promise<StudentDB[]> {
+	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
+		const checkCLassIds = params.every((c) => classIds.includes(c.classId))
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					'You are not authorized create with this classid'
+				)
+			)
+		}
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 

@@ -105,8 +105,12 @@ export const CreateStudent = api(
 			...body
 		}
 		log.trace('students.CreateStudent body', { studentParam })
+		const classIds = getAuthData()!.validClassIds
 
-		const createdStudent = await studentController.create([studentParam])
+		const createdStudent = await studentController.create(
+			[studentParam],
+			classIds
+		)
 
 		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
@@ -122,8 +126,11 @@ export const CreateStudents = api(
 	{ expose: true, method: 'POST', path: '/students/bulk' },
 	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
 		const studentParams = body.data.map((b) => ({ ...b }) as StudentParam)
-
-		const createdStudent = await studentController.create(studentParams)
+		const classIds = getAuthData()!.validClassIds
+		const createdStudent = await studentController.create(
+			studentParams,
+			classIds
+		)
 
 		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
