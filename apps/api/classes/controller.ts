@@ -61,9 +61,21 @@ class Controller {
 		return this.repo.create(classParams).catch(AppError.handleAppErr)
 	}
 
-	delete(classes: ClassDB[]) {
+	delete(
+		classes: ClassDB[],
+		validClassIds: number[],
+		validUnitIds: number[]
+	) {
 		log.trace('classController.delete params', { params: classes })
-
+		const checkClassIds = classes.every((c) => validClassIds.includes(c.id))
+		log.trace('classController.delete checkClassIds', { checkClassIds })
+		if (checkClassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission delete class with this classId"
+				)
+			)
+		}
 		return this.repo.delete(classes).catch(AppError.handleAppErr)
 	}
 
