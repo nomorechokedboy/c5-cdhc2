@@ -9,90 +9,14 @@ import {
 import CourseHeader from './grade-table/course-header'
 import BulkEditControls from './grade-table/bulk-edit-controls'
 import GradesTable from './grade-table'
+import type { Course, Student } from '@/types'
 
-interface Student {
-	id: string
-	name: string
-	grades: { [key: string]: number }
+export type CourseDetailsProps = {
+	data: Course
 }
 
-interface Course {
-	id: string
-	title: string
-	description: string
-	startDate: string
-	endDate: string
-	gradeCategories: string[]
-}
-
-export default function CourseDetails() {
-	const [course] = useState<Course>({
-		id: '1',
-		title: 'Advanced Computer Science',
-		description:
-			'An in-depth exploration of advanced algorithms, data structures, and software engineering principles.',
-		startDate: '2024-01-15',
-		endDate: '2024-05-15',
-		gradeCategories: [
-			'Midterm Exam',
-			'Final Exam',
-			'Project',
-			'Assignments'
-		]
-	})
-
-	const [students, setStudents] = useState<Student[]>([
-		{
-			id: '1',
-			name: 'Alice Johnson',
-			grades: {
-				'Midterm Exam': 85,
-				'Final Exam': 92,
-				Project: 88,
-				Assignments: 90
-			}
-		},
-		{
-			id: '2',
-			name: 'Bob Smith',
-			grades: {
-				'Midterm Exam': 78,
-				'Final Exam': 84,
-				Project: 82,
-				Assignments: 86
-			}
-		},
-		{
-			id: '3',
-			name: 'Carol Davis',
-			grades: {
-				'Midterm Exam': 92,
-				'Final Exam': 95,
-				Project: 94,
-				Assignments: 93
-			}
-		},
-		{
-			id: '4',
-			name: 'David Wilson',
-			grades: {
-				'Midterm Exam': 76,
-				'Final Exam': 80,
-				Project: 79,
-				Assignments: 82
-			}
-		},
-		{
-			id: '5',
-			name: 'Emma Brown',
-			grades: {
-				'Midterm Exam': 89,
-				'Final Exam': 87,
-				Project: 91,
-				Assignments: 88
-			}
-		}
-	])
+export default function CourseDetails({ data: course }: CourseDetailsProps) {
+	const [students, setStudents] = useState<Student[]>(course.students)
 
 	const [bulkEditMode, setBulkEditMode] = useState<
 		'single-category' | 'all-grades' | null
@@ -100,7 +24,7 @@ export default function CourseDetails() {
 	const [bulkEditCategory, setBulkEditCategory] = useState<string>('')
 
 	const handleGradeSave = (
-		studentId: string,
+		studentId: number,
 		category: string,
 		value: number
 	) => {
@@ -135,7 +59,7 @@ export default function CourseDetails() {
 	}
 
 	return (
-		<div className='container mx-auto p-6 space-y-6'>
+		<div className='container mx-auto p-6 space-y-6 relative'>
 			<CourseHeader course={course} studentCount={students.length} />
 
 			<Card className='border-border'>
