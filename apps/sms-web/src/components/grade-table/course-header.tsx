@@ -7,15 +7,7 @@ import {
 } from '@repo/ui/components/ui/card'
 import { Badge } from '@repo/ui/components/ui/badge'
 import { CalendarDays, Users, BookOpen } from 'lucide-react'
-
-interface Course {
-	id: string
-	title: string
-	description: string
-	startDate: string
-	endDate: string
-	gradeCategories: string[]
-}
+import type { Course } from '@/types'
 
 interface CourseHeaderProps {
 	course: Course
@@ -35,7 +27,7 @@ export default function CourseHeader({
 	}
 
 	return (
-		<Card className='border-border'>
+		<Card className='border-border sticky top-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
 			<CardHeader className='pb-4'>
 				<div className='flex items-start justify-between'>
 					<div className='space-y-2'>

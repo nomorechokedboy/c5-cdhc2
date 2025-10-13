@@ -9,19 +9,14 @@ import {
 	TableRow
 } from '@repo/ui/components/ui/table'
 import EditableGradeCell from './editable-grade-cell'
-
-interface Student {
-	id: string
-	name: string
-	grades: { [key: string]: number }
-}
+import type { Student } from '@/types'
 
 interface GradesTableProps {
 	students: Student[]
 	gradeCategories: string[]
 	bulkEditMode: 'single-category' | 'all-grades' | null
 	bulkEditCategory: string
-	onGradeSave: (studentId: string, category: string, value: number) => void
+	onGradeSave: (studentId: number, category: string, value: number) => void
 	onCategorySelect: (category: string) => void
 }
 
@@ -33,7 +28,7 @@ export default function GradesTable({
 	onGradeSave,
 	onCategorySelect
 }: GradesTableProps) {
-	const calculateAverage = (grades: { [key: string]: number }) => {
+	const calculateAverage = (grades: Record<string, number>) => {
 		const values = Object.values(grades).filter(
 			(grade) => grade !== undefined && grade !== null
 		)
@@ -44,10 +39,12 @@ export default function GradesTable({
 	}
 
 	const getGradeColor = (average: number) => {
-		if (average >= 90) return 'bg-green-100 text-green-800 border-green-200'
-		if (average >= 80) return 'bg-blue-100 text-blue-800 border-blue-200'
-		if (average >= 70)
+		if (average >= 9) return 'bg-green-100 text-green-800 border-green-200'
+		if (average >= 8) return 'bg-blue-100 text-blue-800 border-blue-200'
+		if (average >= 7)
 			return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+		if (average >= 5)
+			return 'bg-orange-100 text-orange-800 border-orange-200'
 		return 'bg-red-100 text-red-800 border-red-200'
 	}
 

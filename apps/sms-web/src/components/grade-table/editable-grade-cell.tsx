@@ -4,11 +4,11 @@ import { Input } from '@repo/ui/components/ui/input'
 import { Edit3, Save, X } from 'lucide-react'
 
 interface EditableGradeCellProps {
-	studentId: string
+	studentId: number
 	category: string
 	value: number
 	isHighlighted?: boolean
-	onSave: (studentId: string, category: string, value: number) => void
+	onSave: (studentId: number, category: string, value: number) => void
 }
 
 export default function EditableGradeCell({
@@ -23,7 +23,7 @@ export default function EditableGradeCell({
 
 	const handleEditStart = () => {
 		setIsEditing(true)
-		setEditValue(value.toString())
+		setEditValue(value.toFixed(2))
 	}
 
 	const handleEditSave = () => {
@@ -46,7 +46,8 @@ export default function EditableGradeCell({
 				<Input
 					type='number'
 					min='0'
-					max='100'
+					max='10'
+					step='0.1'
 					value={editValue}
 					onChange={(e) => setEditValue(e.target.value)}
 					className='w-16 h-8 text-center'
@@ -82,7 +83,7 @@ export default function EditableGradeCell({
 			className={`h-8 px-2 hover:bg-muted/50 group ${isHighlighted ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
 			onClick={handleEditStart}
 		>
-			<span className='font-medium'>{value || 0}</span>
+			<span className='font-medium'>{value.toFixed(2) || 0}</span>
 			<Edit3 className='h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity' />
 		</Button>
 	)
