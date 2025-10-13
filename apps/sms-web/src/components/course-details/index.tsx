@@ -6,16 +6,18 @@ import {
 	CardHeader,
 	CardTitle
 } from '@repo/ui/components/ui/card'
-import CourseHeader from './grade-table/course-header'
-import BulkEditControls from './grade-table/bulk-edit-controls'
-import GradesTable from './grade-table'
+import CourseHeader from '@/components/grade-table/course-header'
+import BulkEditControls from '@/components/grade-table/bulk-edit-controls'
+import GradesTable from '@/components/grade-table'
 import type { Course } from '@/types'
+import CourseDetailsSkeleton from './skeleton'
+import CourseDetailsError from './error'
 
-export type CourseDetailsProps = {
+type InnerCourseDetailsProps = {
 	data: Course
 }
 
-export default function CourseDetails({ data: course }: CourseDetailsProps) {
+function InnerCourseDetails({ data: course }: InnerCourseDetailsProps) {
 	const students = course.students
 
 	const [bulkEditMode, setBulkEditMode] = useState<
@@ -84,4 +86,36 @@ export default function CourseDetails({ data: course }: CourseDetailsProps) {
 			</Card>
 		</div>
 	)
+}
+
+export type CourseDetailsProps = {
+	isLoading: boolean
+	error?: Error | string | null
+	data?: Course
+	onRetry: () => void
+}
+
+export default function CourseDetails({
+	isLoading,
+	error,
+	data,
+	onRetry
+}: CourseDetailsProps) {
+	// Show loading skeleton
+	if (isLoading) {
+		return <CourseDetailsSkeleton />
+	}
+
+	// Show error state
+	if (error) {
+		return <CourseDetailsError error={error} onRetry={onRetry} />
+	}
+
+	// Show actual content
+	if (data) {
+		return <InnerCourseDetails data={data} />
+	}
+
+	// Fallback - shouldn't normally reach here
+	return <CourseDetailsSkeleton />
 }
