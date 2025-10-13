@@ -39,7 +39,7 @@ function RouteComponent() {
 		select: (s) => s.location.state.category
 	})
 	const { data: courseData = [], isLoading: isCoursesLoading } = useQuery({
-		queryKey: [category?.id, 'courses'],
+		queryKey: ['courses', category?.id],
 		queryFn: () => CourseApi.GetCourses({ CategoryId: category?.id ?? 0 })
 	})
 	const courses = courseData.map(
