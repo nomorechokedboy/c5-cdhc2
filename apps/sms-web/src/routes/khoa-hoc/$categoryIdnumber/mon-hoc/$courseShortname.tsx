@@ -12,7 +12,7 @@ export const Route = createFileRoute(
 })
 
 function RouteComponent() {
-	const { courseShortname, categoryIdnumber } = Route.useParams()
+	// const { courseShortname, categoryIdnumber } = Route.useParams()
 	const course = useRouterState({
 		select(s) {
 			return s.location.state.course
@@ -20,7 +20,9 @@ function RouteComponent() {
 	})
 	const {
 		data: courseDetails = Course.DefaultCourse(),
-		isLoading: isLoadingCourseDetails
+		isLoading: isLoadingCourseDetails,
+		refetch: refetchCourseDetails,
+		error: courseDetailsErr
 	} = useQuery({
 		queryKey: ['courseDetails', course?.id],
 		queryFn: () =>
@@ -28,11 +30,19 @@ function RouteComponent() {
 				Course.From
 			)
 	})
-	console.log({ courseDetails })
+
+	const handleRetry = () => {
+		refetchCourseDetails()
+	}
 
 	return (
 		<ProtectedRoute>
-			<CourseDetails data={courseDetails} />
+			<CourseDetails
+				data={courseDetails}
+				isLoading={isLoadingCourseDetails}
+				error={courseDetailsErr}
+				onRetry={handleRetry}
+			/>
 		</ProtectedRoute>
 	)
 }
