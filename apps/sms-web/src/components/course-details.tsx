@@ -9,14 +9,14 @@ import {
 import CourseHeader from './grade-table/course-header'
 import BulkEditControls from './grade-table/bulk-edit-controls'
 import GradesTable from './grade-table'
-import type { Course, Student } from '@/types'
+import type { Course } from '@/types'
 
 export type CourseDetailsProps = {
 	data: Course
 }
 
 export default function CourseDetails({ data: course }: CourseDetailsProps) {
-	const [students, setStudents] = useState<Student[]>(course.students)
+	const students = course.students
 
 	const [bulkEditMode, setBulkEditMode] = useState<
 		'single-category' | 'all-grades' | null
@@ -28,19 +28,7 @@ export default function CourseDetails({ data: course }: CourseDetailsProps) {
 		category: string,
 		value: number
 	) => {
-		setStudents((prev) =>
-			prev.map((student) =>
-				student.id === studentId
-					? {
-							...student,
-							grades: {
-								...student.grades,
-								[category]: value
-							}
-						}
-					: student
-			)
-		)
+		console.log('Hi')
 	}
 
 	const handleBulkEditCategory = () => {
