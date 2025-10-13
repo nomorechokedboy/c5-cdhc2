@@ -75,10 +75,14 @@ class categoryApi {
 export const CategoryApi = new categoryApi()
 
 class courseApi {
-	async GetCourses({ CategoryId }: { CategoryId: number }) {
+	GetCourses({ CategoryId }: { CategoryId: number }) {
 		return client.usrcourses
 			.GetCourses({ CategoryId })
 			.then((resp) => resp.Data)
+	}
+
+	GetCourseDetails({ id }: { id: number }) {
+		return client.usrcourses.GetCourseDetails(id)
 	}
 }
 
