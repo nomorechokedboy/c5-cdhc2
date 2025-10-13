@@ -1,3 +1,4 @@
+import CourseDetails from '@/components/course-details'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -12,9 +13,7 @@ function RouteComponent() {
 
 	return (
 		<ProtectedRoute>
-			<div>
-				Hello "/khoa-hoc/{categoryIdnumber}/mon-hoc/{courseShortname}"!
-			</div>
+			<CourseDetails />
 		</ProtectedRoute>
 	)
 }
