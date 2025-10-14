@@ -16,7 +16,7 @@ function isoToDdMmYyyy(isoDate: string): string {
 export const baseStudentsColumns: ColumnDef<Student>[] = [
 	{
 		id: 'class.name',
-		accessorFn: (row) => row.class.name,
+		accessorFn: (row) => row.class?.name,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
@@ -305,9 +305,7 @@ export const columns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'rank',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Cấp bậc' />
-		),
+		header: 'Cấp bậc',
 		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -328,9 +326,7 @@ export const columns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'previousUnit',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Đơn vị cũ' />
-		),
+		header: 'Đơn vị cũ',
 		cell: EditableCell,
 		enableHiding: true,
 		filterFn: (row, id, value) => {
@@ -342,9 +338,7 @@ export const columns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'ethnic',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Dân tộc' />
-		),
+		header: 'Dân tộc',
 		cell: ({ row }) => (
 			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
@@ -360,9 +354,7 @@ export const columns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'educationLevel',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Học vấn' />
-		),
+		header: 'Học vấn',
 		cell: ({ row }) => (
 			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
 				{row.getValue('educationLevel')}
@@ -493,7 +485,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		id: 'class.name',
-		accessorFn: (row) => `${row.class.name} - ${row.class.unit.alias}`,
+		accessorFn: (row) => `${row.class?.name} - ${row.class?.unit.alias}`,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
@@ -751,9 +743,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'rank',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Cấp bậc' />
-		),
+		header: 'Cấp bậc',
 		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -774,9 +764,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'previousUnit',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Đơn vị cũ' />
-		),
+		header: 'Đơn vị cũ',
 		cell: EditableCell,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -787,9 +775,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'ethnic',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Dân tộc' />
-		),
+		header: 'Dân tộc',
 		cell: ({ row }) => (
 			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
@@ -804,9 +790,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'educationLevel',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Học vấn' />
-		),
+		header: 'Học vấn',
 		cell: ({ row }) => (
 			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
 				{row.getValue('educationLevel')}
@@ -936,7 +920,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		id: 'class.name',
-		accessorFn: (row) => `${row.class.name} - ${row.class.unit.alias}`,
+		accessorFn: (row) => `${row.class?.name} - ${row.class?.unit.alias}`,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
@@ -1194,9 +1178,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'rank',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Cấp bậc' />
-		),
+		header: 'Cấp bậc',
 		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -1217,9 +1199,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'previousUnit',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Đơn vị cũ' />
-		),
+		header: 'Đơn vị cũ',
 		cell: EditableCell,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -1230,9 +1210,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'ethnic',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Dân tộc' />
-		),
+		header: 'Dân tộc',
 		cell: ({ row }) => (
 			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
@@ -1247,9 +1225,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'educationLevel',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Học vấn' />
-		),
+		header: 'Học vấn',
 		cell: ({ row }) => (
 			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
 				{row.getValue('educationLevel')}
@@ -1593,9 +1569,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'rank',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Cấp bậc' />
-		),
+		header: 'Cấp bậc',
 		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -1616,9 +1590,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'previousUnit',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Đơn vị cũ' />
-		),
+		header: 'Đơn vị cũ',
 		cell: EditableCell,
 		enableHiding: true,
 		filterFn: (row, id, value) => {
@@ -1630,9 +1602,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'ethnic',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Dân tộc' />
-		),
+		header: 'Dân tộc',
 		cell: ({ row }) => (
 			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
@@ -1648,9 +1618,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'educationLevel',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Học vấn' />
-		),
+		header: 'Học vấn',
 		cell: ({ row }) => (
 			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
 				{row.getValue('educationLevel')}
@@ -1995,9 +1963,7 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'rank',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Cấp bậc' />
-		),
+		header: 'Cấp bậc',
 		cell: EditableMilitaryRank,
 		filterFn: (row, id, value) => {
 			return value.includes(row.getValue(id))
@@ -2018,9 +1984,7 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'previousUnit',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Đơn vị cũ' />
-		),
+		header: 'Đơn vị cũ',
 		cell: EditableCell,
 		enableHiding: true,
 		filterFn: (row, id, value) => {
@@ -2032,9 +1996,7 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'ethnic',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Dân tộc' />
-		),
+		header: 'Dân tộc',
 		cell: ({ row }) => (
 			<Badge className='bg-cyan-500 text-white font-bold'>
 				{row.getValue('ethnic')}
@@ -2050,9 +2012,7 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 	},
 	{
 		accessorKey: 'educationLevel',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Học vấn' />
-		),
+		header: 'Học vấn',
 		cell: ({ row }) => (
 			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
 				{row.getValue('educationLevel')}
