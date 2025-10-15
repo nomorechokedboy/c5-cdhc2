@@ -19,7 +19,7 @@ export default function Header() {
 	const segments = path.split('/').filter(Boolean)
 
 	const breadcrumbItems = [
-		{ label: 'Home', href: '/' },
+		{ label: 'Trang chủ', href: '/' },
 		...segments.map((seg, idx) => ({
 			label: decodeURIComponent(seg),
 			href: '/' + segments.slice(0, idx + 1).join('/')
