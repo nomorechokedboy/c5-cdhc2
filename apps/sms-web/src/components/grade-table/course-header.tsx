@@ -27,7 +27,7 @@ export default function CourseHeader({
 	}
 
 	return (
-		<Card className='border-border sticky top-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
+		<Card className='border-border sticky top-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
 			<CardHeader className='pb-4'>
 				<div className='flex items-start justify-between'>
 					<div className='space-y-2'>
