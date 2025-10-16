@@ -57,12 +57,12 @@ function InnerCourseDetails({ data: course }: InnerCourseDetailsProps) {
 					<div className='flex items-center justify-between'>
 						<div>
 							<CardTitle className='text-xl font-semibold text-foreground'>
-								Student Grades
+								Điểm số học viên
 							</CardTitle>
 							<CardDescription className='text-muted-foreground'>
 								{bulkEditMode
-									? `Bulk editing mode: ${bulkEditMode === 'single-category' ? `${bulkEditCategory} for all students` : 'All grades for all students'}`
-									: 'Click on any grade to edit. Grades are automatically averaged to calculate the total.'}
+									? `Chế độ sửa điểm: ${bulkEditMode === 'single-category' ? `Sửa điểm ${bulkEditCategory} cho tất cả học viên` : 'Sửa điểm tất cả các môn của tất cả học viên'}`
+									: 'Nhấp đúp chuột vào điểm để chỉnh sửa. Điểm tổng kết sẽ được tính tự động.'}
 							</CardDescription>
 						</div>
 						<BulkEditControls
