@@ -59,14 +59,14 @@ export class Course {
 		readonly id: number,
 		readonly title: string,
 		readonly description: string,
-		readonly startDate: string,
-		readonly endDate: string,
+		readonly startDate: number,
+		readonly endDate: number,
 		readonly gradeCategories: string[],
 		readonly students: Student[]
 	) {}
 
 	public static DefaultCourse() {
-		return new Course(0, '', '', 'N/A', 'N/A', [], [])
+		return new Course(0, 'Khóa học...', 'Chưa có mô tả ', 0, 0, [], [])
 	}
 
 	public static From(
@@ -77,7 +77,7 @@ export class Course {
 		}
 
 		const {
-			course: { id, fullname },
+			course: { id, fullname, summary, enddate, startdate },
 			modules,
 			students
 		} = resp
@@ -86,9 +86,9 @@ export class Course {
 		return new Course(
 			id,
 			fullname,
-			'',
-			'N/A',
-			'N/A',
+			summary === '' ? 'Chưa có mô tả' : summary,
+			startdate,
+			enddate,
 			gradeCategories,
 			courseStudents
 		)
