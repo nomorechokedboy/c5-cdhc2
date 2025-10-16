@@ -277,15 +277,9 @@ export namespace entities {
 		idnumber: string
 		visible: number
 		summary: string
-		summaryformat: number
-		format: string
-		showgrades: boolean
-		lang: string
-		enablecompletion: boolean
 		category: number
 		startdate: number
 		enddate: number
-		marker: number
 		timemodified: number
 	}
 
@@ -324,6 +318,15 @@ export namespace mdlapi {
 		course: {
 			id: number
 			fullname: string
+			shortname: string
+			idnumber: string
+			visible: number
+			summary: string
+			category: number
+			startdate: number
+			enddate: number
+			marker: number
+			timemodified: number
 		}
 		modules: Module[]
 		students: Student[]
@@ -344,6 +347,7 @@ export namespace mdlapi {
 		type: string
 		grademin: number
 		grademax: number
+		idnumber: string
 	}
 
 	export interface Student {
