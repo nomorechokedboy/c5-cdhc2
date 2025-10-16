@@ -8,6 +8,7 @@ import {
 import { Badge } from '@repo/ui/components/ui/badge'
 import { CalendarDays, Users, BookOpen } from 'lucide-react'
 import type { Course } from '@/types'
+import { formatDate } from '@/lib/utils'
 
 interface CourseHeaderProps {
 	course: Course
@@ -18,14 +19,6 @@ export default function CourseHeader({
 	course,
 	studentCount
 }: CourseHeaderProps) {
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
-
 	return (
 		<Card className='border-border sticky top-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
 			<CardHeader className='pb-4'>
@@ -53,12 +46,20 @@ export default function CourseHeader({
 					<div className='flex items-center gap-2'>
 						<CalendarDays className='h-4 w-4' />
 						<span>
-							Ngày bắt đầu: {formatDate(course.startDate)}
+							Ngày bắt đầu:{' '}
+							{course.startDate === 0
+								? 'Chưa có'
+								: formatDate(course.startDate)}
 						</span>
 					</div>
 					<div className='flex items-center gap-2'>
 						<CalendarDays className='h-4 w-4' />
-						<span>Ngày kết thúc: {formatDate(course.endDate)}</span>
+						<span>
+							Ngày kết thúc:{' '}
+							{course.endDate === 0
+								? 'Chưa có'
+								: formatDate(course.endDate)}
+						</span>
 					</div>
 				</div>
 			</CardContent>
