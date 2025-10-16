@@ -25,6 +25,9 @@
 		],
 		"*.{json,yaml,yml}": [
 			"prettier --write"
+		],
+		"*.go": [
+			"gofmt"
 		]
 	}
 }
