@@ -61,7 +61,17 @@ export class Controller {
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	delete(students: StudentDB[]) {
+	delete(students: StudentDB[], validClassIds: number[]) {
+		const checkCLassIds = students.every((c) =>
+			validClassIds.includes(c.classId)
+		)
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission Delete student"
+				)
+			)
+		}
 		return this.repo.delete(students).catch(AppError.handleAppErr)
 	}
 
@@ -172,13 +182,26 @@ export class Controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	async update(params: StudentDB[]): Promise<StudentDB[]> {
+	async update(
+		params: StudentDB[],
+		validClassIds: number[]
+	): Promise<StudentDB[]> {
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
 		const isIdsValid = !ids || isIdsEmpty
 		if (isIdsValid) {
 			throw AppError.handleAppErr(
 				AppError.invalidArgument('No record IDs provided')
+			)
+		}
+		const checkCLassIds = params.every((c) =>
+			validClassIds.includes(c.classId)
+		)
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission update this student"
+				)
 			)
 		}
 
@@ -203,7 +226,6 @@ export class Controller {
 				return { id, updatePayload: cleanupPayload }
 			}
 		)
-
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
 	}
 

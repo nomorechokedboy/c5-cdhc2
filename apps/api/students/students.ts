@@ -208,7 +208,8 @@ export const DeleteStudents = api(
 		const students: StudentDB[] = body.ids.map(
 			(id) => ({ id }) as StudentDB
 		)
-		await studentController.delete(students)
+		const validClassIds = getAuthData()!.validClassIds
+		await studentController.delete(students, validClassIds)
 
 		return { ids: body.ids }
 	}
@@ -228,8 +229,8 @@ export const UpdateStudents = api(
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB
 		)
-
-		await studentController.update(students)
+		const validClassIds = getAuthData()!.validClassIds
+		await studentController.update(students, validClassIds)
 
 		return {}
 	}
