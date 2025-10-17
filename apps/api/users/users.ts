@@ -1,5 +1,6 @@
 import { api } from 'encore.dev/api'
 import userController from './controller'
+import { getAuthData } from '~encore/auth'
 
 interface CreateUserRequest {
 	username: string
@@ -57,9 +58,9 @@ export const UpdateUser = api(
 	{ expose: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
 		const { id, displayName, unitId } = req
-
+		const validUnitIds = getAuthData()!.validUnitIds
 		const data = await userController
-			.update({ id, displayName, unitId })
+			.update({ id, displayName, unitId }, validUnitIds)
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
