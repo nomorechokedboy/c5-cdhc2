@@ -14,6 +14,15 @@ interface UpdateUserRequest {
 	displayName: string
 	unitId?: number
 }
+interface GetUserRequest {
+	id: number
+	username: string
+	displayName: string
+	unitId: number
+}
+interface GetUserResponse {
+	data: UserResponse[]
+}
 
 interface CreateUserResponse {
 	data: UserDB
@@ -36,10 +45,38 @@ interface RoleDB {
 	name: string
 	description?: string
 }
+interface UserResponse {
+	id: number
+	createdAt: string
+	updatedAt: string
+	username: string
+	password: string
+	displayName: string
+	unitId: number
+}
+interface BulkUserResponse {
+	data: UserResponse[]
+}
 
 export interface User extends UserDB {
 	roles: RoleDB[]
 }
+interface GetUsersResponse extends BulkUserResponse {}
+
+export const GetUsers = api(
+	{ expose: true, method: 'GET', path: '/users' },
+	async (): Promise<GetUserResponse> => {
+		const data = await userController.find()
+		const resp = data.map(
+			(c) =>
+				({
+					...c
+				}) as UserResponse
+		)
+
+		return { data: resp }
+	}
+)
 
 export const CreateUser = api(
 	{ expose: true, method: 'POST', path: '/users' },

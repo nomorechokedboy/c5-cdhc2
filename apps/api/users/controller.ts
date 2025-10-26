@@ -24,6 +24,9 @@ class controller {
 
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
+	find(): Promise<User[]> {
+		return this.repo.find()
+	}
 
 	findOne(params: UserDB): Promise<Omit<User, 'password'>> {
 		log.trace('UserController.findOne params', { params })
