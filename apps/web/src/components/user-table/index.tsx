@@ -1,16 +1,12 @@
-import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
 import useUserData from '@/hooks/useUsers'
 import { defaultStudentColumnVisibility, type TemplType } from '@/types'
 import { DataTable } from '../data-table'
 import { baseStudentsColumns } from '@/components/user-table/columns'
-import { EhtnicOptions } from '@/data/ethnics'
-import { EduLevelOptions } from '@/components/data-table/data/data'
 import TableSkeleton from '../table-skeleton'
 import { Button } from '../ui/button'
 import { ArrowDownToLine, PlusIcon } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import { useState } from 'react'
-import { Dialog, DialogContent } from '@radix-ui/react-dialog'
 import UserForm from './user-form'
 
 interface UserTableProps {

@@ -12,10 +12,12 @@ export const Route = createFileRoute('/list-user')({
 })
 
 function RouteComponent() {
+
 	// const [studentParams, setStudentParams] =
 	// 	React.useState<StudentQueryParams>({
 	// 		isEthnicMinority: true
 	// 	})
+
 	return (
 		<ProtectedRoute>
 			<SidebarInset>
@@ -23,7 +25,9 @@ function RouteComponent() {
 					<div className='flex items-center justify-between space-y-2'>
 						<div>
 							<h2 className='text-2xl font-bold tracking-tight'>
+
 								Danh sách người dùng
+
 							</h2>
 						</div>
 					</div>
