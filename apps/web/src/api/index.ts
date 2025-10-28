@@ -154,6 +154,9 @@ export function Login(req: auth.LoginRequest) {
 export function GetUserInfo() {
 	return requestClient.auth.GetUserInfo().then((resp) => resp.data)
 }
+export function GetUsers() {
+	return requestClient.users.GetUsers().then((resp) => resp.data)
+}
 
 export function UploadFiles(body: BodyInit) {
 	return requestClient.media
