@@ -43,7 +43,11 @@ class sqliteRepo implements Repository {
 
 	find(): Promise<User[]> {
 		return this.db.query.users
-			.findMany({ with: { roles: true } })
+			.findMany({
+				with: {
+					unit: true
+				}
+			})
 			.catch(handleDatabaseErr)
 	}
 
