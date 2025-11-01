@@ -7,9 +7,11 @@ import { EhtnicOptions } from '@/data/ethnics'
 import { EduLevelOptions } from '@/components/data-table/data/data'
 import TableSkeleton from '../table-skeleton'
 import { Button } from '../ui/button'
-import { ArrowDownToLine } from 'lucide-react'
+import { ArrowDownToLine, PlusIcon } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
-import StudentForm from '../student-form'
+import { useState } from 'react'
+import { Dialog, DialogContent } from '@radix-ui/react-dialog'
+import UserForm from './user-form'
 
 interface UserTableProps {
 	filename: string
@@ -33,36 +35,15 @@ export default function UserTable({
 	if (isLoadingStudents) {
 		return <TableSkeleton />
 	}
+	// const [showStudentForm, setShowStudentForm] = useState(false)
+	// 	const handleFormSuccess = () => {
+	// 		setShowStudentForm(false)
+	// 	}
 
 	const handleFormSuccess = () => {
 		refetchStudents()
 	}
-
-	// const militaryRankSet = new Set(
-	//     students.filter((s) => !!s.rank).map((s) => s.rank)
-	// )
-	// const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
-	//     label: rank,
-	//     value: rank
-	// }))
-
-	// const previousUnitSet = new Set(
-	//     students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
-	// )
-	// const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
-	//     label: pu,
-	//     value: pu
-	// }))
-	// const facetedFilters = [
-	//     createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
-	//     createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
-	//     createFacetedFilter('ethnic', 'Dân tộc', EhtnicOptions),
-	//     createFacetedFilter(
-	//         'educationLevel',
-	//         'Trình độ học vấn',
-	//         EduLevelOptions
-	//     )
-	// ]
+	const [showUserForm, setShowUserForm] = useState(false)
 
 	return (
 		<div>
@@ -79,18 +60,36 @@ export default function UserTable({
 				// }}
 				withDynamicColsData={false}
 				renderToolbarActions={({ exportHook }) => (
-					<ExportStudentDataDialog
-						data={exportHook.exportableData.data}
-						defaultFilename={filename}
-						templType={templType}
-					>
-						<Button>
-							<ArrowDownToLine />
-							Xuất file
+					<div style={{ display: 'flex', gap: '8px' }}>
+						<ExportStudentDataDialog
+							data={exportHook.exportableData.data}
+							defaultFilename={filename}
+							templType={templType}
+						>
+							<Button onClick={() => setShowUserForm(true)}>
+								<ArrowDownToLine />
+								Xuất file
+							</Button>
+						</ExportStudentDataDialog>
+						<Button onClick={() => setShowUserForm(true)}>
+							<PlusIcon />
+							Thêm người dùng
 						</Button>
-					</ExportStudentDataDialog>
+					</div>
 				)}
 			/>
+			{showUserForm && (
+				<div className='p-4 w-full'>
+					<UserForm
+						open={showUserForm}
+						setOpen={setShowUserForm}
+						onSuccess={() => {
+							refetchStudents()
+							setShowUserForm(false)
+						}}
+					/>
+				</div>
+			)}
 		</div>
 	)
 }
