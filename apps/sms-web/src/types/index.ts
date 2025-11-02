@@ -38,17 +38,60 @@ export class CourseCategory {
 	}
 }
 
+export const moduleTypes = ['quiz', 'assign'] as const
+
+export type ModuleType = (typeof moduleTypes)[number]
+
+export const examTypes = ['15P', '1T', 'Thi'] as const
+
+export type ExamType = (typeof examTypes)[number]
+
+export class Grade {
+	constructor(
+		readonly itemInstace: number,
+		readonly moduleId: number,
+		readonly moduleName: string,
+		readonly type: ModuleType,
+		readonly examType: ExamType,
+		readonly grade: number,
+		readonly itemModule: string,
+		readonly itemNumber: number
+	) {}
+
+	public static From({
+		type,
+		grade,
+		moduleid,
+		modulename,
+		examtype,
+		itemmodule,
+		itemnumber,
+		iteminstance
+	}: mdlapi.Grade): Grade {
+		return new Grade(
+			iteminstance,
+			moduleid,
+			modulename,
+			type as ModuleType,
+			examtype as unknown as ExamType,
+			grade,
+			itemmodule,
+			itemnumber
+		)
+	}
+}
+
 export class Student {
 	constructor(
 		readonly id: number,
 		readonly name: string,
-		readonly grades: Record<string, number>
+		readonly grades: Record<string, Grade>
 	) {}
 
 	public static From({ id, fullname, grades }: mdlapi.Student): Student {
-		const studentGrades: Record<string, number> = {}
+		const studentGrades: Record<string, Grade> = {}
 		for (const grade of grades) {
-			studentGrades[grade.modulename] = grade.grade
+			studentGrades[grade.modulename] = Grade.From(grade)
 		}
 		return new Student(id, fullname, studentGrades)
 	}
