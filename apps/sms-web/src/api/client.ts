@@ -314,6 +314,8 @@ export namespace entities {
 }
 
 export namespace mdlapi {
+	export type ExamType = number
+
 	export interface GetCourseGradesResponse {
 		course: {
 			id: number
@@ -338,6 +340,10 @@ export namespace mdlapi {
 		type: string
 		grade: number
 		weightraw: number
+		examtype: ExamType
+		itemmodule: string
+		iteminstance: number
+		itemnumber: number
 	}
 
 	export interface Module {
@@ -347,7 +353,7 @@ export namespace mdlapi {
 		type: string
 		grademin: number
 		grademax: number
-		idnumber: string
+		examtype: ExamType
 	}
 
 	export interface Student {
