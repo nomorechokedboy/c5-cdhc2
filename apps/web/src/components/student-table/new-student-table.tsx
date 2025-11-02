@@ -128,34 +128,19 @@ export default function StudentTable({
 						? undefined
 						: ({ exportHook }) =>
 								exportConfig ? (
-									<>
-										<DropdownMenu>
-											<DropdownMenuTrigger>
-												<Button>
-													<ArrowDownToLine />
-													Xuất file
-												</Button>
-											</DropdownMenuTrigger>
-										</DropdownMenu>
-										<ExportStudentDataDialog
-											data={
-												exportHook.exportableData.data
-											}
-											defaultFilename={
-												exportConfig.filename
-											}
-											defaultValues={
-												exportConfig.defaultExportValues
-											}
-											templType={templType}
-											id='exportStudentTableForm'
-										>
-											<Button>
-												<ArrowDownToLine />
-												Xuất file
-											</Button>
-										</ExportStudentDataDialog>
-									</>
+									<ExportStudentDataDialog
+										data={exportHook.exportableData.data}
+										defaultFilename={exportConfig.filename}
+										defaultValues={
+											exportConfig.defaultExportValues
+										}
+										templType={templType}
+									>
+										<Button>
+											<ArrowDownToLine />
+											Xuất file
+										</Button>
+									</ExportStudentDataDialog>
 								) : null
 				}
 			/>

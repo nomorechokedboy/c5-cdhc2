@@ -23,6 +23,7 @@ type TokenPayload = {
 	iat?: number
 	exp?: number
 	validUnitIds?: number[]
+
 	validClassIds: number[]
 }
 
@@ -70,12 +71,26 @@ class controller {
 		return { validClassIds: classIds, validUnitIds: unitIds }
 	}
 
+
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
 			// Get user permissions from RBAC system
 			const permissions = await authzController.getUserPermissions(
 				user.id
 			)
+			// const classIds  = await this.getUserClassIds(user.id)
+			const unit = await this.unitRepo.getOne({ id: user.unitId })
+			let classIds: number[] = []
+			let unitIds: number[] = []
+			if (unit?.level === 'battalion') {
+				classIds = unit.children
+					.map((c) => c.classes.map((cl) => cl.id))
+					.flat()
+				unitIds = unit.children.map((c) => c.id).flat()
+			} else if (unit?.level === 'company') {
+				classIds = unit.classes.map((cl) => cl.id)
+			}
+			unitIds.push(user.unitId)
 
 			let classIds: number[] = [],
 				unitIds: number[] = []
