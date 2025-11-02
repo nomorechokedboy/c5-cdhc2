@@ -9,13 +9,17 @@ import (
 type ExamType int
 
 func (t *ExamType) UnmarshalJSON(data []byte) error {
+	if t == nil {
+		return nil
+	}
+
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
 
 	switch s {
-	case "15M":
+	case "15P":
 		*t = Exam15M
 	case "1T":
 		*t = Exam45M
@@ -100,11 +104,15 @@ type Student struct {
 }
 
 type Grade struct {
-	ModuleID   int     `json:"moduleid"`
-	ModuleName string  `json:"modulename"`
-	Type       string  `json:"type"`
-	Grade      float64 `json:"grade"`
-	Weight     float64 `json:"weightraw"`
+	ModuleID     int       `json:"moduleid"`
+	ModuleName   string    `json:"modulename"`
+	Type         string    `json:"type"`
+	Grade        float64   `json:"grade"`
+	Weight       float64   `json:"weightraw"`
+	ExamType     *ExamType `json:"examtype"`
+	ItemModule   string    `json:"itemmodule"`
+	ItemInstance int       `json:"iteminstance"`
+	ItemNumber   string    `json:"itemnumber"`
 }
 
 type LocalCourseGrades interface {
