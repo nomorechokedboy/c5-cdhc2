@@ -20,6 +20,7 @@ import { Unit } from '../units/units.js'
 import { notiTopic } from '../topics/index.js'
 import * as v from 'valibot'
 import XlsxTemplate from 'xlsx-template'
+import { getAuthData } from '~encore/auth'
 
 interface ChildrenInfo {
 	fullName: string
@@ -104,8 +105,12 @@ export const CreateStudent = api(
 			...body
 		}
 		log.trace('students.CreateStudent body', { studentParam })
+		const classIds = getAuthData()!.validClassIds
 
-		const createdStudent = await studentController.create([studentParam])
+		const createdStudent = await studentController.create(
+			[studentParam],
+			classIds
+		)
 
 		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
@@ -121,8 +126,11 @@ export const CreateStudents = api(
 	{ expose: true, method: 'POST', path: '/students/bulk' },
 	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
 		const studentParams = body.data.map((b) => ({ ...b }) as StudentParam)
-
-		const createdStudent = await studentController.create(studentParams)
+		const classIds = getAuthData()!.validClassIds
+		const createdStudent = await studentController.create(
+			studentParams,
+			classIds
+		)
 
 		const resp = createdStudent.map((s) => ({ ...s }) as StudentDBResponse)
 
@@ -169,9 +177,13 @@ export interface GetStudentsQuery {
 
 export const GetStudents = api(
 	{ expose: true, method: 'GET', path: '/students' },
-	async (query: GetStudentsQuery): Promise<GetStudentsResponse> => {
+	async ({ ...query }: GetStudentsQuery): Promise<GetStudentsResponse> => {
+		const validClassIds = getAuthData()!.validClassIds
 		log.trace('students.GetStudents query params', { params: query })
-		const students = await studentController.find(query)
+		const students = await studentController.find(
+			{ ...query },
+			validClassIds
+		)
 		const resp = students.map(
 			(s) => ({ ...s }) as unknown as StudentResponse
 		)
@@ -196,7 +208,8 @@ export const DeleteStudents = api(
 		const students: StudentDB[] = body.ids.map(
 			(id) => ({ id }) as StudentDB
 		)
-		await studentController.delete(students)
+		const validClassIds = getAuthData()!.validClassIds
+		await studentController.delete(students, validClassIds)
 
 		return { ids: body.ids }
 	}
@@ -216,8 +229,8 @@ export const UpdateStudents = api(
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB
 		)
-
-		await studentController.update(students)
+		const validClassIds = getAuthData()!.validClassIds
+		await studentController.update(students, validClassIds)
 
 		return {}
 	}

@@ -19,6 +19,7 @@
 		/* Module Resolution Options */
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
+		"noEmit": true,
 		"allowSyntheticDefaultImports": true,
 		"isolatedModules": true,
 		"sourceMap": true,

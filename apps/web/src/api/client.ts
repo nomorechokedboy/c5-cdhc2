@@ -1220,7 +1220,7 @@ export namespace users {
 	export interface CreateUserRequest {
 		username: string
 		password: string
-		displayName: string
+		displayName: stringz
 	}
 
 	export interface CreateUserResponse {
@@ -1251,6 +1251,18 @@ export namespace users {
 		username: string
 		displayName: string
 	}
+	export interface UserResponse {
+		id: number
+		createAt: string
+		updateAt: string
+		username: string
+		password: string
+		displayName: string
+		unitId: number
+	}
+	export interface GetUserResponse {
+		data: UserResponse[]
+	}
 
 	export class ServiceClient {
 		private baseClient: BaseClient
@@ -1258,6 +1270,11 @@ export namespace users {
 		constructor(baseClient: BaseClient) {
 			this.baseClient = baseClient
 			this.CreateUser = this.CreateUser.bind(this)
+			this.GetUsers = this.GetUsers.bind(this)
+		}
+		public async GetUsers(): Promise<GetUserResponse> {
+			const resp = await this.baseClient.callTypedAPI('GET', '/users')
+			return (await resp.json()) as GetUserResponse
 		}
 
 		public async CreateUser(

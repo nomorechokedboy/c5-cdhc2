@@ -1,4 +1,6 @@
+import type { units } from '@/api/client'
 import type { QueryObserverResult } from '@tanstack/react-query'
+import { extend } from 'dayjs'
 
 export interface Class extends Base {
 	name: string
@@ -71,7 +73,18 @@ type Base = {
 	updatedAt: string
 }
 
+export type UserBody = {
+	id: number
+	createAt: string
+	updateAt: string
+	username: string
+	password: string
+	displayName: string
+	unit: Unit
+}
+
 export interface Student extends Base, StudentBody {}
+export interface User extends UserBody {}
 
 export type ClassResponse = { data: Class[] }
 
@@ -328,7 +341,8 @@ export const templTypes = [
 	'HcyuTempl',
 	'StudentInfoTempl',
 	'StudentWithAdversityTempl',
-	'StudentEnrollmentFormTempl'
+	'StudentEnrollmentFormTempl',
+	'UserInfoTempl'
 ] as const
 
 export type TemplType = (typeof templTypes)[number]

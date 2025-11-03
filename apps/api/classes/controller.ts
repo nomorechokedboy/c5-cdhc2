@@ -11,6 +11,12 @@ import { Repository as UnitRepository } from '../units'
 import sqliteRepo from './repo'
 import log from 'encore.dev/log'
 import unitRepo from '../units/repo'
+import { getAuthData } from '~encore/auth'
+
+type classData = {
+	ids?: number[] | undefined
+	unitIds: number[] | undefined
+}
 
 class Controller {
 	constructor(
@@ -18,7 +24,10 @@ class Controller {
 		private readonly unitRepo: UnitRepository
 	) {}
 
-	async create(classParams: ClassParam[]): Promise<ClassDB[]> {
+	async create(
+		classParams: ClassParam[],
+		validUntiIds: number[]
+	): Promise<ClassDB[]> {
 		log.trace('classController.create params', { classParam: classParams })
 
 		const unitIds = classParams.map((p) => p.unitId)
@@ -27,6 +36,14 @@ class Controller {
 		if (isNotfoundUnit) {
 			throw AppError.handleAppErr(
 				AppError.invalidArgument('There are invalid unit ids')
+			)
+		}
+		const checkUnitIds = unitIds.every((a) => validUntiIds.includes(a))
+		if (checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission create class in this unit"
+				)
 			)
 		}
 
@@ -44,10 +61,24 @@ class Controller {
 		return this.repo.create(classParams).catch(AppError.handleAppErr)
 	}
 
-	delete(classes: ClassDB[]) {
+	delete(classes: ClassDB[], validClassIds: number[]) {
 		log.trace('classController.delete params', { params: classes })
-
+		const checkClassIds = classes.every((c) => validClassIds.includes(c.id))
+		log.trace('classController.delete checkClassIds', { checkClassIds })
+		if (checkClassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission delete class with this classId"
+				)
+			)
+		}
 		return this.repo.delete(classes).catch(AppError.handleAppErr)
+	}
+
+	findByIds(ids: number[]): Promise<ClassDB[]> {
+		log.trace('classController.findByIds ids', { ids })
+
+		return this.repo.findByIds(ids).catch(AppError.handleAppErr)
 	}
 
 	find(params: ClassQuery): Promise<ClassDB[]> {
@@ -67,7 +98,24 @@ class Controller {
 				AppError.invalidArgument('No record IDs provided')
 			)
 		}
-
+		const validUntiIds = getAuthData()!.validUnitIds
+		const checkParamUnitIds = params.every((c) =>
+			validUntiIds.includes(c.unitId)
+		)
+		const classes = await this.findByIds(ids)
+		const checkUnitIds = (await classes).every((c) =>
+			validUntiIds.includes(c.unitId)
+		)
+		log.trace('Data,', { ids })
+		log.trace('classData,', { classes })
+		log.trace('check', checkUnitIds)
+		if (checkParamUnitIds === false || checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					'You are not authorized update this unitid'
+				)
+			)
+		}
 		const updateMap: UpdateClassMap = params.map(
 			({ id, ...updatePayload }) => {
 				const cleanupPayload = Object.fromEntries(

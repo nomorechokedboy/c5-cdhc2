@@ -11,5 +11,6 @@ export interface Repository {
 	delete(classes: ClassDB[]): Promise<ClassDB[]>
 	find(q: ClassQuery): Promise<Class[]>
 	findOne(c: ClassDB): Promise<Class | undefined>
+	findByIds(ids: number[]): Promise<Class[]>
 	update(params: UpdateClassMap): Promise<ClassDB[]>
 }

@@ -13,7 +13,8 @@ import {
 	UsersRound,
 	Building,
 	Home,
-	Proportions
+	Proportions,
+	List
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -41,6 +42,7 @@ import useUnitsData from '@/hooks/useUnitsData'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
+import { title } from 'node:process'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -111,6 +113,23 @@ const data = {
 				{
 					title: 'Import học viên',
 					url: '/import-students',
+					icon: UserPlus
+				}
+			]
+		},
+		{
+			title: 'Quản lý người dùng',
+			url: '#',
+			icon: Calendar,
+			items: [
+				{
+					title: 'Danh sách người dùng',
+					url: '/list-user',
+					icon: List
+				},
+				{
+					title: 'Tạo người dùng',
+					url: '/create-user',
 					icon: UserPlus
 				}
 			]

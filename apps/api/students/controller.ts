@@ -49,21 +49,36 @@ export class Controller {
 		private readonly imageStorage: ImageProvider
 	) {}
 
-	create(params: StudentParam[]): Promise<StudentDB[]> {
+	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
+		const checkCLassIds = params.every((c) => classIds.includes(c.classId))
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					'You are not authorized create with this classid'
+				)
+			)
+		}
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	delete(students: StudentDB[]) {
+	delete(students: StudentDB[], validClassIds: number[]) {
+		const checkCLassIds = students.every((c) =>
+			validClassIds.includes(c.classId)
+		)
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission Delete student"
+				)
+			)
+		}
 		return this.repo.delete(students).catch(AppError.handleAppErr)
 	}
 
-	async find({
-		unitAlias,
-		unitLevel,
-		classId,
-		classIds,
-		...q
-	}: GetStudentsQuery): Promise<Student[]> {
+	async find(
+		{ unitAlias, unitLevel, classId, classIds, ...q }: GetStudentsQuery,
+		validClassIds: number[]
+	): Promise<Student[]> {
 		const isUnitAliasExist = unitAlias !== undefined
 		const isUnitLevelExist = unitLevel !== undefined
 		const isUnitQueryParamsValid = isUnitAliasExist && isUnitLevelExist
@@ -95,7 +110,25 @@ export class Controller {
 					classIds,
 					query: q
 				})
-				// AppError.handleAppErr(AppError.unauthorized("You don't have permission to read one of those classId"))
+
+				const classIdCheck = classIds?.every((id) =>
+					validClassIds.includes(id)
+				)
+
+				if (classIdCheck === false) {
+					AppError.handleAppErr(
+						AppError.unauthorized(
+							"You don't have permission to read one of those studentId"
+						)
+					)
+				}
+
+				if (classIds.length === 0) {
+					AppError.handleAppErr(
+						AppError.internal("You don't have classId")
+					)
+				}
+
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
@@ -107,6 +140,25 @@ export class Controller {
 					classIds,
 					query: q
 				})
+
+				const classIdCheck = classIds?.every((id) =>
+					validClassIds.includes(id)
+				)
+
+				if (classIdCheck === false) {
+					AppError.handleAppErr(
+						AppError.unauthorized(
+							"You don't have permission to read one of those studentId"
+						)
+					)
+				}
+
+				if (classIds.length === 0) {
+					AppError.handleAppErr(
+						AppError.internal("You don't have classId")
+					)
+				}
+
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
@@ -121,19 +173,35 @@ export class Controller {
 		if (classId !== undefined) {
 			cIds.push(classId)
 		}
+		if (cIds.length === 0) {
+			cIds.push(...validClassIds)
+		}
 
 		return this.repo
 			.find({ ...q, classIds: cIds.length !== 0 ? cIds : undefined })
 			.catch(AppError.handleAppErr)
 	}
 
-	async update(params: StudentDB[]): Promise<StudentDB[]> {
+	async update(
+		params: StudentDB[],
+		validClassIds: number[]
+	): Promise<StudentDB[]> {
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
 		const isIdsValid = !ids || isIdsEmpty
 		if (isIdsValid) {
 			throw AppError.handleAppErr(
 				AppError.invalidArgument('No record IDs provided')
+			)
+		}
+		const checkCLassIds = params.every((c) =>
+			validClassIds.includes(c.classId)
+		)
+		if (checkCLassIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission update this student"
+				)
 			)
 		}
 
@@ -158,7 +226,6 @@ export class Controller {
 				return { id, updatePayload: cleanupPayload }
 			}
 		)
-
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
 	}
 

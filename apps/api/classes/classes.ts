@@ -32,14 +32,18 @@ interface BulkClassResponse {
 }
 
 export const CreateClass = api(
-	{ expose: true, method: 'POST', path: '/classes' },
+	{ auth: true, expose: true, method: 'POST', path: '/classes' },
 	async (body: ClassBody): Promise<BulkClassResponse> => {
 		const classParam: ClassParam = {
 			...body
 		}
 		log.trace('classes.CreateClass body', { classParam })
+		const validUntiIds = getAuthData()!.validUnitIds
 
-		const createdClass = await classController.create([classParam])
+		const createdClass = await classController.create(
+			[classParam],
+			validUntiIds
+		)
 
 		const resp = createdClass.map(
 			(c) =>
@@ -87,12 +91,12 @@ interface DeleteClassResponse {
 }
 
 export const DeleteClasss = api(
-	{ expose: true, method: 'DELETE', path: '/classes' },
+	{ auth: true, expose: true, method: 'DELETE', path: '/classes' },
 	async (body: DeleteClassRequest): Promise<DeleteClassResponse> => {
 		log.trace('classes.DeleteClasss body', { body })
-
+		const validClassIds = getAuthData()!.validClassIds
 		const classes: ClassDB[] = body.ids.map((id) => ({ id }) as ClassDB)
-		await classController.delete(classes)
+		await classController.delete(classes, validClassIds)
 
 		return { ids: body.ids }
 	}
@@ -107,7 +111,7 @@ interface UpdateClassBody {
 }
 
 export const UpdateClasss = api(
-	{ expose: true, method: 'PATCH', path: '/classes' },
+	{ auth: true, expose: true, method: 'PATCH', path: '/classes' },
 	async (body: UpdateClassBody) => {
 		const classes: ClassDB[] = body.data.map((s) => ({ ...s }) as ClassDB)
 

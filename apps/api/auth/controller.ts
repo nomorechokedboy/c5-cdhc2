@@ -22,7 +22,8 @@ type TokenPayload = {
 	type: 'access' | 'refresh'
 	iat?: number
 	exp?: number
-	validUnitIds: number[]
+	validUnitIds?: number[]
+
 	validClassIds: number[]
 }
 
@@ -48,18 +49,28 @@ class controller {
 		private readonly repo = userRepo
 	) {}
 
-	// async getUserClassIds(userId: number): Promise<number[]> {
-	// 	try{
-	// 		const user  =await this.userRepo.findOne({id: userId} as UserDB)
-	// 		if(user!== null || user !== undefined){
-	// 		if(user.unitId === 1 || user.unitId === 2){
-	// 		}
+	async getValidIds(unitId: number) {
+		const unit = await this.unitRepo.getOne({ id: unitId })
+		if (unit === null || unit === undefined) {
+			AppError.handleAppErr(
+				AppError.invalidArgument("User don'have unit")
+			)
+		}
+		let classIds: number[] = []
+		let unitIds: number[] = []
+		if (unit?.level === 'battalion') {
+			classIds = unit.children
+				.map((c) => c.classes.map((cl) => cl.id))
+				.flat()
+			unitIds = unit.children.map((c) => c.id).flat()
+		} else if (unit?.level === 'company') {
+			classIds = unit.classes.map((cl) => cl.id)
+		}
+		unitIds.push(unitId)
 
-	// 	}
-	// 	}
+		return { validClassIds: classIds, validUnitIds: unitIds }
+	}
 
-	// 	return []
-	// }
 
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
@@ -80,6 +91,14 @@ class controller {
 				classIds = unit.classes.map((cl) => cl.id)
 			}
 			unitIds.push(user.unitId)
+
+			let classIds: number[] = [],
+				unitIds: number[] = []
+			if (user.unitId !== null) {
+				const validIds = await this.getValidIds(user.unitId)
+				classIds = validIds.validClassIds
+				unitIds = validIds.validUnitIds
+			}
 
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,

@@ -25,7 +25,10 @@ type findOneRequest = {
 class controller {
 	constructor(private readonly repo: Repository) {}
 
-	async create(params: UnitParams[]): Promise<UnitParams[]> {
+	async create(
+		params: UnitParams[],
+		validUnitIds: number[]
+	): Promise<UnitParams[]> {
 		log.trace('UnitController.create params', { params })
 
 		const validParams: UnitParams[] = []

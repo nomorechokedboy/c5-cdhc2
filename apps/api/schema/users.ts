@@ -17,7 +17,10 @@ export const users = p.sqliteTable('users', {
 
 export const usersRelations = relations(users, ({ many, one }) => ({
 	roles: many(userRoles),
-	unit: one(units)
+	unit: one(units, {
+		fields: [users.unitId],
+		references: [units.id]
+	})
 }))
 
 export interface UserDB extends Base {
