@@ -122,6 +122,7 @@ export type StudentQuery = {
 	isCpvOfficialThisWeek?: boolean
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
+	withAdversity?: boolean
 }
 
 export type UpdateStudentMap = {

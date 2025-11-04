@@ -165,6 +165,7 @@ export interface GetStudentsQuery {
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
 	classIds?: number[]
+	withAdversity?: boolean
 }
 
 export const GetStudents = api(

@@ -1,4 +1,4 @@
-import { inArray, eq, sql, and, ne, between, count } from 'drizzle-orm'
+import { inArray, eq, sql, and, ne, between, count, or } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import orm, { DrizzleDatabase } from '../database'
 import { AppError } from '../errors/index'
@@ -220,6 +220,16 @@ class StudentSqliteRepo implements Repository {
 		const hasReligionExist = q.hasReligion !== undefined
 		if (hasReligionExist && q.hasReligion) {
 			whereConds.push(ne(students.religion, 'Không'))
+		}
+
+		const withAdversityExist = q.withAdversity !== undefined
+		if (withAdversityExist && q.withAdversity) {
+			whereConds.push(
+				and(
+					ne(students.familyBackground, ''),
+					ne(students.familyBackground, 'Không')
+				)
+			)
 		}
 
 		const whereCondition =
