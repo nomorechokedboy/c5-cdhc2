@@ -53,6 +53,17 @@ class repo implements Repository {
 			})
 			.catch(handleDatabaseErr) as unknown as Array<Unit>
 	}
+	async findAll(): Promise<Unit[]> {
+		return this.db.query.units
+			.findMany({
+				with: {
+					children: { with: { classes: true } },
+					classes: true,
+					parent: true
+				}
+			})
+			.catch(handleDatabaseErr)
+	}
 
 	async findOne(params: {
 		alias: string
