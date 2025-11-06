@@ -4,6 +4,7 @@ export interface Repository {
 	create(params: UnitParams[]): Promise<UnitDB[]>
 	delete(units: UnitDB[]): Promise<UnitDB[]>
 	find(query: UnitQuery): Promise<Unit[]>
+	findAll(): Promise<Unit[]>
 	findOne(params: {
 		alias: string
 		level: 'battalion' | 'company'
