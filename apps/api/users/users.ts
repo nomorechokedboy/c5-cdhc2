@@ -7,12 +7,14 @@ interface CreateUserRequest {
 	password: string
 	displayName: string
 	unitId: number
+	isSuperUser?: boolean
 }
 
 interface UpdateUserRequest {
 	id: number
 	displayName: string
 	unitId?: number
+	isSuperUser?: boolean
 }
 interface GetUserRequest {
 	id: number
@@ -95,17 +97,11 @@ export const CreateUser = api(
 export const UpdateUser = api(
 	{ expose: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
-		const { id, displayName, unitId } = req
 
-
-export const UpdateUser = api(
-	{ expose: true, method: 'PUT', path: '/users' },
-	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
-		const { id, displayName, unitId } = req
+		const { id, displayName, unitId, isSuperUser } = req
 		const validUnitIds = getAuthData()!.validUnitIds
 		const data = await userController
-			.update({ id, displayName, unitId }, validUnitIds)
-
+			.update({ id, displayName, unitId, isSuperUser }, validUnitIds)
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
