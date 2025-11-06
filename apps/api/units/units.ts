@@ -70,6 +70,17 @@ export const GetUnits = api(
 	}
 )
 
+export const GetAllUnit = api(
+	{ auth: true, expose: true, method: 'GET', path: '/allUnits' },
+	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
+		const unitIds = getAuthData()!.validUnitIds
+		const resp = await unitController.findAll()
+		const data = resp.map((u) => ({ ...u }) as Unit)
+
+		return { data }
+	}
+)
+
 interface GetUnitRequest {
 	id?: Query<number>
 

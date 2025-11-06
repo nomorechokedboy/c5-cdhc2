@@ -82,6 +82,9 @@ class controller {
 
 		return this.repo.find(unitQuery)
 	}
+	findAll(): Promise<Unit[]> {
+		return this.repo.findAll()
+	}
 
 	findById(id: number): Promise<Unit | undefined> {
 		log.trace('UnitController.findById params', { params: { id } })
