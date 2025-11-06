@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken'
 import authzController from '../authz/controller'
 import type { StringValue } from 'ms'
 import unitRepo from '../units/repo'
+import { promises } from 'node:dns'
 
 type LoginRequest = {
 	username: string
@@ -40,6 +41,24 @@ type ChangePasswordRequest = {
 	userId: number
 	prevPassword: string
 	password: string
+}
+type Class = {
+	id: number
+	name: string
+	description: string
+	status: string
+	unitId: number
+	createdAt: string
+	updatedAt: string
+}
+type Unit = {
+	id: number
+	name: string
+	alias: string
+	level: string
+	parentId?: number | null
+	children?: Unit[]
+	classes?: Class[]
 }
 
 class controller {
@@ -99,7 +118,32 @@ class controller {
 
 			let classIds: number[] = [],
 				unitIds: number[] = []
-			if (user.unitId !== null) {
+			const getAllClassIds = (unit) => {
+				let ids = unit.classes?.map((c) => c.id) || []
+				if (unit.children) {
+					for (const child of unit.children) {
+						ids = ids.concat(getAllClassIds(child))
+					}
+				}
+				return ids
+			}
+
+			const getAllUnitIds = (unit) => {
+				let ids = [unit.id]
+				if (unit.children) {
+					for (const child of unit.children) {
+						ids = ids.concat(getAllUnitIds(child))
+					}
+				}
+				return ids
+			}
+			if (user.isSuperUser === true) {
+				const units = await this.unitRepo.findAll()
+				const allClassIds = units.flatMap((u) => getAllClassIds(u))
+				const allUnitIds = units.flatMap((u) => getAllUnitIds(u))
+				classIds = allClassIds
+				unitIds = allUnitIds
+			} else if (user.unitId !== null) {
 				const validIds = await this.getValidIds(user.unitId)
 				classIds = validIds.validClassIds
 				unitIds = validIds.validUnitIds
