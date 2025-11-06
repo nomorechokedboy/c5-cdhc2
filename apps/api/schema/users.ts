@@ -1,6 +1,7 @@
 import * as p from 'drizzle-orm/sqlite-core'
+import * as sqlite from 'drizzle-orm/sqlite-core'
 import { Base, baseSchema } from './base'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import { Role } from './roles'
 import { userRoles } from './user-roles'
 import { units } from './units'
@@ -12,6 +13,7 @@ export const users = p.sqliteTable('users', {
 	username: p.text().notNull().unique(),
 	password: p.text().notNull(),
 	displayName: p.text().notNull().default(''),
+	isSuperUser: sqlite.int({ mode: 'boolean' }).default(false).notNull(),
 	unitId: p.int().references(() => units.id)
 })
 
@@ -28,6 +30,7 @@ export interface UserDB extends Base {
 	password: string
 	displayName: string
 	unitId: number
+	isSuperUser: boolean
 }
 
 export interface User extends UserDB {
@@ -48,6 +51,7 @@ export interface UpdateUserRequest {
 	roleIds?: number[]
 	displayName: string
 	unitId?: number
+	isSuperUser?: boolean
 }
 
 export interface AssignRoleRequest {
