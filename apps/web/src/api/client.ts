@@ -1220,7 +1220,7 @@ export namespace users {
 	export interface CreateUserRequest {
 		username: string
 		password: string
-		displayName: stringz
+		displayName: string
 	}
 
 	export interface CreateUserResponse {
