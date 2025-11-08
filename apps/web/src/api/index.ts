@@ -17,7 +17,10 @@ import type {
 	StudentResponse,
 	Unit,
 	UnitLevel,
-	UpdateStudentsBody
+	UpdateStudentsBody,
+	User,
+	UserBody,
+	UserResponse
 } from '@/types'
 import axios, { appFetcher } from '@/lib/axios'
 import Client, { auth, classes, students, units } from './client'
@@ -114,6 +117,12 @@ export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
 		.then((resp) => resp.data.data)
 }
 
+export function GetAllUnits() {
+	return axios
+		.get<GetUnitResponse>('/allUnits')
+		.then((resp) => resp.data.data)
+}
+
 export function GetUnits(params?: GetUnitQuery) {
 	return axios
 		.get<GetUnitResponse>('/units', { params })
@@ -145,6 +154,11 @@ export function ExportPoliticsQualityData(data: ExportPoliticsQualityReport) {
 
 export function GetPoliticsQualityReport(unitIds: number[]) {
 	return requestClient.students.GetPoliticsQualityReport({ unitIds })
+}
+export function CreateUser(body: UserBody) {
+	return axios
+		.post<UserResponse>('users', body)
+		.then((resp) => resp.data.data)
 }
 
 export function Login(req: auth.LoginRequest) {
