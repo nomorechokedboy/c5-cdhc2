@@ -20,21 +20,18 @@ export default function UserTable({
 	enabledCreation = false,
 	templType = 'UserInfoTempl'
 }: UserTableProps) {
+	console.log('Render UserTable')
+
 	const {
 		data: users = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
 	} = useUserData()
+	console.log('isloading', isLoadingStudents)
 
-	// const { createFacetedFilter } = useDataTableToolbarConfig()
-
-	if (isLoadingStudents) {
-		return <TableSkeleton />
-	}
-	// const [showStudentForm, setShowStudentForm] = useState(false)
-	// 	const handleFormSuccess = () => {
-	// 		setShowStudentForm(false)
-	// 	}
+	// if (isLoadingStudents) {
+	// 	return <TableSkeleton />
+	// }
 
 	const handleFormSuccess = () => {
 		refetchStudents()

@@ -9,6 +9,13 @@ export interface Class extends Base {
 	graduatedAt: string | null
 	unit: Unit
 }
+export interface UserFormData extends Base {
+	username: string
+	password: string
+	displayName: string
+	unitid: number
+	issuperuser: boolean
+}
 
 export interface ClassBody {
 	name: string
@@ -73,14 +80,12 @@ type Base = {
 	updatedAt: string
 }
 
-export type UserBody = {
-	id: number
-	createAt: string
-	updateAt: string
+export interface UserBody {
 	username: string
 	password: string
 	displayName: string
-	unit: Unit
+	unitId: number
+	isSuperUser?: boolean
 }
 
 export interface Student extends Base, StudentBody {}
@@ -91,6 +96,8 @@ export type ClassResponse = { data: Class[] }
 export type StudentResponse = { data: Student[] }
 
 export type UnitResponse = { data: Unit[] }
+
+export type UserResponse = { data: User[] }
 
 export interface SearchInputConfig {
 	columnKey: string

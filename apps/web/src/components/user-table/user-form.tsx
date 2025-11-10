@@ -2,46 +2,49 @@ import { useAppForm } from '@/hooks/demo.form'
 import {
 	Dialog,
 	DialogHeader,
-	DialogTrigger,
 	DialogContent,
 	DialogTitle,
 	DialogClose,
 	DialogFooter
 } from '@/components/ui/dialog'
-import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { CreateClass } from '@/api'
-import { useState } from 'react'
+import { CreateUser } from '@/api'
 import { useMutation } from '@tanstack/react-query'
-import type { Class, ClassBody } from '@/types'
+import type { Class, ClassBody, User, UserBody, UserFormData } from '@/types'
 import { toast } from 'sonner'
-import useUnitData from '@/hooks/useUnitData'
+import useAllUnitsData from '@/hooks/useAllUnitsData'
 
 const schema = z.object({
 	username: z.string().min(1, 'Tên tài khoản không được bỏ trống'),
-	displayname: z.string().min(1, 'Tên hiển thị không được bỏ trống'),
+	displayName: z.string().min(1, 'Tên hiển thị không được bỏ trống'),
 	password: z.string().min(1, 'Mật khẩu không được bỏ trống'),
-	unitid: z.string().min(1, 'Phải chọn 1 đơn vị cho tài khoản')
+	unitId: z.preprocess(
+		(val) => {
+			if (typeof val === 'string') {
+				return Number.parseInt(val)
+			}
+
+			return val
+		},
+		z.number().min(1, 'Đơn vị không được bỏ trống')
+	),
+	isSuperUser: z.coerce.boolean()
 })
 
-export interface ClassFormProps {
-	onSuccess: (
-		data: Class[],
-		variables: ClassBody,
-		context: unknown
-	) => unknown
+export interface UserFormProps {
+	onSuccess: (data: User[], variables: UserBody, context: unknown) => unknown
 	open: boolean
 	setOpen: (open: boolean) => void
 }
 
-export default function UserForm({ onSuccess, open, setOpen }: ClassFormProps) {
-	const unitdata = useUnitData
-
-	console.log('unitdata', unitdata)
+export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
+	const { data: unitsData, isLoading, isError } = useAllUnitsData()
+	console.log('Render UserForm')
+	console.log('unitdata', unitsData)
 
 	const { mutateAsync } = useMutation({
-		mutationFn: CreateClass,
+		mutationFn: CreateUser,
 		onSuccess,
 		onError: (error) => {
 			console.error('Failed to create class:', error)
@@ -51,17 +54,19 @@ export default function UserForm({ onSuccess, open, setOpen }: ClassFormProps) {
 		defaultValues: {
 			username: '',
 			password: '',
-			displayname: '',
-			unitid: 1
+			displayName: '',
+			unitId: 1,
+			isSuperUser: false
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
-				await mutateAsync(value)
-				toast.success('Thêm mới lớp thành công')
+				const parsed = schema.parse(value)
+				await mutateAsync(parsed)
+				toast.success('Thêm mới người dùng thành công')
 				formApi.reset()
 			} catch (err) {
 				console.error(err)
-				toast.error('Thêm mới lớp thất bại')
+				toast.error('Thêm mới người dùng thất bại')
 			} finally {
 				setOpen(false)
 			}
@@ -70,12 +75,23 @@ export default function UserForm({ onSuccess, open, setOpen }: ClassFormProps) {
 			onBlur: schema
 		}
 	})
+	// Hàm flatten mảng unit
+	function flattenUnits(units: any[]): any[] {
+		const result: any[] = []
+
+		units.forEach((unit) => {
+			result.push({ label: unit.name, value: unit.id.toString() })
+		})
+
+		return result
+	}
+	console.log('flatttenUnit data', flattenUnits(unitsData || []))
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
-					<DialogTitle>Biểu mẫu thêm lớp</DialogTitle>
+					<DialogTitle>Biểu mẫu thêm người dùng</DialogTitle>
 				</DialogHeader>
 				<div className='space-y-4'>
 					<form
@@ -95,7 +111,7 @@ export default function UserForm({ onSuccess, open, setOpen }: ClassFormProps) {
 						</div>
 
 						<div className='space-y-2'>
-							<form.AppField name='displayname'>
+							<form.AppField name='displayName'>
 								{(field: any) => (
 									<field.TextField label='Tên hiển thị' />
 								)}
@@ -114,30 +130,45 @@ export default function UserForm({ onSuccess, open, setOpen }: ClassFormProps) {
 						</div>
 
 						<div className='space-y-2'>
-							<form.AppField name='unitid'>
+							<form.AppField name='unitId'>
 								{(field: any) => (
 									<>
 										<field.Select
 											label='Chọn đơn vị'
 											placeholder='Chọn đơn vị'
-											values={[
-												{
-													label: 'Đại đội 1',
-													value: 'unit1'
-												},
-												{
-													label: 'Đại đội 2',
-													value: 'unit2'
-												},
-												{
-													label: 'Đại đội 3',
-													value: 'unit3'
-												}
-											]}
-											value={field.value} // bind value
-											onChange={field.onChange} // bind onChange
+											values={flattenUnits(
+												unitsData || []
+											)}
+											defaultValue={
+												flattenUnits(unitsData || [])[0]
+													?.value
+											}
 										/>
 									</>
+								)}
+							</form.AppField>
+						</div>
+
+						<div></div>
+
+						<div className='space-y-2'>
+							<form.AppField name='isSuperUser'>
+								{(field: any) => (
+									<field.Select
+										label='Loại tài khoản'
+										placeholder='Loại tài khoản'
+										values={[
+											{
+												label: 'Tài khoản quản trị',
+												value: 'true'
+											},
+											{
+												label: 'Tài khoản thường',
+												value: 'false'
+											}
+										]}
+										defaultValue={'false'}
+									/>
 								)}
 							</form.AppField>
 						</div>

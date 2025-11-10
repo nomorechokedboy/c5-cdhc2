@@ -43,6 +43,7 @@ export interface CreateUserRequest {
 	roleIds?: number[]
 	displayName: string
 	unitId: number
+	isSuperUser?: boolean
 }
 
 export interface UpdateUserRequest {

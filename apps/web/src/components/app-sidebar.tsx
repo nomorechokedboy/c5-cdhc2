@@ -126,11 +126,6 @@ const data = {
 					title: 'Danh sách người dùng',
 					url: '/list-user',
 					icon: List
-				},
-				{
-					title: 'Tạo người dùng',
-					url: '/create-user',
-					icon: UserPlus
 				}
 			]
 		}
