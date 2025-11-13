@@ -224,6 +224,10 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 									value={`${child.fullName} (${child.dob})`}
 								/>
 							))}
+							<Field
+								label='Hoàn cảnh gia đình'
+								value={student.familyBackground}
+							/>
 						</CardContent>
 					</Card>
 				</Tabs.Content>

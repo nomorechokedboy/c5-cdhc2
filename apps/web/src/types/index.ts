@@ -126,6 +126,7 @@ export interface StudentQueryParams {
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
 	classIds?: number[]
+	withAdversity?: boolean
 }
 
 export type ChildrenInfo = {

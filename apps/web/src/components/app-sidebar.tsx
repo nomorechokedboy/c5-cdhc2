@@ -6,14 +6,14 @@ import {
 	ChevronDown,
 	PieChart,
 	Star,
-	HeartHandshake,
 	Church,
 	UserCheck,
 	Building2,
 	UsersRound,
 	Building,
 	Home,
-	Proportions
+	Proportions,
+	HouseHeart
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -82,6 +82,11 @@ const data = {
 					title: 'Tôn giáo',
 					url: '/religion',
 					icon: Church
+				},
+				{
+					title: 'Hoàn cảnh khó khăn',
+					url: '/hoan-canh-kho-khan',
+					icon: HouseHeart
 				}
 			]
 		},

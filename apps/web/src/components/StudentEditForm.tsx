@@ -303,6 +303,10 @@ export default function StudentEditForm({
 									name='spousePhoneNumber'
 									label='SĐT Vợ/Chồng'
 								/>
+								<Field
+									name='familyBackground'
+									label='Hoàn cảnh gia đình'
+								/>
 								{/* Con cái */}
 								{/* Danh sách con cái */}
 								<div className='col-span-full space-y-4'>

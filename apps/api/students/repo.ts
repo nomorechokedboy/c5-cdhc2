@@ -227,7 +227,8 @@ class StudentSqliteRepo implements Repository {
 			whereConds.push(
 				and(
 					ne(students.familyBackground, ''),
-					ne(students.familyBackground, 'Không')
+					ne(students.familyBackground, 'Không'),
+					ne(students.familyBackground, 'Chưa')
 				)
 			)
 		}
