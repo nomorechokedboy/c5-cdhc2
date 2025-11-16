@@ -29,3 +29,10 @@ func (c *CourseController) GetCourseDetails(
 ) (*mdlapi.GetCourseGradesResponse, error) {
 	return c.useCase.GetUserCourseDetails(ctx, req)
 }
+
+func (c *CourseController) UpdateCourseGrades(
+	ctx context.Context,
+	req *mdlapi.UpdateGradesRequest,
+) (mdlapi.UpdateGradesResponse, error) {
+	return c.useCase.UpdateCourseGrades(ctx, req)
+}

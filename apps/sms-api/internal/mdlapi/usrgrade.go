@@ -2,9 +2,14 @@ package mdlapi
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"encore.app/internal/entities"
+	"encore.app/internal/logger"
 )
+
+var _ json.Unmarshaler = (*UpdateGradesResponse)(nil)
 
 type GetUserGradeItemsResponse struct {
 	UserGrades []UserGrade `json:"usergrades"`
@@ -83,9 +88,52 @@ type GetUserGradeItemsRequest struct {
 	UserId   int64 `json:"userid"`
 }
 
+type UpdateGradesRequest struct {
+	Source     GradeSource    `json:"source"`
+	CourseID   int            `json:"courseid"`
+	Component  GradeComponent `json:"component"`
+	ActivityID int            `json:"activityid"`
+	ItemNumber int            `json:"itemnumber"`
+	Grades     []UpdateGrade  `json:"grades"`
+}
+
+type UpdateGrade struct {
+	StudentID int     `json:"studentid"`
+	Grade     float64 `json:"grade"`
+}
+
+type UpdateGradesResponse bool
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (u *UpdateGradesResponse) UnmarshalJSON(data []byte) error {
+	if data == nil {
+		return nil
+	}
+
+	var s int
+	if err := json.Unmarshal(data, &s); err != nil {
+		logger.Error("UpdateGradesResponse.Unmarshal error", "err", err)
+		return err
+	}
+
+	if s != 0 && s != 1 {
+		logger.Error("UpdateGradesResponse invalid response", "response", s)
+		return fmt.Errorf("Invalid update grades response")
+	}
+
+	if s == 0 {
+		*u = true
+		return nil
+	}
+
+	*u = false
+	return nil
+}
+
 type UserGradeItemsProvider interface {
 	GetUserGradeItems(
 		context.Context,
 		*GetUserGradeItemsRequest,
 	) (*GetUserGradeItemsResponse, error)
+	UpdateGrades(context.Context, *UpdateGradesRequest) (UpdateGradesResponse, error)
 }

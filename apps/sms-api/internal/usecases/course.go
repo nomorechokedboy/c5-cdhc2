@@ -12,15 +12,18 @@ import (
 type CourseUseCase struct {
 	repo                 courses.Repository
 	courseGradesProvider mdlapi.LocalCourseGrades
+	userGradesProvider   mdlapi.UserGradeItemsProvider
 }
 
 func NewCourseUseCase(
 	repo courses.Repository,
 	courseGradesProvider mdlapi.LocalCourseGrades,
+	UserGradeItemsProvider mdlapi.UserGradeItemsProvider,
 ) *CourseUseCase {
 	return &CourseUseCase{
 		repo:                 repo,
 		courseGradesProvider: courseGradesProvider,
+		userGradesProvider:   UserGradeItemsProvider,
 	}
 }
 
@@ -52,6 +55,21 @@ func (uc *CourseUseCase) GetUserCourseDetails(
 	if err != nil {
 		logger.ErrorContext(ctx, "LocalGetCourseDetails error", "err", err, "courseId", req.Id)
 		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (uc *CourseUseCase) UpdateCourseGrades(
+	ctx context.Context,
+	req *mdlapi.UpdateGradesRequest,
+) (mdlapi.UpdateGradesResponse, error) {
+	logger.InfoContext(ctx, "Processing UpdateCourseGrades", "request", req)
+
+	resp, err := uc.userGradesProvider.UpdateGrades(ctx, req)
+	if err != nil {
+		logger.ErrorContext(ctx, "UpdateCourseGrades error", "err", err, "request", req)
+		return resp, err
 	}
 
 	return resp, nil
