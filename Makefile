@@ -1,6 +1,8 @@
-.PHONY: all api web cron
+.PHONY: all api web cron sms sms-api sms-web
 
-all: api web cron
+all: api web cron sms
+
+sms: sms-api sms-web
 
 api:
 	cd apps/api && \
@@ -14,3 +16,9 @@ cron:
 	cd deploy/cron && \
 	docker build -t quanlyhocvien-cdhc2:cron .
 
+sms-api:
+	cd apps/sms-api && \
+	encore build docker nomorechokedboy/web-project:sms-api
+
+sms-web:
+	docker build -t nomorechokedboy/web-project:sms-web -f apps/sms-web/Dockerfile .
