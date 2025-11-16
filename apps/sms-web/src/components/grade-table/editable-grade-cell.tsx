@@ -9,6 +9,7 @@ interface EditableGradeCellProps {
 	value: number
 	isHighlighted?: boolean
 	onSave: (studentId: number, category: string, value: number) => void
+	gradeClassName?: string
 }
 
 export default function EditableGradeCell({
@@ -16,7 +17,8 @@ export default function EditableGradeCell({
 	category,
 	value,
 	isHighlighted = false,
-	onSave
+	onSave,
+	gradeClassName
 }: EditableGradeCellProps) {
 	const [isEditing, setIsEditing] = useState(false)
 	const [editValue, setEditValue] = useState('')
@@ -83,7 +85,9 @@ export default function EditableGradeCell({
 			className={`h-8 px-2 hover:bg-muted/50 group ${isHighlighted ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
 			onClick={handleEditStart}
 		>
-			<span className='font-medium'>{value.toFixed(2) || 0}</span>
+			<span className={`font-medium ${gradeClassName}`}>
+				{value.toFixed(2) || 0}
+			</span>
 			<Edit3 className='h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity' />
 		</Button>
 	)
