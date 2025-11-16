@@ -4,17 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
+	"encore.app/internal/logger"
 )
 
 type ExamType int
 
 func (t *ExamType) UnmarshalJSON(data []byte) error {
-	if t == nil {
+	if data == nil {
 		return nil
 	}
 
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
+		logger.Error("ExamType.Unmarshal error", "err", err)
 		return err
 	}
 
@@ -112,7 +115,8 @@ type Grade struct {
 	ExamType     *ExamType `json:"examtype"`
 	ItemModule   string    `json:"itemmodule"`
 	ItemInstance int       `json:"iteminstance"`
-	ItemNumber   string    `json:"itemnumber"`
+	ItemNumber   int       `json:"itemnumber"`
+	ActivityID   int       `json:"activityid"`
 }
 
 type LocalCourseGrades interface {

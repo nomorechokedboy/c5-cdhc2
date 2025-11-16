@@ -69,3 +69,5 @@ type Grade struct {
 type GetUserCourseDetailsResponse struct {
 	Data CourseDetails
 }
+
+type UpdateCourseGradesResponse struct{}
