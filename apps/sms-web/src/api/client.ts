@@ -216,6 +216,7 @@ export namespace usrcourses {
 			this.baseClient = baseClient
 			this.GetCourseDetails = this.GetCourseDetails.bind(this)
 			this.GetCourses = this.GetCourses.bind(this)
+			this.UpdateCourseGrades = this.UpdateCourseGrades.bind(this)
 		}
 
 		/**
@@ -251,6 +252,21 @@ export namespace usrcourses {
 				{ query }
 			)
 			return (await resp.json()) as entities.GetUsersCoursesResponse
+		}
+
+		/**
+		 * Update course grades endpoint
+		 */
+		public async UpdateCourseGrades(
+			params: mdlapi.UpdateGradesRequest
+		): Promise<entities.UpdateCourseGradesResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'PUT',
+				`/courses`,
+				JSON.stringify(params)
+			)
+			return (await resp.json()) as entities.UpdateCourseGradesResponse
 		}
 	}
 }
@@ -299,6 +315,8 @@ export namespace entities {
 		Location: string
 	}
 
+	export interface UpdateCourseGradesResponse {}
+
 	export interface UserInfo {
 		id: number
 		address: string
@@ -344,7 +362,18 @@ export namespace mdlapi {
 		itemmodule: string
 		iteminstance: number
 		itemnumber: number
+		activityid: number
 	}
+
+	/**
+	 * GradeComponent represents the component parameter for grade_update (format: "mod_{module}")
+	 */
+	export type GradeComponent = string
+
+	/**
+	 * GradeSource represents the source parameter for grade_update (format: "mod/{module}")
+	 */
+	export type GradeSource = string
 
 	export interface Module {
 		id: number
@@ -354,6 +383,7 @@ export namespace mdlapi {
 		grademin: number
 		grademax: number
 		examtype: ExamType
+		itemnumber: number
 	}
 
 	export interface Student {
@@ -364,6 +394,20 @@ export namespace mdlapi {
 		lastname: string
 		email: string
 		grades: Grade[]
+	}
+
+	export interface UpdateGrade {
+		studentid: number
+		grade: number
+	}
+
+	export interface UpdateGradesRequest {
+		source: GradeSource
+		courseid: number
+		component: GradeComponent
+		activityid: number
+		itemnumber: number
+		grades: UpdateGrade[]
 	}
 }
 
