@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Input } from '@repo/ui/components/ui/input'
-import { Edit3, Save, X } from 'lucide-react'
+import { Edit3, Save, X, Loader2 } from 'lucide-react'
 
 interface EditableGradeCellProps {
 	studentId: number
 	category: string
 	value: number
 	isHighlighted?: boolean
-	onSave: (studentId: number, category: string, value: number) => void
-	gradeClassName?: string
+	onSave: (
+		studentId: number,
+		category: string,
+		value: number
+	) => Promise<void> | void
 }
 
 export default function EditableGradeCell({
@@ -17,24 +20,29 @@ export default function EditableGradeCell({
 	category,
 	value,
 	isHighlighted = false,
-	onSave,
-	gradeClassName
+	onSave
 }: EditableGradeCellProps) {
 	const [isEditing, setIsEditing] = useState(false)
 	const [editValue, setEditValue] = useState('')
+	const [isLoading, setIsLoading] = useState(false)
 
 	const handleEditStart = () => {
 		setIsEditing(true)
 		setEditValue(value.toFixed(2))
 	}
 
-	const handleEditSave = () => {
+	const handleEditSave = async () => {
 		const newValue = Number.parseFloat(editValue)
 		if (isNaN(newValue) || newValue < 0 || newValue > 100) return
 
-		onSave(studentId, category, newValue)
-		setIsEditing(false)
-		setEditValue('')
+		try {
+			setIsLoading(true)
+			await Promise.resolve(onSave(studentId, category, newValue))
+			setIsEditing(false)
+			setEditValue('')
+		} finally {
+			setIsLoading(false)
+		}
 	}
 
 	const handleEditCancel = () => {
@@ -54,23 +62,30 @@ export default function EditableGradeCell({
 					onChange={(e) => setEditValue(e.target.value)}
 					className='w-16 h-8 text-center'
 					autoFocus
+					disabled={isLoading}
 					onKeyDown={(e) => {
 						if (e.key === 'Enter') handleEditSave()
-						if (e.key === 'Escape') handleEditCancel()
+						if (e.key === 'Escape' && !isLoading) handleEditCancel()
 					}}
 				/>
 				<Button
 					size='sm'
 					variant='ghost'
 					onClick={handleEditSave}
+					disabled={isLoading}
 					className='h-8 w-8 p-0'
 				>
-					<Save className='h-3 w-3' />
+					{isLoading ? (
+						<Loader2 className='h-3 w-3 animate-spin' />
+					) : (
+						<Save className='h-3 w-3' />
+					)}
 				</Button>
 				<Button
 					size='sm'
 					variant='ghost'
 					onClick={handleEditCancel}
+					disabled={isLoading}
 					className='h-8 w-8 p-0'
 				>
 					<X className='h-3 w-3' />
@@ -85,9 +100,7 @@ export default function EditableGradeCell({
 			className={`h-8 px-2 hover:bg-muted/50 group ${isHighlighted ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
 			onClick={handleEditStart}
 		>
-			<span className={`font-medium ${gradeClassName}`}>
-				{value.toFixed(2) || 0}
-			</span>
+			<span className='font-medium'>{value.toFixed(2) || 0}</span>
 			<Edit3 className='h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity' />
 		</Button>
 	)
