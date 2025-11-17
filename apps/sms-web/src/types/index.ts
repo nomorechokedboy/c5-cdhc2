@@ -104,7 +104,12 @@ export class Course {
 		readonly description: string,
 		readonly startDate: number,
 		readonly endDate: number,
-		readonly gradeCategories: string[],
+		readonly gradeCategories: {
+			label: string
+			value: number
+			itemNumber: number
+			type: ModuleType
+		}[],
 		readonly students: Student[]
 	) {}
 
@@ -125,7 +130,12 @@ export class Course {
 			students
 		} = resp
 		const courseStudents = students.map(Student.From)
-		const gradeCategories = modules.map((m) => m.name)
+		const gradeCategories = modules.map((m) => ({
+			label: m.name,
+			value: m.cmid,
+			itemNumber: m.itemnumber,
+			type: m.type as ModuleType
+		}))
 		return new Course(
 			id,
 			fullname,
