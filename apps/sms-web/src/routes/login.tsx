@@ -11,6 +11,7 @@ import {
 	CardContent
 } from '@repo/ui/components/ui/card'
 import { SidebarInset } from '@repo/ui/components/ui/sidebar'
+import { toast } from '@repo/ui/components/ui/sonner'
 import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
@@ -34,6 +35,7 @@ export default function Login() {
 		if (event.data?.token) {
 			const { accessToken, refreshToken } = event.data.token
 			AuthController.setTokens({ accessToken, refreshToken })
+			toast.success('Đăng nhập thành công!')
 			navigate({ to: '/', replace: true })
 		}
 	}
