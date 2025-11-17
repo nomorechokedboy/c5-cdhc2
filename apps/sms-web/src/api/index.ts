@@ -1,5 +1,5 @@
 import { ApiUrl } from '@/const'
-import Client from './client'
+import Client, { type mdlapi } from './client'
 import { AuthController } from '@/biz'
 import { CourseCategory } from '@/types'
 
@@ -83,6 +83,10 @@ class courseApi {
 
 	GetCourseDetails({ id }: { id: number }) {
 		return client.usrcourses.GetCourseDetails(id)
+	}
+
+	UpdateCourseGrades(params: mdlapi.UpdateGradesRequest) {
+		return client.usrcourses.UpdateCourseGrades(params)
 	}
 }
 
