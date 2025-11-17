@@ -8,6 +8,7 @@ import { Fragment } from 'react/jsx-runtime'
 import { SidebarProvider } from '@repo/ui/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import useAuth from '@/hooks/useAuth'
+import { Toaster } from '@repo/ui/components/ui/sonner'
 
 interface MyRouterContext {
 	queryClient: QueryClient
@@ -23,6 +24,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 					{isAuthenticated === true && (
 						<AppSidebar collapsible='icon' />
 					)}
+					<Toaster richColors position='top-center' />
 					<div className='flex flex-col w-full'>
 						<Header />
 						<Outlet />
