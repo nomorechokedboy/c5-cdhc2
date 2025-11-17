@@ -67,5 +67,5 @@ func UpdateCourseGrades(
 		return nil, err
 	}
 
-	return &entities.UpdateCourseGradesResponse{}, nil
+	return &entities.UpdateCourseGradesResponse{Data: "Ok"}, nil
 }
