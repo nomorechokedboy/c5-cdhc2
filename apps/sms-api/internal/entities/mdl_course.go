@@ -70,4 +70,6 @@ type GetUserCourseDetailsResponse struct {
 	Data CourseDetails
 }
 
-type UpdateCourseGradesResponse struct{}
+type UpdateCourseGradesResponse struct {
+	Data string `json:"data"`
+}
