@@ -11,11 +11,11 @@ import StudentGrades from './student-grades'
 
 interface GradesTableProps {
 	students: Student[]
-	gradeCategories: string[]
+	gradeCategories: { label: string; value: number }[]
 	bulkEditMode: 'single-category' | 'all-grades' | null
-	bulkEditCategory: string
-	onGradeSave: (studentId: number, category: string, value: number) => void
-	onCategorySelect: (category: string) => void
+	bulkEditCategory: number
+	onGradeSave: (studentId: number, category: number, value: number) => void
+	onCategorySelect: (category: number) => void
 }
 
 export default function GradesTable({
@@ -36,25 +36,26 @@ export default function GradesTable({
 						</TableHead>
 						{gradeCategories.map((category) => (
 							<TableHead
-								key={category}
+								key={category.value}
 								className='font-semibold text-foreground text-center'
 							>
 								<div className='flex items-center justify-center gap-2'>
-									{category}
+									{category.label}
 									{bulkEditMode === 'single-category' && (
 										<Button
 											size='sm'
 											variant={
-												bulkEditCategory === category
+												bulkEditCategory ===
+												category.value
 													? 'default'
 													: 'ghost'
 											}
 											onClick={() =>
-												onCategorySelect(category)
+												onCategorySelect(category.value)
 											}
 											className='h-6 px-2 text-xs'
 										>
-											{bulkEditCategory === category
+											{bulkEditCategory === category.value
 												? 'Selected'
 												: 'Select'}
 										</Button>

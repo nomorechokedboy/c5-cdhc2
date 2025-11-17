@@ -12,40 +12,74 @@ import GradesTable from '@/components/grade-table'
 import type { Course } from '@/types'
 import CourseDetailsSkeleton from './skeleton'
 import CourseDetailsError from './error'
+import { useMutation } from '@tanstack/react-query'
+import { CourseApi } from '@/api'
+import { toast } from '@repo/ui/components/ui/sonner'
 
 type InnerCourseDetailsProps = {
 	data: Course
+	onReload: () => Promise<void>
 }
 
-function InnerCourseDetails({ data: course }: InnerCourseDetailsProps) {
+function InnerCourseDetails({
+	data: course,
+	onReload
+}: InnerCourseDetailsProps) {
+	const { mutateAsync, isPending } = useMutation({
+		mutationFn: CourseApi.UpdateCourseGrades
+	})
 	const students = course.students
 
 	const [bulkEditMode, setBulkEditMode] = useState<
 		'single-category' | 'all-grades' | null
 	>(null)
-	const [bulkEditCategory, setBulkEditCategory] = useState<string>('')
+	const [bulkEditCategory, setBulkEditCategory] = useState<number>(0)
 
-	const handleGradeSave = (
+	const handleGradeSave = async (
 		studentId: number,
-		category: string,
+		category: number,
 		value: number
 	) => {
-		console.log('Hi')
+		const categoryInfo = course.gradeCategories.find(
+			(c) => c.value === category
+		)
+		if (categoryInfo === undefined) {
+			toast.error(
+				'Lỗi hệ thống khi cập nhật điểm! Vui lòng liên hệ quản trị viên.'
+			)
+			return
+		}
+
+		try {
+			await mutateAsync({
+				itemnumber: categoryInfo.itemNumber,
+				activityid: category,
+				courseid: course.id,
+				grades: [{ studentid: studentId, grade: value }],
+				component: `mod_${categoryInfo.type}`,
+				source: `mod/${categoryInfo.type}`
+			})
+			await onReload()
+			toast.success('Cập nhật điểm thành công!')
+		} catch (err) {
+			console.error('GradeSave error', err)
+			toast.error('Cập nhật điểm thất bại! ')
+		}
 	}
 
 	const handleBulkEditCategory = () => {
 		setBulkEditMode('single-category')
-		setBulkEditCategory(course.gradeCategories[0])
+		setBulkEditCategory(course.gradeCategories[0].value)
 	}
 
 	const handleBulkEditAll = () => {
 		setBulkEditMode('all-grades')
-		setBulkEditCategory('')
+		setBulkEditCategory(0)
 	}
 
 	const exitBulkEditMode = () => {
 		setBulkEditMode(null)
-		setBulkEditCategory('')
+		setBulkEditCategory(0)
 	}
 
 	return (
@@ -93,13 +127,15 @@ export type CourseDetailsProps = {
 	error?: Error | string | null
 	data?: Course
 	onRetry: () => void
+	onReload: () => void
 }
 
 export default function CourseDetails({
 	isLoading,
 	error,
 	data,
-	onRetry
+	onRetry,
+	onReload
 }: CourseDetailsProps) {
 	// Show loading skeleton
 	if (isLoading) {
@@ -113,7 +149,7 @@ export default function CourseDetails({
 
 	// Show actual content
 	if (data) {
-		return <InnerCourseDetails data={data} />
+		return <InnerCourseDetails data={data} onReload={onReload} />
 	}
 
 	// Fallback - shouldn't normally reach here
