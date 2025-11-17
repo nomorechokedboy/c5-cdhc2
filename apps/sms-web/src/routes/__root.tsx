@@ -26,7 +26,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 					)}
 					<Toaster richColors position='top-center' />
 					<div className='flex flex-col w-full'>
-						<Header />
+						{isAuthenticated === true && <Header />}
 						<Outlet />
 					</div>
 					<TanstackDevtools
