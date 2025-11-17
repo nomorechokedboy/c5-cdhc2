@@ -35,6 +35,10 @@ function RouteComponent() {
 		refetchCourseDetails()
 	}
 
+	const handleReload = async () => {
+		await refetchCourseDetails()
+	}
+
 	return (
 		<ProtectedRoute>
 			<CourseDetails
@@ -42,6 +46,7 @@ function RouteComponent() {
 				isLoading={isLoadingCourseDetails}
 				error={courseDetailsErr}
 				onRetry={handleRetry}
+				onReload={handleReload}
 			/>
 		</ProtectedRoute>
 	)

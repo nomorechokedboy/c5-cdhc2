@@ -4,11 +4,11 @@ import EditableGradeCell from '@/components/grade-table/editable-grade-cell'
 import { Badge } from '@repo/ui/components/ui/badge'
 
 export interface StudentGradesProps {
-	bulkEditCategory: string
+	bulkEditCategory: number
 	bulkEditMode: 'single-category' | 'all-grades' | null
-	gradeCategories: string[]
+	gradeCategories: { label: string; value: number }[]
 	student: Student
-	onGradeSave: (studentId: number, category: string, value: number) => void
+	onGradeSave: (studentId: number, category: number, value: number) => void
 }
 
 const calculateAverage = (grades: number[]) => {
@@ -77,14 +77,14 @@ export default function StudentGrades({
 				const isHighlighted =
 					bulkEditMode === 'all-grades' ||
 					(bulkEditMode === 'single-category' &&
-						bulkEditCategory === category)
+						bulkEditCategory === category.value)
 
 				return (
-					<TableCell key={category} className='text-center'>
+					<TableCell key={category.value} className='text-center'>
 						<EditableGradeCell
 							studentId={student.id}
-							category={category}
-							value={student.grades[category]?.grade || 0}
+							category={category.value}
+							value={student.grades[category.label]?.grade || 0}
 							isHighlighted={isHighlighted}
 							onSave={onGradeSave}
 						/>
