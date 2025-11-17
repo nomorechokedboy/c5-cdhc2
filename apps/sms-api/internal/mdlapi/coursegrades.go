@@ -87,13 +87,14 @@ type GetCourseGradesResponse struct {
 }
 
 type Module struct {
-	ID       int       `json:"id"`
-	Cmid     int       `json:"cmid"`
-	Name     string    `json:"name"`
-	Type     string    `json:"type"`
-	Grademin float64   `json:"grademin"`
-	Grademax float64   `json:"grademax"`
-	ExamType *ExamType `json:"examtype"`
+	ID         int       `json:"id"`
+	Cmid       int       `json:"cmid"`
+	Name       string    `json:"name"`
+	Type       string    `json:"type"`
+	Grademin   float64   `json:"grademin"`
+	Grademax   float64   `json:"grademax"`
+	ExamType   *ExamType `json:"examtype"`
+	ItemNumber int       `json:"itemnumber"`
 }
 
 type Student struct {
