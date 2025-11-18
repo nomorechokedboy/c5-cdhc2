@@ -1,6 +1,7 @@
 import { AuthApi } from '@/api'
 import { AuthController } from '@/biz'
 import { useQuery } from '@tanstack/react-query'
+import useCourses from './useCourses'
 
 export default function useAuth() {
 	const {
@@ -17,6 +18,7 @@ export default function useAuth() {
 		gcTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: true
 	})
+	const { data: courses } = useCourses()
 
 	const logout = () => {
 		AuthController.clearTokens()
@@ -31,6 +33,8 @@ export default function useAuth() {
 		authError,
 
 		// Actions
-		logout
+		logout,
+
+		role: courses?.length !== 0 ? 'teacher' : 'student'
 	}
 }
