@@ -14,7 +14,7 @@ type Course struct {
 }
 
 type GetUsersCoursesParams struct {
-	CategoryId int64
+	CategoryId *int64
 	UserId     int64
 }
 
@@ -24,7 +24,7 @@ type FindOneCourseParams struct {
 }
 
 type GetUsersCoursesRequest struct {
-	CategoryId int64 `query:"categoryId"`
+	// CategoryId int64 `query:"categoryId"`
 }
 
 type GetUsersCoursesResponse struct {
