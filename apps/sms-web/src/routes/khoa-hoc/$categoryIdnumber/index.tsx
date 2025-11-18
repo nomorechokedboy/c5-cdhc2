@@ -1,4 +1,4 @@
-import { CourseApi } from '@/api'
+import { CategoryApi, CourseApi } from '@/api'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseCard, { type Course } from '@/components/course-card'
 import { useQuery } from '@tanstack/react-query'
@@ -40,7 +40,7 @@ function RouteComponent() {
 	})
 	const { data: courseData = [], isLoading: isCoursesLoading } = useQuery({
 		queryKey: ['courses', category?.id],
-		queryFn: () => CourseApi.GetCourses({ CategoryId: category?.id ?? 0 })
+		queryFn: () => CategoryApi.GetCourses({ CategoryId: category?.id ?? 0 })
 	})
 	const courses = courseData.map(
 		(c) =>
