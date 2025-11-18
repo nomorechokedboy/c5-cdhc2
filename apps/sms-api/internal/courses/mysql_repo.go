@@ -27,6 +27,15 @@ func (r *repository) Find(
 	}
 
 	resp := make([]entities.Course, 0)
+	whereConds := []dbx.Expression{
+		dbx.HashExp{"ra.userid": req.UserId},
+		dbx.NewExp("r.archetype IN ('editingteacher', 'teacher')"),
+		dbx.NewExp("c.id != 1"),
+	}
+	if req.CategoryId != nil {
+		whereConds = append(whereConds, dbx.HashExp{"c.category": req.CategoryId})
+	}
+
 	query := r.db.WithContext(ctx).
 		Select(
 			"c.id AS id",
@@ -51,12 +60,7 @@ func (r *repository) Find(
 		InnerJoin("mdl_context ctx", dbx.NewExp("ctx.instanceid = c.id AND ctx.contextlevel = 50")).
 		InnerJoin("mdl_role_assignments ra", dbx.NewExp("ra.contextid = ctx.id")).
 		InnerJoin("mdl_role r", dbx.NewExp("r.id = ra.roleid")).
-		Where(dbx.And(
-			dbx.HashExp{"ra.userid": req.UserId},
-			dbx.HashExp{"c.category": req.CategoryId},
-			dbx.NewExp("r.archetype IN ('editingteacher', 'teacher')"),
-			dbx.NewExp("c.id != 1"),
-		)).
+		Where(dbx.And(whereConds...)).
 		OrderBy("c.fullname")
 
 	if err := query.All(&resp); err != nil {
