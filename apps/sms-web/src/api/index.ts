@@ -70,15 +70,19 @@ class categoryApi {
 			.GetCategories()
 			.then((resp) => resp.Data.map(CourseCategory.fromEntity))
 	}
+
+	async GetCourses({ CategoryId }: { CategoryId: number }) {
+		return client.usrcategories
+			.GetCategoryCourses(CategoryId)
+			.then((resp) => resp.Data)
+	}
 }
 
 export const CategoryApi = new categoryApi()
 
 class courseApi {
-	GetCourses({ CategoryId }: { CategoryId: number }) {
-		return client.usrcourses
-			.GetCourses({ CategoryId })
-			.then((resp) => resp.Data)
+	GetCourses() {
+		return client.usrcourses.GetCourses({}).then((resp) => resp.Data)
 	}
 
 	GetCourseDetails({ id }: { id: number }) {
