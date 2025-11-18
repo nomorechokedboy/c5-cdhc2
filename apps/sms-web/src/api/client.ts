@@ -192,6 +192,7 @@ export namespace usrcategories {
 		constructor(baseClient: BaseClient) {
 			this.baseClient = baseClient
 			this.GetCategories = this.GetCategories.bind(this)
+			this.GetCategoryCourses = this.GetCategoryCourses.bind(this)
 		}
 
 		/**
@@ -204,6 +205,20 @@ export namespace usrcategories {
 				`/categories`
 			)
 			return (await resp.json()) as entities.GetUsersCategoriesResponse
+		}
+
+		/**
+		 * Get category's courses endpoint
+		 */
+		public async GetCategoryCourses(
+			categoryId: number
+		): Promise<entities.GetUsersCoursesResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/categories/${encodeURIComponent(categoryId)}/courses`
+			)
+			return (await resp.json()) as entities.GetUsersCoursesResponse
 		}
 	}
 }
@@ -239,18 +254,8 @@ export namespace usrcourses {
 		public async GetCourses(
 			params: entities.GetUsersCoursesRequest
 		): Promise<entities.GetUsersCoursesResponse> {
-			// Convert our params into the objects we need for the request
-			const query = makeRecord<string, string | string[]>({
-				categoryId: String(params.CategoryId)
-			})
-
 			// Now make the actual call to the API
-			const resp = await this.baseClient.callTypedAPI(
-				'GET',
-				`/courses`,
-				undefined,
-				{ query }
-			)
+			const resp = await this.baseClient.callTypedAPI('GET', `/courses`)
 			return (await resp.json()) as entities.GetUsersCoursesResponse
 		}
 
@@ -303,9 +308,7 @@ export namespace entities {
 		Data: Category[]
 	}
 
-	export interface GetUsersCoursesRequest {
-		CategoryId: number
-	}
+	export interface GetUsersCoursesRequest {}
 
 	export interface GetUsersCoursesResponse {
 		Data: Course[]
@@ -315,7 +318,9 @@ export namespace entities {
 		Location: string
 	}
 
-	export interface UpdateCourseGradesResponse {}
+	export interface UpdateCourseGradesResponse {
+		data: string
+	}
 
 	export interface UserInfo {
 		id: number
