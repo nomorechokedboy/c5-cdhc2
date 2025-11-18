@@ -44,7 +44,10 @@ const APP_BASE_NAVIGATION: SidebarData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { data: courseCategories = [], isLoading: isCourseCategoryLoading } =
-		useQuery({ queryKey: ['courses'], queryFn: CategoryApi.GetCategories })
+		useQuery({
+			queryKey: ['categories'],
+			queryFn: CategoryApi.GetCategories
+		})
 
 	const courseCategoryTransformer = new CourseCategoryToNavTransformer()
 	const { navigationData } = useSidebarLogic({
