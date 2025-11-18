@@ -24,15 +24,16 @@ func GetCourses(
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	if req == nil {
+	if req != nil {
 		logger.ErrorContext(ctx, "Request is nil")
 		return nil, &errs.Error{Code: errs.InvalidArgument, Message: errs.InvalidArgument.String()}
 	}
 
 	userId := int64(uid[0])
+	controllerReq := &entities.GetUsersCoursesParams{UserId: userId, CategoryId: nil}
 	return authn.GetContainer().
 		GetCourseController().
-		GetUserCourses(ctx, &entities.GetUsersCoursesParams{UserId: userId, CategoryId: req.CategoryId})
+		GetUserCourses(ctx, controllerReq)
 }
 
 // Get course details endpoint
