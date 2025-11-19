@@ -108,16 +108,14 @@ type Student struct {
 }
 
 type Grade struct {
+	ActivityID   int       `json:"activityid"`
+	ExamType     *ExamType `json:"examtype"`
+	Grade        float64   `json:"grade"`
+	ItemInstance int       `json:"iteminstance"`
+	ItemModule   string    `json:"itemmodule"`
+	ItemNumber   int       `json:"itemnumber"`
 	ModuleID     int       `json:"moduleid"`
 	ModuleName   string    `json:"modulename"`
-	Type         string    `json:"type"`
-	Grade        float64   `json:"grade"`
-	Weight       float64   `json:"weightraw"`
-	ExamType     *ExamType `json:"examtype"`
-	ItemModule   string    `json:"itemmodule"`
-	ItemInstance int       `json:"iteminstance"`
-	ItemNumber   int       `json:"itemnumber"`
-	ActivityID   int       `json:"activityid"`
 }
 
 type LocalCourseGrades interface {
