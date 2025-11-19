@@ -2,6 +2,7 @@ package usrcategories
 
 import (
 	"context"
+	"strconv"
 
 	"encore.app/authn"
 	"encore.app/internal/entities"
@@ -20,7 +21,7 @@ func GetCategories(ctx context.Context) (*entities.GetUsersCategoriesResponse, e
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	userId := int64(uid[0])
+	userId, _ := strconv.ParseInt(string(uid), 10, 64)
 	return authn.GetContainer().
 		GetCategoryController().
 		GetUserCategories(ctx, &entities.GetUsersCategoriesRequest{UserId: userId})
@@ -39,7 +40,7 @@ func GetCategoryCourses(
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	userId := int64(uid[0])
+	userId, _ := strconv.ParseInt(string(uid), 10, 64)
 	controllerReq := &entities.GetUsersCoursesParams{UserId: userId, CategoryId: &categoryId}
 	return authn.GetContainer().
 		GetCourseController().

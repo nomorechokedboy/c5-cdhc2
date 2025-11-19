@@ -2,6 +2,7 @@ package usrcourses
 
 import (
 	"context"
+	"strconv"
 
 	"encore.app/authn"
 	"encore.app/internal/entities"
@@ -24,12 +25,12 @@ func GetCourses(
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	if req != nil {
+	/* if req != nil {
 		logger.ErrorContext(ctx, "Request is nil")
 		return nil, &errs.Error{Code: errs.InvalidArgument, Message: errs.InvalidArgument.String()}
-	}
+	} */
 
-	userId := int64(uid[0])
+	userId, _ := strconv.ParseInt(string(uid), 10, 64)
 	controllerReq := &entities.GetUsersCoursesParams{UserId: userId, CategoryId: nil}
 	return authn.GetContainer().
 		GetCourseController().
@@ -49,7 +50,7 @@ func GetCourseDetails(
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	userId := int64(uid[0])
+	userId, _ := strconv.ParseInt(string(uid), 10, 64)
 	req := &entities.FindOneCourseParams{Id: id, UserId: userId}
 	return authn.GetContainer().GetCourseController().GetCourseDetails(ctx, req)
 }

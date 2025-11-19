@@ -2,6 +2,8 @@ package authn
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"encore.app/internal/entities"
@@ -40,7 +42,7 @@ func AuthHandler(ctx context.Context, token string) (auth.UID, *entities.TokenPa
 		}
 	} */
 
-	return auth.UID(payload.UserID), payload, nil
+	return auth.UID(fmt.Sprint(payload.UserID)), payload, nil
 }
 
 type OAuth2CallbackRequest struct {
@@ -68,7 +70,7 @@ func Me(ctx context.Context) (*entities.UserInfo, error) {
 		return nil, &errs.Error{Code: errs.Unauthenticated, Message: errs.Unauthenticated.String()}
 	}
 
-	userID := int64(uid[0])
+	userID, _ := strconv.ParseInt(string(uid), 10, 64)
 	return container.GetController().HandleGetUserInfo(ctx, userID)
 }
 
