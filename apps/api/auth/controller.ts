@@ -90,7 +90,6 @@ class controller {
 		return { validClassIds: classIds, validUnitIds: unitIds }
 	}
 
-
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
 			// Get user permissions from RBAC system
@@ -106,18 +105,7 @@ class controller {
 			}
 			let classIds: number[] = []
 			let unitIds: number[] = []
-			if (unit?.level === 'battalion') {
-				classIds = unit.children
-					.map((c) => c.classes.map((cl) => cl.id))
-					.flat()
-				unitIds = unit.children.map((c) => c.id).flat()
-			} else if (unit?.level === 'company') {
-				classIds = unit.classes.map((cl) => cl.id)
-			}
-			unitIds.push(user.unitId)
 
-			let classIds: number[] = [],
-				unitIds: number[] = []
 			const getAllClassIds = (unit) => {
 				let ids = unit.classes?.map((c) => c.id) || []
 				if (unit.children) {

@@ -94,10 +94,22 @@ export const CreateUser = api(
 )
 
 export const UpdateUser = api(
-	{ expose: true, method: 'PUT', path: '/users' },
+	{ expose: true, auth: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
 		const { id, displayName, unitId, isSuperUser } = req
 		const validUnitIds = getAuthData()!.validUnitIds
+		// Debug
+		const authData = getAuthData()
+		console.log('Auth Data:', authData)
+		console.log('Valid Unit IDs:', authData?.validUnitIds)
+
+		if (!authData) {
+			throw new Error('Không tìm thấy thông tin xác thực')
+		}
+
+		if (!authData.validUnitIds) {
+			throw new Error('Không tìm thấy validUnitIds trong auth data')
+		}
 		const data = await userController
 			.update({ id, displayName, unitId, isSuperUser }, validUnitIds)
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))

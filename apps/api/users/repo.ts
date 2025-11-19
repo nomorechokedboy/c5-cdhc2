@@ -51,7 +51,7 @@ class sqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	findOne(user: UserDB): Promise<User> {
+	findOne(user: Partial<UserDB>): Promise<User> {
 		log.info('UserRepo.findOne params', { params: user })
 		if (user.username !== undefined) {
 			return this.db.query.users
