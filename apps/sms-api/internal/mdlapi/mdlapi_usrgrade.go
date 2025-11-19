@@ -25,3 +25,16 @@ func (p *mdlApiUserGradeProvider) UpdateGrades(
 
 	return *resp, nil
 }
+
+// GetUserGrades implements UserGradeItemsProvider.
+func (p *mdlApiUserGradeProvider) GetUserGrades(
+	ctx context.Context,
+	req *GetUserGradesRequest,
+) (*GetUserGradesResponse, error) {
+	resp := &GetUserGradesResponse{}
+	if err := p.mdlApi.Do(ctx, GET_STUDENT_GRADES, req, resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}

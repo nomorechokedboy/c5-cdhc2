@@ -32,6 +32,7 @@ type Container struct {
 	controller         *AuthnController
 	courseController   *controllers.CourseController
 	categoryController *categories.CategoryController
+	userController     *controllers.UserController
 
 	mu sync.RWMutex
 }
@@ -75,9 +76,12 @@ func NewContainer() *Container {
 		userGradeItemsProvider,
 	)
 
+	studentGradeUseCase := usecases.NewStudentGradeUseCase(userGradeItemsProvider)
+
 	controller := NewAuthnController(useCase)
 	courseController := controllers.NewCourseController(courseUseCase)
 	categoryController := categories.NewCategoryController(categoryRepo)
+	userController := controllers.NewUserController(studentGradeUseCase)
 
 	return &Container{
 		config:             cfg,
@@ -86,6 +90,7 @@ func NewContainer() *Container {
 		controller:         controller,
 		courseController:   courseController,
 		categoryController: categoryController,
+		userController:     userController,
 	}
 }
 
@@ -108,6 +113,13 @@ func (c *Container) GetCategoryController() *categories.CategoryController {
 	defer c.mu.Unlock()
 
 	return c.categoryController
+}
+
+func (c *Container) GetUserController() *controllers.UserController {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.userController
 }
 
 func GetContainer() *Container {
