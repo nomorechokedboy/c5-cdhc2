@@ -10,8 +10,11 @@ import { Separator } from '@repo/ui/components/ui/separator'
 import { SidebarTrigger } from '@repo/ui/components/ui/sidebar'
 import { Link, useLocation } from '@tanstack/react-router'
 import { Fragment } from 'react/jsx-runtime'
+import { UserNav } from '@repo/ui/components/user-nav'
+import useAuth from '@/hooks/useAuth'
 
 export default function Header() {
+	const { logout } = useAuth()
 	const location = useLocation()
 	const path = location.pathname
 	const segments = path.split('/').filter(Boolean)
@@ -59,7 +62,12 @@ export default function Header() {
 			</div>
 			<div className='px-4 flex items-center gap-5'>
 				{/* <NotificationBell />
-                <UserNav /> */}
+				 */}
+				<UserNav
+					username=''
+					fallbackDisplayName='T'
+					onLogout={logout}
+				/>
 			</div>
 		</header>
 	)
