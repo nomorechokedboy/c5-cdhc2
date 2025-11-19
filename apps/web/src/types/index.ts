@@ -87,6 +87,18 @@ export interface UserBody {
 	unitId: number
 	isSuperUser?: boolean
 }
+export interface UpdateUserBody {
+	id?: number
+	displayName: string
+	unitId?: number
+	isSuperUser?: boolean
+}
+export interface UserUpdate {
+	id: number
+	displayName: string
+	unitId: number
+	isSuperUser?: boolean
+}
 
 export interface Student extends Base, StudentBody {}
 export interface User extends UserBody {}
@@ -96,6 +108,7 @@ export type ClassResponse = { data: Class[] }
 export type StudentResponse = { data: Student[] }
 
 export type UnitResponse = { data: Unit[] }
+export type UpdateUserResponse = { data: User }
 
 export type UserResponse = { data: User[] }
 

@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import type { User } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '../data-table/data-table-column-header'
+import { useUserTableContext } from './UserTableContext'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	if (!isoDate) return 'N/A'
@@ -104,6 +105,23 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 		meta: {
 			label: 'Đơn vị'
 		}
+	},
+	{
+		id: 'actions',
+		header: 'Thao tác',
+		cell: ({ row }) => {
+			const { onEditUser } = useUserTableContext()
+			const user = row.original
+
+			return (
+				<button
+					onClick={() => onEditUser(user)}
+					className='px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600'
+				>
+					Sửa
+				</button>
+			)
+		}
 	}
 ]
 
@@ -156,6 +174,25 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<User>[] = [
 		),
 		meta: {
 			label: 'Đơn vị'
+		}
+	},
+	{
+		id: 'actions',
+		header: 'Thao tác',
+		cell: ({ row }) => {
+			const id = row.original.id
+
+			return (
+				<button
+					onClick={() => console.log('Edit:', id)}
+					className='px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600'
+				>
+					Sửa
+				</button>
+			)
+		},
+		meta: {
+			label: 'Thao tác'
 		}
 	}
 ]

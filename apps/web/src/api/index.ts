@@ -18,6 +18,8 @@ import type {
 	Unit,
 	UnitLevel,
 	UpdateStudentsBody,
+	UpdateUserBody,
+	UpdateUserResponse,
 	User,
 	UserBody,
 	UserResponse
@@ -25,6 +27,7 @@ import type {
 import axios, { appFetcher } from '@/lib/axios'
 import Client, { auth, classes, students, units } from './client'
 import { ApiUrl } from '@/lib/const'
+import { AuthController } from '@/biz'
 
 export const requestClient = new Client(ApiUrl, {
 	fetcher: appFetcher
@@ -159,6 +162,15 @@ export function CreateUser(body: UserBody) {
 	return axios
 		.post<UserResponse>('users', body)
 		.then((resp) => resp.data.data)
+}
+export function UpdateUser(body: UpdateUserBody) {
+	const token = AuthController.getAccessToken()
+
+	return axios.put('users', body, {
+		headers: {
+			Authorization: `Bearer ${token}`
+		}
+	})
 }
 
 export function Login(req: auth.LoginRequest) {
