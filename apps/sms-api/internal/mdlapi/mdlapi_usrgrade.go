@@ -12,18 +12,6 @@ type mdlApiUserGradeProvider struct {
 	mdlApi MoodleApi
 }
 
-func (p *mdlApiUserGradeProvider) GetUserGradeItems(
-	ctx context.Context,
-	req *GetUserGradeItemsRequest,
-) (*GetUserGradeItemsResponse, error) {
-	resp := &GetUserGradeItemsResponse{}
-	if err := p.mdlApi.Do(ctx, GET_USER_GRADE_ITEMS, req, resp); err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
 // UpdateGrades implements UserGradeItemsProvider.
 func (p *mdlApiUserGradeProvider) UpdateGrades(
 	ctx context.Context,
