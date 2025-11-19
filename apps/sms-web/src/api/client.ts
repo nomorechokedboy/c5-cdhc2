@@ -35,6 +35,7 @@ export default class Client {
 	public readonly authn: authn.ServiceClient
 	public readonly usrcategories: usrcategories.ServiceClient
 	public readonly usrcourses: usrcourses.ServiceClient
+	public readonly usrgrades: usrgrades.ServiceClient
 	private readonly options: ClientOptions
 	private readonly target: string
 
@@ -69,6 +70,7 @@ export default class Client {
 		this.authn = new authn.ServiceClient(base)
 		this.usrcategories = new usrcategories.ServiceClient(base)
 		this.usrcourses = new usrcourses.ServiceClient(base)
+		this.usrgrades = new usrgrades.ServiceClient(base)
 	}
 
 	/**
@@ -276,6 +278,29 @@ export namespace usrcourses {
 	}
 }
 
+export namespace usrgrades {
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.GetUserGrades = this.GetUserGrades.bind(this)
+		}
+
+		/**
+		 * Get user grades endpoint
+		 */
+		public async GetUserGrades(): Promise<mdlapi.GetUserGradesResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/users/grades`
+			)
+			return (await resp.json()) as mdlapi.GetUserGradesResponse
+		}
+	}
+}
+
 export namespace entities {
 	export interface CallbackResponse {
 		accessToken: string
@@ -357,17 +382,30 @@ export namespace mdlapi {
 		students: Student[]
 	}
 
+	export interface GetUserGradesResponse {
+		userid: number
+		username: string
+		firstname: string
+		lastname: string
+		email: string
+		courses: {
+			courseid: number
+			coursename: string
+			shortname: string
+			visible: number
+			grades: Grade[]
+		}[]
+	}
+
 	export interface Grade {
+		activityid: number
+		examtype: ExamType
+		grade: number
+		iteminstance: number
+		itemmodule: string
+		itemnumber: number
 		moduleid: number
 		modulename: string
-		type: string
-		grade: number
-		weightraw: number
-		examtype: ExamType
-		itemmodule: string
-		iteminstance: number
-		itemnumber: number
-		activityid: number
 	}
 
 	/**
