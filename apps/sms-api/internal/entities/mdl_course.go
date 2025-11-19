@@ -55,17 +55,6 @@ type Student struct {
 	Grades    []Grade `json:"grades"`
 }
 
-type Grade struct {
-	Id          int64    `json:"id"`
-	Name        *string  `json:"name"`
-	Type        string   `json:"type"`
-	Module      *string  `json:"module"`
-	GradeRaw    *float64 `json:"gradeRaw"`
-	SubmittedAt *int64   `json:"submittedAt"`
-	GradedAt    *int64   `json:"gradedAt"`
-	WeightedRaw float64  `json:"weightedRaw"`
-}
-
 type GetUserCourseDetailsResponse struct {
 	Data CourseDetails
 }
