@@ -18,7 +18,7 @@ import { toast } from '@repo/ui/components/ui/sonner'
 
 type InnerCourseDetailsProps = {
 	data: Course
-	onReload: () => Promise<void>
+	onReload: (() => void) | (() => Promise<void>)
 }
 
 function InnerCourseDetails({
@@ -127,7 +127,7 @@ export type CourseDetailsProps = {
 	error?: Error | string | null
 	data?: Course
 	onRetry: () => void
-	onReload: () => void
+	onReload: (() => void) | (() => Promise<void>)
 }
 
 export default function CourseDetails({
