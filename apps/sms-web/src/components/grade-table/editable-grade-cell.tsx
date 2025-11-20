@@ -5,12 +5,12 @@ import { Edit3, Save, X, Loader2 } from 'lucide-react'
 
 interface EditableGradeCellProps {
 	studentId: number
-	category: string
+	category: number
 	value: number
 	isHighlighted?: boolean
 	onSave: (
 		studentId: number,
-		category: string,
+		category: number,
 		value: number
 	) => Promise<void> | void
 }
