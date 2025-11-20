@@ -95,3 +95,11 @@ class courseApi {
 }
 
 export const CourseApi = new courseApi()
+
+class userApi {
+	GetGrades() {
+		return client.usrgrades.GetUserGrades()
+	}
+}
+
+export const UserApi = new userApi()
