@@ -330,13 +330,13 @@ export namespace entities {
 	}
 
 	export interface GetUsersCategoriesResponse {
-		Data: Category[]
+		data: Category[]
 	}
 
 	export interface GetUsersCoursesRequest {}
 
 	export interface GetUsersCoursesResponse {
-		Data: Course[]
+		data: Course[]
 	}
 
 	export interface HttpCallbackResponse {
