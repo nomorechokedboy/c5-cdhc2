@@ -3,8 +3,8 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import StudentEditForm from './StudentEditForm'
-import type { Student } from '@/types'
+import StudentEditForm from './user-edit-form'
+import type { User } from '@/types'
 import {
 	EhtnicOptions,
 	religionOptions,
@@ -14,25 +14,24 @@ import {
 import useClassData from '@/hooks/useClasses'
 import { getMediaUri } from '@/lib/utils'
 import { FileDown, UserPen } from 'lucide-react'
-import { ExportStudentDataDialog } from './export-student-data-dialog'
 
 interface StudentInfoTabsProps {
-	student: Student
+	student: User
 }
 
 export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 	const [open, setOpen] = useState(false)
 
-	const { data: classes = [], refetch } = useClassData()
-	// options cho select lớp
-	const classOptions = useMemo(
-		() =>
-			classes.map((c) => ({
-				value: c.id.toString(),
-				label: `${c.name} - ${c.unit.name}`
-			})),
-		[classes]
-	)
+	// const { data: classes = [], refetch } = useClassData()
+	// // options cho select lớp
+	// const classOptions = useMemo(
+	//     () =>
+	//         classes.map((c) => ({
+	//             value: c.id.toString(),
+	//             label: `${c.name} - ${c.unit.name}`
+	//         })),
+	//     [classes]
+	// )
 
 	const Field = ({
 		label,
@@ -55,10 +54,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 			</div>
 		)
 	}
-	const avatarUri =
-		student.avatar === undefined || student.avatar === ''
-			? '/avt.jpg'
-			: student.avatar
+	const avatarUri = '/avt.jpg'
 
 	return (
 		<>
@@ -68,43 +64,32 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 					<div className='w-32 h-32 bg-gray-200 rounded-md overflow-hidden'>
 						<img
 							src={getMediaUri(avatarUri)}
-							alt={student.fullName}
+							alt={student.displayName}
 							className='object-cover w-full h-full'
 						/>
 					</div>
 					<div className='flex-1'>
 						<CardTitle className='text-xl'>
-							{student.fullName}
+							{student.displayName}
 						</CardTitle>
 						<p className='text-gray-600'>
-							Chức vụ: {student.position}
+							Chức vụ: {student.username}
 						</p>
-						<p className='text-gray-600'>Cấp bậc: {student.rank}</p>
+						<p className='text-gray-600'>
+							Cấp bậc: {student.unitId}
+						</p>
 						<p className='text-gray-600'>
 							Lớp:
 							{/* tìm lớp bằng value trong classOptions */}
-							{classOptions.find(
-								(c) => c.value === student?.class?.id.toString()
-							)?.label || 'Chưa có lớp'}
+							{/* {classOptions.find(
+                                (c) => c.value === student?.class?.id.toString()
+                            )?.label || 'Chưa có lớp'} */}
+							{student.isSuperUser}
 						</p>
-						<p className='text-gray-600'>
-							Ngày nhập ngũ: {student.enlistmentPeriod}
-						</p>
+						{/* <p className='text-gray-600'>
+                            Ngày nhập ngũ: {student.enlistmentPeriod}
+                        </p> */}
 					</div>
-					<ExportStudentDataDialog
-						data={[student as any]}
-						defaultFilename={`Phiếu-học-viên-${student.fullName?.replace(' ', '_')}`}
-						defaultValues={{
-							underUnitName: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2',
-							unitName: '	TỔNG CỤC HẬU CẦN – KỸ THUẬT'
-						}}
-						templType='StudentEnrollmentFormTempl'
-						id='ExportStudentEnrollmentFormDialog'
-					>
-						<Button>
-							<FileDown /> Tải phiếu học viên
-						</Button>
-					</ExportStudentDataDialog>
 					<Dialog open={open} onOpenChange={setOpen}>
 						<DialogTrigger asChild>
 							<Button variant='outline'>
@@ -122,7 +107,6 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 			</Card>
 
 			{/* TABS */}
-			{/* z */}
 		</>
 	)
 }

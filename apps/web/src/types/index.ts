@@ -101,7 +101,7 @@ export interface UserUpdate {
 }
 
 export interface Student extends Base, StudentBody {}
-export interface User extends UserBody {}
+export interface User extends Base, UserBody {}
 
 export type ClassResponse = { data: Class[] }
 

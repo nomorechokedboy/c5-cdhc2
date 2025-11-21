@@ -164,13 +164,7 @@ export function CreateUser(body: UserBody) {
 		.then((resp) => resp.data.data)
 }
 export function UpdateUser(body: UpdateUserBody) {
-	const token = AuthController.getAccessToken()
-
-	return axios.put('users', body, {
-		headers: {
-			Authorization: `Bearer ${token}`
-		}
-	})
+	return requestClient.users.UpdateUser(body).then((resp) => resp.data)
 }
 
 export function Login(req: auth.LoginRequest) {

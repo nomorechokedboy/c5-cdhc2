@@ -117,3 +117,18 @@ export const UpdateUser = api(
 		return { data }
 	}
 )
+export const DeleteUser = api(
+	{ expose: true, auth: true, method: 'DELETE', path: '/users' },
+	async (req: { id: number }): Promise<{ success: boolean }> => {
+		const { id } = req
+		const validUnitIds = getAuthData()!.validUnitIds
+
+		if (!validUnitIds) {
+			throw new Error('Không tìm thấy validUnitIds trong auth data')
+		}
+
+		await userController.delete(id, validUnitIds)
+
+		return { success: true }
+	}
+)

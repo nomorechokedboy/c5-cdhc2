@@ -1308,7 +1308,7 @@ export namespace users {
 	}
 
 	export interface UpdateUserRequest {
-		id: number
+		id?: number
 		displayName: string
 		unitId?: number
 		isSuperUser?: boolean
