@@ -4,27 +4,32 @@ import (
 	"context"
 
 	"encore.app/internal/entities"
-	"encore.app/internal/logger"
+	"encore.app/internal/mdlapi"
+	"encore.app/internal/usecases"
 )
 
 type CategoryController struct {
-	repo Repository
+	useCase *usecases.TeacherUseCase
 }
 
-func NewCategoryController(repo Repository) *CategoryController {
-	return &CategoryController{repo: repo}
+func NewCategoryController(useCase *usecases.TeacherUseCase) *CategoryController {
+	return &CategoryController{useCase: useCase}
 }
 
 func (c *CategoryController) GetUserCategories(
 	ctx context.Context,
 	req *entities.GetUsersCategoriesRequest,
 ) (*entities.GetUsersCategoriesResponse, error) {
-	logger.InfoContext(ctx, "GetUserCategories request", "request", req)
-	resp, err := c.repo.Find(ctx, req)
+	mdlApiReq := &mdlapi.GetCategoriesRequest{UserID: int(req.UserId)}
+	mdlApiResp, err := c.useCase.GetCategories(ctx, mdlApiReq)
 	if err != nil {
-		logger.ErrorContext(ctx, "GetUserCategories error", "err", err, "request", req)
 		return nil, err
 	}
 
-	return resp, nil
+	data := make([]entities.Category, len(mdlApiResp.Categories))
+	for i, c := range mdlApiResp.Categories {
+		data[i] = *c.ToAppCategory()
+	}
+
+	return &entities.GetUsersCategoriesResponse{Data: data}, nil
 }

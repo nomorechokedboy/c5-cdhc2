@@ -14,13 +14,13 @@ type Course struct {
 }
 
 type GetUsersCoursesParams struct {
-	CategoryId *int64
-	UserId     int64
+	CategoryId *int64 `json:"categoryId"`
+	UserId     int64  `json:"userId"`
 }
 
 type FindOneCourseParams struct {
-	Id     int64
-	UserId int64
+	Id     int64 `json:"id"`
+	UserId int64 `json:"userId"`
 }
 
 type GetUsersCoursesRequest struct {
@@ -28,7 +28,7 @@ type GetUsersCoursesRequest struct {
 }
 
 type GetUsersCoursesResponse struct {
-	Data []Course
+	Data []Course `json:"data"`
 }
 
 type CourseDetails struct {
