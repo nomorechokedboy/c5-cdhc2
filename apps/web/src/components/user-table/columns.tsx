@@ -3,6 +3,7 @@ import type { User } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '../data-table/data-table-column-header'
 import { useUserTableContext } from './UserTableContext'
+import { DataTableRowActions } from './data-user-table-row-actions'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	if (!isoDate) return 'N/A'
@@ -122,6 +123,10 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 				</button>
 			)
 		}
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />
 	}
 ]
 

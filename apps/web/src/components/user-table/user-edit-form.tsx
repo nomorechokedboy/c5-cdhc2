@@ -38,7 +38,11 @@ const schema = z.object({
 		},
 		z.number().min(1, 'Đơn vị không được bỏ trống')
 	),
-	isSuperUser: z.coerce.boolean()
+	isSuperUser: z.preprocess((val) => {
+		if (val === 'true' || val === true) return true
+		if (val === 'false' || val === false) return false
+		return val
+	}, z.boolean())
 })
 
 export interface UserFormProps {
@@ -74,18 +78,18 @@ export default function UserEditForm({
 		defaultValues: {
 			id: editingUser?.id || 0,
 			displayName: '',
-			unitId: 1,
-			isSuperUser: false
+			unitId: '1',
+			isSuperUser: 'false'
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
 				const parsed = schema.parse(value)
 				await mutateAsync(parsed)
-				toast.success('Thêm mới người dùng thành công')
+				toast.success('Sửa người dùng thành công')
 				formApi.reset()
 			} catch (err) {
 				console.error(err)
-				toast.error('Thêm mới người dùng thất bại')
+				toast.error('Sửa người dùng thất bại')
 			} finally {
 				setOpen(false)
 			}
@@ -94,13 +98,18 @@ export default function UserEditForm({
 			onBlur: schema
 		}
 	})
+
+	const superUserOptions = [
+		{ label: 'Tài khoản quản trị', value: 'true' },
+		{ label: 'Tài khoản thường', value: 'false' }
+	]
 	useEffect(() => {
 		if (open && editingUser) {
 			form.reset({
 				id: editingUser.id,
 				displayName: editingUser.displayName,
-				unitId: Number(editingUser.unitId),
-				isSuperUser: editingUser.isSuperUser || false
+				unitId: editingUser.unitId.toString(),
+				isSuperUser: editingUser.isSuperUser ? 'true' : 'false'
 			})
 		}
 	}, [open, editingUser])
@@ -120,7 +129,7 @@ export default function UserEditForm({
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
-					<DialogTitle>Biểu mẫu thêm người dùng</DialogTitle>
+					<DialogTitle>Biểu mẫu sửa thông tin người dùng</DialogTitle>
 				</DialogHeader>
 				<div className='space-y-4'>
 					<form
@@ -149,10 +158,7 @@ export default function UserEditForm({
 											values={flattenUnits(
 												unitsData || []
 											)}
-											defaultValue={
-												flattenUnits(unitsData || [])[0]
-													?.value
-											}
+											value={field.state.value?.toString()}
 										/>
 									</>
 								)}
@@ -167,17 +173,8 @@ export default function UserEditForm({
 									<field.Select
 										label='Loại tài khoản'
 										placeholder='Loại tài khoản'
-										values={[
-											{
-												label: 'Tài khoản quản trị',
-												value: 'true'
-											},
-											{
-												label: 'Tài khoản thường',
-												value: 'false'
-											}
-										]}
-										defaultValue={'false'}
+										values={superUserOptions}
+										value={field.state.value}
 									/>
 								)}
 							</form.AppField>
@@ -194,7 +191,7 @@ export default function UserEditForm({
 							</DialogClose>
 
 							<form.AppForm>
-								<form.SubscribeButton label='Thêm' />
+								<form.SubscribeButton label='Sửa' />
 							</form.AppForm>
 						</DialogFooter>
 					</form>
