@@ -1,4 +1,7 @@
 import type { entities, mdlapi } from '@/api/client'
+import type { StudentGrades, StudentGradesSummary } from './student'
+import { calculateFinalGrade } from '@/lib/utils'
+export * from './student'
 
 export type AppToken = {
 	accessToken: string
@@ -59,7 +62,6 @@ export class Grade {
 	) {}
 
 	public static From({
-		type,
 		grade,
 		moduleid,
 		modulename,
@@ -72,7 +74,7 @@ export class Grade {
 			iteminstance,
 			moduleid,
 			modulename,
-			type as ModuleType,
+			itemmodule as ModuleType,
 			examtype as unknown as ExamType,
 			grade,
 			itemmodule,
@@ -110,11 +112,12 @@ export class Course {
 			itemNumber: number
 			type: ModuleType
 		}[],
-		readonly students: Student[]
+		readonly students: Student[],
+		readonly teacher?: string
 	) {}
 
 	public static DefaultCourse() {
-		return new Course(0, 'Khóa học...', 'Chưa có mô tả ', 0, 0, [], [])
+		return new Course(0, 'Khóa học...', 'Chưa có mô tả ', 0, 0, [], [], '')
 	}
 
 	public static From(
@@ -143,7 +146,41 @@ export class Course {
 			startdate,
 			enddate,
 			gradeCategories,
-			courseStudents
+			courseStudents,
+			''
 		)
 	}
+
+	public static ToCourses(
+		studentGrades: mdlapi.GetUserGradesResponse
+	): Course[] {
+		return studentGrades.courses.map(
+			(c) => new Course(c.courseid, c.coursename, '', 0, 0, [], [], '')
+		)
+	}
+}
+
+export function GetStudentGrades(
+	courses: mdlapi.GetUserGradesResponse['courses']
+): StudentGrades {
+	const userGrades: StudentGrades = {}
+	courses.forEach(
+		(c) => (userGrades[c.courseid] = ToStudentGradesSummary(c.grades))
+	)
+
+	return userGrades
+}
+
+export function ToStudentGradesSummary(
+	grades: mdlapi.Grade[]
+): StudentGradesSummary {
+	const studentGrades: Record<string, number> = {}
+	const studentGradesMap: Record<string, Grade> = {}
+	grades.forEach((g) => {
+		studentGrades[g.modulename] = g.grade
+		studentGradesMap[g.modulename] = Grade.From(g)
+	})
+	const finalScore = calculateFinalGrade(studentGradesMap)
+
+	return { grades: studentGrades, finalScore }
 }
