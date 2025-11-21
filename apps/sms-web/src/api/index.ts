@@ -68,13 +68,13 @@ class categoryApi {
 	async GetCategories() {
 		return client.usrcategories
 			.GetCategories()
-			.then((resp) => resp.Data.map(CourseCategory.fromEntity))
+			.then((resp) => resp.data.map(CourseCategory.fromEntity))
 	}
 
 	async GetCourses({ CategoryId }: { CategoryId: number }) {
 		return client.usrcategories
 			.GetCategoryCourses(CategoryId)
-			.then((resp) => resp.Data)
+			.then((resp) => resp.data)
 	}
 }
 
@@ -82,7 +82,7 @@ export const CategoryApi = new categoryApi()
 
 class courseApi {
 	GetCourses() {
-		return client.usrcourses.GetCourses({}).then((resp) => resp.Data)
+		return client.usrcourses.GetCourses({}).then((resp) => resp.data)
 	}
 
 	GetCourseDetails({ id }: { id: number }) {
