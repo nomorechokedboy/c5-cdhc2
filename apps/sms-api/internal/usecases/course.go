@@ -3,27 +3,26 @@ package usecases
 import (
 	"context"
 
-	"encore.app/internal/courses"
 	"encore.app/internal/entities"
 	"encore.app/internal/logger"
 	"encore.app/internal/mdlapi"
 )
 
 type CourseUseCase struct {
-	repo                 courses.Repository
 	courseGradesProvider mdlapi.LocalCourseGrades
 	userGradesProvider   mdlapi.UserGradeItemsProvider
+	teacherProvider      mdlapi.LocalTeacherProvider
 }
 
 func NewCourseUseCase(
-	repo courses.Repository,
 	courseGradesProvider mdlapi.LocalCourseGrades,
 	UserGradeItemsProvider mdlapi.UserGradeItemsProvider,
+	teacherProvider mdlapi.LocalTeacherProvider,
 ) *CourseUseCase {
 	return &CourseUseCase{
-		repo:                 repo,
 		courseGradesProvider: courseGradesProvider,
 		userGradesProvider:   UserGradeItemsProvider,
+		teacherProvider:      teacherProvider,
 	}
 }
 
@@ -32,14 +31,26 @@ func (uc *CourseUseCase) GetUserCourses(
 	req *entities.GetUsersCoursesParams,
 ) (*entities.GetUsersCoursesResponse, error) {
 	logger.InfoContext(ctx, "Processing GetUserCourses", "request", req)
+	mdlApiReq := &mdlapi.GetCategoryCoursesRequest{
+		UserID: int(req.UserId),
+	}
 
-	resp, err := uc.repo.Find(ctx, req)
+	if req.CategoryId != nil {
+		mdlApiReq.CategoryID = int(*req.CategoryId)
+	}
+
+	mdlApiResp, err := uc.teacherProvider.GetCategoryCourses(ctx, mdlApiReq)
 	if err != nil {
-		logger.ErrorContext(ctx, "GetUserCourses error", "err", err, "request", req)
+		logger.ErrorContext(ctx, "GetUserCourses usecase error", "err", err, "request", mdlApiReq)
 		return nil, err
 	}
 
-	return resp, nil
+	data := make([]entities.Course, len(mdlApiResp.Courses))
+	for i, c := range mdlApiResp.Courses {
+		data[i] = *c.ToAppCourse()
+	}
+
+	return &entities.GetUsersCoursesResponse{Data: data}, nil
 }
 
 func (uc *CourseUseCase) GetUserCourseDetails(

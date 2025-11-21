@@ -9,7 +9,6 @@ import (
 	"encore.app/internal/categories"
 	"encore.app/internal/config"
 	"encore.app/internal/controllers"
-	"encore.app/internal/courses"
 	"encore.app/internal/db"
 	"encore.app/internal/logger"
 	"encore.app/internal/mdlapi"
@@ -50,8 +49,6 @@ func NewContainer() *Container {
 	mdlUserRepo := users.NewRepo(db)
 	mdlAuthToken := authtokens.NewRepo(db)
 	tokenRepo := oauth2.NewOauth2Repository(rdb)
-	mdlCourseRepo := courses.NewRepository(db)
-	categoryRepo := categories.NewRepository(db)
 
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
 	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
@@ -70,17 +67,19 @@ func NewContainer() *Container {
 	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
 	courseGradesProvider := mdlapi.NewLocalCourseGradesProvider(mdlApi)
 	userGradeItemsProvider := mdlapi.NewMdlApiUserGradeItemsProvider(mdlApi)
+	teacherProvider := mdlapi.NewLocalTeacherProvider(mdlApi)
+
 	courseUseCase := usecases.NewCourseUseCase(
-		mdlCourseRepo,
 		courseGradesProvider,
 		userGradeItemsProvider,
+		teacherProvider,
 	)
-
 	studentGradeUseCase := usecases.NewStudentGradeUseCase(userGradeItemsProvider)
+	teacherUseCase := usecases.NewTeacherUseCase(teacherProvider)
 
 	controller := NewAuthnController(useCase)
 	courseController := controllers.NewCourseController(courseUseCase)
-	categoryController := categories.NewCategoryController(categoryRepo)
+	categoryController := categories.NewCategoryController(teacherUseCase)
 	userController := controllers.NewUserController(studentGradeUseCase)
 
 	return &Container{

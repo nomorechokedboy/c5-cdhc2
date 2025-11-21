@@ -14,9 +14,9 @@ func (e *Category) TableName() string {
 }
 
 type GetUsersCategoriesRequest struct {
-	UserId int64
+	UserId int64 `json:"userId"`
 }
 
 type GetUsersCategoriesResponse struct {
-	Data []Category
+	Data []Category `json:"data"`
 }
