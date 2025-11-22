@@ -96,35 +96,38 @@ class controller {
 			const permissions = await authzController.getUserPermissions(
 				user.id
 			)
-			// const classIds  = await this.getUserClassIds(user.id)
-			const unit = await this.unitRepo.getOne({ id: user.unitId })
-			if (unit === null || unit === undefined) {
-				AppError.handleAppErr(
-					AppError.invalidArgument("User don'have unit")
-				)
-			}
 			let classIds: number[] = []
 			let unitIds: number[] = []
 
-			const getAllClassIds = (unit) => {
-				let ids = unit.classes?.map((c) => c.id) || []
-				if (unit.children) {
-					for (const child of unit.children) {
-						ids = ids.concat(getAllClassIds(child))
-					}
+			if (user.unitId !== null) {
+				const unit = await this.unitRepo.getOne({ id: user.unitId })
+				if (unit === null || unit === undefined) {
+					AppError.handleAppErr(
+						AppError.invalidArgument("User don'have unit")
+					)
 				}
-				return ids
+
+				const getAllClassIds = (unit) => {
+					let ids = unit.classes?.map((c) => c.id) || []
+					if (unit.children) {
+						for (const child of unit.children) {
+							ids = ids.concat(getAllClassIds(child))
+						}
+					}
+					return ids
+				}
+
+				const getAllUnitIds = (unit) => {
+					let ids = [unit.id]
+					if (unit.children) {
+						for (const child of unit.children) {
+							ids = ids.concat(getAllUnitIds(child))
+						}
+					}
+					return ids
+				}
 			}
 
-			const getAllUnitIds = (unit) => {
-				let ids = [unit.id]
-				if (unit.children) {
-					for (const child of unit.children) {
-						ids = ids.concat(getAllUnitIds(child))
-					}
-				}
-				return ids
-			}
 			if (user.isSuperUser === true) {
 				const units = await this.unitRepo.findAll()
 				const allClassIds = units.flatMap((u) => getAllClassIds(u))
