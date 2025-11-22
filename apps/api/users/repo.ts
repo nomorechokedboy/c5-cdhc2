@@ -32,6 +32,7 @@ class sqliteRepo implements Repository {
 	}
 
 	delete(ids: number[]): Promise<UserDB[]> {
+		// const ids = u.map((user) => user.id)
 		log.info('UserRepo.delete params', { params: ids })
 
 		return this.db
@@ -44,6 +45,16 @@ class sqliteRepo implements Repository {
 	find(): Promise<User[]> {
 		return this.db.query.users
 			.findMany({
+				with: {
+					unit: true
+				}
+			})
+			.catch(handleDatabaseErr)
+	}
+	findByIds(ids: number[]): Promise<UserDB[]> {
+		return this.db.query.users
+			.findMany({
+				where: (users, { inArray }) => inArray(users.id, ids),
 				with: {
 					unit: true
 				}
