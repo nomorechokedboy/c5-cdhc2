@@ -99,15 +99,7 @@ class controller {
 			let classIds: number[] = []
 			let unitIds: number[] = []
 
-			if (user.unitId !== null) {
-				const unit = await this.unitRepo.getOne({ id: user.unitId })
-				if (unit === null || unit === undefined) {
-					AppError.handleAppErr(
-						AppError.invalidArgument("User don'have unit")
-					)
-				}
-
-				const getAllClassIds = (unit) => {
+			const getAllClassIds = (unit) => {
 					let ids = unit.classes?.map((c) => c.id) || []
 					if (unit.children) {
 						for (const child of unit.children) {
@@ -116,7 +108,6 @@ class controller {
 					}
 					return ids
 				}
-
 				const getAllUnitIds = (unit) => {
 					let ids = [unit.id]
 					if (unit.children) {
@@ -126,6 +117,16 @@ class controller {
 					}
 					return ids
 				}
+
+			if (user.unitId !== null) {
+				const unit = await this.unitRepo.getOne({ id: user.unitId })
+				if (unit === null || unit === undefined) {
+					AppError.handleAppErr(
+						AppError.invalidArgument("User don'have unit")
+					)
+				}
+
+				
 			}
 
 			if (user.isSuperUser === true) {
@@ -175,6 +176,7 @@ class controller {
 
 			return { accessToken, refreshToken }
 		} catch (error) {
+			console.error('Test', error);
 			log.error('AuthController.genTokens Error generating tokens', {
 				error,
 				userId: user.id
