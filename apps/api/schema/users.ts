@@ -2,10 +2,24 @@ import * as p from 'drizzle-orm/sqlite-core'
 import * as sqlite from 'drizzle-orm/sqlite-core'
 import { Base, baseSchema } from './base'
 import { relations, sql } from 'drizzle-orm'
+import { AppError } from '../errors'
 import { Role } from './roles'
 import { userRoles } from './user-roles'
 import { units } from './units'
-import { classes } from './classes'
+
+const StatusEnum = sqlite.customType<{ data: string; driverData: string }>({
+	dataType() {
+		return 'text'
+	},
+	toDriver(val: string) {
+		if (!['pending', 'approved'].includes(val)) {
+			throw AppError.invalidArgument(
+				'status can be only pending | approved'
+			)
+		}
+		return val
+	}
+})
 
 export const users = p.sqliteTable('users', {
 	...baseSchema,
@@ -14,7 +28,10 @@ export const users = p.sqliteTable('users', {
 	password: p.text().notNull(),
 	displayName: p.text().notNull().default(''),
 	isSuperUser: sqlite.int({ mode: 'boolean' }).default(false).notNull(),
-	unitId: p.int().references(() => units.id)
+	unitId: p.int().references(() => units.id),
+	status: StatusEnum('status')
+		.$type<'pending' | 'approved'>()
+		.default('pending')
 })
 
 export const usersRelations = relations(users, ({ many, one }) => ({
