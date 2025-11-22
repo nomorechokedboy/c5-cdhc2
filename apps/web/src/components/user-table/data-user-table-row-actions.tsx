@@ -21,6 +21,8 @@ import { useState, type MouseEvent } from 'react'
 import useDeleteStudents from '@/hooks/useDeleteStudents'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
+import { useDeleteUsers } from './useDeleteUsers'
+import useUserData from '@/hooks/useUsers'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -31,13 +33,19 @@ export function DataTableRowActions<TData>({
 	row,
 	onDeleteRows
 }: DataTableRowActionsProps<TData>) {
-	const student = row.original as unknown as User
+	const user = row.original as unknown as User
 	// Thêm log để debug
 	console.log('Row original:', row.original)
-	console.log('Student cast:', student)
+	console.log('Student cast:', user)
 	const [dialogOpen, setDialogOpen] = useState(false)
-	const { mutateAsync: deleteStudentMutate, isPending: isDeletingStudent } =
-		useDeleteStudents()
+	const {
+		data: users = [],
+		isLoading: isLoadingStudents,
+		refetch: refetchStudents
+	} = useUserData()
+	console.log('isloading', isLoadingStudents)
+	const { mutateAsync: deleteUserMutate, isPending: isDeletingStudent } =
+		useDeleteUsers()
 
 	function handleOpenDialog() {
 		setDialogOpen(true)
@@ -47,15 +55,16 @@ export function DataTableRowActions<TData>({
 		try {
 			if (
 				!confirm(
-					'Bạn có chắc chắn muốn xóa học viên này không? Hành động này không thể hoàn tác.'
+					'Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác.'
 				)
 			) {
 				return
 			}
-			await deleteStudentMutate({ ids: [student.id] }).then(() =>
-				onDeleteRows?.([student.id])
+			await deleteUserMutate([user.id]).then(() =>
+				onDeleteRows?.([user.id])
 			)
 			toast.success('Xóa dữ liệu thành công!')
+			refetchStudents()
 		} catch (err) {
 			toast.error('Xóa dữ liệu bị lỗi!')
 			if (err instanceof AxiosError) {
@@ -97,7 +106,7 @@ export function DataTableRowActions<TData>({
 						<DialogTitle>Thông tin người dùng</DialogTitle>
 					</DialogHeader>
 
-					<UserInfoTabs student={student} />
+					<UserInfoTabs user={user} />
 				</DialogContent>
 			</Dialog>
 		</>

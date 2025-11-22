@@ -1295,6 +1295,14 @@ export namespace users {
 		data: UserDB
 	}
 
+	export interface DeleteUserRequest {
+		ids: number[]
+	}
+
+	export interface DeleteUserResponse {
+		ids: number[]
+	}
+
 	export interface GetUserResponse {
 		data: UserResponse[]
 	}
@@ -1308,7 +1316,7 @@ export namespace users {
 	}
 
 	export interface UpdateUserRequest {
-		id?: number
+		id: number
 		displayName: string
 		unitId?: number
 		isSuperUser?: boolean
@@ -1355,6 +1363,7 @@ export namespace users {
 		constructor(baseClient: BaseClient) {
 			this.baseClient = baseClient
 			this.CreateUser = this.CreateUser.bind(this)
+			this.DeleteUsers = this.DeleteUsers.bind(this)
 			this.GetUsers = this.GetUsers.bind(this)
 			this.UpdateUser = this.UpdateUser.bind(this)
 		}
@@ -1369,6 +1378,24 @@ export namespace users {
 				JSON.stringify(params)
 			)
 			return (await resp.json()) as CreateUserResponse
+		}
+
+		public async DeleteUsers(
+			params: DeleteUserRequest
+		): Promise<DeleteUserResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				ids: params.ids.map((v) => String(v))
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'DELETE',
+				`/users`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as DeleteUserResponse
 		}
 
 		public async GetUsers(): Promise<GetUserResponse> {
