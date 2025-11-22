@@ -109,23 +109,6 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 	},
 	{
 		id: 'actions',
-		header: 'Thao tác',
-		cell: ({ row }) => {
-			const { onEditUser } = useUserTableContext()
-			const user = row.original
-
-			return (
-				<button
-					onClick={() => onEditUser(user)}
-					className='px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600'
-				>
-					Sửa
-				</button>
-			)
-		}
-	},
-	{
-		id: 'actions',
 		cell: ({ row }) => <DataTableRowActions row={row} />
 	}
 ]

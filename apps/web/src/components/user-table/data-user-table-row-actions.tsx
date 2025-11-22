@@ -94,7 +94,7 @@ export function DataTableRowActions<TData>({
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 				<DialogContent className='max-w-7xl h-[90vh] overflow-y-auto p-6'>
 					<DialogHeader className='flex items-center justify-between'>
-						<DialogTitle>Thông tin học viên</DialogTitle>
+						<DialogTitle>Thông tin người dùng</DialogTitle>
 					</DialogHeader>
 
 					<UserInfoTabs student={student} />

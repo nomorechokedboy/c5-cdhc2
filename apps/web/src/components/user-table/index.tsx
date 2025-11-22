@@ -20,7 +20,6 @@ interface UserTableProps {
 
 export default function UserTable({
 	filename,
-	enabledCreation = false,
 	templType = 'UserInfoTempl'
 }: UserTableProps) {
 	console.log('Render UserTable')
@@ -102,20 +101,6 @@ export default function UserTable({
 								refetchStudents()
 								setShowUserForm(false)
 							}}
-						/>
-					</div>
-				)}
-
-				{editOpen && (
-					<div className='p-4 w-full'>
-						<UserEditForm
-							open={editOpen}
-							setOpen={setEditOpen}
-							onSuccess={() => {
-								refetchStudents()
-								setEditOpen(false)
-							}}
-							editingUser={editingUser}
 						/>
 					</div>
 				)}
