@@ -54,6 +54,21 @@ class controller {
 			)
 		}
 	}
+
+	async delete(ids: number[], validUnitIds: number[]) {
+		const users = await this.repo.findByIds(ids)
+		const checkUnitIds = users.every((user) =>
+			validUnitIds.includes(user.unitId!)
+		)
+		if (checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission Delete student"
+				)
+			)
+		}
+		return this.repo.delete(ids).catch(AppError.handleAppErr)
+	}
 }
 
 const userController = new controller(userRepo)

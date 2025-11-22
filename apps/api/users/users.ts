@@ -110,6 +110,7 @@ export const UpdateUser = api(
 		if (!authData.validUnitIds) {
 			throw new Error('Không tìm thấy validUnitIds trong auth data')
 		}
+		const updatedAt = new Date().toISOString()
 		const data = await userController
 			.update({ id, displayName, unitId, isSuperUser }, validUnitIds)
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
@@ -117,18 +118,20 @@ export const UpdateUser = api(
 		return { data }
 	}
 )
-export const DeleteUser = api(
+interface DeleteUserRequest {
+	ids: number[]
+}
+interface DeleteUserResponse {
+	ids: number[]
+}
+export const DeleteUsers = api(
 	{ expose: true, auth: true, method: 'DELETE', path: '/users' },
-	async (req: { id: number }): Promise<{ success: boolean }> => {
-		const { id } = req
+	async (body: DeleteUserRequest): Promise<DeleteUserResponse> => {
+		console.log('users.DeleteStudents body', { body })
+		const users = body.ids
 		const validUnitIds = getAuthData()!.validUnitIds
+		await userController.delete(users, validUnitIds)
 
-		if (!validUnitIds) {
-			throw new Error('Không tìm thấy validUnitIds trong auth data')
-		}
-
-		await userController.delete(id, validUnitIds)
-
-		return { success: true }
+		return { ids: body.ids }
 	}
 )
