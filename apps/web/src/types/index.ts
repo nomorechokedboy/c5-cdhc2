@@ -9,6 +9,7 @@ export interface Class extends Base {
 	graduatedAt: string | null
 	unit: Unit
 }
+
 export interface UserFormData extends Base {
 	username: string
 	password: string
@@ -127,7 +128,9 @@ export interface FacetedFilterConfig {
 		icon?: React.ComponentType<{ className?: string }>
 	}[]
 }
-
+export type DeleteUsersBody = {
+	ids: number[]
+}
 export type Month =
 	| '01'
 	| '02'

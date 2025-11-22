@@ -45,26 +45,26 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 			label: 'Ngày tạo'
 		}
 	},
-	{
-		accessorKey: 'updateAt',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Ngày cập nhật' />
-		),
-		cell: ({ row }) => (
-			<div className='min-w-28'>
-				{row.getValue('updateAt') ? (
-					isoToDdMmYyyy(row.getValue('updateAt'))
-				) : (
-					<Badge className='bg-blue-500 font-bold'>
-						Chưa có thông tin...
-					</Badge>
-				)}
-			</div>
-		),
-		meta: {
-			label: 'Ngày cập nhật'
-		}
-	},
+	// {
+	// 	accessorKey: 'updateAt',
+	// 	header: ({ column }) => (
+	// 		<DataTableColumnHeader column={column} title='Ngày cập nhật' />
+	// 	),
+	// 	cell: ({ row }) => (
+	// 		<div className='min-w-28'>
+	// 			{row.getValue('updateAt') ? (
+	// 				isoToDdMmYyyy(row.getValue('updateAt'))
+	// 			) : (
+	// 				<Badge className='bg-blue-500 font-bold'>
+	// 					Chưa có thông tin...
+	// 				</Badge>
+	// 			)}
+	// 		</div>
+	// 	),
+	// 	meta: {
+	// 		label: 'Ngày cập nhật'
+	// 	}
+	// },
 	{
 		id: 'username',
 		accessorFn: (row) => row.username,
@@ -132,16 +132,6 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<User>[] = [
 		),
 		meta: {
 			label: 'Ngày tạo'
-		}
-	},
-	{
-		accessorKey: 'updateAt',
-		header: 'Ngày cập nhật',
-		cell: ({ row }) => (
-			<div className=''>{isoToDdMmYyyy(row.getValue('updateAt'))}</div>
-		),
-		meta: {
-			label: 'Ngày cập nhật'
 		}
 	},
 	{

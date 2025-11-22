@@ -17,10 +17,10 @@ import { FileDown, UserPen } from 'lucide-react'
 import useUserData from '@/hooks/useUsers'
 
 interface StudentInfoTabsProps {
-	student: User
+	user: User
 }
 
-export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
+export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
 	const [open, setOpen] = useState(false)
 
 	const [editOpen, setEditOpen] = useState(false)
@@ -41,23 +41,23 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 					<div className='w-32 h-32 bg-gray-200 rounded-md overflow-hidden'>
 						<img
 							src={getMediaUri(avatarUri)}
-							alt={student.displayName}
+							alt={user?.displayName}
 							className='object-cover w-full h-full'
 						/>
 					</div>
 					<div className='flex-1'>
 						<CardTitle className='text-xl'>
-							{student.displayName}
+							{user?.displayName}
 						</CardTitle>
 						<p className='text-gray-600'>
-							Tên tài khoản: {student.username}
+							Tên tài khoản: {user?.username}
 						</p>
 						<p className='text-gray-600'>
-							Đơn vị: {student.unit?.name}
+							Đơn vị: {user?.unit?.name}
 						</p>
 						<p className='text-gray-600'>
 							Loại tài khoản:
-							{student.isSuperUser
+							{user?.isSuperUser
 								? ' Quản trị viên'
 								: ' Người dùng'}
 						</p>
@@ -72,10 +72,10 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 					<UserEditForm
 						editingUser={{
-							id: student.id,
-							displayName: student.displayName,
-							unitId: student.unitId,
-							isSuperUser: student.isSuperUser
+							id: user?.id,
+							displayName: user?.displayName,
+							unitId: user.unitId,
+							isSuperUser: user.isSuperUser
 						}}
 						open={open}
 						setOpen={setOpen}

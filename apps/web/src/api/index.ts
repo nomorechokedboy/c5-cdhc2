@@ -170,6 +170,9 @@ export function UpdateUser(body: UpdateUserBody) {
 export function Login(req: auth.LoginRequest) {
 	return requestClient.auth.Login(req)
 }
+export function DeleteUsers(ids: number[]) {
+	return requestClient.users.DeleteUsers({ ids })
+}
 
 export function GetUserInfo() {
 	return requestClient.auth.GetUserInfo().then((resp) => resp.data)
