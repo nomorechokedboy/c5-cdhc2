@@ -33,7 +33,6 @@ const schema = z.object({
 			if (typeof val === 'string') {
 				return Number.parseInt(val)
 			}
-
 			return val
 		},
 		z.number().min(1, 'Đơn vị không được bỏ trống')
@@ -53,6 +52,7 @@ export interface UserFormProps {
 	) => unknown
 	open: boolean
 	setOpen: (open: boolean) => void
+	onClose?: () => void
 	editingUser?: UserUpdate | null
 }
 
@@ -60,6 +60,7 @@ export default function UserEditForm({
 	onSuccess,
 	open,
 	setOpen,
+	onClose,
 	editingUser
 }: UserFormProps) {
 	const { data: unitsData, isLoading, isError } = useAllUnitsData()
@@ -108,7 +109,7 @@ export default function UserEditForm({
 			form.reset({
 				id: editingUser.id,
 				displayName: editingUser.displayName,
-				unitId: editingUser.unitId.toString(),
+				unitId: editingUser.unitId?.toString() || '1',
 				isSuperUser: editingUser.isSuperUser ? 'true' : 'false'
 			})
 		}
