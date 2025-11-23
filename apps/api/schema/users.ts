@@ -60,7 +60,8 @@ export interface CreateUserRequest {
 	roleIds?: number[]
 	displayName: string
 	unitId: number
-	isSuperUser?: boolean
+	isSuperUser?: boolean,
+	status?: string,
 }
 
 export interface UpdateUserRequest {

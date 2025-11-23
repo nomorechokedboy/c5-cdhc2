@@ -43,20 +43,6 @@ import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
 
-// Helper function to check if user is super admin
-const isSuperAdmin = (): boolean => {
-	try {
-		const token = localStorage.getItem('qlhvAccessToken')
-		if (!token) return false
-		const parts = token.split('.')
-		if (parts.length !== 3) return false
-		const payload = JSON.parse(atob(parts[1]))
-		return payload.isSuperUser === true
-	}catch  (err) {
-		return false
-	}
-}
-
 // Updated data structure to support unlimited nesting and icons
 const data = {
 	versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
@@ -134,7 +120,6 @@ const data = {
 			title: 'Quản lý người dùng',
 			url: '#',
 			icon: Calendar,
-			superAdminOnly: true,
 			items: [
 				{
 					title: 'Danh sách người dùng',
@@ -150,7 +135,6 @@ const data = {
 interface NavItem {
 	title: string
 	url: string
-	superAdminOnly?: boolean
 	isActive?: boolean
 	items?: NavItem[]
 	search?: { [k: string]: string }
@@ -319,16 +303,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	)
 
 	const [firstNavItem, ...navMain] = data.navMain
-	const allNavItems = [
-		firstNavItem,
-		{ title: 'Đơn vị', url: '#', items: unitsNavbar },
-		...navMain
-	]
 	const newData = {
 		version: data.versions,
-		navMain: allNavItems.filter(
-			(item) => !item.superAdminOnly || isSuperAdmin()
-		)
+		navMain: [
+			firstNavItem,
+			{ title: 'Đơn vị', url: '#', items: unitsNavbar },
+			...navMain
+		]
 	}
 
 	return (

@@ -125,3 +125,28 @@ export function getMediaUri(uri: string) {
 
 	return `${ApiUrl}/${mediaUrl}/${uri}`
 }
+
+export const isSuperAdmin = (): boolean => {
+	try {
+		const token = localStorage.getItem('qlhvAccessToken')
+		if (!token) return false
+		const parts = token.split('.')
+		if (parts.length !== 3) return false
+		const payload = JSON.parse(atob(parts[1]))
+		return payload.isSuperUser === true
+	} catch {
+		return false
+	}
+}
+export const isUserApproved = (): boolean => {
+	try {
+		const token = localStorage.getItem('qlhvAccessToken')
+		if (!token) return false
+		const parts = token.split('.')
+		if (parts.length !== 3) return false
+		const payload = JSON.parse(atob(parts[1]))
+		return payload.status === 'approved'
+	} catch {
+		return false
+	}
+}

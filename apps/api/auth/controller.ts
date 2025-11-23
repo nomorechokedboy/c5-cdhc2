@@ -20,6 +20,7 @@ type LoginRequest = {
 type TokenPayload = {
 	userId: number,
 	isSuperUser: boolean,
+	status: string,
 	permissions: string[],
 	type: 'access' | 'refresh',
 	iat?: number,
@@ -145,6 +146,7 @@ class controller {
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				isSuperUser: user.isSuperUser,
+				status: user.status,
 				permissions,
 				type: 'access',
 				validClassIds: classIds,
@@ -154,6 +156,7 @@ class controller {
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				isSuperUser: user.isSuperUser,
+				status: user.status,
 				permissions: [], // Refresh tokens don’t need permissions
 				type: 'refresh',
 				validClassIds: [],
