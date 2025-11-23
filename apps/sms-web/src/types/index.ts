@@ -135,12 +135,14 @@ export class Course {
 			students
 		} = resp
 		const courseStudents = students.map(Student.From)
-		const gradeCategories = modules.map((m) => ({
-			label: m.name,
-			value: m.cmid,
-			itemNumber: m.itemnumber,
-			type: m.type as ModuleType
-		}))
+		const gradeCategories = modules.map((m) => {
+			return {
+				label: m.name,
+				value: m.cmid,
+				itemNumber: m.itemnumber,
+				type: m.type as ModuleType
+			}
+		})
 		return new Course(
 			id,
 			fullname,
@@ -165,13 +167,20 @@ export class Course {
 				{} as Record<string, number>
 			)
 
+			const gradeCategories = c.grades.map((g) => ({
+				label: g.modulename,
+				value: g.moduleid,
+				itemNumber: g.itemnumber,
+				type: g.itemmodule as ModuleType
+			}))
+
 			return new Course(
 				c.courseid,
 				c.coursename,
 				'',
 				0,
 				0,
-				[],
+				gradeCategories,
 				[],
 				'',
 				metadata['semester'],
