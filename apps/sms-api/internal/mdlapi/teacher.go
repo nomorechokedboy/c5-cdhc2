@@ -51,19 +51,25 @@ type GetCategoryCoursesRequest struct {
 	UserID     int `json:"userid"`
 }
 
+type CourseMetadata struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+
 type CategoryCourse struct {
-	ID              int    `json:"id"`
-	Fullname        string `json:"fullname"`
-	Shortname       string `json:"shortname"`
-	Idnumber        string `json:"idnumber"`
-	Summary         string `json:"summary"`
-	Visible         int    `json:"visible"`
-	Startdate       int    `json:"startdate"`
-	Enddate         int    `json:"enddate"`
-	Categoryid      int    `json:"categoryid"`
-	Categoryname    string `json:"categoryname"`
-	Categorypath    string `json:"categorypath"`
-	Categoryvisible int    `json:"categoryvisible"`
+	ID              int              `json:"id"`
+	Fullname        string           `json:"fullname"`
+	Shortname       string           `json:"shortname"`
+	Idnumber        string           `json:"idnumber"`
+	Summary         string           `json:"summary"`
+	Visible         int              `json:"visible"`
+	Startdate       int              `json:"startdate"`
+	Enddate         int              `json:"enddate"`
+	Categoryid      int              `json:"categoryid"`
+	Categoryname    string           `json:"categoryname"`
+	Categorypath    string           `json:"categorypath"`
+	Categoryvisible int              `json:"categoryvisible"`
+	Metadata        []CourseMetadata `json:"metadata"`
 }
 
 func (c *CategoryCourse) ToAppCourse() *entities.Course {
