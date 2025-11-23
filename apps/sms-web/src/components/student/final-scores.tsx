@@ -16,7 +16,6 @@ import {
 } from '@repo/ui/components/ui/table'
 import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
-
 import type { Course, StudentGrades } from '@/types'
 import { getGradeColor } from '@/lib/utils'
 
@@ -36,17 +35,15 @@ export default function StudentFinalScores({
 		(accum, curr) => accum + (curr.credits ?? 0),
 		0
 	)
-	const overallGPA =
+	const overallGPA = (
 		validCourses.length > 0
-			? (
-					validCourses.reduce(
-						(sum, c) =>
-							sum +
-							studentGrades[c.id].finalScore * (c.credits ?? 1),
-						0
-					) / totalCredits
-				).toFixed(2)
-			: '0.00'
+			? validCourses.reduce(
+					(sum, c) =>
+						sum + studentGrades[c.id].finalScore * (c.credits ?? 1),
+					0
+				) / totalCredits
+			: 0
+	).toFixed(2)
 
 	// ===========================
 	// LOADING STATE
@@ -70,11 +67,11 @@ export default function StudentFinalScores({
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Course</TableHead>
-								<TableHead>Semester</TableHead>
-								<TableHead>Instructor</TableHead>
+								<TableHead>Khóa học</TableHead>
+								<TableHead>Học kỳ</TableHead>
+								<TableHead>Giảng viên</TableHead>
 								<TableHead className='text-right'>
-									Final Score
+									Điểm tổng kết
 								</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -111,16 +108,16 @@ export default function StudentFinalScores({
 				<div className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='text-xl'>
-							Academic Summary
+							Kết quả học tập
 						</CardTitle>
 						<CardDescription>
-							Track your progress across all semesters
+							Theo dõi điểm số của bạn qua các kỳ
 						</CardDescription>
 					</div>
 
 					<div className='text-center bg-muted/50 p-2 rounded-lg border'>
 						<p className='text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider'>
-							Overall GPA
+							Điểm tổng kết
 						</p>
 
 						<Badge
@@ -139,71 +136,78 @@ export default function StudentFinalScores({
 							<TableHeader>
 								<TableRow className='hover:bg-transparent'>
 									<TableHead className='w-[40%]'>
-										Course
+										Môn
 									</TableHead>
-									<TableHead>Sem</TableHead>
+									<TableHead>Kỳ</TableHead>
 									<TableHead className='hidden xl:table-cell'>
-										Instructor
+										Giảng viên
 									</TableHead>
 									<TableHead className='text-right'>
-										Score
+										Điểm
 									</TableHead>
 								</TableRow>
 							</TableHeader>
 
 							<TableBody>
-								{courses.map((course) => {
-									const gradeInfo = studentGrades[course.id]
-
-									return (
-										<TableRow
-											key={course.id}
-											className='group'
-										>
-											<TableCell className='font-medium'>
-												<div className='flex flex-col'>
-													<span
-														className='truncate max-w-[150px] lg:max-w-[200px]'
-														title={course.title}
-													>
-														{course.title}
-													</span>
-
-													<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
-														{course.teacher}
-													</span>
-												</div>
-											</TableCell>
-
-											<TableCell className='whitespace-nowrap text-xs text-muted-foreground'>
-												{course.semester}
-											</TableCell>
-
-											<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
-												{course.teacher}
-											</TableCell>
-
-											<TableCell className='text-right'>
-												{gradeInfo ? (
-													<Badge
-														variant='outline'
-														className={`${getGradeColor(
-															gradeInfo.finalScore
-														)} group-hover:shadow-sm transition-all`}
-													>
-														{gradeInfo.finalScore.toFixed(
-															1
-														)}
-													</Badge>
-												) : (
-													<span className='text-muted-foreground text-sm'>
-														-
-													</span>
-												)}
-											</TableCell>
-										</TableRow>
+								{courses
+									.sort(
+										(a, b) =>
+											(a.semester ?? 0) -
+											(b.semester ?? 0)
 									)
-								})}
+									.map((course) => {
+										const gradeInfo =
+											studentGrades[course.id]
+
+										return (
+											<TableRow
+												key={course.id}
+												className='group'
+											>
+												<TableCell className='font-medium'>
+													<div className='flex flex-col'>
+														<span
+															className='truncate max-w-[150px] lg:max-w-[200px]'
+															title={course.title}
+														>
+															{course.title}
+														</span>
+
+														<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
+															{course.teacher}
+														</span>
+													</div>
+												</TableCell>
+
+												<TableCell className='whitespace-nowrap text-xs text-muted-foreground'>
+													{course.semester}
+												</TableCell>
+
+												<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
+													{course.teacher}
+												</TableCell>
+
+												<TableCell className='text-right'>
+													{gradeInfo ? (
+														<Badge
+															variant='outline'
+															className={`${getGradeColor(
+																gradeInfo.finalScore
+															)} group-hover:shadow-sm transition-all`}
+														>
+															{gradeInfo.finalScore.toFixed(
+																1
+															)}
+														</Badge>
+													) : (
+														<span className='text-muted-foreground text-sm'>
+															-
+														</span>
+													)}
+												</TableCell>
+											</TableRow>
+										)
+									})}
 							</TableBody>
 						</Table>
 					</div>

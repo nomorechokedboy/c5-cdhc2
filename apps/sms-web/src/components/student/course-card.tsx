@@ -54,7 +54,7 @@ export default function StudentCourseCard({
 
 				<div className='flex items-center justify-between pt-4 border-t border-border'>
 					<span className='text-sm font-medium text-muted-foreground'>
-						Average Score
+						Điểm tổng kết môn
 					</span>
 					<Badge
 						className={`${getGradeColor(grades.finalScore)} font-semibold`}
