@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { useDeleteUsers } from './useDeleteUsers'
 import useUserData from '@/hooks/useUsers'
+import { isSuperAdmin, isUserApproved } from '@/lib/utils'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -90,14 +91,18 @@ export function DataTableRowActions<TData>({
 					<DropdownMenuItem onClick={handleOpenDialog}>
 						Chi tiết
 					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						disabled={isDeletingStudent}
-						onClick={handleDeleteRow}
-					>
-						Xóa
-						<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-					</DropdownMenuItem>
+					{isUserApproved() && isSuperAdmin() && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								disabled={isDeletingStudent}
+								onClick={handleDeleteRow}
+							>
+								Xóa
+								<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
