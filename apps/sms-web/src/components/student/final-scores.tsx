@@ -15,6 +15,8 @@ import {
 	TableRow
 } from '@repo/ui/components/ui/table'
 import { Skeleton } from '@repo/ui/components/ui/skeleton'
+import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
+
 import type { Course, StudentGrades } from '@/types'
 
 interface StudentFinalScoresProps {
@@ -35,13 +37,20 @@ export default function StudentFinalScores({
 		return 'bg-red-100 text-red-800'
 	}
 
-	const overallGPA = (
-		courses.reduce(
-			(sum, course) => sum + studentGrades[course.id].finalScore,
-			0
-		) / courses.length
-	).toFixed(2)
+	const validCourses = courses.filter((c) => studentGrades[c.id])
+	const overallGPA =
+		validCourses.length > 0
+			? (
+					validCourses.reduce(
+						(sum, c) => sum + studentGrades[c.id].finalScore,
+						0
+					) / validCourses.length
+				).toFixed(2)
+			: '0.00'
 
+	// ===========================
+	// LOADING STATE
+	// ===========================
 	if (isLoading) {
 		return (
 			<Card className='border-border'>
@@ -62,6 +71,7 @@ export default function StudentFinalScores({
 						<TableHeader>
 							<TableRow>
 								<TableHead>Course</TableHead>
+								<TableHead>Semester</TableHead>
 								<TableHead>Instructor</TableHead>
 								<TableHead className='text-right'>
 									Final Score
@@ -71,8 +81,11 @@ export default function StudentFinalScores({
 						<TableBody>
 							{[...Array(5)].map((_, idx) => (
 								<TableRow key={idx}>
-									<TableCell className='font-medium'>
+									<TableCell>
 										<Skeleton className='h-4 w-32' />
+									</TableCell>
+									<TableCell>
+										<Skeleton className='h-4 w-20' />
 									</TableCell>
 									<TableCell>
 										<Skeleton className='h-4 w-24' />
@@ -89,61 +102,112 @@ export default function StudentFinalScores({
 		)
 	}
 
+	// ===========================
+	// MAIN VIEW
+	// ===========================
 	return (
-		<Card className='border-border'>
-			<CardHeader>
+		<Card className='border-border shadow-sm'>
+			<CardHeader className='pb-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<CardTitle>Overall Academic Summary</CardTitle>
+						<CardTitle className='text-xl'>
+							Academic Summary
+						</CardTitle>
 						<CardDescription>
-							Final scores across all your courses
+							Track your progress across all semesters
 						</CardDescription>
 					</div>
-					<div className='text-center'>
-						<p className='text-sm text-muted-foreground'>
-							Overall Average
+
+					<div className='text-center bg-muted/50 p-2 rounded-lg border'>
+						<p className='text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider'>
+							Overall GPA
 						</p>
+
 						<Badge
-							className={`${getScoreColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1`}
+							className={`${getScoreColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1 shadow-sm`}
 						>
 							{overallGPA}
 						</Badge>
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent>
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Course</TableHead>
-							<TableHead>Instructor</TableHead>
-							<TableHead className='text-right'>
-								Final Score
-							</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{courses.map((course) => (
-							<TableRow key={course.id}>
-								<TableCell className='font-medium text-foreground'>
-									{course.title}
-								</TableCell>
-								<TableCell className='text-muted-foreground'>
-									{course.teacher}
-								</TableCell>
-								<TableCell className='text-right'>
-									<Badge
-										className={`${getScoreColor(studentGrades[course.id].finalScore)}`}
-									>
-										{studentGrades[
-											course.id
-										].finalScore.toFixed(2)}
-									</Badge>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
+
+			<CardContent className='p-0'>
+				<ScrollArea className='h-[calc(100vh-300px)] w-full'>
+					<div className='p-6 pt-0'>
+						<Table>
+							<TableHeader>
+								<TableRow className='hover:bg-transparent'>
+									<TableHead className='w-[40%]'>
+										Course
+									</TableHead>
+									<TableHead>Sem</TableHead>
+									<TableHead className='hidden xl:table-cell'>
+										Instructor
+									</TableHead>
+									<TableHead className='text-right'>
+										Score
+									</TableHead>
+								</TableRow>
+							</TableHeader>
+
+							<TableBody>
+								{courses.map((course) => {
+									const gradeInfo = studentGrades[course.id]
+
+									return (
+										<TableRow
+											key={course.id}
+											className='group'
+										>
+											<TableCell className='font-medium'>
+												<div className='flex flex-col'>
+													<span
+														className='truncate max-w-[150px] lg:max-w-[200px]'
+														title={course.title}
+													>
+														{course.title}
+													</span>
+
+													<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
+														{course.teacher}
+													</span>
+												</div>
+											</TableCell>
+
+											<TableCell className='whitespace-nowrap text-xs text-muted-foreground'>
+												{course.semester}
+											</TableCell>
+
+											<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
+												{course.teacher}
+											</TableCell>
+
+											<TableCell className='text-right'>
+												{gradeInfo ? (
+													<Badge
+														variant='outline'
+														className={`${getScoreColor(
+															gradeInfo.finalScore
+														)} group-hover:shadow-sm transition-all`}
+													>
+														{gradeInfo.finalScore.toFixed(
+															1
+														)}
+													</Badge>
+												) : (
+													<span className='text-muted-foreground text-sm'>
+														-
+													</span>
+												)}
+											</TableCell>
+										</TableRow>
+									)
+								})}
+							</TableBody>
+						</Table>
+					</div>
+				</ScrollArea>
 			</CardContent>
 		</Card>
 	)
