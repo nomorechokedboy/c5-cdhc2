@@ -63,11 +63,12 @@ type GetUserGradesResponse struct {
 	LastName  string `json:"lastname"`
 	Email     string `json:"email"`
 	Courses   []struct {
-		CourseID   int     `json:"courseid"`
-		CourseName string  `json:"coursename"`
-		ShortName  string  `json:"shortname"`
-		Visible    int     `json:"visible"`
-		Grades     []Grade `json:"grades"`
+		CourseID   int              `json:"courseid"`
+		CourseName string           `json:"coursename"`
+		ShortName  string           `json:"shortname"`
+		Visible    int              `json:"visible"`
+		Grades     []Grade          `json:"grades"`
+		Metadata   []CourseMetadata `json:"metadata"`
 	} `json:"courses"`
 }
 
