@@ -174,7 +174,11 @@ export default function StudentFinalScores({
 														</span>
 
 														<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
-															{course.teacher}
+															{
+																course
+																	.teachers?.[0]
+																	.fullName
+															}
 														</span>
 													</div>
 												</TableCell>
@@ -184,7 +188,12 @@ export default function StudentFinalScores({
 												</TableCell>
 
 												<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
-													{course.teacher}
+													{course.teachers
+														?.map(
+															(teacher) =>
+																teacher.fullName
+														)
+														.join(', ')}
 												</TableCell>
 
 												<TableCell className='text-right'>
