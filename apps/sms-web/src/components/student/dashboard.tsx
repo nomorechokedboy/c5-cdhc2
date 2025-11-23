@@ -129,7 +129,7 @@ export function StudentDashboard() {
 						</div>
 					</div>
 					<div className='lg:col-span-1'>
-						<div className='sticky top-6'>
+						<div className='sticky top-20'>
 							<StudentFinalScores
 								courses={[]}
 								studentGrades={{}}
@@ -147,22 +147,28 @@ export function StudentDashboard() {
 								value={activeSemester}
 								onValueChange={setActiveSemester}
 							>
-								<ScrollArea className='w-full whitespace-nowrap rounded-md border bg-card shadow-sm'>
-									<div className='flex p-1'>
-										<TabsList className='inline-flex h-10 items-center bg-muted p-1 flex-1'>
-											{sortedSemesters.map((semester) => (
-												<TabsTrigger
-													key={semester}
-													value={String(semester)}
-													className='px-4 min-w-[100px]'
-												>
-													Semester {semester}
-												</TabsTrigger>
-											))}
-										</TabsList>
-									</div>
-									<ScrollBar orientation='horizontal' />
-								</ScrollArea>
+								<div className='sticky top-20 z-30 bg-card shadow-sm'>
+									<ScrollArea className='w-full whitespace-nowrap rounded-md border bg-card'>
+										<div className='flex p-1'>
+											<TabsList className='inline-flex h-10 items-center bg-muted p-1 flex-1'>
+												{sortedSemesters.map(
+													(semester) => (
+														<TabsTrigger
+															key={semester}
+															value={String(
+																semester
+															)}
+															className='px-4 min-w-[100px]'
+														>
+															Semester {semester}
+														</TabsTrigger>
+													)
+												)}
+											</TabsList>
+										</div>
+										<ScrollBar orientation='horizontal' />
+									</ScrollArea>
+								</div>
 
 								{sortedSemesters.map((semester) => (
 									<TabsContent
@@ -205,7 +211,7 @@ export function StudentDashboard() {
 
 					{/* RIGHT SIDE – FINAL SCORES */}
 					<div className='lg:col-span-1'>
-						<div className='sticky top-6 space-y-6'>
+						<div className='sticky top-20 space-y-6'>
 							{courses.length > 0 && (
 								<StudentFinalScores
 									courses={courses}
