@@ -111,10 +111,10 @@ export function StudentDashboard() {
 		<div className='container mx-auto p-6 space-y-8'>
 			<div className='space-y-2'>
 				<h2 className='text-3xl font-bold text-foreground'>
-					My Courses
+					Các khóa học của tôi
 				</h2>
 				<p className='text-muted-foreground'>
-					View your enrolled courses and track your grades
+					Xem các khóa học bạn đã đăng ký và theo dõi điểm số của bạn
 				</p>
 			</div>
 
@@ -160,7 +160,7 @@ export function StudentDashboard() {
 															)}
 															className='px-4 min-w-[100px]'
 														>
-															Semester {semester}
+															Học kỳ {semester}
 														</TabsTrigger>
 													)
 												)}
@@ -200,9 +200,11 @@ export function StudentDashboard() {
 						) : (
 							<Card className='border-dashed'>
 								<CardHeader className='text-center py-12'>
-									<CardTitle>No Courses Found</CardTitle>
+									<CardTitle>
+										Không tìm thấy khóa học
+									</CardTitle>
 									<CardDescription>
-										You haven't enrolled in any courses yet.
+										Bạn chưa đăng ký khóa học nào
 									</CardDescription>
 								</CardHeader>
 							</Card>

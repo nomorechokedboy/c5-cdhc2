@@ -57,17 +57,17 @@ export default function StudentCourseDetail({
 
 	if (isLoading || detailLoading) {
 		return (
-			<>
+			<div className='container mx-auto p-6 space-y-6'>
 				<Button
 					variant='ghost'
 					onClick={onBack}
 					className='mb-4 ml-6 text-muted-foreground hover:text-foreground'
 				>
 					<ArrowLeft className='w-4 h-4 mr-2' />
-					Back to Courses
+					Quay trở lại các khóa học của tôi
 				</Button>
 				<DetailPageSkeleton />
-			</>
+			</div>
 		)
 	}
 
@@ -79,7 +79,7 @@ export default function StudentCourseDetail({
 				className='mb-4 text-muted-foreground hover:text-foreground'
 			>
 				<ArrowLeft className='w-4 h-4 mr-2' />
-				Back to Courses
+				Quay trở lại các khóa học của tôi
 			</Button>
 
 			{detailError && (
@@ -99,9 +99,11 @@ export default function StudentCourseDetail({
 									{course.title}
 								</CardTitle>
 								<CardDescription className='text-base'>
-									Instructor:{' '}
+									Giảng viên:{' '}
 									<span className='font-medium text-foreground'>
-										{course.teacher}
+										{course.teacher === ''
+											? 'Chưa có'
+											: course.teacher}
 									</span>
 								</CardDescription>
 							</div>
@@ -117,7 +119,7 @@ export default function StudentCourseDetail({
 						<div className='flex gap-6 text-sm pt-4 border-t border-border'>
 							<div>
 								<span className='text-muted-foreground'>
-									Start Date
+									Ngày bắt đầu
 								</span>
 								<p className='font-medium text-foreground'>
 									{course.startDate === 0
@@ -127,7 +129,7 @@ export default function StudentCourseDetail({
 							</div>
 							<div>
 								<span className='text-muted-foreground'>
-									End Date
+									Ngày kết thúc
 								</span>
 								<p className='font-medium text-foreground'>
 									{course.endDate === 0
@@ -142,18 +144,18 @@ export default function StudentCourseDetail({
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Grade Breakdown</CardTitle>
+					<CardTitle>Điểm số môn học</CardTitle>
 					<CardDescription>
-						Your scores in each category
+						Điểm của bạn trong các bài kiểm tra
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Category</TableHead>
+								<TableHead>Kiểm tra</TableHead>
 								<TableHead className='text-right'>
-									Score
+									Điểm
 								</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -177,7 +179,7 @@ export default function StudentCourseDetail({
 							))}
 							<TableRow className='border-t-2 border-border'>
 								<TableCell className='font-bold text-foreground'>
-									Final Score
+									Điểm tổng kết môn
 								</TableCell>
 								<TableCell className='text-right'>
 									<Badge
