@@ -362,6 +362,11 @@ export namespace entities {
 }
 
 export namespace mdlapi {
+	export interface CourseMetadata {
+		name: string
+		value: number
+	}
+
 	export type ExamType = number
 
 	export interface GetCourseGradesResponse {
@@ -394,6 +399,7 @@ export namespace mdlapi {
 			shortname: string
 			visible: number
 			grades: Grade[]
+			metadata: CourseMetadata[]
 		}[]
 	}
 
