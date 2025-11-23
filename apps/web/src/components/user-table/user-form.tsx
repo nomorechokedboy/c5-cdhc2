@@ -60,6 +60,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
+				value.isSuperUser = value.isSuperUser === 'true' ? true : false
 				const parsed = schema.parse(value)
 				await mutateAsync(parsed)
 				toast.success('Thêm mới người dùng thành công')
