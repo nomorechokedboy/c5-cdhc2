@@ -113,7 +113,9 @@ export class Course {
 			type: ModuleType
 		}[],
 		readonly students: Student[],
-		readonly teacher?: string
+		readonly teacher?: string,
+		readonly semester?: number,
+		readonly credits?: number
 	) {}
 
 	public static DefaultCourse() {
@@ -154,9 +156,28 @@ export class Course {
 	public static ToCourses(
 		studentGrades: mdlapi.GetUserGradesResponse
 	): Course[] {
-		return studentGrades.courses.map(
-			(c) => new Course(c.courseid, c.coursename, '', 0, 0, [], [], '')
-		)
+		return studentGrades.courses.map((c) => {
+			const metadata = c.metadata.reduce(
+				(obj, curr) => {
+					obj[curr.name] = curr.value
+					return obj
+				},
+				{} as Record<string, number>
+			)
+
+			return new Course(
+				c.courseid,
+				c.coursename,
+				'',
+				0,
+				0,
+				[],
+				[],
+				'',
+				metadata['semester'],
+				metadata['credit']
+			)
+		})
 	}
 }
 
