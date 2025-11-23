@@ -400,6 +400,7 @@ export namespace mdlapi {
 			visible: number
 			grades: Grade[]
 			metadata: CourseMetadata[]
+			teachers: Teacher[]
 		}[]
 	}
 
@@ -443,6 +444,13 @@ export namespace mdlapi {
 		lastname: string
 		email: string
 		grades: Grade[]
+	}
+
+	export interface Teacher {
+		id: number
+		fullname: string
+		email: string
+		picture: string
 	}
 
 	export interface UpdateGrade {

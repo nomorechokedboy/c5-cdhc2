@@ -103,6 +103,17 @@ class get_student_grades extends external_api
         foreach ($courses as $course) {
             // Validate course context and check if user can view grades
             $coursecontext = context_course::instance($course->id);
+            $teachers = get_enrolled_users($coursecontext, 'moodle/course:update');
+
+            $teacherlist = [];
+            foreach ($teachers as $t) {
+                $teacherlist[] = [
+                    'id' => $t->id,
+                    'fullname' => fullname($t),
+                    'email' => $t->email,
+                    'picture' => $t->picture,
+                ];
+            }
 
             // Check if current user can view this student's grades
             // Students can view their own grades, teachers can view all
@@ -155,6 +166,7 @@ class get_student_grades extends external_api
                     'visible' => $course->visible,
                     'grades' => [],
                     'metadata' => $metadata,
+                    'teachers' => $teacherlist,
                 ];
 
                 // Collect all cmids to fetch custom field data once
@@ -350,9 +362,18 @@ class get_student_grades extends external_api
                         ]),
                         'Custom course metadata'
                     ),
+                    'teachers' => new external_multiple_structure(
+                        new external_single_structure([
+                            'id' => new external_value(PARAM_INT),
+                            'fullname' => new external_value(PARAM_TEXT),
+                            'email' => new external_value(PARAM_TEXT),
+                            'picture' => new external_value(PARAM_TEXT, VALUE_OPTIONAL),
+                        ]),
+                        'List of teachers for this course'
+                    ),
                 ]),
                 'Courses with grades'
-            )
+            ),
         ]);
     }
 }

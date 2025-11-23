@@ -100,11 +100,13 @@ export default function StudentCourseDetail({
 								</CardTitle>
 								<CardDescription className='text-base'>
 									Giảng viên:{' '}
-									<span className='font-medium text-foreground'>
-										{course.teacher === ''
-											? 'Chưa có'
-											: course.teacher}
-									</span>
+									<div className='flex flex-wrap gap-2'>
+										{course.teachers
+											? course.teachers.map((t) => (
+													<Badge>{t.fullName}</Badge>
+												))
+											: 'Chưa gán giảng viên'}
+									</div>
 								</CardDescription>
 							</div>
 							<Badge

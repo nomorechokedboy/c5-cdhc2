@@ -69,7 +69,15 @@ type GetUserGradesResponse struct {
 		Visible    int              `json:"visible"`
 		Grades     []Grade          `json:"grades"`
 		Metadata   []CourseMetadata `json:"metadata"`
+		Teachers   []Teacher        `json:"teachers"`
 	} `json:"courses"`
+}
+
+type Teacher struct {
+	ID       int    `json:"id"`
+	Fullname string `json:"fullname"`
+	Email    string `json:"email"`
+	Picture  string `json:"picture"`
 }
 
 type UserGradeItemsProvider interface {

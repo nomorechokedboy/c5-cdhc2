@@ -31,7 +31,11 @@ export default function StudentCourseCard({
 						{course.title}
 					</CardTitle>
 					<CardDescription className='text-sm text-muted-foreground'>
-						{course.teacher}
+						{course.teachers && course.teachers.length > 0
+							? course.teachers
+									.map((teacher) => teacher.fullName)
+									.join(', ')
+							: 'Chưa gán giảng viên'}
 					</CardDescription>
 				</div>
 			</CardHeader>

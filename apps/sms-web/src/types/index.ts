@@ -99,6 +99,22 @@ export class Student {
 	}
 }
 
+export class Teacher {
+	constructor(
+		readonly id: number,
+		readonly fullName: string,
+		readonly avatar: string
+	) {}
+
+	public static From(mdlTeacher: mdlapi.Teacher) {
+		return new Teacher(
+			mdlTeacher.id,
+			mdlTeacher.fullname,
+			mdlTeacher.picture
+		)
+	}
+}
+
 export class Course {
 	constructor(
 		readonly id: number,
@@ -113,13 +129,13 @@ export class Course {
 			type: ModuleType
 		}[],
 		readonly students: Student[],
-		readonly teacher?: string,
+		readonly teachers?: Teacher[],
 		readonly semester?: number,
 		readonly credits?: number
 	) {}
 
 	public static DefaultCourse() {
-		return new Course(0, 'Khóa học...', 'Chưa có mô tả ', 0, 0, [], [], '')
+		return new Course(0, 'Khóa học...', 'Chưa có mô tả ', 0, 0, [], [], [])
 	}
 
 	public static From(
@@ -151,7 +167,7 @@ export class Course {
 			enddate,
 			gradeCategories,
 			courseStudents,
-			''
+			[]
 		)
 	}
 
@@ -166,6 +182,8 @@ export class Course {
 				},
 				{} as Record<string, number>
 			)
+
+			const teachers = c.teachers.map(Teacher.From)
 
 			const gradeCategories = c.grades.map((g) => ({
 				label: g.modulename,
@@ -182,7 +200,7 @@ export class Course {
 				0,
 				gradeCategories,
 				[],
-				'',
+				teachers,
 				metadata['semester'],
 				metadata['credit']
 			)
