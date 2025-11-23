@@ -18,6 +18,7 @@ import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 
 import type { Course, StudentGrades } from '@/types'
+import { getGradeColor } from '@/lib/utils'
 
 interface StudentFinalScoresProps {
 	courses: Course[]
@@ -30,21 +31,20 @@ export default function StudentFinalScores({
 	studentGrades,
 	isLoading = false
 }: StudentFinalScoresProps) {
-	const getScoreColor = (score: number) => {
-		if (score >= 90) return 'bg-green-100 text-green-800'
-		if (score >= 80) return 'bg-blue-100 text-blue-800'
-		if (score >= 70) return 'bg-yellow-100 text-yellow-800'
-		return 'bg-red-100 text-red-800'
-	}
-
 	const validCourses = courses.filter((c) => studentGrades[c.id])
+	const totalCredits = courses.reduce(
+		(accum, curr) => accum + (curr.credits ?? 0),
+		0
+	)
 	const overallGPA =
 		validCourses.length > 0
 			? (
 					validCourses.reduce(
-						(sum, c) => sum + studentGrades[c.id].finalScore,
+						(sum, c) =>
+							sum +
+							studentGrades[c.id].finalScore * (c.credits ?? 1),
 						0
-					) / validCourses.length
+					) / totalCredits
 				).toFixed(2)
 			: '0.00'
 
@@ -124,7 +124,7 @@ export default function StudentFinalScores({
 						</p>
 
 						<Badge
-							className={`${getScoreColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1 shadow-sm`}
+							className={`${getGradeColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1 shadow-sm`}
 						>
 							{overallGPA}
 						</Badge>
@@ -187,7 +187,7 @@ export default function StudentFinalScores({
 												{gradeInfo ? (
 													<Badge
 														variant='outline'
-														className={`${getScoreColor(
+														className={`${getGradeColor(
 															gradeInfo.finalScore
 														)} group-hover:shadow-sm transition-all`}
 													>
