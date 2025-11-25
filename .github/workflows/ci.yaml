@@ -70,6 +70,14 @@ jobs:
               run: |
                   curl -L https://encore.dev/install.sh | bash
                   echo "$HOME/.encore/bin" >> $GITHUB_PATH
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
             - name: Extract metadata
               id: meta
               uses: docker/metadata-action@v5
