@@ -64,19 +64,19 @@ class controller {
 		log.trace('UnitController.find params', { params: q })
 
 		if (unitIds === undefined || unitIds.length === 0) {
-			AppError.handleAppErr(AppError.invalidArgument('Validate unitIds'))
+			AppError.handleAppErr(AppError.invalidArgument('Invalid unitIds'))
 		}
-		const unitId = unitIds[unitIds.length - 1]
-		const unitQuery: UnitQuery = {
-			ids: [unitId]
+		const getUnitsQuery: UnitQuery = {
+			ids: unitIds
 		}
 
 		if (q.level !== undefined) {
-			unitQuery.level = q.level
+			getUnitsQuery.level = q.level
 		}
 
-		return this.repo.find(unitQuery)
+		return this.repo.find(getUnitsQuery)
 	}
+
 	findAll(): Promise<Unit[]> {
 		return this.repo.findAll()
 	}
