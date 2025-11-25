@@ -16,7 +16,7 @@ export const Local: BaseURL = 'http://localhost:4000'
  * Environment returns a BaseURL for calling the cloud environment with the given name.
  */
 export function Environment(name: string): BaseURL {
-	return `https://${name}-ockca.encr.app`
+	return `https://${name}-ibibi.encr.app`
 }
 
 /**
@@ -29,7 +29,7 @@ export function PreviewEnv(pr: number | string): BaseURL {
 const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
 
 /**
- * Client is an API client for the ockca Encore application.
+ * Client is an API client for the ibibi Encore application.
  */
 export default class Client {
 	public readonly auth: auth.ServiceClient
@@ -1161,10 +1161,6 @@ export namespace units {
 		level?: 'battalion' | 'company'
 	}
 
-	export interface GetUnitsQuery {
-		level?: 'battalion' | 'company'
-	}
-
 	export interface GetUnitsResponse {
 		data: Unit[]
 	}
@@ -1205,30 +1201,8 @@ export namespace units {
 
 		constructor(baseClient: BaseClient) {
 			this.baseClient = baseClient
-			this.GetAllUnit = this.GetAllUnit.bind(this)
 			this.GetUnit = this.GetUnit.bind(this)
 			this.GetUnits = this.GetUnits.bind(this)
-		}
-
-		public async GetAllUnit(
-			params: GetUnitsQuery
-		): Promise<GetUnitsResponse> {
-			// Convert our params into the objects we need for the request
-			const query = makeRecord<string, string | string[]>({
-				level:
-					params.level === undefined
-						? undefined
-						: String(params.level)
-			})
-
-			// Now make the actual call to the API
-			const resp = await this.baseClient.callTypedAPI(
-				'GET',
-				`/allUnits`,
-				undefined,
-				{ query }
-			)
-			return (await resp.json()) as GetUnitsResponse
 		}
 
 		public async GetUnit(
@@ -1289,6 +1263,7 @@ export namespace users {
 		displayName: string
 		unitId: number
 		isSuperUser?: boolean
+		status?: string
 	}
 
 	export interface CreateUserResponse {
@@ -1335,6 +1310,7 @@ export namespace users {
 		displayName: string
 		unitId: number
 		isSuperUser?: boolean
+		status?: string
 	}
 
 	export interface UserDB {
@@ -1345,6 +1321,7 @@ export namespace users {
 		displayName: string
 		unitId: number
 		isSuperUser?: boolean
+		status?: string
 	}
 
 	export interface UserResponse {
@@ -1660,7 +1637,7 @@ class BaseClient {
 		// because browsers do not allow setting User-Agent headers to requests
 		if (!BROWSER) {
 			this.headers['User-Agent'] =
-				'ockca-Generated-TS-Client (Encore/v1.50.4)'
+				'ibibi-Generated-TS-Client (Encore/v1.50.4)'
 		}
 
 		this.requestInit = options.requestInit ?? {}
