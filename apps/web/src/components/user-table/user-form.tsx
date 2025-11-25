@@ -13,7 +13,7 @@ import { CreateUser } from '@/api'
 import { useMutation } from '@tanstack/react-query'
 import type { Class, ClassBody, User, UserBody, UserFormData } from '@/types'
 import { toast } from 'sonner'
-import useAllUnitsData from '@/hooks/useAllUnitsData'
+import useUnitsData from '@/hooks/useUnitsData'
 
 const schema = z.object({
 	username: z.string().min(1, 'Tên tài khoản không được bỏ trống'),
@@ -39,7 +39,7 @@ export interface UserFormProps {
 }
 
 export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
-	const { data: unitsData, isLoading, isError } = useAllUnitsData()
+	const { data: unitsData, isLoading, isError } = useUnitsData()
 	console.log('Render UserForm')
 	console.log('unitdata', unitsData)
 

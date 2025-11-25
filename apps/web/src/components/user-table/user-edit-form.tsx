@@ -9,21 +9,12 @@ import {
 } from '@/components/ui/dialog'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { CreateUser, UpdateUser } from '@/api'
+import { UpdateUser } from '@/api'
 import { useMutation } from '@tanstack/react-query'
-import type {
-	Class,
-	ClassBody,
-	UpdateUserBody,
-	User,
-	UserBody,
-	UserFormData,
-	UserUpdate
-} from '@/types'
+import type { UpdateUserBody, User, UserUpdate } from '@/types'
 import { toast } from 'sonner'
-import useAllUnitsData from '@/hooks/useAllUnitsData'
 import { useEffect } from 'react'
-import { id } from 'zod/v4/locales'
+import useUnitsData from '@/hooks/useUnitsData'
 
 const schema = z.object({
 	id: z.number().optional(),
@@ -63,7 +54,7 @@ export default function UserEditForm({
 	onClose,
 	editingUser
 }: UserFormProps) {
-	const { data: unitsData, isLoading, isError } = useAllUnitsData()
+	const { data: unitsData, isLoading, isError } = useUnitsData()
 	console.log('Render UserForm')
 	console.log('unitdata', unitsData)
 

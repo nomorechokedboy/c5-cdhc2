@@ -120,16 +120,8 @@ export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
 		.then((resp) => resp.data.data)
 }
 
-export function GetAllUnits() {
-	return axios
-		.get<GetUnitResponse>('/allUnits')
-		.then((resp) => resp.data.data)
-}
-
 export function GetUnits(params?: GetUnitQuery) {
-	return axios
-		.get<GetUnitResponse>('/units', { params })
-		.then((resp) => resp.data.data)
+	return requestClient.units.GetUnits(params ?? {}).then((resp) => resp.data)
 }
 
 export function GetUnit({
