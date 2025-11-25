@@ -76,8 +76,6 @@ jobs:
                   node-version: 20
             - name: Install pnpm
               uses: pnpm/action-setup@v4
-              with:
-                  version: 10
             - name: Extract metadata
               id: meta
               uses: docker/metadata-action@v5
