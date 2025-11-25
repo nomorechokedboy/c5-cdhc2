@@ -36,23 +36,9 @@ class controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	update(params: UpdateUserRequest, validUnitIds: number[]): Promise<UserDB> {
+	update(params: UpdateUserRequest): Promise<UserDB> {
 		log.trace('UserController.update params', { params })
-		if (params.unitId !== undefined) {
-			const checkUnitIds = validUnitIds.includes(params.unitId)
-			if (checkUnitIds === false) {
-				throw AppError.handleAppErr(
-					AppError.unauthorized(
-						"You don't have permission update this user"
-					)
-				)
-			}
-			return this.repo.update(params).catch(AppError.handleAppErr)
-		} else {
-			throw AppError.handleAppErr(
-				AppError.invalidArgument('Invalid unitId')
-			)
-		}
+		return this.repo.update(params).catch(AppError.handleAppErr)
 	}
 
 	async delete(ids: number[], validUnitIds: number[]) {

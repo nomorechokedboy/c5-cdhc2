@@ -60,15 +60,15 @@ export interface CreateUserRequest {
 	roleIds?: number[]
 	displayName: string
 	unitId: number
-	isSuperUser?: boolean,
-	status?: string,
+	isSuperUser?: boolean
+	status?: string
 }
 
 export interface UpdateUserRequest {
 	id: number
 	password?: string
 	roleIds?: number[]
-	displayName: string
+	displayName?: string
 	unitId?: number
 	isSuperUser?: boolean
 }

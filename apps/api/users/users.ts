@@ -7,13 +7,13 @@ interface CreateUserRequest {
 	password: string
 	displayName: string
 	unitId: number
-	isSuperUser?: boolean,
-	status?: string,
+	isSuperUser?: boolean
+	status?: string
 }
 
 interface UpdateUserRequest {
 	id: number
-	displayName: string
+	displayName?: string
 	unitId?: number
 	isSuperUser?: boolean
 }
@@ -82,12 +82,20 @@ export const GetUsers = api(
 )
 
 export const CreateUser = api(
-	{ expose: true, method: 'POST', path: '/users' },
+	{ expose: true, auth: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const { username, password, displayName, unitId, isSuperUser,status } = req
+		const { username, password, displayName, unitId, isSuperUser, status } =
+			req
 
 		const data = await userController
-			.create({ password, username, displayName, unitId, isSuperUser, status })
+			.create({
+				password,
+				username,
+				displayName,
+				unitId,
+				isSuperUser,
+				status
+			})
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
@@ -98,22 +106,8 @@ export const UpdateUser = api(
 	{ expose: true, auth: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
 		const { id, displayName, unitId, isSuperUser } = req
-		const validUnitIds = getAuthData()!.validUnitIds
-		// Debug
-		const authData = getAuthData()
-		console.log('Auth Data:', authData)
-		console.log('Valid Unit IDs:', authData?.validUnitIds)
-
-		if (!authData) {
-			throw new Error('Không tìm thấy thông tin xác thực')
-		}
-
-		if (!authData.validUnitIds) {
-			throw new Error('Không tìm thấy validUnitIds trong auth data')
-		}
-		const updatedAt = new Date().toISOString()
 		const data = await userController
-			.update({ id, displayName, unitId, isSuperUser }, validUnitIds)
+			.update({ id, displayName, unitId, isSuperUser })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
