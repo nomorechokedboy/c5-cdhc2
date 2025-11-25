@@ -1,4 +1,4 @@
-FROM quanlyhocvien-cdhc2:test-cron
+FROM temp-api:build
 
 ENV TZ=Asia/Ho_Chi_Minh
 
