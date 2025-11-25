@@ -1,8 +1,8 @@
 name: Continuous Integration
 on:
     push:
-    # branches:
-    #     - main
+        branches:
+            - main
 env:
     REGISTRY: ghcr.io
     IMAGE_PREFIX: ${{ github.repository_owner }}
