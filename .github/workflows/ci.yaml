@@ -84,6 +84,9 @@ jobs:
                   tags: |
                       type=raw,value=latest
                       type=sha,prefix={{branch}}-
+            - name: Install API Dependencies
+              working-directory: apps/api
+              run: pnpm install --frozen-lockfile
             - name: Build Encore Docker image
               working-directory: apps/api
               run: |
