@@ -1,7 +1,6 @@
 import log from 'encore.dev/log'
 import { Repository } from '.'
 import { AppError } from '../errors'
-import { getAuthData } from '~encore/auth'
 import {
 	Unit,
 	UnitLevel,
@@ -11,7 +10,6 @@ import {
 } from '../schema'
 import unitRepo from './repo'
 import { GetUnitsQuery, UnitDB } from './units'
-import { length } from 'valibot'
 
 type findOneRequest = {
 	id?: number
@@ -25,15 +23,12 @@ type findOneRequest = {
 class controller {
 	constructor(private readonly repo: Repository) {}
 
-	async create(
-		params: UnitParams[],
-		validUnitIds: number[]
-	): Promise<UnitParams[]> {
+	async create(params: UnitParams[]): Promise<UnitParams[]> {
 		log.trace('UnitController.create params', { params })
 
 		const validParams: UnitParams[] = []
 		for (const param of params) {
-			const parent = await this.repo.findOne({ id: param.parentId! })
+			const parent = await this.repo.getOne({ id: param.parentId! })
 			const parentLevel = UnitLevel.fromName(parent!.level)
 			const paramLevel = UnitLevel.fromName(param.level)
 			if (UnitLevel.isEqual(parentLevel, paramLevel)) {
