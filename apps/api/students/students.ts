@@ -99,7 +99,7 @@ interface BulkStudentResponse {
 }
 
 export const CreateStudent = api(
-	{ expose: true, method: 'POST', path: '/students' },
+	{auth: true, expose: true, method: 'POST', path: '/students' },
 	async (body: StudentBody): Promise<BulkStudentResponse> => {
 		const studentParam: StudentParam = {
 			...body
