@@ -334,7 +334,6 @@ export class Controller {
 	}
 
 	getTemplate(templateType: TemplateType): Promise<Buffer> {
-		log.debug('getTemplate templateType', { templateType })
 		if (this.templateMap[templateType] === undefined || '') {
 			throw AppError.invalidArgument('Invalid template file')
 		}
