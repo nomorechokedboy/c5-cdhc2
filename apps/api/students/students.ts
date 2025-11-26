@@ -176,7 +176,7 @@ export interface GetStudentsQuery {
 }
 
 export const GetStudents = api(
-	{ expose: true, method: 'GET', path: '/students' },
+	{ auth: true, expose: true, method: 'GET', path: '/students' },
 	async ({ ...query }: GetStudentsQuery): Promise<GetStudentsResponse> => {
 		const validClassIds = getAuthData()!.validClassIds
 		log.trace('students.GetStudents query params', { params: query })

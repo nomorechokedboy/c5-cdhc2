@@ -42,6 +42,8 @@ import useUnitsData from '@/hooks/useUnitsData'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
+import useAuth from '@/hooks/useAuth'
+import type { GetUnitQuery } from '@/types'
 
 // Updated data structure to support unlimited nesting and icons
 const data = {
@@ -272,10 +274,16 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { state } = useSidebar()
 	const isCollapsed = state === 'collapsed'
+	const { user } = useAuth()
 
-	const { data: units, isLoading: isLoadingUnits } = useUnitsData({
-		level: 'battalion'
-	})
+	const getUnitsQuery: GetUnitQuery | undefined =
+		user?.isSuperUser === true
+			? {
+					level: 'battalion'
+				}
+			: undefined
+	const { data: units, isLoading: isLoadingUnits } =
+		useUnitsData(getUnitsQuery)
 	if (isLoadingUnits) {
 		return <AppSidebarSkeleton />
 	}
@@ -288,7 +296,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				items: [
 					{
 						title: `Học viên ${unit.name}`,
-						url: `/tieu-doan/${unit.alias}`,
+						url: `/${unit.level === 'battalion' ? 'tieu-doan/' : 'dai-doi/'}${unit.alias}`,
 						search: { name: unit.name, level: unit.level },
 						icon: UsersRound
 					},
