@@ -107,6 +107,10 @@ class controller {
 					AppError.invalidArgument("User don'have unit")
 				)
 			}
+
+			const validIds = await this.getValidIds(user.unitId!)
+			classIds = validIds.validClassIds
+			unitIds = validIds.validUnitIds
 		}
 
 		if (user.isSuperUser === true) {
@@ -120,10 +124,6 @@ class controller {
 			unitIds = allUnitIds
 			return { classIds, unitIds }
 		}
-
-		const validIds = await this.getValidIds(user.unitId!)
-		classIds = validIds.validClassIds
-		unitIds = validIds.validUnitIds
 
 		return { classIds, unitIds }
 	}
