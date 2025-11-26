@@ -2,7 +2,7 @@ import userRepo from '../users/repo'
 import { Repository as UserRepository } from '../users'
 import { Repository as UnitRespository } from '../units'
 import log from 'encore.dev/log'
-import { UserDB } from '../schema'
+import { Unit, UserDB } from '../schema'
 import { AppError } from '../errors'
 import argon2 from 'argon2'
 import { appConfig } from '../configs'
@@ -10,7 +10,6 @@ import jwt from 'jsonwebtoken'
 import authzController from '../authz/controller'
 import type { StringValue } from 'ms'
 import unitRepo from '../units/repo'
-import { promises } from 'node:dns'
 
 type LoginRequest = {
 	username: string
@@ -18,16 +17,16 @@ type LoginRequest = {
 }
 
 type TokenPayload = {
-	userId: number,
-	isSuperUser: boolean,
-	status: string,
-	permissions: string[],
-	type: 'access' | 'refresh',
-	iat?: number,
-	exp?: number,
-	validUnitIds?: number[],
+	userId: number
+	isSuperUser: boolean
+	status?: string
+	permissions: string[]
+	type: 'access' | 'refresh'
+	iat?: number
+	exp?: number
+	validUnitIds?: number[]
 
-	validClassIds: number[],
+	validClassIds: number[]
 }
 
 type TokenResponse = {
@@ -43,24 +42,6 @@ type ChangePasswordRequest = {
 	userId: number
 	prevPassword: string
 	password: string
-}
-type Class = {
-	id: number
-	name: string
-	description: string
-	status: string
-	unitId: number
-	createdAt: string
-	updatedAt: string
-}
-type Unit = {
-	id: number
-	name: string
-	alias: string
-	level: string
-	parentId?: number | null
-	children?: Unit[]
-	classes?: Class[]
 }
 
 class controller {
@@ -92,56 +73,70 @@ class controller {
 		return { validClassIds: classIds, validUnitIds: unitIds }
 	}
 
+	getClassIdsFromUnit(unit: Unit) {
+		let ids = unit.classes?.map((c) => c.id) || []
+		if (unit.children) {
+			for (const child of unit.children) {
+				ids = ids.concat(this.getClassIdsFromUnit(child))
+			}
+		}
+		return ids
+	}
+
+	getUnitIdsFromUnit(unit: Unit) {
+		let ids = [unit.id]
+		if (unit.children) {
+			for (const child of unit.children) {
+				ids = ids.concat(this.getUnitIdsFromUnit(child))
+			}
+		}
+		return ids
+	}
+
+	async getUserValidResourceIds(user: {
+		unitId: number | null
+		isSuperUser: boolean
+	}) {
+		let classIds: number[] = []
+		let unitIds: number[] = []
+
+		if (user.unitId !== null) {
+			const unit = await this.unitRepo.getOne({ id: user.unitId })
+			if (unit === null || unit === undefined) {
+				AppError.handleAppErr(
+					AppError.invalidArgument("User don'have unit")
+				)
+			}
+		}
+
+		if (user.isSuperUser === true) {
+			const units = await this.unitRepo.findAll()
+			const allClassIds = units.flatMap((u) =>
+				this.getClassIdsFromUnit(u)
+			)
+			const allUnitIds = units.flatMap((u) => this.getUnitIdsFromUnit(u))
+
+			classIds = allClassIds
+			unitIds = allUnitIds
+			return { classIds, unitIds }
+		}
+
+		const validIds = await this.getValidIds(user.unitId!)
+		classIds = validIds.validClassIds
+		unitIds = validIds.validUnitIds
+
+		return { classIds, unitIds }
+	}
+
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
 			// Get user permissions from RBAC system
 			const permissions = await authzController.getUserPermissions(
 				user.id
 			)
-			let classIds: number[] = []
-			let unitIds: number[] = []
 
-			const getAllClassIds = (unit) => {
-					let ids = unit.classes?.map((c) => c.id) || []
-					if (unit.children) {
-						for (const child of unit.children) {
-							ids = ids.concat(getAllClassIds(child))
-						}
-					}
-					return ids
-				}
-				const getAllUnitIds = (unit) => {
-					let ids = [unit.id]
-					if (unit.children) {
-						for (const child of unit.children) {
-							ids = ids.concat(getAllUnitIds(child))
-						}
-					}
-					return ids
-				}
-
-			if (user.unitId !== null) {
-				const unit = await this.unitRepo.getOne({ id: user.unitId })
-				if (unit === null || unit === undefined) {
-					AppError.handleAppErr(
-						AppError.invalidArgument("User don'have unit")
-					)
-				}
-
-				
-			}
-
-			if (user.isSuperUser === true) {
-				const units = await this.unitRepo.findAll()
-				const allClassIds = units.flatMap((u) => getAllClassIds(u))
-				const allUnitIds = units.flatMap((u) => getAllUnitIds(u))
-				classIds = allClassIds
-				unitIds = allUnitIds
-			} else if (user.unitId !== null) {
-				const validIds = await this.getValidIds(user.unitId)
-				classIds = validIds.validClassIds
-				unitIds = validIds.validUnitIds
-			}
+			const { classIds, unitIds } =
+				await this.getUserValidResourceIds(user)
 
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
@@ -182,7 +177,7 @@ class controller {
 
 			return { accessToken, refreshToken }
 		} catch (error) {
-			console.error('Test', error);
+			console.error('Test', error)
 			log.error('AuthController.genTokens Error generating tokens', {
 				error,
 				userId: user.id
@@ -243,11 +238,11 @@ class controller {
 		log.trace('AuthController.login request', { req })
 		const { username, password } = req
 
-		const user = await this.userRepo
-			.findOne({ username } as UserDB)
-			.catch(AppError.handleAppErr)
-
 		try {
+			const user = await this.userRepo
+				.findOne({ username } as UserDB)
+				.catch(AppError.handleAppErr)
+
 			const isPasswordMatch = await this.verifyPwd(
 				user.password,
 				password
@@ -273,19 +268,28 @@ class controller {
 
 	async refreshToken(req: RefreshTokenRequest): Promise<TokenResponse> {
 		try {
-			const { userId } = this.verifyToken(req.token)
+			const { userId, isSuperUser } = this.verifyToken(req.token)
+			const user = await this.userRepo
+				.findOne({ id: userId } as UserDB)
+				.catch(AppError.handleAppErr)
 
 			const permissions = await authzController.getUserPermissions(userId)
+			const { classIds: validClassIds, unitIds: validUnitIds } =
+				await this.getUserValidResourceIds(user)
 
 			const accessToken = await this.genToken(
 				{
 					userId,
 					permissions,
 					type: 'access',
-					validUnitId: 0
+					validUnitIds,
+					validClassIds,
+					isSuperUser
 				},
 				appConfig.JWT_PRIVATE_KEY,
-				{ expiresIn: '30m' }
+				{
+					expiresIn: '30m'
+				}
 			)
 
 			return { accessToken, refreshToken: req.token }
