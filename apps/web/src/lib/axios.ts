@@ -9,6 +9,9 @@ const axios = baseAxios.create({
 
 export default axios
 
+// Store the ongoing refresh promise
+let refreshPromise: Promise<string> | null = null
+
 export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
 	const accessToken = AuthController.getAccessToken()
 	let initWithToken = init
@@ -21,41 +24,54 @@ export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
 			}
 		}
 	}
-
 	const resp = await fetch(url, initWithToken)
-	const isUnauthenticatedResp = resp.status !== 401
-	if (isUnauthenticatedResp) {
+
+	if (resp.status !== 401) {
 		return resp
 	}
 
 	const refreshToken = AuthController.getRefreshToken()
-	const isInvalidRefreshToken = !refreshToken
-	if (isInvalidRefreshToken) {
+	if (!refreshToken) {
 		return resp
 	}
 
 	try {
-		const tempClient = new Client(ApiUrl)
-		const refreshResp = await tempClient.auth.RefreshToken({
-			token: refreshToken
-		})
-		AuthController.setTokens({
-			accessToken: refreshResp.accessToken,
-			refreshToken: refreshResp.refreshToken
-		})
+		// If a refresh is already in progress, wait for it
+		if (!refreshPromise) {
+			refreshPromise = (async () => {
+				try {
+					const tempClient = new Client(ApiUrl)
+					const refreshResp = await tempClient.auth.RefreshToken({
+						token: refreshToken
+					})
+					AuthController.setTokens({
+						accessToken: refreshResp.accessToken,
+						refreshToken: refreshResp.refreshToken
+					})
+					return refreshResp.accessToken
+				} finally {
+					// Clear the promise when done (success or failure)
+					refreshPromise = null
+				}
+			})()
+		}
 
+		// Wait for the refresh to complete
+		const newAccessToken = await refreshPromise
+
+		// Retry the original request with the new token
 		const newInit = {
 			...init,
 			headers: {
 				...init?.headers,
-				Authorization: `Bearer ${refreshResp.accessToken}`
+				Authorization: `Bearer ${newAccessToken}`
 			}
 		}
-
 		return await fetch(url, newInit)
 	} catch (err) {
 		console.error('Token refresh failed:', err)
 		AuthController.clearTokens()
+		refreshPromise = null // Clear on error
 		return resp
 	}
 }
