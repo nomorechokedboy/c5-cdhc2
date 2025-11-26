@@ -47,7 +47,8 @@ export interface UserDB extends Base {
 	password: string
 	displayName: string
 	unitId: number
-	isSuperUser: boolean
+	isSuperUser: boolean,
+	status: 'pending' | 'approved';
 }
 
 export interface User extends UserDB {
