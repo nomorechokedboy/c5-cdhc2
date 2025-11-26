@@ -1685,6 +1685,10 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 			label: 'Nghề nghiệp của mẹ'
 		}
 	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />
+	},
 	// {
 	//         accessorKey: 'motherJobAddress',
 	//         header: ({ column }) => (
@@ -2078,6 +2082,10 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 		meta: {
 			label: 'Nghề nghiệp của mẹ'
 		}
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />
 	},
 	// {
 	//         accessorKey: 'motherJobAddress',

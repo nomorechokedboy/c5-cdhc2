@@ -224,7 +224,7 @@ interface UpdateStudentBody {
 }
 
 export const UpdateStudents = api(
-	{ expose: true, method: 'PATCH', path: '/students' },
+	{ auth: true,  expose: true, method: 'PATCH', path: '/students' },
 	async (body: UpdateStudentBody) => {
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB

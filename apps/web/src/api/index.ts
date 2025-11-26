@@ -151,9 +151,7 @@ export function GetPoliticsQualityReport(unitIds: number[]) {
 	return requestClient.students.GetPoliticsQualityReport({ unitIds })
 }
 export function CreateUser(body: UserBody) {
-	return axios
-		.post<UserResponse>('users', body)
-		.then((resp) => resp.data.data)
+	return requestClient.users.CreateUser(body).then((resp) => resp.data);
 }
 export function UpdateUser(body: UpdateUserBody) {
 	return requestClient.users.UpdateUser(body).then((resp) => resp.data)
