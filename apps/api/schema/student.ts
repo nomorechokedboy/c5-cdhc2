@@ -75,7 +75,12 @@ export const students = sqlite.sqliteTable('students', {
 	siblings: sqlite.text({ mode: 'json' }).default(sql`'[]'`),
 	contactPerson: sqlite.text({ mode: 'json' }).default(sql`'{}'`),
 	studentId: sqlite.text(),
-	relatedDocumentations: sqlite.text()
+	relatedDocumentations: sqlite.text(),
+	status: sqlite
+		.text()
+		.$type<'pending' | 'confirmed'>()
+		.default('pending')
+		.notNull()
 })
 
 export const studentsRelations = relations(students, ({ one }) => ({

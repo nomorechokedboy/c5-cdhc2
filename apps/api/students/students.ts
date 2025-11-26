@@ -82,6 +82,7 @@ interface StudentBody {
 	contactPerson?: Partial<ContactPerson>
 	studentId?: string
 	relatedDocumentations?: string
+	status?: 'pending' | 'confirmed'
 }
 
 interface StudentDBResponse extends StudentBody {

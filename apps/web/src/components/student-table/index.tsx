@@ -45,7 +45,7 @@ export default function StudentTable({
 	}
 
 	const militaryRankSet = new Set(
-		students.filter((s) => !!s.rank).map((s) => s.rank)
+		students.filter((s) => !!s.rank).map((s) => s.rank as string)
 	)
 	const militaryRankOptions = Array.from(militaryRankSet).map((rank) => ({
 		label: rank,
@@ -53,12 +53,18 @@ export default function StudentTable({
 	}))
 
 	const previousUnitSet = new Set(
-		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit)
+		students.filter((s) => !!s.previousUnit).map((s) => s.previousUnit as string)
 	)
 	const previousUnitOptions = Array.from(previousUnitSet).map((pu) => ({
 		label: pu,
 		value: pu
 	}))
+
+	const statusOptions = [
+		{ label: 'Chưa xác nhận', value: 'pending' },
+		{ label: 'Đã xác nhận', value: 'confirmed' }
+	]
+
 	const facetedFilters = [
 		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
 		createFacetedFilter('previousUnit', 'Đơn vị cũ', previousUnitOptions),
@@ -67,7 +73,8 @@ export default function StudentTable({
 			'educationLevel',
 			'Trình độ học vấn',
 			EduLevelOptions
-		)
+		),
+		createFacetedFilter('status', 'Trạng thái', statusOptions)
 	]
 
 	return (

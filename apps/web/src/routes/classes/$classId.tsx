@@ -115,7 +115,10 @@ function RouteComponent() {
 							ethnic: false,
 							educationLevel: false
 						}}
-						columns={[...columnsWithoutAction, actionColumn]}
+						columns={[
+							...columnsWithoutAction.filter((col => col.id !== 'action'),
+							actionColumn)
+						]}
 						facetedFilters={facetedFilters}
 						exportConfig={{
 							filename,

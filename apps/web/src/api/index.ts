@@ -69,9 +69,7 @@ export function GetClassById(id: number): Promise<Class | undefined> {
 }
 
 export function CreateStudent(body: StudentBody) {
-	return axios
-		.post<StudentResponse>('/students', body)
-		.then((resp) => resp.data.data)
+	return requestClient.students.CreateStudent(body ?? {}).then((resp) => resp.data);
 }
 
 // export function CreateStudent, body: StudentBody[])
