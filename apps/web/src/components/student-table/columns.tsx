@@ -1685,10 +1685,6 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 			label: 'Nghề nghiệp của mẹ'
 		}
 	},
-	{
-		id: 'actions',
-		cell: ({ row }) => <DataTableRowActions row={row} />
-	},
 	// {
 	//         accessorKey: 'motherJobAddress',
 	//         header: ({ column }) => (
@@ -1717,7 +1713,36 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 		meta: {
 			label: 'SĐT mẹ'
 		}
-	}
+	},
+	{
+		accessorKey: 'status',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Trạng thái' />
+		),
+		cell: ({ row }) => {
+			const status = row.getValue('status') as 'pending' | 'confirmed'
+			return (
+				<Badge
+					className={
+						status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-500'
+					}
+				>
+					{status === 'confirmed' ? 'Đã xác nhận' : 'Chưa xác nhận'}
+				</Badge>
+			)
+		},
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		},
+		enableHiding: true,
+		meta: {
+			label: 'Trạng thái'
+		}
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />
+	},
 ]
 
 export const hcyuTableColumns: ColumnDef<Student>[] = [
@@ -2084,9 +2109,35 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 		}
 	},
 	{
+		accessorKey: 'status',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Trạng thái' />
+		),
+		cell: ({ row }) => {
+			const status = row.getValue('status') as 'pending' | 'confirmed'
+			return (
+				<Badge
+					className={
+						status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-500'
+					}
+				>
+					{status === 'confirmed' ? 'Đã xác nhận' : 'Chưa xác nhận'}
+				</Badge>
+			)
+		},
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		},
+		enableHiding: true,
+		meta: {
+			label: 'Trạng thái'
+		}
+	},
+	{
 		id: 'actions',
 		cell: ({ row }) => <DataTableRowActions row={row} />
 	},
+	
 	// {
 	//         accessorKey: 'motherJobAddress',
 	//         header: ({ column }) => (
