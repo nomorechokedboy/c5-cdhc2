@@ -64,6 +64,10 @@ export default function CompanyStudentTable({
 		label: pu,
 		value: pu
 	}))
+	const statusOptions = [
+		{ label: 'Chưa xác nhận', value: 'pending' },
+		{ label: 'Đã xác nhận', value: 'confirmed' }
+	]
 
 	const facetedFilters = [
 		createFacetedFilter('class.name', 'Lớp', classOptions),
@@ -74,7 +78,8 @@ export default function CompanyStudentTable({
 			'educationLevel',
 			'Trình độ học vấn',
 			EduLevelOptions
-		)
+		),
+		createFacetedFilter('status', 'Trạng thái', statusOptions)
 	]
 
 	return (
@@ -86,7 +91,7 @@ export default function CompanyStudentTable({
 							Danh sách học viên Đại đội
 						</h2>
 						<p className='text-muted-foreground'>
-							Đây là danh sách học viên của {unit?.name}
+							Đây là danh sách học viên của {unit?.name} a
 						</p>
 					</div>
 				</div>

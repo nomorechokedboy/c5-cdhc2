@@ -31,19 +31,26 @@ export default function CompanyClassesTable({
 	const searchConfig = [
 		createSearchConfig('name', 'Tìm kiếm theo tên lớp...')
 	]
-	const facetedFilters: FacetedFilterConfig[] = []
+	const statusOptions = [
+		{ label: 'Đang diễn ra', value: 'ongoing' },
+		{ label: 'Đã tốt nghiệp', value: 'graduated' }
+	]
+	const { createFacetedFilter } = useDataTableToolbarConfig()
+	const facetedFilters = [
+		createFacetedFilter('status', 'Trạng thái', statusOptions)
+	]
 
 	return (
 		<div className='hidden h-full flex-1 flex-col space-y-8 p-8 md:flex'>
 			<div className='flex items-center justify-between space-y-2'>
 				<div>
 					<h2 className='text-2xl font-bold tracking-tight'>
-						Danh sách lớp của {company?.name}
+						Danh sách lớp của {company?.name} aa
 					</h2>
 				</div>
 			</div>
 			<DataTable
-				placeholder='Đại đội chưa có lớp nào'
+				placeholder='Đại đội chưa có lớp nào ha'
 				columns={columns}
 				cardComponent={({ data }) => (
 					<ClassCard
@@ -54,6 +61,7 @@ export default function CompanyClassesTable({
 				)}
 				cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
 				data={classes ?? []}
+				facetedFilters={facetedFilters}
 				defaultViewMode='card'
 				toolbarProps={{
 					rightSection: (

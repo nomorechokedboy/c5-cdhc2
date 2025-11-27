@@ -5,6 +5,7 @@ import { extend } from 'dayjs'
 export interface Class extends Base {
 	name: string
 	description: string
+	status?: 'ongoing' | 'graduated'
 	studentCount: number
 	graduatedAt: string | null
 	unit: Unit
