@@ -57,7 +57,7 @@ export function DataTableToolbar<TData>({
 	// Render faceted filters
 	const renderFacetedFilters = () => {
 		return facetedFilters.map((filterConfig) => {
-			const column = table.getColumn(filterConfig.columnKey)
+			const column = table.getColumn(filterConfig.columnKey.toString())
 			if (!column) return null
 
 			return (

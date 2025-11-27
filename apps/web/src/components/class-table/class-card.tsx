@@ -6,6 +6,7 @@ import {
 	CardDescription
 } from '@/components/ui/card'
 import type { Class } from '@/types'
+import { Badge } from '@/components/ui/badge'
 import { EllipsisText } from '@/components/data-table/ellipsis-text'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toVNTz } from '@/lib/utils'
@@ -46,6 +47,10 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 		navigate({ to: `/classes/${data.id}` })
 	}
 
+	const status =data.status;
+	const statusLabel = status === 'ongoing' ? 'Đang diễn ra' : status === 'graduated' ? 'Đã tốt nghiệp' : ''
+	const statusVariant = status === 'ongoing' ? 'secondary' : 'destructive'
+
 	return (
 		<>
 			<Card
@@ -55,7 +60,11 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 				<CardHeader className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-							{data.name}
+							{data.name}  {status && (
+						<Badge variant={statusVariant} className='text-xs'>
+							{statusLabel}
+						</Badge>
+					)}
 						</CardTitle>
 						<CardDescription>
 							<EllipsisText>{data.description}</EllipsisText>
