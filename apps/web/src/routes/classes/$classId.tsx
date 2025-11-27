@@ -58,6 +58,10 @@ function RouteComponent() {
 		label: pu,
 		value: pu
 	}))
+	const statusOptions = [
+		{ label: 'Chưa xác nhận', value: 'pending' },
+		{ label: 'Đã xác nhận', value: 'confirmed' }
+	]
 
 	const facetedFilters = [
 		createFacetedFilter('rank', 'Cấp bậc', militaryRankOptions),
@@ -67,7 +71,8 @@ function RouteComponent() {
 			'educationLevel',
 			'Trình độ học vấn',
 			EduLevelOptions
-		)
+		),
+		createFacetedFilter('status', 'Trạng thái', statusOptions)
 	]
 
 	function handleRefreshStudents() {

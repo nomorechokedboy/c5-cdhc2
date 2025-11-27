@@ -21,6 +21,7 @@ import { useState, type MouseEvent } from 'react'
 import useDeleteStudents from '@/hooks/useDeleteStudents'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
+import { isSuperAdmin } from '@/lib/utils'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -35,6 +36,8 @@ export function DataTableRowActions<TData>({
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const { mutateAsync: deleteStudentMutate, isPending: isDeletingStudent } =
 		useDeleteStudents()
+
+	const canDelete = isSuperAdmin() || student.status !== 'confirmed'
 
 	function handleOpenDialog() {
 		setDialogOpen(true)
@@ -78,14 +81,18 @@ export function DataTableRowActions<TData>({
 					<DropdownMenuItem onClick={handleOpenDialog}>
 						Chi tiết
 					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						disabled={isDeletingStudent}
-						onClick={handleDeleteRow}
-					>
-						Xóa
-						<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-					</DropdownMenuItem>
+					{canDelete && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								disabled={isDeletingStudent}
+								onClick={handleDeleteRow}
+							>
+								Xóa
+								<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -73,6 +73,7 @@ export type StudentBody = {
 	contactPerson?: ContactPerson
 	studentId: string
 	relatedDocumentations?: string
+	status?: 'pending' | 'confirmed'
 }
 
 type Base = {
