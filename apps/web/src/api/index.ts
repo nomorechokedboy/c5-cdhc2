@@ -95,7 +95,7 @@ export function DeleteStudents(params: DeleteStudentsBody) {
 }
 
 export function UpdateStudents(params: UpdateStudentsBody) {
-	return axios.patch('/students', params).then((resp) => resp.data)
+	return requestClient.students.UpdateStudents(params).then((resp) => resp);
 }
 
 export function GetNotifications(

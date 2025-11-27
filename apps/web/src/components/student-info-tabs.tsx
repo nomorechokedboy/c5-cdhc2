@@ -12,9 +12,12 @@ import {
 	politicalOptions
 } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
-import { getMediaUri } from '@/lib/utils'
-import { FileDown, UserPen } from 'lucide-react'
+import { getMediaUri, isSuperAdmin } from '@/lib/utils'
+import { FileDown, UserPen, CheckCircle } from 'lucide-react'
 import { ExportStudentDataDialog } from './export-student-data-dialog'
+import useUpdateStudent from '@/hooks/useUpdateStudent'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface StudentInfoTabsProps {
 	student: Student
@@ -22,6 +25,9 @@ interface StudentInfoTabsProps {
 
 export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 	const [open, setOpen] = useState(false)
+	const queryClient = useQueryClient()
+	const { mutateAsync: updateStudent, isPending: isUpdating } =
+		useUpdateStudent()
 
 	const { data: classes = [], refetch } = useClassData()
 	// options cho select lớp
@@ -33,6 +39,36 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 			})),
 		[classes]
 	)
+
+	const handleConfirmStudent = async () => {
+		const confirmed = confirm(
+			'Bạn có chắc chắn muốn xác nhận thông tin học viên này không? Bạn sẽ không thể chỉnh sửa thông tin học viên sau khi xác nhận.'
+		)
+		if (!confirmed) return
+
+		try {
+			await updateStudent({
+				data: [
+					{
+						id: student.id,
+						status: 'confirmed',
+						classId: student.class?.id
+					}
+				]
+			})
+			toast.success('Xác nhận học viên thành công!')
+			// Invalidate queries to refetch data
+			queryClient.invalidateQueries({ queryKey: ['students'] })
+			queryClient.invalidateQueries({
+				queryKey: ['student', student.id]
+			})
+		} catch (error) {
+			toast.error('Xác nhận học viên thất bại!')
+			console.error(error)
+		}
+	}
+
+	const canEdit = isSuperAdmin() || student.status !== 'confirmed'
 
 	const Field = ({
 		label,
@@ -105,19 +141,31 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 							<FileDown /> Tải phiếu học viên
 						</Button>
 					</ExportStudentDataDialog>
-					<Dialog open={open} onOpenChange={setOpen}>
-						<DialogTrigger asChild>
-							<Button variant='outline'>
-								<UserPen /> Sửa
-							</Button>
-						</DialogTrigger>
-						<DialogContent className='max-w-screen-lg w-full h-screen overflow-y-auto p-6'>
-							<StudentEditForm
-								student={student}
-								onClose={() => setOpen(false)}
-							/>
-						</DialogContent>
-					</Dialog>
+					{student.status === 'pending' && (
+						<Button
+							onClick={handleConfirmStudent}
+							disabled={isUpdating}
+							variant='default'
+							className='bg-green-600 hover:bg-green-700'
+						>
+							<CheckCircle /> Xác nhận học viên
+						</Button>
+					)}
+					{canEdit && (
+						<Dialog open={open} onOpenChange={setOpen}>
+							<DialogTrigger asChild>
+								<Button variant='outline'>
+									<UserPen /> Sửa
+								</Button>
+							</DialogTrigger>
+							<DialogContent className='max-w-screen-lg w-full h-screen overflow-y-auto p-6'>
+								<StudentEditForm
+									student={student}
+									onClose={() => setOpen(false)}
+								/>
+							</DialogContent>
+						</Dialog>
+					)}
 				</CardHeader>
 			</Card>
 
