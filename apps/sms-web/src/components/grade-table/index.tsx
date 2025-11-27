@@ -6,16 +6,18 @@ import {
 	TableHeader,
 	TableRow
 } from '@repo/ui/components/ui/table'
-import type { Student } from '@/types'
+import type { Course, Student } from '@/types'
 import StudentGrades from './student-grades'
 
 interface GradesTableProps {
 	students: Student[]
-	gradeCategories: { label: string; value: number }[]
+	gradeCategories: Course['gradeCategories']
 	bulkEditMode: 'single-category' | 'all-grades' | null
-	bulkEditCategory: number
+	bulkEditCategory: Course['gradeCategories'][number] | undefined
 	onGradeSave: (studentId: number, category: number, value: number) => void
-	onCategorySelect: (category: number) => void
+	onCategorySelect: (
+		category: Course['gradeCategories'][number] | undefined
+	) => void
 }
 
 export default function GradesTable({
@@ -32,7 +34,7 @@ export default function GradesTable({
 				<TableHeader>
 					<TableRow className='bg-muted/50'>
 						<TableHead className='font-semibold text-foreground'>
-							Student Name
+							Tên học viên
 						</TableHead>
 						{gradeCategories.map((category) => (
 							<TableHead
@@ -45,19 +47,20 @@ export default function GradesTable({
 										<Button
 											size='sm'
 											variant={
-												bulkEditCategory ===
+												bulkEditCategory?.value ===
 												category.value
 													? 'default'
 													: 'ghost'
 											}
 											onClick={() =>
-												onCategorySelect(category.value)
+												onCategorySelect(category)
 											}
 											className='h-6 px-2 text-xs'
 										>
-											{bulkEditCategory === category.value
-												? 'Selected'
-												: 'Select'}
+											{bulkEditCategory?.value ===
+											category.value
+												? 'Đang chọn'
+												: 'Chọn'}
 										</Button>
 									)}
 								</div>

@@ -25,7 +25,7 @@ function InnerCourseDetails({
 	data: course,
 	onReload
 }: InnerCourseDetailsProps) {
-	const { mutateAsync, isPending } = useMutation({
+	const { mutateAsync } = useMutation({
 		mutationFn: CourseApi.UpdateCourseGrades
 	})
 	const students = course.students
@@ -33,7 +33,9 @@ function InnerCourseDetails({
 	const [bulkEditMode, setBulkEditMode] = useState<
 		'single-category' | 'all-grades' | null
 	>(null)
-	const [bulkEditCategory, setBulkEditCategory] = useState<number>(0)
+	const [bulkEditCategory, setBulkEditCategory] = useState<
+		Course['gradeCategories'][number] | undefined
+	>()
 
 	const handleGradeSave = async (
 		studentId: number,
@@ -69,17 +71,17 @@ function InnerCourseDetails({
 
 	const handleBulkEditCategory = () => {
 		setBulkEditMode('single-category')
-		setBulkEditCategory(course.gradeCategories[0].value)
+		setBulkEditCategory(course.gradeCategories[0])
 	}
 
 	const handleBulkEditAll = () => {
 		setBulkEditMode('all-grades')
-		setBulkEditCategory(0)
+		setBulkEditCategory(undefined)
 	}
 
 	const exitBulkEditMode = () => {
 		setBulkEditMode(null)
-		setBulkEditCategory(0)
+		setBulkEditCategory(undefined)
 	}
 
 	return (
@@ -95,8 +97,8 @@ function InnerCourseDetails({
 							</CardTitle>
 							<CardDescription className='text-muted-foreground'>
 								{bulkEditMode
-									? `Chế độ sửa điểm: ${bulkEditMode === 'single-category' ? `Sửa điểm ${bulkEditCategory} cho tất cả học viên` : 'Sửa điểm tất cả các môn của tất cả học viên'}`
-									: 'Nhấp đúp chuột vào điểm để chỉnh sửa. Điểm tổng kết sẽ được tính tự động.'}
+									? `Chế độ sửa điểm: ${bulkEditMode === 'single-category' ? `Sửa điểm ${bulkEditCategory?.label} cho tất cả học viên` : 'Sửa điểm tất cả các môn của tất cả học viên'}`
+									: 'Nhấp chuột vào điểm để chỉnh sửa. Điểm tổng kết sẽ được tính tự động.'}
 							</CardDescription>
 						</div>
 						<BulkEditControls

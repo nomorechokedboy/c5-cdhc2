@@ -1,11 +1,11 @@
-import type { Student } from '@/types'
+import type { Course, Student } from '@/types'
 import { TableCell, TableRow } from '@repo/ui/components/ui/table'
 import EditableGradeCell from '@/components/grade-table/editable-grade-cell'
 import { Badge } from '@repo/ui/components/ui/badge'
 import { calculateFinalGrade, getGradeColor } from '@/lib/utils'
 
 export interface StudentGradesProps {
-	bulkEditCategory: number
+	bulkEditCategory: Course['gradeCategories'][number] | undefined
 	bulkEditMode: 'single-category' | 'all-grades' | null
 	gradeCategories: { label: string; value: number }[]
 	student: Student
@@ -30,7 +30,7 @@ export default function StudentGrades({
 				const isHighlighted =
 					bulkEditMode === 'all-grades' ||
 					(bulkEditMode === 'single-category' &&
-						bulkEditCategory === category.value)
+						bulkEditCategory?.value === category.value)
 
 				return (
 					<TableCell key={category.value} className='text-center'>
