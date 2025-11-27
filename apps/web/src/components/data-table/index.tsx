@@ -34,6 +34,7 @@ import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { BaseSchema } from './data/schema'
 import { Button } from '../ui/button'
+import type { FacetedFilterConfig } from '@/types'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -43,8 +44,10 @@ interface DataTableProps<TData, TValue> {
 	cardClassName?: string
 	cardComponent?: ComponentType<{ data: TData; index: number }>
 	columns: ColumnDef<TData, TValue>[]
+	facetedFilters?: Array<FacetedFilterConfig>
 	data: TData[]
 	defaultColumnVisibility?: VisibilityState
+	defaultColumnFilters?: ColumnFiltersState
 	defaultViewMode?: ViewMode
 	toolbarProps?: ToolbarProps<TData>
 	tableClassName?: string
@@ -68,8 +71,10 @@ export function DataTable<TData, TValue>({
 	cardClassName = '',
 	cardComponent: CardComponent,
 	columns,
+	facetedFilters = [],
 	data,
 	defaultColumnVisibility = {},
+	defaultColumnFilters = [],
 	defaultViewMode = 'table',
 	toolbarProps,
 	tableClassName,
@@ -85,7 +90,9 @@ export function DataTable<TData, TValue>({
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
 		defaultColumnVisibility
 	)
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+		defaultColumnFilters
+	)
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
 	const [isDeleting, setIsDeleting] = useState(false)
@@ -291,6 +298,7 @@ export function DataTable<TData, TValue>({
 			{toolbarVisible && (
 				<DataTableToolbar
 					table={table}
+					facetedFilters={facetedFilters}
 					onViewModeChange={setViewMode}
 					{...toolbarProps}
 					rightSection={
