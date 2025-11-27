@@ -18,7 +18,7 @@ export default function BulkEditControls({
 		return (
 			<Button variant='outline' onClick={onExitBulkEdit}>
 				<X className='h-4 w-4 mr-2' />
-				Exit Bulk Edit
+				Thoát khỏi chế độ chỉnh sửa
 			</Button>
 		)
 	}
@@ -27,11 +27,11 @@ export default function BulkEditControls({
 		<div className='flex items-center gap-2'>
 			<Button variant='outline' onClick={onEditAll}>
 				<Edit2 className='h-4 w-4 mr-2' />
-				Edit All Grades
+				Chỉnh sửa toàn bộ điểm số học viên
 			</Button>
 			<Button variant='outline' onClick={onEditCategory}>
 				<Edit3 className='h-4 w-4 mr-2' />
-				Edit Category
+				Chỉnh sửa một cột điểm học viên
 			</Button>
 		</div>
 	)
