@@ -11,11 +11,12 @@ import {
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { CreateClass } from '@/api'
+import { CreateClass, RefreshToken } from '@/api'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import type { Class, ClassBody } from '@/types'
 import { toast } from 'sonner'
+import { AuthController } from '@/biz'
 
 const schema = z.object({
 	name: z.string().min(1, 'Tên lớp không được bỏ trống'),
@@ -34,7 +35,6 @@ export interface ClassFormProps {
 export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 	const { mutateAsync } = useMutation({
 		mutationFn: CreateClass,
-		onSuccess,
 		onError: (error) => {
 			console.error('Failed to create class:', error)
 		}
@@ -55,7 +55,22 @@ export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 			}
 
 			try {
-				await mutateAsync(value)
+				const result = await mutateAsync(value)
+
+				const currentRefreshToken = AuthController.getRefreshToken()
+				if (currentRefreshToken) {
+					try {
+						const { accessToken, refreshToken } = await RefreshToken(currentRefreshToken)
+						AuthController.setTokens({ accessToken, refreshToken })
+					} catch (refreshErr) {
+						console.error('Failed to refresh token:', refreshErr)
+						toast.error('Không thể cập nhật quyền truy cập. Vui lòng đăng xuất và đăng nhập lại.')
+						return
+					}
+				}
+
+				onSuccess(result, value, undefined)
+
 				toast.success('Thêm mới lớp thành công')
 				formApi.reset()
 			} catch (err) {
