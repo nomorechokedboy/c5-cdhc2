@@ -89,7 +89,7 @@ export function UpdateStudents(params: UpdateStudentsBody) {
 export function UpdateStudentStatus(
 	studentIds: number[],
 ) {
-	return requestClient.students.updateStudentStatus({ studentIds, status }).then((resp) => resp);
+	return requestClient.students.updateStudentStatus({ studentIds, status: "confirmed"  }).then((resp) => resp);
 }
 
 export function GetNotifications(
