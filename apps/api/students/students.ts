@@ -236,6 +236,37 @@ export const UpdateStudents = api(
 	}
 )
 
+interface UpdateStudentStatusRequest {
+	studentIds: number[]
+	status: 'pending' | 'confirmed'
+}
+
+interface UpdateStudentStatusResponse {
+	isSucess: boolean
+}
+
+export const updateStudentStatus = api(
+	{
+		expose: true,
+		method: 'PUT',
+		path: '/students/change-status',
+		auth: true
+	},
+	async (
+		req: UpdateStudentStatusRequest
+	): Promise<UpdateStudentStatusResponse> => {
+		const validClassIds = getAuthData()!.validClassIds
+
+		await studentController.updateStatus(
+			req.studentIds,
+			req.status,
+			validClassIds
+		)
+
+		return {isSucess: true} 
+	}
+)
+
 async function getTypedRequestBody<T>(
 	req: any,
 	schema: v.BaseSchema<unknown, T, v.BaseIssue<unknown>>

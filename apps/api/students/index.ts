@@ -13,5 +13,9 @@ export interface Repository {
 	find(q: StudentQuery): Promise<Student[]>
 	findOne(c: StudentDB): Promise<Student>
 	update(params: UpdateStudentMap): Promise<StudentDB[]>
+	updateStatus(
+		ids: number[],
+		status: 'pending' | 'confirmed'
+	): Promise<StudentDB[]>
 	politicsQualityReport(classIds: number[]): Promise<PoliticsQualityRow[]>
 }

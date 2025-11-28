@@ -241,6 +241,51 @@ export class Controller {
 		return this.repo.update(updateMap).catch(AppError.handleAppErr)
 	}
 
+	async updateStatus(
+		ids: number[],
+		status: 'pending' | 'confirmed',
+		validClassIds: number[]
+	): Promise<StudentDB[]> {
+		log.info('StudentController.updateStatus params: ', {
+			ids,
+			status,
+			validClassIds
+		})
+
+		if (!ids || ids.length === 0) {
+			throw AppError.handleAppErr(
+				AppError.invalidArgument('No student IDs provided')
+			)
+		}
+
+		// get students to check their classIds
+		const students = await this.repo
+			.find({ ids })
+			.catch(AppError.handleAppErr)
+
+		if (students.length === 0) {
+			throw AppError.handleAppErr(
+				AppError.notFound('No students found with provided IDs')
+			)
+		}
+
+		// auth check
+		const checkClassIds = students.every((student) =>
+			validClassIds.includes(student.class.id)
+		)
+
+		if (!checkClassIds) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission to update status of these students"
+				)
+			)
+		}
+
+		// update status
+		return this.repo.updateStatus(ids, status).catch(AppError.handleAppErr)
+	}
+
 	getStudentsByCronEvent(params: {
 		event: StudentCronEvent
 	}): Promise<Array<Student>> {
