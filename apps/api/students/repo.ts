@@ -265,6 +265,20 @@ class StudentSqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
+	updateStatus(
+		ids: number[],
+		status: 'pending' | 'confirmed'
+	): Promise<StudentDB[]> {
+		log.info('StudentSqliteRepo.updateStatus params: ', { ids, status })
+
+		return this.db
+			.update(students)
+			.set({ status })
+			.where(inArray(students.id, ids))
+			.returning()
+			.catch(handleDatabaseErr)
+	}
+
 	private baseClassStudentSummary({
 		classIds,
 		value,
