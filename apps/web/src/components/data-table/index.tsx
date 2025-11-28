@@ -57,6 +57,10 @@ interface DataTableProps<TData, TValue> {
 	onDeleteRows?: (
 		ids: number[]
 	) => Promise<QueryObserverResult<TData[], unknown>>
+
+	onConfirmRows?: (
+		ids: number[],
+	) => Promise<QueryObserverResult<TData[], unknown>>
 	renderToolbarActions?: (params: {
 		table: TanStackTable<TData>
 		exportHook: DataTableExportHook
@@ -82,6 +86,7 @@ export function DataTable<TData, TValue>({
 	toolbarVisible = true,
 	placeholder = 'Không có dữ liệu nào',
 	onDeleteRows,
+	onConfirmRows,
 	renderToolbarActions,
 	getRowId,
 	withDynamicColsData = true
@@ -143,9 +148,11 @@ export function DataTable<TData, TValue>({
 
 		try {
 			setIsDeleting(true)
-			await onDeleteRows(ids)
-			toast.success('Xóa dữ liệu thành công!')
-			table.resetRowSelection()
+			 if(confirm('Bạn có chắc muốn xóa các mục đã chọn không? Hành động này không thể hoàn tác!')){
+				await onDeleteRows(ids)
+				toast.success('Xóa dữ liệu thành công!')
+				table.resetRowSelection()
+			 }else{handleReset();}
 		} catch (err) {
 			toast.error('Xóa dữ liệu bị lỗi!')
 			if (err instanceof AxiosError) {
@@ -156,9 +163,40 @@ export function DataTable<TData, TValue>({
 		}
 	}
 
+	const handleConfirmSelected = async () => {
+		if (!onConfirmRows) return
+
+		const ids = selectedRows.map((r) => {
+			const record = BaseSchema.parse(r.original)
+			return record.id
+		})
+
+		try {
+			setIsDeleting(true)
+			if (
+				confirm(
+					'Bạn có chắc muốn xác nhận thông tin các mục đã chọn không?'
+				)
+			) {
+				await onConfirmRows(ids)
+				toast.success('Xác nhận thành công!')
+				table.resetRowSelection()
+			} else {
+				handleReset()
+			}
+		} catch (err) {
+			toast.error('Xác nhận thất bại!')
+			if (err instanceof AxiosError) {
+				console.error('Http error: ', err.response?.data)
+			}
+		} finally {
+			setIsDeleting(false)
+		}
+	}
+
 	// Deletion toast effect
 	useEffect(() => {
-		if (!onDeleteRows) return
+		if (!onDeleteRows && !onConfirmRows) return
 
 		if (selectedRows.length === 0) {
 			toast.dismiss(deleteDataToastId)
@@ -183,18 +221,33 @@ export function DataTable<TData, TValue>({
 				</Button>
 			),
 			action: (
-				<Button
-					variant='destructive'
-					size='sm'
-					onClick={handleDeleteSelected}
-					className='text-xs h-7 ml-4'
-					disabled={isDeleting}
-				>
-					Xóa dữ liệu
-				</Button>
-			)
+				<div className='flex flex-col ml-4'>
+					{onDeleteRows && (
+						<Button
+							variant='destructive'
+							size='sm'
+							onClick={handleDeleteSelected}
+							className='text-xs h-7'
+							disabled={isDeleting}
+						>
+							Xóa dữ liệu
+						</Button>
+					)}
+					{onConfirmRows && (
+						<Button
+							variant='default'
+							size='sm'
+							onClick={handleConfirmSelected}
+							className='text-xs h-7 mt-2'
+							disabled={isDeleting}
+						>
+							Xác nhận thông tin học viên
+						</Button>
+					)}
+				</div>
+			),
 		})
-	}, [selectedRows, isDeleting, onDeleteRows])
+	}, [selectedRows, isDeleting, onDeleteRows, onConfirmRows])
 
 	const renderTableView = () => {
 		return (
