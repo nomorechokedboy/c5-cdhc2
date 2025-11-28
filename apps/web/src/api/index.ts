@@ -88,10 +88,7 @@ export function GetStudents(
 }
 
 export function DeleteStudents(params: DeleteStudentsBody) {
-	return axios.delete('/students', {
-		params,
-		paramsSerializer: { indexes: null }
-	})
+	return requestClient.students.DeleteStudents(params).then((resp) => resp);
 }
 
 export function UpdateStudents(params: UpdateStudentsBody) {

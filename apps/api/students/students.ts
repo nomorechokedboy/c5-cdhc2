@@ -7,6 +7,7 @@ import {
 } from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
+import studentRepo from './repo.ts'
 import notificationController from '../notifications/controller.js'
 import {
 	CreateBatchNotificationData,
@@ -202,15 +203,14 @@ interface DeleteStudentResponse {
 }
 
 export const DeleteStudents = api(
-	{ expose: true, method: 'DELETE', path: '/students' },
+	{ auth: true, expose: true, method: 'DELETE', path: '/students' },
 	async (body: DeleteStudentRequest): Promise<DeleteStudentResponse> => {
 		log.trace('students.DeleteStudents body', { body })
 
 		const students: StudentDB[] = body.ids.map(
 			(id) => ({ id }) as StudentDB
 		)
-		const validClassIds = getAuthData()!.validClassIds
-		await studentController.delete(students, validClassIds)
+		await studentController.delete(students)
 
 		return { ids: body.ids }
 	}
