@@ -6,7 +6,7 @@ interface CreateUserRequest {
 	username: string
 	password: string
 	displayName: string
-	unitId: number
+	unitId?: number
 	isSuperUser?: boolean
 	status?: string
 }
