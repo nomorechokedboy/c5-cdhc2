@@ -34,22 +34,15 @@ export const requestClient = new Client(ApiUrl, {
 })
 
 export function CreateClass(body: ClassBody) {
-	return axios
-		.post<ClassResponse>('/classes', body)
-		.then((resp) => resp.data.data)
+	return requestClient.classes.CreateClass(body).then((resp) => resp.data)
 }
 
 export function DeleteClasses(ids: number[]) {
-	return axios.delete('/classes', {
-		params: { ids },
-		paramsSerializer: { indexes: null }
-	})
+	return requestClient.classes.DeleteClasss({ ids }).then((resp) => resp.data)
 }
 
 export function UpdateClasses(data: Class[]) {
-	return axios
-		.patch<ClassResponse>('/classes', { data })
-		.then((resp) => resp.data.data)
+	return requestClient.classes.UpdateClasss({ data }).then((resp) => resp);
 }
 
 export async function GetClasses(
@@ -74,9 +67,7 @@ export function CreateStudent(body: StudentBody) {
 
 // export function CreateStudent, body: StudentBody[])
 export function CreateStudents(body: StudentBody[]) {
-	return axios
-		.post<StudentResponse>('/students/bulk', { data: body })
-		.then((resp) => resp.data.data)
+	return requestClient.students.CreateStudents( {data: body ?? []}).then((resp) => resp.data);
 }
 
 export function GetStudents(
@@ -160,6 +151,10 @@ export function UpdateUser(body: UpdateUserBody) {
 
 export function Login(req: auth.LoginRequest) {
 	return requestClient.auth.Login(req)
+}
+
+export function RefreshToken(token: string) {
+	return requestClient.auth.RefreshToken({ token })
 }
 export function DeleteUsers(ids: number[]) {
 	return requestClient.users.DeleteUsers({ ids })
