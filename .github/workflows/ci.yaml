@@ -264,3 +264,9 @@ jobs:
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+                  build-args: |
+                      VITE_CLIENT_ID=${{ secrets.VITE_CLIENT_ID }}
+                      VITE_OAUTH2_URL=${{ secrets.VITE_OAUTH2_URL }}
+                      VITE_TOKEN_URI=${{ secrets.VITE_TOKEN_URI }}
+                      VITE_REDIRECT_URI=${{ secrets.VITE_REDIRECT_URI }}
+                      VITE_API_URL=${{ secrets.VITE_API_URL }}
