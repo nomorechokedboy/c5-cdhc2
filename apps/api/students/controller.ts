@@ -195,9 +195,9 @@ export class Controller {
 	}
 
 	async update(
-		params: StudentDB[],
-		validClassIds: number[]
+		params: StudentDB[]
 	): Promise<StudentDB[]> {
+		const validClassIds = getAuthData()!.validClassIds
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
 		const isIdsValid = !ids || isIdsEmpty
