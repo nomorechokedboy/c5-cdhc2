@@ -8,6 +8,7 @@ import useStudentData from '@/hooks/useStudents'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import useActionColumn from '@/hooks/useActionColumn'
 import useOnDeleteStudents from '@/hooks/useOnDeleteStudents'
+import useOnConfirmStudents from '@/hooks/useOnConfirmStudents'
 import TableSkeleton from '@/components/table-skeleton'
 import StudentTable from '@/components/student-table/new-student-table'
 import { useQuery } from '@tanstack/react-query'
@@ -34,6 +35,7 @@ function RouteComponent() {
 	const filename = `danh-sach-hoc-vien-lop-${thisClass?.name}`
 	const actionColumn = useActionColumn(handleRefreshStudents)
 	const handleDeleteRows = useOnDeleteStudents(refetchStudents)
+	const handleConfirmRows = useOnConfirmStudents(refetchStudents)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
@@ -133,6 +135,7 @@ function RouteComponent() {
 							}
 						}}
 						onDeleteRows={handleDeleteRows}
+						onConfirmRows={handleConfirmRows}
 						onCreateSuccess={handleFormSuccess}
 						enableCreation
 						showRefreshButton

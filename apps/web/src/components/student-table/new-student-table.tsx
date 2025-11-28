@@ -52,6 +52,10 @@ interface StudentTableProps {
 	onDeleteRows?: (
 		ids: number[]
 	) => Promise<QueryObserverResult<Student[], unknown>>
+	onConfirmRows?: (
+		ids: number[],
+		status: 'pending' | 'confirmed'
+	) => Promise<QueryObserverResult<Student[], unknown>>
 	templType?: TemplType
 }
 
@@ -70,6 +74,7 @@ export default function StudentTable({
 	onRefresh,
 	onCreateSuccess,
 	onDeleteRows,
+	onConfirmRows,
 	templType = 'StudentInfoTempl'
 }: StudentTableProps) {
 	const {
@@ -119,6 +124,7 @@ export default function StudentTable({
 					facetedFilters
 				}}
 				onDeleteRows={onDeleteRows}
+				onConfirmRows={onConfirmRows}
 				getRowId={(originalRow) => {
 					return originalRow.id.toString()
 				}}

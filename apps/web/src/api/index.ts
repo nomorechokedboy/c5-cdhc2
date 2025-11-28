@@ -95,6 +95,12 @@ export function UpdateStudents(params: UpdateStudentsBody) {
 	return requestClient.students.UpdateStudents(params).then((resp) => resp);
 }
 
+export function UpdateStudentStatus(
+	studentIds: number[],
+) {
+	return requestClient.students.updateStudentStatus({ studentIds, status }).then((resp) => resp);
+}
+
 export function GetNotifications(
 	params?: AppNotificationQuery
 ): Promise<AppNotification[]> {
