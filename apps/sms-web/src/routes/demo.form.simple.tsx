@@ -22,7 +22,7 @@ function SimpleForm() {
 			onBlur: schema
 		},
 		onSubmit: ({ value }) => {
-			console.log(value)
+			// console.log(value)
 			// Show success message
 			alert('Form submitted successfully!')
 		}
