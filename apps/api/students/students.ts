@@ -230,8 +230,7 @@ export const UpdateStudents = api(
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB
 		)
-		const validClassIds = getAuthData()!.validClassIds
-		await studentController.update(students, validClassIds)
+		await studentController.update(students)
 
 		return {}
 	}
