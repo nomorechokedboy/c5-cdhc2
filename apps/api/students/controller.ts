@@ -15,7 +15,8 @@ import {
 	BirthdayThisQuarter,
 	StudentCronEvent,
 	ExcelTemplateData,
-	TemplateType
+	TemplateType,
+	students
 } from '../schema/student'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
@@ -31,6 +32,9 @@ import { APIError } from 'encore.dev/api'
 import { readFile } from 'fs/promises'
 import { createImageInjector, ImageProvider } from './img-provider'
 import { ObjectStorageImageAdapter } from './minio-img-provider'
+import orm, { DrizzleDatabase } from '../database'
+import { inArray, eq, sql, and, ne, between, count } from 'drizzle-orm'
+import { getAuthData } from '~encore/auth'
 
 dayjs.extend(quarterOfYear)
 
@@ -46,8 +50,9 @@ export class Controller {
 	constructor(
 		private readonly repo: Repository,
 		private readonly unitRepo: UnitRepository,
-		private readonly imageStorage: ImageProvider
-	) {}
+		private readonly imageStorage: ImageProvider,
+		private db: DrizzleDatabase
+	) { }
 
 	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
 		const checkCLassIds = params.every((c) => classIds.includes(c.classId))
@@ -61,18 +66,25 @@ export class Controller {
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	delete(students: StudentDB[], validClassIds: number[]) {
-		const checkCLassIds = students.every((c) =>
-			validClassIds.includes(c.classId)
-		)
-		if (checkCLassIds === false) {
+
+
+	async delete(studentsTodelete: StudentDB[]) {
+		const validClassIds = getAuthData()!.validClassIds
+
+		const classIdsToCheck = await  this.db.select({ id: students.classId })
+			.from(students)
+			.where(inArray(students.id, studentsTodelete.map(s => s.id))
+			)
+		const hasPermission = classIdsToCheck.every((c) => validClassIds.includes(c.id));
+
+		if (!hasPermission) {
 			throw AppError.handleAppErr(
-				AppError.unauthorized(
-					"You don't have permission Delete student"
+				AppError.permissionDenied(
+					"You don't have permission Delete student!"
 				)
 			)
 		}
-		return this.repo.delete(students).catch(AppError.handleAppErr)
+		return this.repo.delete(studentsTodelete).catch(AppError.handleAppErr);
 	}
 
 	async find(
@@ -468,7 +480,8 @@ export class Controller {
 const studentController = new Controller(
 	studentRepo,
 	unitRepo,
-	ObjectStorageImageAdapter
+	ObjectStorageImageAdapter,
+	orm
 )
 
 export default studentController
