@@ -73,6 +73,8 @@ services:
             - cron-network
         command: >
             sh -c "
+
+
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
               echo '0 0 * * 1 /bin/sh /scripts/weekly_birthday.sh >> /var/log/cron/weekly.log 2>&1' >> /etc/crontabs/root &&
               echo '0 0 1 * * /bin/sh /scripts/monthly_birthday.sh >> /var/log/cron/monthly.log 2>&1' >> /etc/crontabs/root &&
@@ -188,6 +190,38 @@ services:
             start_period: 10s
             timeout: 5s
         restart: unless-stopped
+    sms-api:
+        deploy:
+            resources:
+                limits:
+                    memory: 1G
+                    cpus: '1.0'
+        ports:
+            - '4000:4000'
+        image: ghcr.io/nomorechokedboy/sms-api
+        env_file:
+            - .env.sms.prod
+        restart: unless-stopped
+    sms-web:
+        image: ghcr.io/nomorechokedboy/sms-web
+        # image: nomorechokedboy/web-project:sms-web
+        ports:
+            - '3006:80'
+        restart: unless-stopped
+        volumes:
+            - ./nginx/sms-default.conf:/etc/nginx/conf.d/default.conf
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'wget',
+                    '--no-verbose --tries=1 --spider',
+                    'http://localhost/'
+                ]
+            interval: 30s
+            timeout: 10s
+            start_period: 40s
+            retries: 3
 networks:
     app-network:
         driver: bridge
