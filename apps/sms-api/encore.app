@@ -2,7 +2,7 @@
 	// The app is not currently linked to the encore.dev platform.
 	// Use "encore app link" to link it.
 	"id": "",
-    global_cors: {
+    "global_cors": {
       // allow_origins_without_credentials specifies the allowed origins for requests
       // that don't include credentials. If nil it defaults to allowing all domains
       // (equivalent to ["*"]).
