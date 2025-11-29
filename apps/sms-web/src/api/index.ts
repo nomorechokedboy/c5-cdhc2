@@ -3,6 +3,7 @@ import Client, { type mdlapi } from './client'
 import { AuthController } from '@/biz'
 import { CourseCategory } from '@/types'
 
+console.log({ ApiUrl })
 const client = new Client(ApiUrl, { fetcher: appFetcher })
 const tempClient = new Client(ApiUrl, {})
 
