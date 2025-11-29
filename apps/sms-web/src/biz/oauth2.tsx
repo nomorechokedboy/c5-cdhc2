@@ -1,10 +1,11 @@
+import { ApiUrl } from '@/const'
 import { env } from '@/env'
 
 // Generate the OAuth2 authorization URL
 export const generateOAuth2Url = () => {
 	const params = new URLSearchParams({
 		client_id: env.VITE_CLIENT_ID,
-		redirect_uri: `${env.VITE_API_URL}/${env.VITE_REDIRECT_URI}`,
+		redirect_uri: `${ApiUrl}/${env.VITE_REDIRECT_URI}`,
 		scope: 'user_info',
 		response_type: 'code',
 		state: 'randomstate'
