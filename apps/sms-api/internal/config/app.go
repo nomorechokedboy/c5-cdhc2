@@ -43,7 +43,7 @@ type Config struct {
 
 func (c *Config) GetOauth2Config() oauth2.Config {
 	return oauth2.Config{
-		RedirectURL:  "http://localhost:4000/oauth2/callback",
+		RedirectURL:  c.Oauth2Config.RedirectURL,
 		ClientID:     c.Oauth2Config.ClientId,
 		ClientSecret: c.Oauth2Config.ClientSecret,
 		Scopes:       []string{"user_info"},
