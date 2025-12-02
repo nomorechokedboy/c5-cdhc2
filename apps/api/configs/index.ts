@@ -11,7 +11,8 @@ const AppConfigSchema = v.object({
 	S3_SECRET_KEY: v.string(),
 	S3_ENDPOINT: v.optional(v.string(), 'http://localhost:9000'),
 	S3_DEFAULT_BUCKET: v.optional(v.string(), 'my-first-bucket'),
-	S3_REGION: v.optional(v.string(), 'us-west-rack-2')
+	S3_REGION: v.optional(v.string(), 'us-west-rack-2'),
+	DATABASE_URI: v.optional(v.string(), './data/local.db')
 })
 
 export const appConfig = v.parse(AppConfigSchema, process.env)

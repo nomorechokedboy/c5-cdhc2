@@ -4,6 +4,8 @@ import * as schema from './schema'
 import { Logger } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import { migrate } from 'drizzle-orm/libsql/migrator'
+import { appConfig } from './configs'
+import path from 'path'
 
 class AppDBLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
@@ -11,7 +13,13 @@ class AppDBLogger implements Logger {
 	}
 }
 
-const client = createClient({ url: 'file:local.db' })
+const dbPwd = appConfig.DATABASE_URI.startsWith('file:')
+	? appConfig.DATABASE_URI
+	: `file:${path.resolve(appConfig.DATABASE_URI)}`
+
+const client = createClient({
+	url: `file:${dbPwd}`
+})
 
 const orm = drizzle({ schema, client, logger: new AppDBLogger() })
 
