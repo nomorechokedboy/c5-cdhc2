@@ -10,7 +10,7 @@ services:
                 limits:
                     memory: 1G
                     cpus: '1.0'
-        image: quanlyhocvien-cdhc2:api
+        image: ghcr.io/nomorechokedboy/qlhv-api
         env_file:
             - .env.prod
         restart: unless-stopped
@@ -38,7 +38,7 @@ services:
         depends_on:
             app:
                 condition: service_healthy
-        image: quanlyhocvien-cdhc2:web
+        image: ghcr.io/nomorechokedboy/qlhv-web
         ports:
             - '3005:80'
         restart: unless-stopped
@@ -73,6 +73,8 @@ services:
             - cron-network
         command: >
             sh -c "
+
+
 
 
               echo '# Student Birthday Notifications' > /etc/crontabs/root &&
