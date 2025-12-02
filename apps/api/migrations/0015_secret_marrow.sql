@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `isSuperUser` integer DEFAULT false NOT NULL;

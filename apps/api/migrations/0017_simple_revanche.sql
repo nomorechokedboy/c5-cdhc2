@@ -1,1 +1,0 @@
-ALTER TABLE `students` ADD `status` text DEFAULT 'pending' NOT NULL;

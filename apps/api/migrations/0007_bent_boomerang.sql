@@ -1,1 +1,0 @@
-ALTER TABLE `notifications` ADD `notificationType` text DEFAULT 'birthday' NOT NULL;

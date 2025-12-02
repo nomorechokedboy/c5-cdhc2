@@ -36,7 +36,6 @@ export const classes = sqlite.sqliteTable(
 		unitId: sqlite
 			.int()
 			.notNull()
-			.default(7)
 			.references(() => units.id)
 	},
 	(t) => [sqlite.unique('class_unit_unique_constraint').on(t.name, t.unitId)]
