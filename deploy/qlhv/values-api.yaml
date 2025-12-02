@@ -1,0 +1,103 @@
+# values-api.yaml
+# Helm values for QLHV API Service
+replicaCount: 1
+image:
+  repository: ghcr.io/nomorechokedboy/qlhv-api
+  pullPolicy: Always
+  tag: 'latest'
+imagePullSecrets: []
+nameOverride: 'qlhv-api'
+fullnameOverride: 'qlhv-api'
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ''
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 8080
+# API doesn't need ingress - internal only
+ingress:
+  enabled: false
+resources:
+  limits:
+    cpu: '1.0'
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 40
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 40
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+# Volume configuration for SQLite database
+volumeMounts:
+  - name: database
+    mountPath: /workspace/apps/api/data
+volumes:
+  - name: database
+    persistentVolumeClaim:
+      claimName: qlhv-sqlite-pvc
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# Environment variables from secret/configmap
+env:
+  - name: HASH_SECRET
+    value: 6qPOrmwEJwY7VYWqCFiNCrqqx3clqKjZ
+  - name: JWT_PRIVATE_KEY
+    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+  - name: S3_ACCESS_KEY
+    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+  - name: S3_SECRET_KEY
+    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+  - name: S3_ENDPOINT
+    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+  - name: DATABASE_URI
+    value: file:/workspace/apps/api/data/local.db
+envFrom: {}
+# Add your environment variables here
+# These should match your .env.prod file
+# Example:
+# - name: DATABASE_URL
+#   value: "file:/workspace/apps/api/local.db"
+# - name: NSQ_LOOKUPD_HTTP_ADDRESS
+#   value: "my-release-nsqlookupd:4161"
+# - name: NSQ_NSQD_TCP_ADDRESS
+#   value: "my-release-nsqd:4150"
+# - name: MINIO_ENDPOINT
+#   value: "minio:9000"
+# - name: MINIO_ROOT_USER
+#   valueFrom:
+#     secretKeyRef:
+#       name: minio-secret
+#       key: root-user
+# - name: MINIO_ROOT_PASSWORD
+#   valueFrom:
+#     secretKeyRef:
+#       name: minio-secret
+#       key: root-password

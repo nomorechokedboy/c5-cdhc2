@@ -1,0 +1,81 @@
+# values-web.yaml
+# Helm values for QLHV Web Service
+image:
+  repository: ghcr.io/nomorechokedboy/qlhv-web
+  pullPolicy: Always
+  tag: 'latest'
+imagePullSecrets: []
+nameOverride: 'qlhv-web'
+fullnameOverride: 'qlhv-web'
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ''
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 80
+# Enable ingress for external access
+ingress:
+  enabled: true
+  className: 'nginx' # K3s uses Traefik by default
+  annotations: {}
+  # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: qlhv.hc2 # Change to your domain
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: qlhv-tls
+  #    hosts:
+  #      - qlhv.yourdomain.com
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 40
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 40
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+# No special volumes needed for web service
+volumes:
+  - name: nginx-config
+    configMap:
+      name: nginx-config
+volumeMounts:
+  - name: nginx-config
+    mountPath: /etc/nginx/conf.d/default.conf
+    subPath: default.conf
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# Environment variables for API connection
+env:
+  - name: API_URL
+    value: 'http://qlhv-api.qlhv.svc.cluster.local:8080'
