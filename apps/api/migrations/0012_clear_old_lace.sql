@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `unitId` integer REFERENCES units(id);
