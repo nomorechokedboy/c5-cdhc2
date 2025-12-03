@@ -5,7 +5,7 @@
 	"lang": "typescript",
     "global_cors": {
         "debug": true,
-        "allow_origins_with_credentials": ["http://localhost:3000", "http://localhost:4173", "http://web", "http://qlhv-web.qlhv.svc.cluster.local"],
+        "allow_origins_with_credentials": ["http://localhost:3000", "http://localhost:4173", "http://web", "http://qlhv-web.qlhv.svc.cluster.local", "https://qlhv.hc2"],
         "allow_origins_without_credentials": ["*"],
         "allow_headers": ["*"],
         "expose_headers": ["*"]
