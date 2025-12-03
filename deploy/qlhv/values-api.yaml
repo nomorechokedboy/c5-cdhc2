@@ -23,12 +23,22 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 8080
-# API doesn't need ingress - internal only
 ingress:
-  enabled: false
+  enabled: true
+  className: 'nginx' # K3s uses Traefik by default
+  annotations: {}
+  # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: api.qlhv.hc2 # Change to your domain
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
 resources:
   limits:
-    cpu: '1.0'
+    cpu: '2.0'
     memory: 1Gi
   requests:
     cpu: 100m
