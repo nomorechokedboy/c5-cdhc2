@@ -47,8 +47,8 @@ export interface UserDB extends Base {
 	password: string
 	displayName: string
 	unitId: number
-	isSuperUser: boolean,
-	status: 'pending' | 'approved';
+	isSuperUser: boolean
+	status: 'pending' | 'approved'
 }
 
 export interface User extends UserDB {
@@ -89,3 +89,11 @@ export interface UserPermissions {
 	resourceName: string
 	actionName: string
 }
+
+export interface InitAdminRequest {
+	username: string
+	password: string
+	displayName: string
+}
+
+export interface InitAdminResponse {}

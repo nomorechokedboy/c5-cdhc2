@@ -160,7 +160,9 @@ interface InitAdminRequest {
 	displayName: string
 }
 
-interface InitAdminResponse {}
+interface InitAdminResponse {
+	message: string
+}
 
 export const InitAdmin = api(
 	{ auth: false, expose: true, method: 'POST', path: '/users/init-admin' },
@@ -171,6 +173,6 @@ export const InitAdmin = api(
 			password: req.password
 		})
 
-		return {}
+		return { message: 'Success' }
 	}
 )
