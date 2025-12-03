@@ -16,7 +16,8 @@ import {
 } from '../schema'
 import orm, { DrizzleDatabase } from '../database'
 import { handleDatabaseErr } from '../utils'
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, SQL } from 'drizzle-orm'
+import { AppError } from '../errors'
 
 class sqliteRepo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -42,15 +43,34 @@ class sqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	find(): Promise<User[]> {
+	find(params?: { isAdmin?: boolean }): Promise<User[]> {
+		log.info('UserRepo.find params', { params })
+
+		const conditions: SQL<unknown>[] = []
+		if (params) {
+			if (
+				(params.isAdmin !== undefined || params.isAdmin !== null) &&
+				params.isAdmin === true
+			) {
+				conditions.push(eq(users.isSuperUser, params.isAdmin))
+			}
+		}
+
 		return this.db.query.users
 			.findMany({
+				where:
+					conditions.length === 0
+						? undefined
+						: conditions.length === 1
+							? conditions[0]
+							: and(...conditions),
 				with: {
 					unit: true
 				}
 			})
 			.catch(handleDatabaseErr)
 	}
+
 	findByIds(ids: number[]): Promise<UserDB[]> {
 		return this.db.query.users
 			.findMany({
@@ -64,19 +84,28 @@ class sqliteRepo implements Repository {
 
 	findOne(user: Partial<UserDB>): Promise<User> {
 		log.info('UserRepo.findOne params', { params: user })
-		if (user.username !== undefined) {
-			return this.db.query.users
-				.findFirst({
-					where: eq(users.username, user.username),
-					with: { roles: true }
-				})
-				.catch(handleDatabaseErr)
+		if (!user || Object.keys(user).length === 0) {
+			throw AppError.invalidArgument(
+				'Invalid parameters: at least one field must be provided'
+			)
 		}
 
-		return this.db.query.users
+		const conditions = Object.entries(user)
+			.filter(([_, value]) => value !== undefined && value !== null)
+			.map(([key, val]) => eq(users[key as keyof typeof users], val))
+
+		if (conditions.length === 0) {
+			throw AppError.invalidArgument(
+				'Invalid parameters: no valid fields provided'
+			)
+		}
+
+		const baseQuery = this.db.query.users
+
+		return baseQuery
 			.findFirst({
-				where: eq(users.id, user.id),
-				with: { roles: true }
+				where:
+					conditions.length === 1 ? conditions[0] : and(...conditions)
 			})
 			.catch(handleDatabaseErr)
 	}

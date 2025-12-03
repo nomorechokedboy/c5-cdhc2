@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: quarterly-cpv-official-notification
+  labels:
+    app: qlhv-cronjobs
+    job-type: cpv-official
+    schedule: quarterly
+spec:
+  # First day of every 3rd month at midnight (0 0 1 */3 *)
+  schedule: "0 0 1 */3 *"
+  timeZone: "Asia/Ho_Chi_Minh"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: qlhv-cronjobs
+            job-type: cpv-official
+            schedule: quarterly
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: quarterly-cpv-official
+              image: alpine:latest
+              command:
+                - /bin/sh
+                - /scripts/quarterly_cpv_official.sh
+              env:
+                - name: APP_URL
+                  value: "http://qlhv-api:8080"
+                - name: TZ
+                  value: "Asia/Ho_Chi_Minh"
+              volumeMounts:
+                - name: cron-scripts
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+          volumes:
+            - name: cron-scripts
+              configMap:
+                name: qlhv-cron-scripts
+                defaultMode: 0755

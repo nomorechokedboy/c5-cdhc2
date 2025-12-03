@@ -1,6 +1,13 @@
 import log from 'encore.dev/log'
 import { Repository } from '.'
-import { CreateUserRequest, UpdateUserRequest, User, UserDB } from '../schema'
+import {
+	CreateUserRequest,
+	InitAdminRequest,
+	InitAdminResponse,
+	UpdateUserRequest,
+	User,
+	UserDB
+} from '../schema'
 import argon2 from 'argon2'
 import { appConfig } from '../configs'
 import { AppError } from '../errors'
@@ -24,15 +31,19 @@ class controller {
 
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
-	find(): Promise<User[]> {
-		return this.repo.find()
+
+	find(): Promise<Omit<User[], 'password'>> {
+		return this.repo
+			.find()
+			.then((resp) => resp.map(({ password: _, ...user }) => user))
+			.catch(AppError.handleAppErr)
 	}
 
 	findOne(params: UserDB): Promise<Omit<User, 'password'>> {
 		log.trace('UserController.findOne params', { params })
 		return this.repo
 			.findOne(params)
-			.then(({ password, ...user }) => user)
+			.then(({ password: _, ...user }) => user)
 			.catch(AppError.handleAppErr)
 	}
 
@@ -42,7 +53,10 @@ class controller {
 	}
 
 	async delete(ids: number[], validUnitIds: number[]) {
-		const users = await this.repo.findByIds(ids)
+		log.trace('UserController.delete params', { ids })
+		const users = await this.repo
+			.findByIds(ids)
+			.catch(AppError.handleAppErr)
 		const checkUnitIds = users.every((user) =>
 			validUnitIds.includes(user.unitId!)
 		)
@@ -54,6 +68,42 @@ class controller {
 			)
 		}
 		return this.repo.delete(ids).catch(AppError.handleAppErr)
+	}
+
+	async isInitAdmin(): Promise<boolean> {
+		log.trace('UserController.isInitAdmin processing')
+		const admins = await this.repo
+			.find({ isAdmin: true })
+			.catch(AppError.handleAppErr)
+		if (admins.length !== 0) {
+			return true
+		}
+
+		return false
+	}
+
+	async initAdmin(req: InitAdminRequest): Promise<InitAdminResponse> {
+		log.trace('UserController.initAdmin request', { req })
+		const isInitAdmin = await this.isInitAdmin().catch(
+			AppError.handleAppErr
+		)
+		if (isInitAdmin) {
+			AppError.handleAppErr(
+				AppError.unavailable('Admin user is already init')
+			)
+		}
+
+		await userController
+			.create({
+				password: req.password,
+				displayName: req.displayName,
+				username: req.username,
+				isSuperUser: true,
+				unitId: null
+			})
+			.catch(AppError.handleAppErr)
+
+		return {}
 	}
 }
 
