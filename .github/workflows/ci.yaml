@@ -151,7 +151,7 @@ jobs:
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
                   build-args: |
-                      VITE_API_URL=${{ secrets.VITE_API_URL }}
+                      VITE_API_URL=${{ secrets.WEB_VITE_API_URL }}
     build-cron:
         needs: detect-changes
         if: needs.detect-changes.outputs.cron == 'true'
