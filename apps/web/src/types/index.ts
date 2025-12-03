@@ -371,3 +371,9 @@ export const templTypes = [
 ] as const
 
 export type TemplType = (typeof templTypes)[number]
+
+export type InitAdminRequest = {
+	username: string
+	password: string
+	displayName: string
+}

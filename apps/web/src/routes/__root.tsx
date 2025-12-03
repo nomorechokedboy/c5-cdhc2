@@ -1,10 +1,14 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import {
+	Outlet,
+	createRootRouteWithContext,
+	useNavigate
+} from '@tanstack/react-router'
 import useAuth from '@/hooks/useAuth'
 import React, { useRef } from 'react'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import Header from '../components/Header'
 import TanStackQueryLayout from '../integrations/tanstack-query/layout'
-import type { QueryClient } from '@tanstack/react-query'
+import { type QueryClient } from '@tanstack/react-query'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
@@ -14,6 +18,7 @@ import { requestClient } from '@/api'
 import useInfiniteNotification from '@/hooks/useInfiniteNotification'
 import useUnreadNotificationCount from '@/hooks/useUnreadNotificationCount'
 import Cdhc2Logo from '@/assets/cdhc2.png'
+import useIsInitAdmin from '@/hooks/useIsInitAdmin'
 
 interface MyRouterContext {
 	queryClient: QueryClient
@@ -22,11 +27,16 @@ interface MyRouterContext {
 export const NavbarContext = React.createContext(true)
 
 function RootLayout() {
+	const navigate = useNavigate()
 	const { isAuthenticated } = useAuth()
 	const { refetch: refetchNotifications } = useInfiniteNotification()
 	const { refetch: refetchUnreadNoti } = useUnreadNotificationCount()
-
 	const streamRef = useRef<StreamIn<notifications.Message>>(null)
+	const { data: isInitAdmin } = useIsInitAdmin()
+
+	if (isInitAdmin === false) {
+		navigate({ to: '/khoi-tao-qtv', replace: true })
+	}
 
 	function handleRefreshNoti() {
 		refetchUnreadNoti()
