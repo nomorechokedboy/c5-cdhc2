@@ -1,6 +1,7 @@
 import { api } from 'encore.dev/api'
 import userController from './controller'
 import { getAuthData } from '~encore/auth'
+import { AppError } from '../errors'
 
 interface CreateUserRequest {
 	username: string
@@ -17,12 +18,14 @@ interface UpdateUserRequest {
 	unitId?: number
 	isSuperUser?: boolean
 }
+
 interface GetUserRequest {
 	id: number
 	username: string
 	displayName: string
 	unitId: number
 }
+
 interface GetUserResponse {
 	data: UserResponse[]
 }
@@ -84,6 +87,11 @@ export const GetUsers = api(
 export const CreateUser = api(
 	{ expose: true, auth: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
+		const isAdmin = getAuthData()!.isSuperUser
+		if (!isAdmin) {
+			AppError.handleAppErr(AppError.permissionDenied('Unauthorized'))
+		}
+
 		const { username, password, displayName, unitId, isSuperUser, status } =
 			req
 
@@ -116,9 +124,11 @@ export const UpdateUser = api(
 interface DeleteUserRequest {
 	ids: number[]
 }
+
 interface DeleteUserResponse {
 	ids: number[]
 }
+
 export const DeleteUsers = api(
 	{ expose: true, auth: true, method: 'DELETE', path: '/users' },
 	async (body: DeleteUserRequest): Promise<DeleteUserResponse> => {
@@ -128,5 +138,39 @@ export const DeleteUsers = api(
 		await userController.delete(users, validUnitIds)
 
 		return { ids: body.ids }
+	}
+)
+
+interface IsInitAdminResponse {
+	data: boolean
+}
+
+export const IsInitAdmin = api(
+	{ expose: true, method: 'GET', path: '/users/check-init-admin' },
+	async (): Promise<IsInitAdminResponse> => {
+		const result = await userController.isInitAdmin()
+
+		return { data: result }
+	}
+)
+
+interface InitAdminRequest {
+	username: string
+	password: string
+	displayName: string
+}
+
+interface InitAdminResponse {}
+
+export const InitAdmin = api(
+	{ auth: false, expose: true, method: 'POST', path: '/users/init-admin' },
+	async (req: InitAdminRequest): Promise<InitAdminResponse> => {
+		await userController.initAdmin({
+			username: req.username,
+			displayName: req.displayName,
+			password: req.password
+		})
+
+		return {}
 	}
 )

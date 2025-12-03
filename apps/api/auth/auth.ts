@@ -17,6 +17,7 @@ interface AuthData {
 	permissions: string[]
 	validClassIds: number[]
 	validUnitIds: number[]
+	isSuperAdmin: boolean
 }
 
 export const auth = authHandler<AuthParams, AuthData>(async (params) => {
@@ -38,7 +39,8 @@ export const auth = authHandler<AuthParams, AuthData>(async (params) => {
 			userID: payload.userId.toString(),
 			permissions: payload.permissions || [],
 			validClassIds: payload.validClassIds || [],
-			validUnitIds: payload.validUnitIds || []
+			validUnitIds: payload.validUnitIds || [],
+			isSuperAdmin: payload.isSuperUser
 		}
 	} catch (err) {
 		log.error('authHandler error', { err })
