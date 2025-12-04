@@ -12,7 +12,7 @@ import {
 	politicalOptions
 } from '@/data/ethnics'
 import useClassData from '@/hooks/useClasses'
-import { getMediaUri, isSuperAdmin, isUserApproved } from '@/lib/utils'
+import { getMediaUri, isSuperAdmin } from '@/lib/utils'
 import { FileDown, UserPen } from 'lucide-react'
 import useUserData from '@/hooks/useUsers'
 
@@ -66,7 +66,7 @@ export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
                         </p> */}
 					</div>
 
-					{isUserApproved()  &&  isSuperAdmin() &&(
+					{isSuperAdmin() &&(
 						<Button variant='outline' onClick={() => setOpen(true)}>
 							<UserPen /> Sửa
 						</Button>

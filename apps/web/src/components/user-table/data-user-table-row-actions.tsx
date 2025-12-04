@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { useDeleteUsers } from './useDeleteUsers'
 import useUserData from '@/hooks/useUsers'
-import { isSuperAdmin, isUserApproved } from '@/lib/utils'
+import { isSuperAdmin } from '@/lib/utils'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -91,7 +91,7 @@ export function DataTableRowActions<TData>({
 					<DropdownMenuItem onClick={handleOpenDialog}>
 						Chi tiết
 					</DropdownMenuItem>
-					{isUserApproved() && isSuperAdmin() && (
+					{isSuperAdmin() && (
 						<>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem

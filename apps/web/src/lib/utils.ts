@@ -138,15 +138,3 @@ export const isSuperAdmin = (): boolean => {
 		return false
 	}
 }
-export const isUserApproved = (): boolean => {
-	try {
-		const token = localStorage.getItem('qlhvAccessToken')
-		if (!token) return false
-		const parts = token.split('.')
-		if (parts.length !== 3) return false
-		const payload = JSON.parse(atob(parts[1]))
-		return payload.status === 'approved'
-	} catch {
-		return false
-	}
-}
