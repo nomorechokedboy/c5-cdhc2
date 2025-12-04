@@ -45,7 +45,7 @@ import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
 import useAuth from '@/hooks/useAuth'
 import type { GetUnitQuery } from '@/types'
-
+import { isSuperAdmin } from '@/lib/utils'
 // Updated data structure to support unlimited nesting and icons
 const data = {
 	versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
@@ -53,6 +53,7 @@ const data = {
 		{
 			title: 'Chung',
 			url: '#',
+			superAdminOnly: false,
 			items: [
 				{ title: 'Trang chủ', url: '/', icon: Home },
 				{
@@ -65,6 +66,7 @@ const data = {
 		{
 			title: 'Thống kê học viên',
 			url: '#',
+			superAdminOnly: false,
 			icon: PieChart,
 			items: [
 				{
@@ -97,6 +99,7 @@ const data = {
 		{
 			title: 'Sự kiện học viên',
 			url: '#',
+			superAdminOnly: false,
 			icon: Calendar,
 			items: [
 				{
@@ -115,6 +118,7 @@ const data = {
 		{
 			title: 'Chức năng khác',
 			url: '#',
+			superAdminOnly: false,
 			icon: Star,
 			items: [
 				{
@@ -127,6 +131,7 @@ const data = {
 		{
 			title: 'Quản lý người dùng',
 			url: '#',
+			superAdminOnly: true,
 			icon: Calendar,
 			items: [
 				{
@@ -144,6 +149,7 @@ interface NavItem {
 	title: string
 	url: string
 	isActive?: boolean
+	superAdminOnly?: boolean
 	items?: NavItem[]
 	search?: { [k: string]: string }
 	icon?: React.ElementType
@@ -317,13 +323,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	)
 
 	const [firstNavItem, ...navMain] = data.navMain
+	const allNavItems = [
+		firstNavItem,
+		{ title: 'Đơn vị', url: '#', items: unitsNavbar },
+		...navMain
+	]
 	const newData = {
 		version: data.versions,
-		navMain: [
-			firstNavItem,
-			{ title: 'Đơn vị', url: '#', items: unitsNavbar },
-			...navMain
-		]
+		navMain: allNavItems.filter(
+			(item) => !item.superAdminOnly || isSuperAdmin()
+		)
 	}
 
 	return (
