@@ -31,7 +31,10 @@ export const users = p.sqliteTable('users', {
 	unitId: p.int().references(() => units.id),
 	status: StatusEnum('status')
 		.$type<'pending' | 'approved'>()
-		.default('pending')
+		.default('pending'),
+	rank: p.text(),
+	position: p.text(),
+	alias: p.text()
 })
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -48,7 +51,9 @@ export interface UserDB extends Base {
 	displayName: string
 	unitId: number
 	isSuperUser: boolean
-	status: 'pending' | 'approved'
+	rank?: string
+	position?: string
+	alias?: string
 }
 
 export interface User extends UserDB {
@@ -62,7 +67,9 @@ export interface CreateUserRequest {
 	displayName: string
 	unitId: number
 	isSuperUser?: boolean
-	status?: string
+	rank?: string
+	position?: string
+	alias?: string
 }
 
 export interface UpdateUserRequest {
@@ -72,6 +79,9 @@ export interface UpdateUserRequest {
 	displayName?: string
 	unitId?: number
 	isSuperUser?: boolean
+	rank?: string
+	position?: string
+	alias?: string
 }
 
 export interface AssignRoleRequest {
