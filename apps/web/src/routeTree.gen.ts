@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListUserRouteImport } from './routes/list-user'
 import { Route as KhoiTaoQtvRouteImport } from './routes/khoi-tao-qtv'
 import { Route as ImportStudentsRouteImport } from './routes/import-students'
+import { Route as HoanCanhKhoKhanRouteImport } from './routes/hoan-canh-kho-khan'
 import { Route as HcyuRouteImport } from './routes/hcyu'
 import { Route as EthnicMinorityRouteImport } from './routes/ethnic-minority'
 import { Route as CpvRouteImport } from './routes/cpv'
@@ -53,6 +54,11 @@ const KhoiTaoQtvRoute = KhoiTaoQtvRouteImport.update({
 const ImportStudentsRoute = ImportStudentsRouteImport.update({
   id: '/import-students',
   path: '/import-students',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HoanCanhKhoKhanRoute = HoanCanhKhoKhanRouteImport.update({
+  id: '/hoan-canh-kho-khan',
+  path: '/hoan-canh-kho-khan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HcyuRoute = HcyuRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
   '/import-students': typeof ImportStudentsRoute
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
   '/import-students': typeof ImportStudentsRoute
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
   '/hcyu': typeof HcyuRoute
+  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
   '/import-students': typeof ImportStudentsRoute
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/hoan-canh-kho-khan'
     | '/import-students'
     | '/khoi-tao-qtv'
     | '/list-user'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/hoan-canh-kho-khan'
     | '/import-students'
     | '/khoi-tao-qtv'
     | '/list-user'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/cpv'
     | '/ethnic-minority'
     | '/hcyu'
+    | '/hoan-canh-kho-khan'
     | '/import-students'
     | '/khoi-tao-qtv'
     | '/list-user'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   CpvRoute: typeof CpvRoute
   EthnicMinorityRoute: typeof EthnicMinorityRoute
   HcyuRoute: typeof HcyuRoute
+  HoanCanhKhoKhanRoute: typeof HoanCanhKhoKhanRoute
   ImportStudentsRoute: typeof ImportStudentsRoute
   KhoiTaoQtvRoute: typeof KhoiTaoQtvRoute
   ListUserRoute: typeof ListUserRoute
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/import-students'
       fullPath: '/import-students'
       preLoaderRoute: typeof ImportStudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hoan-canh-kho-khan': {
+      id: '/hoan-canh-kho-khan'
+      path: '/hoan-canh-kho-khan'
+      fullPath: '/hoan-canh-kho-khan'
+      preLoaderRoute: typeof HoanCanhKhoKhanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hcyu': {
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   CpvRoute: CpvRoute,
   EthnicMinorityRoute: EthnicMinorityRoute,
   HcyuRoute: HcyuRoute,
+  HoanCanhKhoKhanRoute: HoanCanhKhoKhanRoute,
   ImportStudentsRoute: ImportStudentsRoute,
   KhoiTaoQtvRoute: KhoiTaoQtvRoute,
   ListUserRoute: ListUserRoute,

@@ -101,7 +101,7 @@ interface BulkStudentResponse {
 }
 
 export const CreateStudent = api(
-	{auth: true, expose: true, method: 'POST', path: '/students' },
+	{ auth: true, expose: true, method: 'POST', path: '/students' },
 	async (body: StudentBody): Promise<BulkStudentResponse> => {
 		const studentParam: StudentParam = {
 			...body
@@ -175,6 +175,7 @@ export interface GetStudentsQuery {
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
 	classIds?: number[]
+	withAdversity?: boolean
 }
 
 export const GetStudents = api(
@@ -225,7 +226,7 @@ interface UpdateStudentBody {
 }
 
 export const UpdateStudents = api(
-	{ auth: true,  expose: true, method: 'PATCH', path: '/students' },
+	{ auth: true, expose: true, method: 'PATCH', path: '/students' },
 	async (body: UpdateStudentBody) => {
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB
@@ -263,7 +264,7 @@ export const updateStudentStatus = api(
 			validClassIds
 		)
 
-		return {isSucess: true} 
+		return { isSucess: true }
 	}
 )
 

@@ -596,6 +596,7 @@ export namespace students {
 		cpvOfficialInMonth?: Month
 		cpvOfficialInQuarter?: Quarter
 		classIds?: number[]
+		withAdversity?: boolean
 	}
 
 	export interface GetStudentsResponse {
@@ -1121,7 +1122,11 @@ export namespace students {
 				unitLevel:
 					params.unitLevel === undefined
 						? undefined
-						: String(params.unitLevel)
+						: String(params.unitLevel),
+				withAdversity:
+					params.withAdversity === undefined
+						? undefined
+						: String(params.withAdversity)
 			})
 
 			// Now make the actual call to the API

@@ -87,7 +87,7 @@ export const GetUsers = api(
 export const CreateUser = api(
 	{ expose: true, auth: true, method: 'POST', path: '/users' },
 	async (req: CreateUserRequest): Promise<CreateUserResponse> => {
-		const isAdmin = getAuthData()!.isSuperUser
+		const isAdmin = getAuthData()!.isSuperAdmin
 		if (!isAdmin) {
 			AppError.handleAppErr(AppError.permissionDenied('Unauthorized'))
 		}

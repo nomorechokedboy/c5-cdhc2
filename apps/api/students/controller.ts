@@ -52,7 +52,7 @@ export class Controller {
 		private readonly unitRepo: UnitRepository,
 		private readonly imageStorage: ImageProvider,
 		private db: DrizzleDatabase
-	) { }
+	) {}
 
 	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
 		const checkCLassIds = params.every((c) => classIds.includes(c.classId))
@@ -66,16 +66,21 @@ export class Controller {
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-
-
 	async delete(studentsTodelete: StudentDB[]) {
 		const validClassIds = getAuthData()!.validClassIds
 
-		const classIdsToCheck = await  this.db.select({ id: students.classId })
+		const classIdsToCheck = await this.db
+			.select({ id: students.classId })
 			.from(students)
-			.where(inArray(students.id, studentsTodelete.map(s => s.id))
+			.where(
+				inArray(
+					students.id,
+					studentsTodelete.map((s) => s.id)
+				)
 			)
-		const hasPermission = classIdsToCheck.every((c) => validClassIds.includes(c.id));
+		const hasPermission = classIdsToCheck.every((c) =>
+			validClassIds.includes(c.id)
+		)
 
 		if (!hasPermission) {
 			throw AppError.handleAppErr(
@@ -84,7 +89,7 @@ export class Controller {
 				)
 			)
 		}
-		return this.repo.delete(studentsTodelete).catch(AppError.handleAppErr);
+		return this.repo.delete(studentsTodelete).catch(AppError.handleAppErr)
 	}
 
 	async find(
@@ -135,12 +140,6 @@ export class Controller {
 					)
 				}
 
-				if (classIds.length === 0) {
-					AppError.handleAppErr(
-						AppError.internal("You don't have classId")
-					)
-				}
-
 				return this.repo
 					.find({ ...q, classIds })
 					.catch(AppError.handleAppErr)
@@ -162,12 +161,6 @@ export class Controller {
 						AppError.unauthorized(
 							"You don't have permission to read one of those studentId"
 						)
-					)
-				}
-
-				if (classIds.length === 0) {
-					AppError.handleAppErr(
-						AppError.internal("You don't have classId")
 					)
 				}
 
@@ -194,9 +187,7 @@ export class Controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	async update(
-		params: StudentDB[]
-	): Promise<StudentDB[]> {
+	async update(params: StudentDB[]): Promise<StudentDB[]> {
 		const validClassIds = getAuthData()!.validClassIds
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0

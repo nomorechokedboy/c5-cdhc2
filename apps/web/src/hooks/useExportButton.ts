@@ -25,8 +25,8 @@ export default function useExportButton({
 			const sanitizedData = data.map((d) => {
 				for (const [key, val] of Object.entries(d)) {
 					/* if (val === '') {
-						d[key] = 'Chưa có thông tin'
-					} */
+                        d[key] = 'Chưa có thông tin'
+                    } */
 				}
 
 				const isPoliticalOrgExist =
@@ -54,12 +54,16 @@ export default function useExportButton({
 				data: sanitizedData,
 				...exportData
 			})
-			const blob = new Blob([resp.data], {
-				type: resp.headers['content-type']
+			const blob = await resp.blob(),
+				contentType =
+					resp.headers.get('content-type') ??
+					'application/octet-stream'
+			const fileBlob = new Blob([blob], {
+				type: contentType
 			})
 
 			const link = document.createElement('a')
-			link.href = window.URL.createObjectURL(blob)
+			link.href = window.URL.createObjectURL(fileBlob)
 			link.download = `${filename}.docx`
 
 			document.body.appendChild(link)

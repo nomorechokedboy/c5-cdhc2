@@ -12,12 +12,16 @@ export default function useExportPoliticsQualityReport({
 	async function handleExport(data: ExportPoliticsQualityReport) {
 		try {
 			const resp = await ExportPoliticsQualityData(data)
-			const blob = new Blob([resp.data], {
-				type: resp.headers['content-type']
+			const blob = await resp.blob(),
+				contentType =
+					resp.headers.get('content-type') ??
+					'application/octet-stream'
+			const fileBlob = new Blob([blob], {
+				type: contentType
 			})
 
 			const link = document.createElement('a')
-			link.href = window.URL.createObjectURL(blob)
+			link.href = window.URL.createObjectURL(fileBlob)
 			link.download = `${filename}.xlsx`
 
 			document.body.appendChild(link)
