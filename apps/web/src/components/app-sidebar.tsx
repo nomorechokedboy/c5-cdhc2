@@ -14,7 +14,8 @@ import {
 	Building,
 	Home,
 	Proportions,
-	List
+	List,
+	HouseHeart
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -85,6 +86,11 @@ const data = {
 					title: 'Tôn giáo',
 					url: '/religion',
 					icon: Church
+				},
+				{
+					title: 'Hoàn cảnh khó khăn',
+					url: '/hoan-canh-kho-khan',
+					icon: HouseHeart
 				}
 			]
 		},

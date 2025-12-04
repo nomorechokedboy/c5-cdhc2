@@ -222,6 +222,18 @@ class StudentSqliteRepo implements Repository {
 			whereConds.push(ne(students.religion, 'Không'))
 		}
 
+		const withAdversityExist = q.withAdversity !== undefined
+
+		if (withAdversityExist && q.withAdversity) {
+			whereConds.push(
+				and(
+					ne(students.familyBackground, ''),
+					ne(students.familyBackground, 'Không'),
+					ne(students.familyBackground, 'Chưa')
+				)
+			)
+		}
+
 		const whereCondition =
 			whereConds.length === 0 ? undefined : and(...whereConds)
 
