@@ -31,6 +31,7 @@ export type StudentBody = {
 	birthPlace?: string
 	address?: string
 	class?: Class
+	classId?: number
 	cpvId?: string
 	dob?: string
 	educationLevel?: string
@@ -60,6 +61,7 @@ export type StudentBody = {
 	talent?: string
 	isMarried?: boolean
 	spouseName?: string
+	spouseJob?: string
 	spouseDob?: string
 	spousePhoneNumber?: string
 	childrenInfos?: ChildrenInfo[]
@@ -103,8 +105,8 @@ export interface UserUpdate {
 	isSuperUser?: boolean
 }
 
-export interface Student extends Base, StudentBody {}
-export interface User extends Base, UserBody {}
+export interface Student extends Base, StudentBody { }
+export interface User extends Base, UserBody { }
 
 export type ClassResponse = { data: Class[] }
 
