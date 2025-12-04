@@ -7,7 +7,6 @@ import type {
 	ExportData,
 	ExportPoliticsQualityReport,
 	GetUnitQuery,
-	GetUnitResponse,
 	InitAdminRequest,
 	MarkAsReadNotificationParams,
 	Student,
@@ -18,7 +17,7 @@ import type {
 	UpdateUserBody,
 	UserBody
 } from '@/types'
-import axios, { appFetcher } from '@/lib/axios'
+import { appFetcher } from '@/lib/axios'
 import Client, { auth, classes, students, units } from './client'
 import { ApiUrl } from '@/lib/const'
 
@@ -102,11 +101,9 @@ export function MarkAsRead(params: MarkAsReadNotificationParams) {
 }
 
 export function GetStudentByLevel(level: UnitLevel): Promise<Unit[]> {
-	return axios
-		.get<GetUnitResponse>('/units', {
-			params: { level }
-		})
-		.then((resp) => resp.data.data)
+	return requestClient.students
+		.GetStudents({ unitLevel: level })
+		.then((resp) => resp.data)
 }
 
 export function GetUnits(params?: GetUnitQuery) {
@@ -127,13 +124,17 @@ export function GetUnreadNotificationsCount(): Promise<number> {
 }
 
 export function ExportTableData(data: ExportData) {
-	return axios.post('/students/export', data, { responseType: 'blob' })
+	return requestClient.students.ExportStudentData(
+		'POST',
+		JSON.stringify(data)
+	)
 }
 
 export function ExportPoliticsQualityData(data: ExportPoliticsQualityReport) {
-	return axios.post('/students/politics-quality-report/export', data, {
-		responseType: 'blob'
-	})
+	return requestClient.students.ExportPoliticsQualityReport(
+		'POST',
+		JSON.stringify(data)
+	)
 }
 
 export function GetPoliticsQualityReport(unitIds: number[]) {

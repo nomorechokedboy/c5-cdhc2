@@ -27,6 +27,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger
 } from '../ui/collapsible'
+import useAuth from '@/hooks/useAuth'
 
 // Recursive renderer for children + classes
 function UnitBlock({
@@ -138,7 +139,10 @@ function UnitBlock({
 }
 
 export function PoliticalQualityDashboard() {
-	const { data: units = [] } = useUnitsData({ level: 'battalion' })
+	const { user } = useAuth()
+	const { data: units = [] } = useUnitsData(
+		user?.isSuperUser === true ? { level: 'battalion' } : undefined
+	)
 	const unitIds = units?.map((u) => u.id)
 	const { data: politicsQualityData } = useQuery({
 		enabled: unitIds.length !== 0,
