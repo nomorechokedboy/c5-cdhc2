@@ -1,16 +1,14 @@
+import { useState } from 'react'
 import useUserData from '@/hooks/useUsers'
 import { defaultStudentColumnVisibility, type TemplType } from '@/types'
+import type { User } from '@/types'
 import { DataTable } from '../data-table'
-import { baseStudentsColumns } from '@/components/user-table/columns'
-import TableSkeleton from '../table-skeleton'
+import { baseStudentsColumns } from './columns'
 import { Button } from '../ui/button'
 import { ArrowDownToLine, PlusIcon } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
-import { useState } from 'react'
 import UserForm from './user-form'
 import { UserTableContext } from './UserTableContext'
-import type { User } from '@/types'
-import UserEditForm from './user-edit-form'
 
 interface UserTableProps {
 	filename: string
@@ -22,87 +20,70 @@ export default function UserTable({
 	filename,
 	templType = 'UserInfoTempl'
 }: UserTableProps) {
-	console.log('Render UserTable')
+	const { data: users = [], refetch: refetchUsers } = useUserData()
 
-	const {
-		data: users = [],
-		isLoading: isLoadingStudents,
-		refetch: refetchStudents
-	} = useUserData()
-	console.log('isloading', isLoadingStudents)
+	// State for create form
+	const [showCreateForm, setShowCreateForm] = useState(false)
 
-	// if (isLoadingStudents) {
-	// 	return <TableSkeleton />
-	// }
-
-	const handleFormSuccess = () => {
-		refetchStudents()
-	}
-
-	const [showUserForm, setShowUserForm] = useState(false)
-	const hanldeAddUser = () => {
-		setEditingUser(null)
-		setShowUserForm(true)
-	}
-
-	const [editOpen, setEditOpen] = useState(false)
+	// State for edit form
 	const [editingUser, setEditingUser] = useState<User | null>(null)
+	const [showEditForm, setShowEditForm] = useState(false)
 
-	const onEditUser = (user) => {
-		setEditingUser(user)
-		setEditOpen(true)
+	// Handle add user button click
+	const handleAddUser = () => {
+		setEditingUser(null)
+		setShowCreateForm(true)
 	}
 
+	// Handle edit user
 	const handleEditUser = (user: User) => {
 		setEditingUser(user)
-		setEditOpen(true)
+		setShowEditForm(true)
+	}
+
+	// Handle form success (create or edit)
+	const handleFormSuccess = () => {
+		refetchUsers()
+		setShowCreateForm(false)
+		setShowEditForm(false)
 	}
 
 	return (
 		<UserTableContext.Provider value={{ onEditUser: handleEditUser }}>
-			<div>
+			<div className='space-y-4'>
 				<DataTable
 					data={users}
 					columns={baseStudentsColumns}
 					defaultColumnVisibility={defaultStudentColumnVisibility}
-					// toolbarProps={{
-					//     rightSection:
-					//         enabledCreation === true ? (
-					//             <StudentForm onSuccess={handleFormSuccess} />
-					//         ) : undefined,
-					//     facetedFilters
-					// }}
 					withDynamicColsData={false}
 					renderToolbarActions={({ exportHook }) => (
-						<div style={{ display: 'flex', gap: '8px' }}>
+						<div className='flex gap-2'>
 							<ExportStudentDataDialog
 								data={exportHook.exportableData.data}
 								defaultFilename={filename}
 								templType={templType}
 							>
-								<Button onClick={() => setShowUserForm(true)}>
-									<ArrowDownToLine />
+								<Button variant='outline'>
+									<ArrowDownToLine className='w-4 h-4 mr-2' />
 									Xuất file
 								</Button>
 							</ExportStudentDataDialog>
-							<Button onClick={hanldeAddUser}>
-								<PlusIcon />
+
+							<Button onClick={handleAddUser}>
+								<PlusIcon className='w-4 h-4 mr-2' />
 								Thêm người dùng
 							</Button>
 						</div>
 					)}
 				/>
-				{showUserForm && (
-					<div className='p-4 w-full'>
-						<UserForm
-							open={showUserForm}
-							setOpen={setShowUserForm}
-							onSuccess={() => {
-								refetchStudents()
-								setShowUserForm(false)
-							}}
-						/>
-					</div>
+
+				{/* Create User Form */}
+				{showCreateForm && (
+					<UserForm
+						open={showCreateForm}
+						setOpen={setShowCreateForm}
+						onSuccess={handleFormSuccess}
+					/>
 				)}
 			</div>
 		</UserTableContext.Provider>

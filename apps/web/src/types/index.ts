@@ -91,18 +91,25 @@ export interface UserBody {
 	displayName: string
 	unitId: number
 	isSuperUser?: boolean
+	rank?: string
+	position?: string
 }
 export interface UpdateUserBody {
 	id?: number
 	displayName: string
+	password?: string
 	unitId?: number
 	isSuperUser?: boolean
+	rank?: string
+	position?: string
 }
 export interface UserUpdate {
 	id: number
 	displayName: string
 	unitId: number
 	isSuperUser?: boolean
+	rank?: string
+	position?: string
 }
 
 export interface Student extends Base, StudentBody { }

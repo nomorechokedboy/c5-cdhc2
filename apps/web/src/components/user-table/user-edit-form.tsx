@@ -15,10 +15,13 @@ import type { UpdateUserBody, User, UserUpdate } from '@/types'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
 import useUnitsData from '@/hooks/useUnitsData'
+import { userRankOptions, userPositionOptions } from '@/data/ethnics'
 
 const schema = z.object({
 	id: z.number().optional(),
-	displayName: z.string().min(1, 'Tên hiển thị không được bỏ trống'),
+	displayName: z.string().min(1, 'Họ và tên không được bỏ trống'),
+	password: z.string().optional(),
+	confirmPassword: z.string().optional(),
 	unitId: z.preprocess(
 		(val) => {
 			if (typeof val === 'string') {
@@ -32,7 +35,27 @@ const schema = z.object({
 		if (val === 'true' || val === true) return true
 		if (val === 'false' || val === false) return false
 		return val
-	}, z.boolean())
+	}, z.boolean()),
+	rank: z.string().optional(),
+	position: z.string().optional()
+}).refine((data) => {
+	// If password provided, must match confirmPassword
+	if (data.password && data.password.length > 0) {
+		return data.password === data.confirmPassword
+	}
+	return true
+}, {
+	message: 'Mật khẩu xác nhận không khớp',
+	path: ['confirmPassword']
+}).refine((data) => {
+	// If password provided, minimum length
+	if (data.password && data.password.length > 0) {
+		return data.password.length >= 6
+	}
+	return true
+}, {
+	message: 'Mật khẩu phải có ít nhất 6 ký tự',
+	path: ['password']
 })
 
 export interface UserFormProps {
@@ -70,13 +93,25 @@ export default function UserEditForm({
 		defaultValues: {
 			id: editingUser?.id || 0,
 			displayName: '',
+			password: '',
+			confirmPassword: '',
 			unitId: '1',
-			isSuperUser: 'false'
+			isSuperUser: 'false',
+			rank: '',
+			position: ''
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
 				const parsed = schema.parse(value)
-				await mutateAsync(parsed)
+
+				// Remove password if empty, remove confirmPassword always
+				const payload: any = { ...parsed }
+				if (!payload.password || payload.password.length === 0) {
+					delete payload.password
+				}
+				delete payload.confirmPassword
+
+				await mutateAsync(payload)
 				toast.success('Sửa người dùng thành công')
 				formApi.reset()
 			} catch (err) {
@@ -100,8 +135,12 @@ export default function UserEditForm({
 			form.reset({
 				id: editingUser.id,
 				displayName: editingUser.displayName,
+				password: '',
+				confirmPassword: '',
 				unitId: editingUser.unitId?.toString() || '1',
-				isSuperUser: editingUser.isSuperUser ? 'true' : 'false'
+				isSuperUser: editingUser.isSuperUser ? 'true' : 'false',
+				rank: editingUser.rank || '',
+				position: editingUser.position || ''
 			})
 		}
 	}, [open, editingUser])
@@ -135,7 +174,31 @@ export default function UserEditForm({
 						<div className='space-y-2'>
 							<form.AppField name='displayName'>
 								{(field: any) => (
-									<field.TextField label='Tên hiển thị' />
+									<field.TextField label='Họ và tên' />
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='password'>
+								{(field: any) => (
+									<field.TextField
+										label='Mật khẩu mới (để trống nếu không đổi)'
+										type='password'
+										placeholder='Nhập mật khẩu mới'
+									/>
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='confirmPassword'>
+								{(field: any) => (
+									<field.TextField
+										label='Xác nhận mật khẩu'
+										type='password'
+										placeholder='Nhập lại mật khẩu mới'
+									/>
 								)}
 							</form.AppField>
 						</div>
@@ -153,6 +216,32 @@ export default function UserEditForm({
 											value={field.state.value?.toString()}
 										/>
 									</>
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='rank'>
+								{(field: any) => (
+									<field.Select
+										label='Cấp bậc'
+										placeholder='Chọn cấp bậc'
+										values={userRankOptions}
+										value={field.state.value}
+									/>
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='position'>
+								{(field: any) => (
+									<field.Select
+										label='Chức vụ'
+										placeholder='Chọn chức vụ'
+										values={[]}
+										value={field.state.value}
+									/>
 								)}
 							</form.AppField>
 						</div>
