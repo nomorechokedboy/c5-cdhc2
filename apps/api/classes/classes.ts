@@ -4,6 +4,7 @@ import { ClassDB, ClassParam } from '../schema/classes.js'
 import classController from './controller.js'
 import { UnitDB } from '../units/units.js'
 import { getAuthData } from '~encore/auth'
+import { APICallMeta, currentRequest } from 'encore.dev'
 
 interface ClassBody {
 	name: string
@@ -38,11 +39,13 @@ export const CreateClass = api(
 			...body
 		}
 		log.trace('classes.CreateClass body', { classParam })
-		const validUntiIds = getAuthData()!.validUnitIds
+
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
 
 		const createdClass = await classController.create(
 			[classParam],
-			validUntiIds
+			validUnitIds
 		)
 
 		const resp = createdClass.map(
@@ -69,8 +72,10 @@ export const GetClasses = api(
 		ids,
 		unitIds
 	}: GetClassesRequest): Promise<GetClassesResponse> => {
-		const classIds = getAuthData()!.validClassIds
-		const classes = await classController.find({ ids: classIds, unitIds })
+		const callMeta = currentRequest() as APICallMeta
+		const classIds = callMeta.middlewareData?.validClassIds || []
+
+		const classes = await classController.find({ ids, unitIds }, classIds)
 		const resp = classes.map(
 			(c) =>
 				({
@@ -94,7 +99,9 @@ export const DeleteClasss = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/classes' },
 	async (body: DeleteClassRequest): Promise<DeleteClassResponse> => {
 		log.trace('classes.DeleteClasss body', { body })
-		const validClassIds = getAuthData()!.validClassIds
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
+
 		const classes: ClassDB[] = body.ids.map((id) => ({ id }) as ClassDB)
 		await classController.delete(classes, validClassIds)
 
@@ -113,9 +120,13 @@ interface UpdateClassBody {
 export const UpdateClasss = api(
 	{ auth: true, expose: true, method: 'PATCH', path: '/classes' },
 	async (body: UpdateClassBody) => {
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+
 		const classes: ClassDB[] = body.data.map((s) => ({ ...s }) as ClassDB)
 
-		await classController.update(classes)
+		await classController.update(classes, { validClassIds, validUnitIds })
 
 		return {}
 	}
