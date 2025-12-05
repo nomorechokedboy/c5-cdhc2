@@ -14,7 +14,7 @@ import { useMutation } from '@tanstack/react-query'
 import type { Class, ClassBody, User, UserBody, UserFormData } from '@/types'
 import { toast } from 'sonner'
 import useUnitsData from '@/hooks/useUnitsData'
-import { userRankOptions, userPositionOptions} from '@/data/ethnics'
+import { userRankOptions, userPositionOptions } from '@/data/ethnics'
 
 const schema = z.object({
 	username: z.string().min(1, 'Tên tài khoản không được bỏ trống'),
@@ -43,14 +43,12 @@ export interface UserFormProps {
 
 export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 	const { data: unitsData, isLoading, isError } = useUnitsData()
-	console.log('Render UserForm')
-	console.log('unitdata', unitsData)
 
 	const { mutateAsync } = useMutation({
 		mutationFn: CreateUser,
 		onSuccess,
 		onError: (error) => {
-			console.error('Failed to create class:', error)
+			console.error('Failed to create user:', error)
 		}
 	})
 	const form = useAppForm({
@@ -91,7 +89,6 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 
 		return result
 	}
-	console.log('flatttenUnit data', flattenUnits(unitsData || []))
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -108,7 +105,6 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 							form.handleSubmit()
 						}}
 					>
-
 						<div className='space-y-2'>
 							<form.AppField name='displayName'>
 								{(field: any) => (
@@ -146,10 +142,6 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 											values={flattenUnits(
 												unitsData || []
 											)}
-											defaultValue={
-												flattenUnits(unitsData || [])[0]
-													?.value
-											}
 										/>
 									</>
 								)}
