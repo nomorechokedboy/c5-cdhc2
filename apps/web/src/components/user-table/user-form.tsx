@@ -20,16 +20,13 @@ const schema = z.object({
 	username: z.string().min(1, 'Tên tài khoản không được bỏ trống'),
 	displayName: z.string().min(1, 'Họ và tên không được bỏ trống'),
 	password: z.string().min(1, 'Mật khẩu không được bỏ trống'),
-	unitId: z.preprocess(
-		(val) => {
-			if (typeof val === 'string') {
-				return Number.parseInt(val)
-			}
+	unitId: z.preprocess((val) => {
+		if (typeof val === 'string') {
+			return Number.parseInt(val)
+		}
 
-			return val
-		},
-		z.number().min(1, 'Đơn vị không được bỏ trống')
-	),
+		return val
+	}, z.number().optional()),
 	isSuperUser: z.coerce.boolean(),
 	rank: z.string().optional(),
 	position: z.string().optional()
@@ -56,7 +53,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			username: '',
 			password: '',
 			displayName: '',
-			unitId: null,
+			unitId: undefined,
 			isSuperUser: false,
 			rank: '',
 			position: ''
