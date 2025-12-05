@@ -145,7 +145,8 @@ interface GetClassByIdResponse {
 export const GetClassById = api(
 	{ auth: true, expose: true, method: 'GET', path: '/classes/:id' },
 	async ({ id }: GetClassByIdRequest): Promise<GetClassByIdResponse> => {
-		const classIds = getAuthData()!.validClassIds
+		const callMeta = currentRequest() as APICallMeta
+		const classIds = callMeta.middlewareData?.validClassIds || []
 		const data = await classController
 			.findOne(id, classIds)
 			.then((resp) =>
