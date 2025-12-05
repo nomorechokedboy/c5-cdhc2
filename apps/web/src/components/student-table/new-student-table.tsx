@@ -16,6 +16,8 @@ import { type ReactNode } from 'react'
 import type { VisibilityState, ColumnDef } from '@tanstack/react-table'
 import { type QueryObserverResult } from '@tanstack/react-query'
 import { DropdownMenu, DropdownMenuTrigger } from '../ui/dropdown-menu'
+import { columnsWithoutAction } from './columns'
+import useActionColumn from '@/hooks/useActionColumn'
 
 interface StudentTableProps {
 	// Core data params
@@ -82,6 +84,7 @@ export default function StudentTable({
 		isLoading: isLoadingStudents,
 		refetch: refetchStudent
 	} = useStudentData(params)
+	const actionColumn = useActionColumn(handleRefreshStudents)
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />
@@ -95,6 +98,10 @@ export default function StudentTable({
 	const handleRefresh = () => {
 		refetchStudent()
 		onRefresh?.()
+	}
+
+	function handleRefreshStudents() {
+		return refetchStudent()
 	}
 
 	// Build right toolbar section
@@ -115,7 +122,7 @@ export default function StudentTable({
 		<div>
 			<DataTable
 				data={students}
-				columns={columns}
+				columns={[...columnsWithoutAction, actionColumn]}
 				defaultColumnVisibility={columnVisibility}
 				placeholder={placeholder}
 				toolbarProps={{
