@@ -15,8 +15,7 @@ import {
 	BirthdayThisQuarter,
 	StudentCronEvent,
 	ExcelTemplateData,
-	TemplateType,
-	students
+	TemplateType
 } from '../schema/student'
 import { Repository } from './index'
 import { Repository as UnitRepository } from '../units'
@@ -32,8 +31,6 @@ import { APIError } from 'encore.dev/api'
 import { readFile } from 'fs/promises'
 import { createImageInjector, ImageProvider } from './img-provider'
 import { ObjectStorageImageAdapter } from './minio-img-provider'
-import orm, { DrizzleDatabase } from '../database'
-import { inArray, eq, sql, and, ne, between, count } from 'drizzle-orm'
 import { getAuthData } from '~encore/auth'
 
 dayjs.extend(quarterOfYear)
@@ -50,8 +47,7 @@ export class Controller {
 	constructor(
 		private readonly repo: Repository,
 		private readonly unitRepo: UnitRepository,
-		private readonly imageStorage: ImageProvider,
-		private db: DrizzleDatabase
+		private readonly imageStorage: ImageProvider
 	) {}
 
 	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
@@ -66,22 +62,13 @@ export class Controller {
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	async delete(studentsTodelete: StudentDB[]) {
-		const validClassIds = getAuthData()!.validClassIds
-
-		const classIdsToCheck = await this.db
-			.select({ id: students.classId })
-			.from(students)
-			.where(
-				inArray(
-					students.id,
-					studentsTodelete.map((s) => s.id)
-				)
-			)
-		const hasPermission = classIdsToCheck.every((c) =>
-			validClassIds.includes(c.id)
+	async delete(studentsTodelete: StudentDB[], validClassIds: number[]) {
+		const ids = studentsTodelete.map((student) => student.id)
+		const students = await this.repo.find({ ids })
+		const studentsClassIds = students.map((student) => student.class.id)
+		const hasPermission = studentsClassIds.every((id) =>
+			validClassIds.includes(id)
 		)
-
 		if (!hasPermission) {
 			throw AppError.handleAppErr(
 				AppError.permissionDenied(
@@ -89,6 +76,7 @@ export class Controller {
 				)
 			)
 		}
+
 		return this.repo.delete(studentsTodelete).catch(AppError.handleAppErr)
 	}
 
@@ -187,8 +175,10 @@ export class Controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	async update(params: StudentDB[]): Promise<StudentDB[]> {
-		const validClassIds = getAuthData()!.validClassIds
+	async update(
+		params: StudentDB[],
+		validClassIds: number[]
+	): Promise<StudentDB[]> {
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
 		const isIdsValid = !ids || isIdsEmpty
@@ -312,7 +302,18 @@ export class Controller {
 		return this.repo.find(cronEvent.getQueryParams())
 	}
 
-	async politicsQualityReport(unitIds: number[]) {
+	async politicsQualityReport(unitIds: number[], validUnitIds: number[]) {
+		const isValidUnitIds = unitIds.every((unitId) =>
+			validUnitIds.includes(unitId)
+		)
+		if (isValidUnitIds === false) {
+			AppError.handleAppErr(
+				AppError.unauthorized(
+					"You don't have permission on those unitIds"
+				)
+			)
+		}
+
 		const units = await this.unitRepo.find({
 			ids: unitIds
 		})
@@ -516,8 +517,7 @@ export class Controller {
 const studentController = new Controller(
 	studentRepo,
 	unitRepo,
-	ObjectStorageImageAdapter,
-	orm
+	ObjectStorageImageAdapter
 )
 
 export default studentController

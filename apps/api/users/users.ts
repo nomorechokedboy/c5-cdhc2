@@ -97,8 +97,16 @@ export const CreateUser = api(
 			AppError.handleAppErr(AppError.permissionDenied('Unauthorized'))
 		}
 
-		const { username, password, displayName, unitId, isSuperUser, status, rank, position } =
-			req
+		const {
+			username,
+			password,
+			displayName,
+			unitId,
+			isSuperUser,
+			status,
+			rank,
+			position
+		} = req
 
 		const data = await userController
 			.create({
@@ -120,9 +128,25 @@ export const CreateUser = api(
 export const UpdateUser = api(
 	{ expose: true, auth: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
-		const { id, displayName, unitId, isSuperUser, password, rank, position } = req
+		const {
+			id,
+			displayName,
+			unitId,
+			isSuperUser,
+			password,
+			rank,
+			position
+		} = req
 		const data = await userController
-			.update({ id, displayName, unitId, isSuperUser, password, rank, position })
+			.update({
+				id,
+				displayName,
+				unitId,
+				isSuperUser,
+				password,
+				rank,
+				position
+			})
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }
@@ -141,8 +165,7 @@ export const DeleteUsers = api(
 	async (body: DeleteUserRequest): Promise<DeleteUserResponse> => {
 		console.log('users.DeleteStudents body', { body })
 		const users = body.ids
-		const validUnitIds = getAuthData()!.validUnitIds
-		await userController.delete(users, validUnitIds)
+		await userController.delete(users)
 
 		return { ids: body.ids }
 	}

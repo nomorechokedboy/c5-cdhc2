@@ -56,19 +56,6 @@ export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 
 			try {
 				const result = await mutateAsync(value)
-
-				const currentRefreshToken = AuthController.getRefreshToken()
-				if (currentRefreshToken) {
-					try {
-						const { accessToken, refreshToken } = await RefreshToken(currentRefreshToken)
-						AuthController.setTokens({ accessToken, refreshToken })
-					} catch (refreshErr) {
-						console.error('Failed to refresh token:', refreshErr)
-						toast.error('Không thể cập nhật quyền truy cập. Vui lòng đăng xuất và đăng nhập lại.')
-						return
-					}
-				}
-
 				onSuccess(result, value, undefined)
 
 				toast.success('Thêm mới lớp thành công')

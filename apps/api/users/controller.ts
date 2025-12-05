@@ -66,21 +66,15 @@ class controller {
 		return this.repo.update(params).catch(AppError.handleAppErr)
 	}
 
-	async delete(ids: number[], validUnitIds: number[]) {
+	async delete(ids: number[]) {
 		log.trace('UserController.delete params', { ids })
 		const users = await this.repo
 			.findByIds(ids)
 			.catch(AppError.handleAppErr)
-		const checkUnitIds = users.every((user) =>
-			validUnitIds.includes(user.unitId!)
-		)
-		if (checkUnitIds === false) {
-			throw AppError.handleAppErr(
-				AppError.unauthorized(
-					"You don't have permission Delete student"
-				)
-			)
+		if (users.length !== ids.length) {
+			AppError.handleAppErr(AppError.invalidArgument('Invalid user ids'))
 		}
+
 		return this.repo.delete(ids).catch(AppError.handleAppErr)
 	}
 

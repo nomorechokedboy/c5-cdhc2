@@ -3,6 +3,7 @@ import { UnitParams } from '../schema'
 import unitController from './controller'
 import { ClassResponse } from '../classes/classes'
 import { getAuthData } from '~encore/auth'
+import { APICallMeta, currentRequest } from 'encore.dev'
 
 type UnitBody = {
 	alias: string
@@ -60,8 +61,8 @@ interface GetUnitsResponse {
 export const GetUnits = api(
 	{ auth: true, expose: true, method: 'GET', path: '/units' },
 	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
-		const unitIds = getAuthData()!.validUnitIds
-		console.log('DEBUG', { unitIds })
+		const callMeta = currentRequest() as APICallMeta
+		const unitIds = callMeta.middlewareData?.validUnitIds || []
 
 		const resp = await unitController.find(q, unitIds)
 		const data = resp.map((u) => ({ ...u }) as Unit)
@@ -87,7 +88,9 @@ interface GetUnitResponse {
 export const GetUnit = api(
 	{ auth: true, expose: true, method: 'GET', path: '/units/:alias' },
 	async ({ level, ...params }: GetUnitRequest): Promise<GetUnitResponse> => {
-		const validUnitIds = getAuthData()!.validUnitIds!
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+
 		const data = await unitController
 			.findOne({
 				...params,

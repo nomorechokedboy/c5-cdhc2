@@ -7,7 +7,6 @@ import {
 } from '../schema/student.js'
 import log from 'encore.dev/log'
 import studentController from './controller.js'
-import studentRepo from './repo.ts'
 import notificationController from '../notifications/controller.js'
 import {
 	CreateBatchNotificationData,
@@ -22,6 +21,7 @@ import { notiTopic } from '../topics/index.js'
 import * as v from 'valibot'
 import XlsxTemplate from 'xlsx-template'
 import { getAuthData } from '~encore/auth'
+import { APICallMeta, currentRequest } from 'encore.dev'
 
 interface ChildrenInfo {
 	fullName: string
@@ -107,7 +107,8 @@ export const CreateStudent = api(
 			...body
 		}
 		log.trace('students.CreateStudent body', { studentParam })
-		const classIds = getAuthData()!.validClassIds
+		const callMeta = currentRequest() as APICallMeta
+		const classIds = callMeta.middlewareData?.validClassIds || []
 
 		const createdStudent = await studentController.create(
 			[studentParam],
@@ -127,8 +128,9 @@ interface StudentBulkBody {
 export const CreateStudents = api(
 	{ expose: true, method: 'POST', path: '/students/bulk' },
 	async (body: StudentBulkBody): Promise<BulkStudentResponse> => {
+		const callMeta = currentRequest() as APICallMeta
+		const classIds = callMeta.middlewareData?.validClassIds || []
 		const studentParams = body.data.map((b) => ({ ...b }) as StudentParam)
-		const classIds = getAuthData()!.validClassIds
 		const createdStudent = await studentController.create(
 			studentParams,
 			classIds
@@ -181,7 +183,8 @@ export interface GetStudentsQuery {
 export const GetStudents = api(
 	{ auth: true, expose: true, method: 'GET', path: '/students' },
 	async ({ ...query }: GetStudentsQuery): Promise<GetStudentsResponse> => {
-		const validClassIds = getAuthData()!.validClassIds
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
 		log.trace('students.GetStudents query params', { params: query })
 		const students = await studentController.find(
 			{ ...query },
@@ -207,11 +210,13 @@ export const DeleteStudents = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/students' },
 	async (body: DeleteStudentRequest): Promise<DeleteStudentResponse> => {
 		log.trace('students.DeleteStudents body', { body })
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
 
 		const students: StudentDB[] = body.ids.map(
 			(id) => ({ id }) as StudentDB
 		)
-		await studentController.delete(students)
+		await studentController.delete(students, validClassIds)
 
 		return { ids: body.ids }
 	}
@@ -228,10 +233,12 @@ interface UpdateStudentBody {
 export const UpdateStudents = api(
 	{ auth: true, expose: true, method: 'PATCH', path: '/students' },
 	async (body: UpdateStudentBody) => {
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
 		const students: StudentDB[] = body.data.map(
 			(s) => ({ ...s }) as StudentDB
 		)
-		await studentController.update(students)
+		await studentController.update(students, validClassIds)
 
 		return {}
 	}
@@ -256,7 +263,8 @@ export const updateStudentStatus = api(
 	async (
 		req: UpdateStudentStatusRequest
 	): Promise<UpdateStudentStatusResponse> => {
-		const validClassIds = getAuthData()!.validClassIds
+		const callMeta = currentRequest() as APICallMeta
+		const validClassIds = callMeta.middlewareData?.validClassIds || []
 
 		await studentController.updateStatus(
 			req.studentIds,
@@ -332,6 +340,7 @@ export type ExportStudentDataRequest = v.InferInput<
 
 export const ExportStudentData = api.raw(
 	{
+		auth: true,
 		expose: true,
 		method: 'POST',
 		path: '/students/export'
@@ -467,12 +476,19 @@ interface GetPoliticsQualityReportResponse {
 }
 
 export const GetPoliticsQualityReport = api(
-	{ expose: true, method: 'GET', path: '/students/politics-quality-report' },
+	{
+		auth: true,
+		expose: true,
+		method: 'GET',
+		path: '/students/politics-quality-report'
+	},
 	async ({
 		unitIds
 	}: GetPoliticsQualityReportRequest): Promise<GetPoliticsQualityReportResponse> => {
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
 		const { data, units: us } =
-			await studentController.politicsQualityReport(unitIds)
+			await studentController.politicsQualityReport(unitIds, validUnitIds)
 		const units = us.map((u) => ({ ...u }) as Unit)
 
 		return { data, units }
@@ -529,6 +545,7 @@ const sheetNumber = 1
 
 export const ExportPoliticsQualityReport = api.raw(
 	{
+		auth: true,
 		expose: true,
 		method: 'POST',
 		path: '/students/politics-quality-report/export'
