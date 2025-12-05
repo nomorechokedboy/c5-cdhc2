@@ -59,10 +59,11 @@ readinessProbe:
   timeoutSeconds: 10
   failureThreshold: 3
 autoscaling:
-  enabled: false
+  enabled: true
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 # No special volumes needed for web service
 volumes:
   - name: nginx-config
