@@ -1,30 +1,19 @@
 ## MinIO Helm Chart Values
 ## Official MinIO Chart Configuration
-
 ## MinIO mode - standalone or distributed
-mode: standalone  # Change to 'distributed' for production
-
+mode: standalone # Change to 'distributed' for production
 ## Number of MinIO pods (only for distributed mode)
 ## For distributed mode, must be 4, 8, 12, or 16
 replicas: 4
-
 ## MinIO root credentials
 rootUser: admin.cdhc2
-rootPassword: Cntt@Hc2*#s3  # CHANGE THIS!
-
+rootPassword: Cntt@Hc2*#s3 # CHANGE THIS!
 ## Persistence configuration
 persistence:
   enabled: true
-<<<<<<< HEAD
   storageClass: "hdd-storage"
   accessMode: ReadWriteOnce
   size: 5Ti
-=======
-  storageClass: ""  # Use default storage class or specify yours
-  accessMode: ReadWriteOnce
-  size: 50Gi
->>>>>>> e6b84bb (chore: deploy code)
-
 ## Resource limits
 resources:
   requests:
@@ -33,24 +22,21 @@ resources:
   limits:
     memory: 2Gi
     cpu: 1000m
-
 ## Service configuration
 service:
-  type: ClusterIP  # Change to LoadBalancer or NodePort if needed
+  type: ClusterIP # Change to LoadBalancer or NodePort if needed
   port: 9000
   consolePort: 9001
-
 ## Ingress configuration
 ingress:
   enabled: true
-  ingressClassName: nginx  # Change to your ingress class
+  ingressClassName: nginx # Change to your ingress class
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod  # If using cert-manager
+    cert-manager.io/cluster-issuer: letsencrypt-prod # If using cert-manager
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
   hosts:
-    - s3.hc2  # CHANGE THIS to your domain
-
+    - s3.hc2 # CHANGE THIS to your domain
 ## Console ingress (MinIO Web UI)
 consoleIngress:
   enabled: true
@@ -58,36 +44,26 @@ consoleIngress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
-    - s3-console.hc2  # CHANGE THIS to your domain
-
+    - s3-console.hc2 # CHANGE THIS to your domain
 ## Security Context
 securityContext:
   enabled: true
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-
 ## Pod Security Context
 podSecurityContext:
   enabled: true
   fsGroup: 1000
-
 ## Environment variables
 environment:
   ## MinIO Browser settings
   MINIO_BROWSER: "on"
-  
   ## MinIO Region (for S3 compatibility)
   MINIO_REGION: "us-east-1"
-  
   ## MinIO Domain (optional, for virtual-host-style requests)
-<<<<<<< HEAD
   MINIO_DOMAIN: "s3.hc2"
   MINIO_BROWSER_REDIRECT_URL: "https://s3-console.hc2"
-=======
-  # MINIO_DOMAIN: "minio.example.com"
->>>>>>> e6b84bb (chore: deploy code)
-
 ## Buckets to create automatically
 buckets:
   - name: moodle-objectfs
@@ -97,42 +73,34 @@ buckets:
     policy: none
     purge: false
   - name: media
-    policy: download  # public read access
+    policy: download # public read access
     purge: false
-
 ## Users to create (beyond root)
 users:
   - accessKey: cdhc2-s3
     secretKey: cdhc2#*s3@Cntt
     policy: readwrite
-
 ## Policies
 policies:
   - name: moodle-policy
     statements:
       - resources:
-          - 'arn:aws:s3:::moodle-objectfs/*'
+          - "arn:aws:s3:::moodle-objectfs/*"
         actions:
           - "s3:GetObject"
           - "s3:PutObject"
           - "s3:DeleteObject"
           - "s3:ListBucket"
-
 ## Node Affinity (optional)
 affinity: {}
-
 ## Node Selector (optional)
 nodeSelector: {}
-
 ## Tolerations (optional)
 tolerations: []
-
 ## Pod annotations
 podAnnotations: {}
-
 ## Pod labels
 podLabels: {}
-
 ## Liveness probe
 livenessProbe:
   httpGet:
@@ -143,7 +111,6 @@ livenessProbe:
   timeoutSeconds: 5
   successThreshold: 1
   failureThreshold: 3
-
 ## Readiness probe
 readinessProbe:
   httpGet:
@@ -154,17 +121,14 @@ readinessProbe:
   timeoutSeconds: 5
   successThreshold: 1
   failureThreshold: 3
-
 ## Network Policy
 networkPolicy:
   enabled: false
   allowExternal: true
-
 ## PodDisruptionBudget
 podDisruptionBudget:
   enabled: false
   maxUnavailable: 1
-
 ## Metrics configuration (Prometheus)
 metrics:
   serviceMonitor:
