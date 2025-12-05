@@ -148,5 +148,7 @@ export const userPositionOptions = [
 	{ label: 'Tiểu đoàn trưởng', value: 'Tiểu đoàn trưởng' },
 	{ label: 'Phó tiểu đoàn trưởng', value: 'Phó tiểu đoàn trưởng' },
 	{ label: 'Chính trị viên tiểu đoàn', value: 'Chính trị viên tiểu đoàn' },
-	{ label: 'Chính trị phó viên tiểu đoàn', value: 'Chính trị phó viên tiểu đoàn' }
+	{ label: 'Chính trị phó viên tiểu đoàn', value: 'Chính trị phó viên tiểu đoàn' },
+	{ label: 'Hiệu trưởng', value: 'Hiệu trưởng' },
+	{ label: 'Phó hiệu trưởng', value: 'Phó hiệu trưởng' }
 ]

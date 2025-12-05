@@ -67,7 +67,7 @@ export function DataTableRowActions<TData>({
 			toast.success('Xóa dữ liệu thành công!')
 			refetchStudents()
 		} catch (err) {
-			toast.error('Xóa dữ liệu bị lỗi!')
+			toast.error(err.message ?? 'Lỗi xóa dữ liệu!')
 			if (err instanceof AxiosError) {
 				console.error('Http error: ', err.response?.data)
 			}

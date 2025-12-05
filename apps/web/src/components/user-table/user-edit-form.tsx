@@ -236,11 +236,11 @@ export default function UserEditForm({
 						<div className='space-y-2'>
 							<form.AppField name='position'>
 								{(field: any) => (
-									<field.Select
-										label='Chức vụ'
-										placeholder='Chọn chức vụ'
-										values={[]}
-										value={field.state.value}
+									<field.Select 
+									label='Chức vụ'
+									placeholder='Chọn chức vụ'
+									values={userPositionOptions}
+									value={field.state.value}
 									/>
 								)}
 							</form.AppField>

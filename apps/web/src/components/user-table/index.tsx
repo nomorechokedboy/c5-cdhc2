@@ -3,7 +3,7 @@ import useUserData from '@/hooks/useUsers'
 import { defaultStudentColumnVisibility, type TemplType } from '@/types'
 import type { User } from '@/types'
 import { DataTable } from '../data-table'
-import { baseStudentsColumns } from './columns'
+import { baseUsersColumns } from './columns'
 import { Button } from '../ui/button'
 import { ArrowDownToLine, PlusIcon } from 'lucide-react'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
@@ -53,8 +53,7 @@ export default function UserTable({
 			<div className='space-y-4'>
 				<DataTable
 					data={users}
-					columns={baseStudentsColumns}
-					defaultColumnVisibility={defaultStudentColumnVisibility}
+					columns={baseUsersColumns}
 					withDynamicColsData={false}
 					renderToolbarActions={({ exportHook }) => (
 						<div className='flex gap-2'>
