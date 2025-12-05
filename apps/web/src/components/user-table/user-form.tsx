@@ -56,7 +56,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			username: '',
 			password: '',
 			displayName: '',
-			unitId: 1,
+			unitId: null,
 			isSuperUser: false,
 			rank: '',
 			position: ''
