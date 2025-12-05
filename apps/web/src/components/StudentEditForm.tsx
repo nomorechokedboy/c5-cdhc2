@@ -84,6 +84,7 @@ export default function StudentEditForm({
 				if (typeof value.classId === 'string') {
 					value.classId = Number(value.classId)
 				}
+				value.familySize = Number(value.familySize)
 				await handlePatchStudentInfo({ ...value })
 				if (onClose) onClose()
 			} catch (err) {
@@ -646,7 +647,7 @@ export default function StudentEditForm({
 									<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm'>
 										<Field
 											name='familyBackground'
-											label='Thành phần gia đình'
+											label='Hoàn cảnh gia đình'
 										/>
 										<Field
 											name='familySize'

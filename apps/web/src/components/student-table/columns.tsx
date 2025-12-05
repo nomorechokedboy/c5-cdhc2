@@ -10,7 +10,7 @@ import { toDdMmYyyy } from '@/common'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	const [year, month, day] = isoDate.split('-')
-	return `${day}/${month}/${year}`
+	return `${day}/${month}/${year}`.replace("undefined/undefined/", "");
 }
 
 export const baseStudentsColumns: ColumnDef<Student>[] = [
