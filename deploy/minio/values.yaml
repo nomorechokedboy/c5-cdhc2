@@ -15,9 +15,9 @@ rootPassword: Cntt@Hc2*#s3  # CHANGE THIS!
 ## Persistence configuration
 persistence:
   enabled: true
-  storageClass: ""  # Use default storage class or specify yours
+  storageClass: "hdd-storage"
   accessMode: ReadWriteOnce
-  size: 50Gi
+  size: 5Ti
 
 ## Resource limits
 resources:
@@ -75,7 +75,8 @@ environment:
   MINIO_REGION: "us-east-1"
   
   ## MinIO Domain (optional, for virtual-host-style requests)
-  # MINIO_DOMAIN: "minio.example.com"
+  MINIO_DOMAIN: "s3.hc2"
+  MINIO_BROWSER_REDIRECT_URL: "https://s3-console.hc2"
 
 ## Buckets to create automatically
 buckets:

@@ -38,8 +38,8 @@ ingress:
 
 resources:
   limits:
-    cpu: '2.0'
-    memory: 1Gi
+    cpu: '8.0'
+    memory: 4Gi
   requests:
     cpu: 100m
     memory: 256Mi
@@ -62,8 +62,9 @@ readinessProbe:
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 6
   targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 # Volume configuration for SQLite database
 volumeMounts:
   - name: database
@@ -82,11 +83,15 @@ env:
   - name: JWT_PRIVATE_KEY
     value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
   - name: S3_ACCESS_KEY
-    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+    value: cdhc2-s3
   - name: S3_SECRET_KEY
-    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+    value: cdhc2#*s3@Cntt
   - name: S3_ENDPOINT
-    value: XPykCd4O8Gh6a9PfHDRDnzPq8oCenqw1
+    value: http://minio.minio.svc.cluster.local:9000
+  - name: S3_REGION
+    value: us-east-1
+  - name: S3_DEFAULT_BUCKET
+    value: media
   - name: DATABASE_URI
     value: file:/workspace/apps/api/data/local.db
 envFrom: {}
