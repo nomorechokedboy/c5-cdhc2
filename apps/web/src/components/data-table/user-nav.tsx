@@ -11,10 +11,11 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import useAuth from '@/hooks/useAuth'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { useNavigate } from '@tanstack/react-router'
 
 export function UserNav() {
 	const { logout, user } = useAuth()
+	const navigate = useNavigate()
 
 	const splittedDisplayName = user?.displayName?.split(' ') ?? 'A D'
 
@@ -52,17 +53,10 @@ export function UserNav() {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<Tooltip>
-					<TooltipTrigger>
-						<DropdownMenuItem disabled>
-							Trang cá nhân
-							<DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-						</DropdownMenuItem>
-					</TooltipTrigger>
-					<TooltipContent>
-						<p>Tính năng đang phát triển</p>
-					</TooltipContent>
-				</Tooltip>{' '}
+				<DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
+					Trang cá nhân
+					<DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+				</DropdownMenuItem>
 				<DropdownMenuGroup></DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>

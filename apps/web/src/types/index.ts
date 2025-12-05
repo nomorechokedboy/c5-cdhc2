@@ -112,8 +112,10 @@ export interface UserUpdate {
 	position?: string
 }
 
-export interface Student extends Base, StudentBody { }
-export interface User extends Base, UserBody { }
+export interface Student extends Base, StudentBody {}
+export interface User extends Base, UserBody {
+	unitName?: string
+}
 
 export type ClassResponse = { data: Class[] }
 
