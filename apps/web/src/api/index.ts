@@ -165,6 +165,13 @@ export function GetUserInfo() {
 	return requestClient.auth.GetUserInfo().then((resp) => resp.data)
 }
 
+export function ChangePassword(params: {
+	prevPassword: string
+	password: string
+}) {
+	return requestClient.auth.ChangeUserPassword(params)
+}
+
 export function GetUsers() {
 	return requestClient.users.GetUsers().then((resp) => resp.data)
 }

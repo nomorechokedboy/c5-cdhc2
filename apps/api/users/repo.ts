@@ -105,7 +105,12 @@ class sqliteRepo implements Repository {
 		return baseQuery
 			.findFirst({
 				where:
-					conditions.length === 1 ? conditions[0] : and(...conditions)
+					conditions.length === 1
+						? conditions[0]
+						: and(...conditions),
+				with: {
+					unit: true
+				}
 			})
 			.catch(handleDatabaseErr)
 	}

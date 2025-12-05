@@ -59,7 +59,7 @@ interface DataTableProps<TData, TValue> {
 	) => Promise<QueryObserverResult<TData[], unknown>>
 
 	onConfirmRows?: (
-		ids: number[],
+		ids: number[]
 	) => Promise<QueryObserverResult<TData[], unknown>>
 	renderToolbarActions?: (params: {
 		table: TanStackTable<TData>
@@ -95,9 +95,8 @@ export function DataTable<TData, TValue>({
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
 		defaultColumnVisibility
 	)
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-		defaultColumnFilters
-	)
+	const [columnFilters, setColumnFilters] =
+		useState<ColumnFiltersState>(defaultColumnFilters)
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
 	const [isDeleting, setIsDeleting] = useState(false)
@@ -148,11 +147,17 @@ export function DataTable<TData, TValue>({
 
 		try {
 			setIsDeleting(true)
-			 if(confirm('Bạn có chắc muốn xóa các mục đã chọn không? Hành động này không thể hoàn tác!')){
+			if (
+				confirm(
+					'Bạn có chắc muốn xóa các mục đã chọn không? Hành động này không thể hoàn tác!'
+				)
+			) {
 				await onDeleteRows(ids)
 				toast.success('Xóa dữ liệu thành công!')
 				table.resetRowSelection()
-			 }else{handleReset();}
+			} else {
+				handleReset()
+			}
 		} catch (err) {
 			toast.error('Xóa dữ liệu bị lỗi!')
 			if (err instanceof AxiosError) {
@@ -175,7 +180,7 @@ export function DataTable<TData, TValue>({
 			setIsDeleting(true)
 			if (
 				confirm(
-					'Bạn có chắc muốn xác nhận thông tin các mục đã chọn không?'
+					'Bạn có chắc muốn xác nhận thông tin các mục đã chọn không? \nBạn không thể chỉnh sửa thông tin sau khi xác nhận!'
 				)
 			) {
 				await onConfirmRows(ids)
@@ -245,7 +250,7 @@ export function DataTable<TData, TValue>({
 						</Button>
 					)}
 				</div>
-			),
+			)
 		})
 	}, [selectedRows, isDeleting, onDeleteRows, onConfirmRows])
 

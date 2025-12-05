@@ -96,9 +96,14 @@ export const GetUserInfo = api(
 	{ auth: true, expose: true, method: 'GET', path: '/authn/me' },
 	async (): Promise<GetUserInfoResponse> => {
 		const userId = Number(getAuthData()!.userID)
-		const data = await userController
-			.findOne({ id: userId } as UserDB)
-			.then((user) => ({ ...user }) as User)
+		const userData = await userController.findOne({ id: userId } as UserDB)
+
+		const data = {
+			...userData,
+			unitName: userData.unit?.name || null
+		} as User
+
+		delete data.unit
 
 		return { data }
 	}

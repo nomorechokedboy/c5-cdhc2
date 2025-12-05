@@ -58,6 +58,7 @@ export interface UserDB extends Base {
 
 export interface User extends UserDB {
 	roles?: Role[]
+	unitName?: string
 }
 
 export interface CreateUserRequest {

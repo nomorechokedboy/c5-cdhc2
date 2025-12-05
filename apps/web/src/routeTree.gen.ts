@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ThongKeChinhTriRouteImport } from './routes/thong-ke-chinh-tri'
 import { Route as ReligionRouteImport } from './routes/religion'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListUserRouteImport } from './routes/list-user'
 import { Route as KhoiTaoQtvRouteImport } from './routes/khoi-tao-qtv'
@@ -27,352 +28,372 @@ import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$compan
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 
 const ThongKeChinhTriRoute = ThongKeChinhTriRouteImport.update({
-  id: '/thong-ke-chinh-tri',
-  path: '/thong-ke-chinh-tri',
-  getParentRoute: () => rootRouteImport,
+	id: '/thong-ke-chinh-tri',
+	path: '/thong-ke-chinh-tri',
+	getParentRoute: () => rootRouteImport
 } as any)
 const ReligionRoute = ReligionRouteImport.update({
-  id: '/religion',
-  path: '/religion',
-  getParentRoute: () => rootRouteImport,
+	id: '/religion',
+	path: '/religion',
+	getParentRoute: () => rootRouteImport
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+	id: '/profile',
+	path: '/profile',
+	getParentRoute: () => rootRouteImport
 } as any)
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
+	id: '/login',
+	path: '/login',
+	getParentRoute: () => rootRouteImport
 } as any)
 const ListUserRoute = ListUserRouteImport.update({
-  id: '/list-user',
-  path: '/list-user',
-  getParentRoute: () => rootRouteImport,
+	id: '/list-user',
+	path: '/list-user',
+	getParentRoute: () => rootRouteImport
 } as any)
 const KhoiTaoQtvRoute = KhoiTaoQtvRouteImport.update({
-  id: '/khoi-tao-qtv',
-  path: '/khoi-tao-qtv',
-  getParentRoute: () => rootRouteImport,
+	id: '/khoi-tao-qtv',
+	path: '/khoi-tao-qtv',
+	getParentRoute: () => rootRouteImport
 } as any)
 const ImportStudentsRoute = ImportStudentsRouteImport.update({
-  id: '/import-students',
-  path: '/import-students',
-  getParentRoute: () => rootRouteImport,
+	id: '/import-students',
+	path: '/import-students',
+	getParentRoute: () => rootRouteImport
 } as any)
 const HoanCanhKhoKhanRoute = HoanCanhKhoKhanRouteImport.update({
-  id: '/hoan-canh-kho-khan',
-  path: '/hoan-canh-kho-khan',
-  getParentRoute: () => rootRouteImport,
+	id: '/hoan-canh-kho-khan',
+	path: '/hoan-canh-kho-khan',
+	getParentRoute: () => rootRouteImport
 } as any)
 const HcyuRoute = HcyuRouteImport.update({
-  id: '/hcyu',
-  path: '/hcyu',
-  getParentRoute: () => rootRouteImport,
+	id: '/hcyu',
+	path: '/hcyu',
+	getParentRoute: () => rootRouteImport
 } as any)
 const EthnicMinorityRoute = EthnicMinorityRouteImport.update({
-  id: '/ethnic-minority',
-  path: '/ethnic-minority',
-  getParentRoute: () => rootRouteImport,
+	id: '/ethnic-minority',
+	path: '/ethnic-minority',
+	getParentRoute: () => rootRouteImport
 } as any)
 const CpvRoute = CpvRouteImport.update({
-  id: '/cpv',
-  path: '/cpv',
-  getParentRoute: () => rootRouteImport,
+	id: '/cpv',
+	path: '/cpv',
+	getParentRoute: () => rootRouteImport
 } as any)
 const ChuyenDangChinhThucRoute = ChuyenDangChinhThucRouteImport.update({
-  id: '/chuyen-dang-chinh-thuc',
-  path: '/chuyen-dang-chinh-thuc',
-  getParentRoute: () => rootRouteImport,
+	id: '/chuyen-dang-chinh-thuc',
+	path: '/chuyen-dang-chinh-thuc',
+	getParentRoute: () => rootRouteImport
 } as any)
 const BirthdayRoute = BirthdayRouteImport.update({
-  id: '/birthday',
-  path: '/birthday',
-  getParentRoute: () => rootRouteImport,
+	id: '/birthday',
+	path: '/birthday',
+	getParentRoute: () => rootRouteImport
 } as any)
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
+	id: '/',
+	path: '/',
+	getParentRoute: () => rootRouteImport
 } as any)
 const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
-  id: '/tieu-doan/$alias',
-  path: '/tieu-doan/$alias',
-  getParentRoute: () => rootRouteImport,
+	id: '/tieu-doan/$alias',
+	path: '/tieu-doan/$alias',
+	getParentRoute: () => rootRouteImport
 } as any)
 const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
-  id: '/dai-doi/$companyAlias',
-  path: '/dai-doi/$companyAlias',
-  getParentRoute: () => rootRouteImport,
+	id: '/dai-doi/$companyAlias',
+	path: '/dai-doi/$companyAlias',
+	getParentRoute: () => rootRouteImport
 } as any)
 const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
-  id: '/classes/$classId',
-  path: '/classes/$classId',
-  getParentRoute: () => rootRouteImport,
+	id: '/classes/$classId',
+	path: '/classes/$classId',
+	getParentRoute: () => rootRouteImport
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/birthday': typeof BirthdayRoute
-  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
-  '/cpv': typeof CpvRoute
-  '/ethnic-minority': typeof EthnicMinorityRoute
-  '/hcyu': typeof HcyuRoute
-  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
-  '/import-students': typeof ImportStudentsRoute
-  '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
-  '/list-user': typeof ListUserRoute
-  '/login': typeof LoginRoute
-  '/religion': typeof ReligionRoute
-  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
-  '/classes/$classId': typeof ClassesClassIdRoute
-  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+	'/': typeof IndexRoute
+	'/birthday': typeof BirthdayRoute
+	'/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
+	'/cpv': typeof CpvRoute
+	'/ethnic-minority': typeof EthnicMinorityRoute
+	'/hcyu': typeof HcyuRoute
+	'/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
+	'/import-students': typeof ImportStudentsRoute
+	'/khoi-tao-qtv': typeof KhoiTaoQtvRoute
+	'/list-user': typeof ListUserRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/religion': typeof ReligionRoute
+	'/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+	'/classes/$classId': typeof ClassesClassIdRoute
+	'/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+	'/tieu-doan/$alias': typeof TieuDoanAliasRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/birthday': typeof BirthdayRoute
-  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
-  '/cpv': typeof CpvRoute
-  '/ethnic-minority': typeof EthnicMinorityRoute
-  '/hcyu': typeof HcyuRoute
-  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
-  '/import-students': typeof ImportStudentsRoute
-  '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
-  '/list-user': typeof ListUserRoute
-  '/login': typeof LoginRoute
-  '/religion': typeof ReligionRoute
-  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
-  '/classes/$classId': typeof ClassesClassIdRoute
-  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+	'/': typeof IndexRoute
+	'/birthday': typeof BirthdayRoute
+	'/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
+	'/cpv': typeof CpvRoute
+	'/ethnic-minority': typeof EthnicMinorityRoute
+	'/hcyu': typeof HcyuRoute
+	'/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
+	'/import-students': typeof ImportStudentsRoute
+	'/khoi-tao-qtv': typeof KhoiTaoQtvRoute
+	'/list-user': typeof ListUserRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/religion': typeof ReligionRoute
+	'/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+	'/classes/$classId': typeof ClassesClassIdRoute
+	'/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+	'/tieu-doan/$alias': typeof TieuDoanAliasRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/birthday': typeof BirthdayRoute
-  '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
-  '/cpv': typeof CpvRoute
-  '/ethnic-minority': typeof EthnicMinorityRoute
-  '/hcyu': typeof HcyuRoute
-  '/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
-  '/import-students': typeof ImportStudentsRoute
-  '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
-  '/list-user': typeof ListUserRoute
-  '/login': typeof LoginRoute
-  '/religion': typeof ReligionRoute
-  '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
-  '/classes/$classId': typeof ClassesClassIdRoute
-  '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
-  '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+	__root__: typeof rootRouteImport
+	'/': typeof IndexRoute
+	'/birthday': typeof BirthdayRoute
+	'/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
+	'/cpv': typeof CpvRoute
+	'/ethnic-minority': typeof EthnicMinorityRoute
+	'/hcyu': typeof HcyuRoute
+	'/hoan-canh-kho-khan': typeof HoanCanhKhoKhanRoute
+	'/import-students': typeof ImportStudentsRoute
+	'/khoi-tao-qtv': typeof KhoiTaoQtvRoute
+	'/list-user': typeof ListUserRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/religion': typeof ReligionRoute
+	'/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+	'/classes/$classId': typeof ClassesClassIdRoute
+	'/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+	'/tieu-doan/$alias': typeof TieuDoanAliasRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/birthday'
-    | '/chuyen-dang-chinh-thuc'
-    | '/cpv'
-    | '/ethnic-minority'
-    | '/hcyu'
-    | '/hoan-canh-kho-khan'
-    | '/import-students'
-    | '/khoi-tao-qtv'
-    | '/list-user'
-    | '/login'
-    | '/religion'
-    | '/thong-ke-chinh-tri'
-    | '/classes/$classId'
-    | '/dai-doi/$companyAlias'
-    | '/tieu-doan/$alias'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/birthday'
-    | '/chuyen-dang-chinh-thuc'
-    | '/cpv'
-    | '/ethnic-minority'
-    | '/hcyu'
-    | '/hoan-canh-kho-khan'
-    | '/import-students'
-    | '/khoi-tao-qtv'
-    | '/list-user'
-    | '/login'
-    | '/religion'
-    | '/thong-ke-chinh-tri'
-    | '/classes/$classId'
-    | '/dai-doi/$companyAlias'
-    | '/tieu-doan/$alias'
-  id:
-    | '__root__'
-    | '/'
-    | '/birthday'
-    | '/chuyen-dang-chinh-thuc'
-    | '/cpv'
-    | '/ethnic-minority'
-    | '/hcyu'
-    | '/hoan-canh-kho-khan'
-    | '/import-students'
-    | '/khoi-tao-qtv'
-    | '/list-user'
-    | '/login'
-    | '/religion'
-    | '/thong-ke-chinh-tri'
-    | '/classes/$classId'
-    | '/dai-doi/$companyAlias'
-    | '/tieu-doan/$alias'
-  fileRoutesById: FileRoutesById
+	fileRoutesByFullPath: FileRoutesByFullPath
+	fullPaths:
+		| '/'
+		| '/birthday'
+		| '/chuyen-dang-chinh-thuc'
+		| '/cpv'
+		| '/ethnic-minority'
+		| '/hcyu'
+		| '/hoan-canh-kho-khan'
+		| '/import-students'
+		| '/khoi-tao-qtv'
+		| '/list-user'
+		| '/login'
+		| '/profile'
+		| '/religion'
+		| '/thong-ke-chinh-tri'
+		| '/classes/$classId'
+		| '/dai-doi/$companyAlias'
+		| '/tieu-doan/$alias'
+	fileRoutesByTo: FileRoutesByTo
+	to:
+		| '/'
+		| '/birthday'
+		| '/chuyen-dang-chinh-thuc'
+		| '/cpv'
+		| '/ethnic-minority'
+		| '/hcyu'
+		| '/hoan-canh-kho-khan'
+		| '/import-students'
+		| '/khoi-tao-qtv'
+		| '/list-user'
+		| '/login'
+		| '/profile'
+		| '/religion'
+		| '/thong-ke-chinh-tri'
+		| '/classes/$classId'
+		| '/dai-doi/$companyAlias'
+		| '/tieu-doan/$alias'
+	id:
+		| '__root__'
+		| '/'
+		| '/birthday'
+		| '/chuyen-dang-chinh-thuc'
+		| '/cpv'
+		| '/ethnic-minority'
+		| '/hcyu'
+		| '/hoan-canh-kho-khan'
+		| '/import-students'
+		| '/khoi-tao-qtv'
+		| '/list-user'
+		| '/login'
+		| '/profile'
+		| '/religion'
+		| '/thong-ke-chinh-tri'
+		| '/classes/$classId'
+		| '/dai-doi/$companyAlias'
+		| '/tieu-doan/$alias'
+	fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BirthdayRoute: typeof BirthdayRoute
-  ChuyenDangChinhThucRoute: typeof ChuyenDangChinhThucRoute
-  CpvRoute: typeof CpvRoute
-  EthnicMinorityRoute: typeof EthnicMinorityRoute
-  HcyuRoute: typeof HcyuRoute
-  HoanCanhKhoKhanRoute: typeof HoanCanhKhoKhanRoute
-  ImportStudentsRoute: typeof ImportStudentsRoute
-  KhoiTaoQtvRoute: typeof KhoiTaoQtvRoute
-  ListUserRoute: typeof ListUserRoute
-  LoginRoute: typeof LoginRoute
-  ReligionRoute: typeof ReligionRoute
-  ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
-  ClassesClassIdRoute: typeof ClassesClassIdRoute
-  DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
-  TieuDoanAliasRoute: typeof TieuDoanAliasRoute
+	IndexRoute: typeof IndexRoute
+	BirthdayRoute: typeof BirthdayRoute
+	ChuyenDangChinhThucRoute: typeof ChuyenDangChinhThucRoute
+	CpvRoute: typeof CpvRoute
+	EthnicMinorityRoute: typeof EthnicMinorityRoute
+	HcyuRoute: typeof HcyuRoute
+	HoanCanhKhoKhanRoute: typeof HoanCanhKhoKhanRoute
+	ImportStudentsRoute: typeof ImportStudentsRoute
+	KhoiTaoQtvRoute: typeof KhoiTaoQtvRoute
+	ListUserRoute: typeof ListUserRoute
+	LoginRoute: typeof LoginRoute
+	ProfileRoute: typeof ProfileRoute
+	ReligionRoute: typeof ReligionRoute
+	ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
+	ClassesClassIdRoute: typeof ClassesClassIdRoute
+	DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
+	TieuDoanAliasRoute: typeof TieuDoanAliasRoute
 }
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/thong-ke-chinh-tri': {
-      id: '/thong-ke-chinh-tri'
-      path: '/thong-ke-chinh-tri'
-      fullPath: '/thong-ke-chinh-tri'
-      preLoaderRoute: typeof ThongKeChinhTriRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/religion': {
-      id: '/religion'
-      path: '/religion'
-      fullPath: '/religion'
-      preLoaderRoute: typeof ReligionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/list-user': {
-      id: '/list-user'
-      path: '/list-user'
-      fullPath: '/list-user'
-      preLoaderRoute: typeof ListUserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/khoi-tao-qtv': {
-      id: '/khoi-tao-qtv'
-      path: '/khoi-tao-qtv'
-      fullPath: '/khoi-tao-qtv'
-      preLoaderRoute: typeof KhoiTaoQtvRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/import-students': {
-      id: '/import-students'
-      path: '/import-students'
-      fullPath: '/import-students'
-      preLoaderRoute: typeof ImportStudentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hoan-canh-kho-khan': {
-      id: '/hoan-canh-kho-khan'
-      path: '/hoan-canh-kho-khan'
-      fullPath: '/hoan-canh-kho-khan'
-      preLoaderRoute: typeof HoanCanhKhoKhanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hcyu': {
-      id: '/hcyu'
-      path: '/hcyu'
-      fullPath: '/hcyu'
-      preLoaderRoute: typeof HcyuRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ethnic-minority': {
-      id: '/ethnic-minority'
-      path: '/ethnic-minority'
-      fullPath: '/ethnic-minority'
-      preLoaderRoute: typeof EthnicMinorityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cpv': {
-      id: '/cpv'
-      path: '/cpv'
-      fullPath: '/cpv'
-      preLoaderRoute: typeof CpvRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chuyen-dang-chinh-thuc': {
-      id: '/chuyen-dang-chinh-thuc'
-      path: '/chuyen-dang-chinh-thuc'
-      fullPath: '/chuyen-dang-chinh-thuc'
-      preLoaderRoute: typeof ChuyenDangChinhThucRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/birthday': {
-      id: '/birthday'
-      path: '/birthday'
-      fullPath: '/birthday'
-      preLoaderRoute: typeof BirthdayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tieu-doan/$alias': {
-      id: '/tieu-doan/$alias'
-      path: '/tieu-doan/$alias'
-      fullPath: '/tieu-doan/$alias'
-      preLoaderRoute: typeof TieuDoanAliasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dai-doi/$companyAlias': {
-      id: '/dai-doi/$companyAlias'
-      path: '/dai-doi/$companyAlias'
-      fullPath: '/dai-doi/$companyAlias'
-      preLoaderRoute: typeof DaiDoiCompanyAliasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/classes/$classId': {
-      id: '/classes/$classId'
-      path: '/classes/$classId'
-      fullPath: '/classes/$classId'
-      preLoaderRoute: typeof ClassesClassIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
+	interface FileRoutesByPath {
+		'/thong-ke-chinh-tri': {
+			id: '/thong-ke-chinh-tri'
+			path: '/thong-ke-chinh-tri'
+			fullPath: '/thong-ke-chinh-tri'
+			preLoaderRoute: typeof ThongKeChinhTriRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/religion': {
+			id: '/religion'
+			path: '/religion'
+			fullPath: '/religion'
+			preLoaderRoute: typeof ReligionRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/profile': {
+			id: '/profile'
+			path: '/profile'
+			fullPath: '/profile'
+			preLoaderRoute: typeof ProfileRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/login': {
+			id: '/login'
+			path: '/login'
+			fullPath: '/login'
+			preLoaderRoute: typeof LoginRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/list-user': {
+			id: '/list-user'
+			path: '/list-user'
+			fullPath: '/list-user'
+			preLoaderRoute: typeof ListUserRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/khoi-tao-qtv': {
+			id: '/khoi-tao-qtv'
+			path: '/khoi-tao-qtv'
+			fullPath: '/khoi-tao-qtv'
+			preLoaderRoute: typeof KhoiTaoQtvRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/import-students': {
+			id: '/import-students'
+			path: '/import-students'
+			fullPath: '/import-students'
+			preLoaderRoute: typeof ImportStudentsRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/hoan-canh-kho-khan': {
+			id: '/hoan-canh-kho-khan'
+			path: '/hoan-canh-kho-khan'
+			fullPath: '/hoan-canh-kho-khan'
+			preLoaderRoute: typeof HoanCanhKhoKhanRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/hcyu': {
+			id: '/hcyu'
+			path: '/hcyu'
+			fullPath: '/hcyu'
+			preLoaderRoute: typeof HcyuRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/ethnic-minority': {
+			id: '/ethnic-minority'
+			path: '/ethnic-minority'
+			fullPath: '/ethnic-minority'
+			preLoaderRoute: typeof EthnicMinorityRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/cpv': {
+			id: '/cpv'
+			path: '/cpv'
+			fullPath: '/cpv'
+			preLoaderRoute: typeof CpvRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/chuyen-dang-chinh-thuc': {
+			id: '/chuyen-dang-chinh-thuc'
+			path: '/chuyen-dang-chinh-thuc'
+			fullPath: '/chuyen-dang-chinh-thuc'
+			preLoaderRoute: typeof ChuyenDangChinhThucRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/birthday': {
+			id: '/birthday'
+			path: '/birthday'
+			fullPath: '/birthday'
+			preLoaderRoute: typeof BirthdayRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/': {
+			id: '/'
+			path: '/'
+			fullPath: '/'
+			preLoaderRoute: typeof IndexRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/tieu-doan/$alias': {
+			id: '/tieu-doan/$alias'
+			path: '/tieu-doan/$alias'
+			fullPath: '/tieu-doan/$alias'
+			preLoaderRoute: typeof TieuDoanAliasRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/dai-doi/$companyAlias': {
+			id: '/dai-doi/$companyAlias'
+			path: '/dai-doi/$companyAlias'
+			fullPath: '/dai-doi/$companyAlias'
+			preLoaderRoute: typeof DaiDoiCompanyAliasRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/classes/$classId': {
+			id: '/classes/$classId'
+			path: '/classes/$classId'
+			fullPath: '/classes/$classId'
+			preLoaderRoute: typeof ClassesClassIdRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+	}
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  BirthdayRoute: BirthdayRoute,
-  ChuyenDangChinhThucRoute: ChuyenDangChinhThucRoute,
-  CpvRoute: CpvRoute,
-  EthnicMinorityRoute: EthnicMinorityRoute,
-  HcyuRoute: HcyuRoute,
-  HoanCanhKhoKhanRoute: HoanCanhKhoKhanRoute,
-  ImportStudentsRoute: ImportStudentsRoute,
-  KhoiTaoQtvRoute: KhoiTaoQtvRoute,
-  ListUserRoute: ListUserRoute,
-  LoginRoute: LoginRoute,
-  ReligionRoute: ReligionRoute,
-  ThongKeChinhTriRoute: ThongKeChinhTriRoute,
-  ClassesClassIdRoute: ClassesClassIdRoute,
-  DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
-  TieuDoanAliasRoute: TieuDoanAliasRoute,
+	IndexRoute: IndexRoute,
+	BirthdayRoute: BirthdayRoute,
+	ChuyenDangChinhThucRoute: ChuyenDangChinhThucRoute,
+	CpvRoute: CpvRoute,
+	EthnicMinorityRoute: EthnicMinorityRoute,
+	HcyuRoute: HcyuRoute,
+	HoanCanhKhoKhanRoute: HoanCanhKhoKhanRoute,
+	ImportStudentsRoute: ImportStudentsRoute,
+	KhoiTaoQtvRoute: KhoiTaoQtvRoute,
+	ListUserRoute: ListUserRoute,
+	LoginRoute: LoginRoute,
+	ProfileRoute: ProfileRoute,
+	ReligionRoute: ReligionRoute,
+	ThongKeChinhTriRoute: ThongKeChinhTriRoute,
+	ClassesClassIdRoute: ClassesClassIdRoute,
+	DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
+	TieuDoanAliasRoute: TieuDoanAliasRoute
 }
 export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+	._addFileChildren(rootRouteChildren)
+	._addFileTypes<FileRouteTypes>()
