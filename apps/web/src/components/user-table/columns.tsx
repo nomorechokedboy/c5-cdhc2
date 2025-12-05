@@ -22,7 +22,7 @@ const EmptyCell = () => (
 	</Badge>
 )
 
-export const baseStudentsColumns: ColumnDef<User>[] = [
+export const baseUsersColumns: ColumnDef<User>[] = [
 	{
 		id: 'displayName',
 		accessorFn: (row) => row.displayName,

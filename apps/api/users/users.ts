@@ -165,7 +165,16 @@ export const DeleteUsers = api(
 	async (body: DeleteUserRequest): Promise<DeleteUserResponse> => {
 		console.log('users.DeleteStudents body', { body })
 		const users = body.ids
-		await userController.delete(users)
+		const validUnitIds = getAuthData()!.validUnitIds
+		const userId = Number(getAuthData()!.userID);
+		if(body.ids.includes(userId)){
+			throw AppError.handleAppErr(
+				AppError.invalidArgument(
+					"Bạn không thể xóa chính mình!"
+				)
+			)
+		}
+		await userController.delete(users, validUnitIds)
 
 		return { ids: body.ids }
 	}
