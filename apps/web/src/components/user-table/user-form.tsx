@@ -14,10 +14,11 @@ import { useMutation } from '@tanstack/react-query'
 import type { Class, ClassBody, User, UserBody, UserFormData } from '@/types'
 import { toast } from 'sonner'
 import useUnitsData from '@/hooks/useUnitsData'
+import { userRankOptions, userPositionOptions} from '@/data/ethnics'
 
 const schema = z.object({
 	username: z.string().min(1, 'Tên tài khoản không được bỏ trống'),
-	displayName: z.string().min(1, 'Tên hiển thị không được bỏ trống'),
+	displayName: z.string().min(1, 'Họ và tên không được bỏ trống'),
 	password: z.string().min(1, 'Mật khẩu không được bỏ trống'),
 	unitId: z.preprocess(
 		(val) => {
@@ -29,7 +30,9 @@ const schema = z.object({
 		},
 		z.number().min(1, 'Đơn vị không được bỏ trống')
 	),
-	isSuperUser: z.coerce.boolean()
+	isSuperUser: z.coerce.boolean(),
+	rank: z.string().optional(),
+	position: z.string().optional()
 })
 
 export interface UserFormProps {
@@ -56,7 +59,9 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			password: '',
 			displayName: '',
 			unitId: 1,
-			isSuperUser: false
+			isSuperUser: false,
+			rank: '',
+			position: ''
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
@@ -103,18 +108,19 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 							form.handleSubmit()
 						}}
 					>
+
 						<div className='space-y-2'>
-							<form.AppField name='username'>
+							<form.AppField name='displayName'>
 								{(field: any) => (
-									<field.TextField label='Tên tài khoản' />
+									<field.TextField label='Họ và tên' />
 								)}
 							</form.AppField>
 						</div>
 
 						<div className='space-y-2'>
-							<form.AppField name='displayName'>
+							<form.AppField name='username'>
 								{(field: any) => (
-									<field.TextField label='Tên hiển thị' />
+									<field.TextField label='Tên tài khoản' />
 								)}
 							</form.AppField>
 						</div>
@@ -146,6 +152,32 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 											}
 										/>
 									</>
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='rank'>
+								{(field: any) => (
+									<field.Select
+										label='Cấp bậc'
+										placeholder='Chọn cấp bậc'
+										values={userRankOptions}
+										defaultValue={''}
+									/>
+								)}
+							</form.AppField>
+						</div>
+
+						<div className='space-y-2'>
+							<form.AppField name='position'>
+								{(field: any) => (
+									<field.Select
+										label='Chức vụ'
+										placeholder='Chọn chức vụ'
+										values={userPositionOptions}
+										defaultValue={''}
+									/>
 								)}
 							</form.AppField>
 						</div>

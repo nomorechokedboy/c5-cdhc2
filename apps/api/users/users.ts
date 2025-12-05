@@ -10,13 +10,18 @@ interface CreateUserRequest {
 	unitId?: number
 	isSuperUser?: boolean
 	status?: string
+	rank?: string
+	position?: string
 }
 
 interface UpdateUserRequest {
 	id: number
+	password?: string
 	displayName?: string
 	unitId?: number
 	isSuperUser?: boolean
+	rank?: string
+	position?: string
 }
 
 interface GetUserRequest {
@@ -92,7 +97,7 @@ export const CreateUser = api(
 			AppError.handleAppErr(AppError.permissionDenied('Unauthorized'))
 		}
 
-		const { username, password, displayName, unitId, isSuperUser, status } =
+		const { username, password, displayName, unitId, isSuperUser, status, rank, position } =
 			req
 
 		const data = await userController
@@ -102,7 +107,9 @@ export const CreateUser = api(
 				displayName,
 				unitId,
 				isSuperUser,
-				status
+				status,
+				rank,
+				position
 			})
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
@@ -113,9 +120,9 @@ export const CreateUser = api(
 export const UpdateUser = api(
 	{ expose: true, auth: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
-		const { id, displayName, unitId, isSuperUser } = req
+		const { id, displayName, unitId, isSuperUser, password, rank, position } = req
 		const data = await userController
-			.update({ id, displayName, unitId, isSuperUser })
+			.update({ id, displayName, unitId, isSuperUser, password, rank, position })
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
 		return { data }

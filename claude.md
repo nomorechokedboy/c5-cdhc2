@@ -782,6 +782,28 @@ All schema definitions are located in `apps/api/schema/`:
 
 ---
 
+
+## Generate Migrations
+```bash
+encore exec -- pnpm generate
+```
+Generates Drizzle migrations based on schema changes in `apps/api/schema/`.
+
+## Run Migrations
+```bash
+encore exec -- pnpm migrate
+```
+Runs pending migrations against the database.
+
+## Workflow
+When creating new fields or modifying schema:
+
+1. **Generate migrations**: Run `encore exec -- pnpm generate` to create migration files from schema changes
+2. **Apply migrations**: Run `encore exec -- pnpm migrate` to apply the migrations to the database
+
+**Important**: Always use generate + migrate workflow. Do not use `pnpm push` for schema changes.
+
+
 ## Notes
 
 1. **Timestamps:** All timestamps are stored as TEXT in ISO 8601 format

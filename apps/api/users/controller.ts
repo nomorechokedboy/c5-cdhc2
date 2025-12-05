@@ -47,8 +47,22 @@ class controller {
 			.catch(AppError.handleAppErr)
 	}
 
-	update(params: UpdateUserRequest): Promise<UserDB> {
+	async update(params: UpdateUserRequest): Promise<UserDB> {
 		log.trace('UserController.update params', { params })
+
+		// Hash password if provided (for password change)
+		if (params.password) {
+			try {
+				const hashPassword = await argon2.hash(params.password, {
+					secret: Buffer.from(appConfig.HASH_SECRET)
+				})
+				params.password = hashPassword
+			} catch (err) {
+				log.error('UserController.update password hash error', { err })
+				throw AppError.handleAppErr(AppError.internal('Internal error'))
+			}
+		}
+
 		return this.repo.update(params).catch(AppError.handleAppErr)
 	}
 

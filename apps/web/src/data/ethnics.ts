@@ -128,3 +128,25 @@ export const rankOptions = [
 	{ label: 'Trung tá CN', value: 'Trung tá chuyên nghiệp' },
 	{ label: 'Thượng tá CN', value: 'Thượng tá chuyên nghiệp' }
 ]
+
+// User rank options (for officers)
+export const userRankOptions = [
+	{ label: 'Thiếu Úy', value: 'Thiếu Úy' },
+	{ label: 'Trung Úy', value: 'Trung Úy' },
+	{ label: 'Thượng Úy', value: 'Thượng Úy' },
+	{ label: 'Đại Úy', value: 'Đại Úy' },
+	{ label: 'Thiếu Tá', value: 'Thiếu Tá' },
+	{ label: 'Trung Tá', value: 'Trung Tá' },
+	{ label: 'Đại Tá', value: 'Đại Tá' }
+]
+
+// User position options
+export const userPositionOptions = [
+	{ label: 'Đại đội trưởng', value: 'Đại đội trưởng' },
+	{ label: 'Phó Đại đội trưởng', value: 'Phó Đại đội trưởng' },
+	{ label: 'Chính trị viên Đại đội', value: 'Chính trị viên Đại đội' },
+	{ label: 'Tiểu đoàn trưởng', value: 'Tiểu đoàn trưởng' },
+	{ label: 'Phó tiểu đoàn trưởng', value: 'Phó tiểu đoàn trưởng' },
+	{ label: 'Chính trị viên tiểu đoàn', value: 'Chính trị viên tiểu đoàn' },
+	{ label: 'Chính trị phó viên tiểu đoàn', value: 'Chính trị phó viên tiểu đoàn' }
+]

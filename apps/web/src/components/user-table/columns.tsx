@@ -2,10 +2,11 @@ import type { ColumnDef } from '@tanstack/react-table'
 import type { User } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '../data-table/data-table-column-header'
-import { useUserTableContext } from './UserTableContext'
 import { DataTableRowActions } from './data-user-table-row-actions'
+import { Shield, Award, Briefcase } from 'lucide-react'
 
-function isoToDdMmYyyy(isoDate: string): string {
+// Helper function to format ISO date to DD/MM/YYYY
+function formatDate(isoDate: string): string {
 	if (!isoDate) return 'N/A'
 	const date = new Date(isoDate)
 	const day = date.getDate().toString().padStart(2, '0')
@@ -14,57 +15,34 @@ function isoToDdMmYyyy(isoDate: string): string {
 	return `${day}/${month}/${year}`
 }
 
+// Helper component for empty data cells
+const EmptyCell = () => (
+	<Badge variant='secondary' className='bg-gray-200 text-gray-600'>
+		Chưa có thông tin
+	</Badge>
+)
+
 export const baseStudentsColumns: ColumnDef<User>[] = [
 	{
 		id: 'displayName',
 		accessorFn: (row) => row.displayName,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Tên người dùng' />
-		),
-		meta: {
-			label: 'Tên người dùng'
-		}
-	},
-	{
-		accessorKey: 'createdAt',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Ngày tạo' />
+			<DataTableColumnHeader column={column} title='Họ và tên' />
 		),
 		cell: ({ row }) => (
-			<div className='min-w-28'>
-				{row.getValue('createdAt') ? (
-					isoToDdMmYyyy(row.getValue('createdAt'))
-				) : (
-					<Badge className='bg-blue-500 font-bold'>
-						Chưa có thông tin...
+			<div className='flex items-center gap-2 min-w-40'>
+				<span className='font-medium'>{row.original.displayName}</span>
+				{row.original.isSuperUser && (
+					<Badge variant='default' className='bg-blue-600'>
+						<Shield className='w-3 h-3' />
 					</Badge>
 				)}
 			</div>
 		),
 		meta: {
-			label: 'Ngày tạo'
+			label: 'Họ và tên'
 		}
 	},
-	// {
-	// 	accessorKey: 'updateAt',
-	// 	header: ({ column }) => (
-	// 		<DataTableColumnHeader column={column} title='Ngày cập nhật' />
-	// 	),
-	// 	cell: ({ row }) => (
-	// 		<div className='min-w-28'>
-	// 			{row.getValue('updateAt') ? (
-	// 				isoToDdMmYyyy(row.getValue('updateAt'))
-	// 			) : (
-	// 				<Badge className='bg-blue-500 font-bold'>
-	// 					Chưa có thông tin...
-	// 				</Badge>
-	// 			)}
-	// 		</div>
-	// 	),
-	// 	meta: {
-	// 		label: 'Ngày cập nhật'
-	// 	}
-	// },
 	{
 		id: 'username',
 		accessorFn: (row) => row.username,
@@ -72,14 +50,8 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 			<DataTableColumnHeader column={column} title='Tên tài khoản' />
 		),
 		cell: ({ row }) => (
-			<div className='min-w-28'>
-				{row.getValue('username') ? (
-					row.getValue('username')
-				) : (
-					<Badge className='bg-blue-500 font-bold'>
-						Chưa có thông tin...
-					</Badge>
-				)}
+			<div className='min-w-32'>
+				{row.original.username || <EmptyCell />}
 			</div>
 		),
 		meta: {
@@ -93,18 +65,71 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 			<DataTableColumnHeader column={column} title='Đơn vị' />
 		),
 		cell: ({ row }) => (
-			<div className='min-w-28'>
-				{row.getValue('unit.name') ? (
-					row.getValue('unit.name')
-				) : (
-					<Badge className='bg-blue-500 font-bold'>
-						Chưa có thông tin...
-					</Badge>
-				)}
+			<div className='min-w-36'>
+				{row.original.unit?.name || <EmptyCell />}
 			</div>
 		),
 		meta: {
 			label: 'Đơn vị'
+		}
+	},
+	{
+		id: 'rank',
+		accessorFn: (row) => row.rank || null,
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Cấp bậc' />
+		),
+		cell: ({ row }) => (
+			<div className='min-w-28'>
+				{row.original.rank ? (
+					<div className='flex items-center gap-2'>
+						<Award className='w-4 h-4 text-amber-600' />
+						<span>{row.original.rank}</span>
+					</div>
+				) : (
+					<EmptyCell />
+				)}
+			</div>
+		),
+		meta: {
+			label: 'Cấp bậc'
+		}
+	},
+	{
+		id: 'position',
+		accessorFn: (row) => row.position || null,
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Chức vụ' />
+		),
+		cell: ({ row }) => (
+			<div className='min-w-36'>
+				{row.original.position ? (
+					<div className='flex items-center gap-2'>
+						<Briefcase className='w-4 h-4 text-blue-600' />
+						<span>{row.original.position}</span>
+					</div>
+				) : (
+					<EmptyCell />
+				)}
+			</div>
+		),
+		meta: {
+			label: 'Chức vụ'
+		}
+	},
+	{
+		id: 'createdAt',
+		accessorKey: 'createdAt',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Ngày tạo' />
+		),
+		cell: ({ row }) => (
+			<div className='min-w-28 text-gray-600'>
+				{row.original.createdAt ? formatDate(row.original.createdAt) : <EmptyCell />}
+			</div>
+		),
+		meta: {
+			label: 'Ngày tạo'
 		}
 	},
 	{
@@ -113,25 +138,26 @@ export const baseStudentsColumns: ColumnDef<User>[] = [
 	}
 ]
 
+// Alternative column set without actions (for battalion view)
 export const battalionStudentColumnsWithoutAction: ColumnDef<User>[] = [
 	{
 		id: 'displayName',
 		accessorFn: (row) => row.displayName,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Tên người dùng' />
+			<DataTableColumnHeader column={column} title='Họ và tên' />
 		),
-		meta: {
-			label: 'Tên người dùng'
-		}
-	},
-	{
-		accessorKey: 'createAt',
-		header: 'Ngày tạo',
 		cell: ({ row }) => (
-			<div className=''>{isoToDdMmYyyy(row.getValue('createAt'))}</div>
+			<div className='flex items-center gap-2'>
+				<span className='font-medium'>{row.original.displayName}</span>
+				{row.original.isSuperUser && (
+					<Badge variant='default' className='bg-blue-600'>
+						<Shield className='w-3 h-3' />
+					</Badge>
+				)}
+			</div>
 		),
 		meta: {
-			label: 'Ngày tạo'
+			label: 'Họ và tên'
 		}
 	},
 	{
@@ -155,47 +181,65 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<User>[] = [
 		}
 	},
 	{
+		id: 'rank',
+		accessorFn: (row) => row.rank || null,
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Cấp bậc' />
+		),
+		cell: ({ row }) => (
+			<div className='flex items-center gap-2'>
+				{row.original.rank && <Award className='w-4 h-4 text-amber-600' />}
+				<span>{row.original.rank || '-'}</span>
+			</div>
+		),
+		meta: {
+			label: 'Cấp bậc'
+		}
+	},
+	{
+		id: 'position',
+		accessorFn: (row) => row.position || null,
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Chức vụ' />
+		),
+		cell: ({ row }) => (
+			<div className='flex items-center gap-2'>
+				{row.original.position && <Briefcase className='w-4 h-4 text-blue-600' />}
+				<span>{row.original.position || '-'}</span>
+			</div>
+		),
+		meta: {
+			label: 'Chức vụ'
+		}
+	},
+	{
+		id: 'createdAt',
+		accessorKey: 'createdAt',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Ngày tạo' />
+		),
+		cell: ({ row }) => (
+			<div className='text-gray-600'>
+				{row.original.createdAt ? formatDate(row.original.createdAt) : '-'}
+			</div>
+		),
+		meta: {
+			label: 'Ngày tạo'
+		}
+	},
+	{
 		id: 'actions',
 		header: 'Thao tác',
-		cell: ({ row }) => {
-			const id = row.original.id
-
-			return (
-				<button
-					onClick={() => console.log('Edit:', id)}
-					className='px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600'
-				>
-					Sửa
-				</button>
-			)
-		},
+		cell: ({ row }) => (
+			<button
+				onClick={() => console.log('Edit:', row.original.id)}
+				className='px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+			>
+				Sửa
+			</button>
+		),
 		meta: {
 			label: 'Thao tác'
 		}
 	}
 ]
-
-// export const hcyuColumnVisibility = {
-// 	dob: false,
-// 	enlistmentPeriod: false,
-// 	isGraduated: false,
-// 	major: false,
-// 	phone: false,
-// 	position: false,
-// 	policyBeneficiaryGroup: false,
-// 	cpvId: false,
-// 	previousPosition: false,
-// 	religion: false,
-// 	schoolName: false,
-// 	shortcoming: false,
-// 	talent: false,
-// 	fatherName: false,
-// 	fatherJob: false,
-// 	fatherPhoneNumber: false,
-// 	motherName: false,
-// 	motherJob: false,
-// 	motherPhoneNumber: false,
-// 	address: false,
-// 	birthPlace: false,
-// 	cpvOfficialAt: false
-// }
