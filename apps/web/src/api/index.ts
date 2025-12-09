@@ -1,21 +1,23 @@
-import type {
-	AppNotification,
-	AppNotificationQuery,
-	Class,
-	ClassBody,
-	DeleteStudentsBody,
-	ExportData,
-	ExportPoliticsQualityReport,
-	GetUnitQuery,
-	InitAdminRequest,
-	MarkAsReadNotificationParams,
-	Student,
-	StudentBody,
-	Unit,
-	UnitLevel,
-	UpdateStudentsBody,
-	UpdateUserBody,
-	UserBody
+import {
+	Permission,
+	Role,
+	type AppNotification,
+	type AppNotificationQuery,
+	type Class,
+	type ClassBody,
+	type DeleteStudentsBody,
+	type ExportData,
+	type ExportPoliticsQualityReport,
+	type GetUnitQuery,
+	type InitAdminRequest,
+	type MarkAsReadNotificationParams,
+	type Student,
+	type StudentBody,
+	type Unit,
+	type UnitLevel,
+	type UpdateStudentsBody,
+	type UpdateUserBody,
+	type UserBody
 } from '@/types'
 import { appFetcher } from '@/lib/axios'
 import Client, { auth, classes, students, units } from './client'
@@ -189,4 +191,33 @@ export function IsInitAdmin() {
 
 export function InitAdmin(req: InitAdminRequest) {
 	return requestClient.users.InitAdmin(req)
+}
+
+export function GetRoles() {
+	return requestClient.roles
+		.GetRoles()
+		.then((resp) => resp.data)
+		.then((roles) => roles.map(Role.From))
+}
+
+export function CreateRole(body: {
+	name: string
+	description?: string
+	permissionIds?: number[]
+}) {
+	return requestClient.roles.CreateRole(body)
+}
+
+export function GetPermissions() {
+	return requestClient.permissions
+		.GetPermissions()
+		.then((resp) => resp.data)
+		.then((perms) => perms.map(Permission.From))
+}
+
+export function CreatePermission(body: {
+	actionId: number
+	resourceId: number
+}) {
+	return requestClient.permissions.CreatePermission(body)
 }

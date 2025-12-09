@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VaiTroRouteImport } from './routes/vai-tro'
 import { Route as ThongKeChinhTriRouteImport } from './routes/thong-ke-chinh-tri'
 import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -21,12 +22,18 @@ import { Route as HcyuRouteImport } from './routes/hcyu'
 import { Route as EthnicMinorityRouteImport } from './routes/ethnic-minority'
 import { Route as CpvRouteImport } from './routes/cpv'
 import { Route as ChuyenDangChinhThucRouteImport } from './routes/chuyen-dang-chinh-thuc'
+import { Route as CacQuyenRouteImport } from './routes/cac-quyen'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 
+const VaiTroRoute = VaiTroRouteImport.update({
+  id: '/vai-tro',
+  path: '/vai-tro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ThongKeChinhTriRoute = ThongKeChinhTriRouteImport.update({
   id: '/thong-ke-chinh-tri',
   path: '/thong-ke-chinh-tri',
@@ -87,6 +94,11 @@ const ChuyenDangChinhThucRoute = ChuyenDangChinhThucRouteImport.update({
   path: '/chuyen-dang-chinh-thuc',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CacQuyenRoute = CacQuyenRouteImport.update({
+  id: '/cac-quyen',
+  path: '/cac-quyen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BirthdayRoute = BirthdayRouteImport.update({
   id: '/birthday',
   path: '/birthday',
@@ -116,6 +128,7 @@ const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/cac-quyen': typeof CacQuyenRoute
   '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
@@ -128,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+  '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -135,6 +149,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/cac-quyen': typeof CacQuyenRoute
   '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
@@ -147,6 +162,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+  '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -155,6 +171,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/birthday': typeof BirthdayRoute
+  '/cac-quyen': typeof CacQuyenRoute
   '/chuyen-dang-chinh-thuc': typeof ChuyenDangChinhThucRoute
   '/cpv': typeof CpvRoute
   '/ethnic-minority': typeof EthnicMinorityRoute
@@ -167,6 +184,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
+  '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
@@ -176,6 +194,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/birthday'
+    | '/cac-quyen'
     | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
@@ -188,6 +207,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
+    | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -195,6 +215,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/birthday'
+    | '/cac-quyen'
     | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
@@ -207,6 +228,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
+    | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -214,6 +236,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/birthday'
+    | '/cac-quyen'
     | '/chuyen-dang-chinh-thuc'
     | '/cpv'
     | '/ethnic-minority'
@@ -226,6 +249,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
+    | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
@@ -234,6 +258,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BirthdayRoute: typeof BirthdayRoute
+  CacQuyenRoute: typeof CacQuyenRoute
   ChuyenDangChinhThucRoute: typeof ChuyenDangChinhThucRoute
   CpvRoute: typeof CpvRoute
   EthnicMinorityRoute: typeof EthnicMinorityRoute
@@ -246,6 +271,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ReligionRoute: typeof ReligionRoute
   ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
+  VaiTroRoute: typeof VaiTroRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
@@ -253,6 +279,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vai-tro': {
+      id: '/vai-tro'
+      path: '/vai-tro'
+      fullPath: '/vai-tro'
+      preLoaderRoute: typeof VaiTroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/thong-ke-chinh-tri': {
       id: '/thong-ke-chinh-tri'
       path: '/thong-ke-chinh-tri'
@@ -337,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChuyenDangChinhThucRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cac-quyen': {
+      id: '/cac-quyen'
+      path: '/cac-quyen'
+      fullPath: '/cac-quyen'
+      preLoaderRoute: typeof CacQuyenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/birthday': {
       id: '/birthday'
       path: '/birthday'
@@ -378,6 +418,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BirthdayRoute: BirthdayRoute,
+  CacQuyenRoute: CacQuyenRoute,
   ChuyenDangChinhThucRoute: ChuyenDangChinhThucRoute,
   CpvRoute: CpvRoute,
   EthnicMinorityRoute: EthnicMinorityRoute,
@@ -390,6 +431,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ReligionRoute: ReligionRoute,
   ThongKeChinhTriRoute: ThongKeChinhTriRoute,
+  VaiTroRoute: VaiTroRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
