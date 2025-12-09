@@ -24,6 +24,11 @@ $string['invalidtoken'] = 'Invalid or expired OAuth2 access token';
 $string['tokenexpired'] = 'OAuth2 access token has expired';
 $string['userdeleted'] = 'User account has been deleted';
 $string['usersuspended'] = 'User account is suspended';
+// Add these lines to the error messages section:
+$string['missingparameter'] = 'Either accesstoken or userid must be provided';
+$string['toomanyparameters'] = 'Only one of accesstoken or userid should be provided';
+$string['usernotfound'] = 'User not found';
+$string['invalidtokenstructure'] = 'Token record does not contain user ID field';
 
 // Web service descriptions
 $string['get_user_info'] = 'Get user information from OAuth2 token';
