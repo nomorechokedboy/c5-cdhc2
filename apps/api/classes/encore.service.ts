@@ -1,6 +1,6 @@
 import { Service } from 'encore.dev/service'
-import { authzMiddleware } from '../middleware/authz'
+import { authzMiddleware, permissionMiddleware } from '../middleware/authz'
 
 export default new Service('classes', {
-	middlewares: [authzMiddleware]
+	middlewares: [authzMiddleware, permissionMiddleware]
 })

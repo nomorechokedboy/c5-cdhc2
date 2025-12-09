@@ -3,6 +3,7 @@ import { getAuthData } from '~encore/auth'
 import unitRepo from '../units/repo'
 import log from 'encore.dev/log'
 import userRepo from '../users/repo'
+import { AppError } from '../errors'
 
 // Extend the middleware data type
 declare module 'encore.dev/api' {
@@ -109,5 +110,125 @@ export const authzMiddleware = middleware(
 			req.data.validUnitIds = []
 			return next(req)
 		}
+	}
+)
+
+// Define permission mapping based on method and path patterns
+const PERMISSION_MAP: Record<string, string[]> = {
+	'POST:/classes': ['classes:create'],
+	'GET:/classes': ['classes:read'],
+	'GET:/classes/:id': ['classes:read'],
+	'PATCH:/classes': ['classes:update'],
+	'DELETE:/classes': ['classes:delete'],
+
+	'POST:/students': ['students:create'],
+	'GET:/students': ['students:read'],
+	'GET:/students/:id': ['students:read'],
+	'PATCH:/students': ['students:update'],
+	'DELETE:/students': ['students:delete'],
+
+	'POST:/units': ['units:create'],
+	'GET:/units': ['units:read'],
+	'GET:/units/:id': ['units:read'],
+	'PATCH:/units': ['units:update'],
+	'DELETE:/units': ['units:delete'],
+
+	'POST:/users': ['users:create'],
+	'GET:/users': ['users:read'],
+	'GET:/users/:id': ['users:read'],
+	'PATCH:/users': ['users:update'],
+	'DELETE:/users': ['users:delete'],
+
+	'POST:/roles': ['roles:create'],
+	'GET:/roles': ['roles:read'],
+	'GET:/roles/:id': ['roles:read'],
+	'PUT:/roles/:id': ['roles:update'],
+	'DELETE:/roles': ['roles:delete']
+}
+
+function getPermissionsForRequest(method: string, path: string): string[] {
+	// Try exact match first
+	log.debug('DEBUG permission mdw', { method, path })
+	const key = `${method}:${path}`
+	if (PERMISSION_MAP[key]) {
+		return PERMISSION_MAP[key]
+	}
+
+	// Try pattern matching for dynamic segments
+	for (const [pattern, permissions] of Object.entries(PERMISSION_MAP)) {
+		const [patternMethod, patternPath] = pattern.split(':')
+		if (method !== patternMethod) continue
+
+		// Convert pattern to regex
+		const regexPattern = patternPath
+			.replace(/:\w+/g, '[^/]+') // Replace :id with any non-slash chars
+			.replace(/\*/g, '.*') // Replace * with any chars
+
+		const regex = new RegExp(`^${regexPattern}$`)
+		if (regex.test(path)) {
+			return permissions
+		}
+	}
+
+	return []
+}
+
+export const permissionMiddleware = middleware(
+	{ target: { auth: true } },
+	async (req, next) => {
+		const authData = getAuthData()
+
+		if (!authData) {
+			log.warn('permissionMiddleware: No auth data available')
+			throw AppError.unauthenticated('Authentication required')
+		}
+
+		// Super admins bypass all permission checks
+		if (authData.isSuperAdmin) {
+			log.trace('permissionMiddleware: Super admin bypass', {
+				userId: authData.userID
+			})
+			return next(req)
+		}
+
+		// Get required permissions for this endpoint
+		const requiredPermissions = getPermissionsForRequest(
+			req.requestMeta?.method,
+			req.requestMeta?.path
+		)
+
+		// If no permissions required for this endpoint, allow access
+		if (requiredPermissions.length === 0) {
+			return next(req)
+		}
+
+		const userPermissions = authData.permissions || []
+
+		// Check if user has required permissions
+		const hasPermission = requiredPermissions.every((required) =>
+			userPermissions.includes(required)
+		)
+
+		if (!hasPermission) {
+			log.warn('permissionMiddleware: Permission denied', {
+				userId: authData.userID,
+				method: req.requestMeta?.method,
+				path: req.requestMeta?.path,
+				required: requiredPermissions,
+				has: userPermissions
+			})
+
+			throw AppError.permissionDenied(
+				`Missing required permission(s): ${requiredPermissions.join(', ')}`
+			)
+		}
+
+		log.trace('permissionMiddleware: Permission granted', {
+			userId: authData.userID,
+			endpoint: `${req.requestMeta?.method}:${req.requestMeta?.path}`,
+			checked: requiredPermissions
+		})
+
+		return next(req)
 	}
 )

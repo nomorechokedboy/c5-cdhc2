@@ -1,15 +1,13 @@
 import userRepo from '../users/repo'
 import { Repository as UserRepository } from '../users'
-import { Repository as UnitRespository } from '../units'
 import log from 'encore.dev/log'
-import { Unit, UserDB } from '../schema'
+import { UserDB } from '../schema'
 import { AppError } from '../errors'
 import argon2 from 'argon2'
 import { appConfig } from '../configs'
 import jwt from 'jsonwebtoken'
 import authzController from '../authz/controller'
 import type { StringValue } from 'ms'
-import unitRepo from '../units/repo'
 
 type LoginRequest = {
 	username: string
@@ -24,9 +22,6 @@ type TokenPayload = {
 	type: 'access' | 'refresh'
 	iat?: number
 	exp?: number
-	validUnitIds?: number[]
-
-	validClassIds: number[]
 }
 
 type TokenResponse = {
@@ -47,86 +42,8 @@ type ChangePasswordRequest = {
 class controller {
 	constructor(
 		private readonly userRepo: UserRepository,
-		private readonly unitRepo: UnitRespository,
 		private readonly repo = userRepo
 	) {}
-
-	async getValidIds(unitId: number) {
-		const unit = await this.unitRepo.getOne({ id: unitId })
-		if (unit === null || unit === undefined) {
-			AppError.handleAppErr(
-				AppError.invalidArgument("User don'have unit")
-			)
-		}
-		let classIds: number[] = []
-		let unitIds: number[] = []
-		if (unit?.level === 'battalion') {
-			classIds = unit.children
-				.map((c) => c.classes.map((cl) => cl.id))
-				.flat()
-			unitIds = unit.children.map((c) => c.id).flat()
-		} else if (unit?.level === 'company') {
-			classIds = unit.classes.map((cl) => cl.id)
-		}
-		unitIds.push(unitId)
-
-		return { validClassIds: classIds, validUnitIds: unitIds }
-	}
-
-	getClassIdsFromUnit(unit: Unit) {
-		let ids = unit.classes?.map((c) => c.id) || []
-		if (unit.children) {
-			for (const child of unit.children) {
-				ids = ids.concat(this.getClassIdsFromUnit(child))
-			}
-		}
-		return ids
-	}
-
-	getUnitIdsFromUnit(unit: Unit) {
-		let ids = [unit.id]
-		if (unit.children) {
-			for (const child of unit.children) {
-				ids = ids.concat(this.getUnitIdsFromUnit(child))
-			}
-		}
-		return ids
-	}
-
-	async getUserValidResourceIds(user: {
-		unitId: number | null
-		isSuperUser: boolean
-	}) {
-		let classIds: number[] = []
-		let unitIds: number[] = []
-
-		if (user.unitId !== null) {
-			const unit = await this.unitRepo.getOne({ id: user.unitId })
-			if (unit === null || unit === undefined) {
-				AppError.handleAppErr(
-					AppError.invalidArgument("User don'have unit")
-				)
-			}
-
-			const validIds = await this.getValidIds(user.unitId!)
-			classIds = validIds.validClassIds
-			unitIds = validIds.validUnitIds
-		}
-
-		if (user.isSuperUser === true) {
-			const units = await this.unitRepo.findAll()
-			const allClassIds = units.flatMap((u) =>
-				this.getClassIdsFromUnit(u)
-			)
-			const allUnitIds = units.flatMap((u) => this.getUnitIdsFromUnit(u))
-
-			classIds = allClassIds
-			unitIds = allUnitIds
-			return { classIds, unitIds }
-		}
-
-		return { classIds, unitIds }
-	}
 
 	async genTokens(user: UserDB): Promise<TokenResponse> {
 		try {
@@ -135,30 +52,23 @@ class controller {
 				user.id
 			)
 
-			const { classIds, unitIds } =
-				await this.getUserValidResourceIds(user)
-
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				isSuperUser: user.isSuperUser,
 				status: user.status,
 				permissions,
-				type: 'access',
-				validClassIds: classIds,
-				validUnitIds: unitIds
+				type: 'access'
+				// Removed validClassIds and validUnitIds - computed dynamically in middleware
 			}
 
 			const refreshPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				isSuperUser: user.isSuperUser,
 				status: user.status,
-				permissions: [], // Refresh tokens don’t need permissions
-				type: 'refresh',
-				validClassIds: [],
-				validUnitIds: []
+				permissions: [], // Refresh tokens don't need permissions
+				type: 'refresh'
 			}
 
-			// Use genToken for both
 			const accessToken = await this.genToken(
 				accessPayload,
 				appConfig.JWT_PRIVATE_KEY,
@@ -192,7 +102,6 @@ class controller {
 		{ expiresIn }: { expiresIn?: number | StringValue }
 	): Promise<string> {
 		try {
-			// Generate Access Token (short-lived: 30 minutes)
 			const token = jwt.sign(payload, secret, {
 				issuer: 'cdhc2-student-management-api',
 				audience: ['cdhc2-student-management-web'],
@@ -274,17 +183,14 @@ class controller {
 				.catch(AppError.handleAppErr)
 
 			const permissions = await authzController.getUserPermissions(userId)
-			const { classIds: validClassIds, unitIds: validUnitIds } =
-				await this.getUserValidResourceIds(user)
 
 			const accessToken = await this.genToken(
 				{
 					userId,
 					permissions,
 					type: 'access',
-					validUnitIds,
-					validClassIds,
-					isSuperUser
+					isSuperUser,
+					status: user.status
 				},
 				appConfig.JWT_PRIVATE_KEY,
 				{
@@ -326,6 +232,6 @@ class controller {
 	}
 }
 
-const authController = new controller(userRepo, unitRepo)
+const authController = new controller(userRepo)
 
 export default authController

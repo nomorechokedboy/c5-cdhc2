@@ -12,6 +12,7 @@ import argon2 from 'argon2'
 import { appConfig } from '../configs'
 import { AppError } from '../errors'
 import userRepo from './repo'
+import userRolesRepo from '../user-roles/repo'
 
 class controller {
 	constructor(private readonly repo: Repository) {}
@@ -29,7 +30,25 @@ class controller {
 			throw AppError.handleAppErr(AppError.internal('Internal error'))
 		}
 
-		return this.repo.create(params).catch(AppError.handleAppErr)
+		// Extract roleIds before creating user
+		const { roleIds, ...userParams } = params
+
+		// Create user
+		const user = await this.repo
+			.create(userParams)
+			.catch(AppError.handleAppErr)
+
+		// Assign roles if provided
+		if (roleIds && roleIds.length > 0) {
+			await userRolesRepo
+				.assignRolesToUser({
+					userId: user.id,
+					roleIds
+				})
+				.catch(AppError.handleAppErr)
+		}
+
+		return user
 	}
 
 	find(): Promise<Omit<User[], 'password'>> {

@@ -53,14 +53,49 @@ class sqliteRepo implements Repository {
 
 	find(): Promise<Role[]> {
 		return this.db.query.roles
-			.findMany({ with: { users: true } })
+			.findMany({
+				with: {
+					users: true,
+					permissions: {
+						with: {
+							permission: {
+								with: { action: true, resource: true }
+							}
+						}
+					}
+				}
+			})
+			.then((resp) =>
+				resp.map(({ permissions, ...role }) => ({
+					...role,
+					permissions: permissions.map((perm) => perm.permission)
+				}))
+			)
 			.catch(handleDatabaseErr)
 	}
 
 	findOne(id: number): Promise<Role | undefined> {
 		log.info('RoleRepo.findOne params', { params: id })
 		return this.db.query.roles
-			.findFirst({ where: eq(roles.id, id), with: { users: true } })
+			.findFirst({
+				where: eq(roles.id, id),
+				with: {
+					users: true,
+					permissions: { with: { permission: true } }
+				}
+			})
+			.then((resp) => {
+				if (resp === undefined) {
+					return resp
+				}
+
+				const { permissions, ...roles } = resp
+
+				return {
+					...roles,
+					permissions: permissions.map((perm) => perm.permission)
+				}
+			})
 			.catch(handleDatabaseErr)
 	}
 
