@@ -15,13 +15,10 @@ interface AuthParams {
 interface AuthData {
 	userID: string
 	permissions: string[]
-	validClassIds: number[]
-	validUnitIds: number[]
 	isSuperAdmin: boolean
 }
 
 export const auth = authHandler<AuthParams, AuthData>(async (params) => {
-	// TODO: Look up information about the user based on the authorization header.
 	const token = params.authorization.replace('Bearer ', '')
 	if (!token) {
 		throw APIError.unauthenticated('no token provided')
@@ -34,12 +31,10 @@ export const auth = authHandler<AuthParams, AuthData>(async (params) => {
 			throw new Error('Invalid token type')
 		}
 
-		// Return auth data that will be available in all authenticated endpoints
+		// Return simplified auth data - validClassIds and validUnitIds computed in middleware
 		return {
 			userID: payload.userId.toString(),
 			permissions: payload.permissions || [],
-			validClassIds: payload.validClassIds || [],
-			validUnitIds: payload.validUnitIds || [],
 			isSuperAdmin: payload.isSuperUser
 		}
 	} catch (err) {
@@ -102,8 +97,6 @@ export const GetUserInfo = api(
 			...userData,
 			unitName: userData.unit?.name || null
 		} as User
-
-		delete data.unit
 
 		return { data }
 	}
