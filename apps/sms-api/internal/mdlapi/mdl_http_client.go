@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"encore.app/internal/config"
+	"encore.app/internal/logger"
 )
 
 type moodleHttpClient struct {
@@ -46,9 +47,27 @@ func (m *moodleHttpClient) Do(ctx context.Context, fn string, payload any, outpu
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", m.token)
+	logger.InfoContext(
+		ctx,
+		"moodleHttpClient request to moodle",
+		"request",
+		payload,
+		"function",
+		fn,
+	)
 
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"moodleHttpClient request error",
+			"err",
+			err,
+			"request",
+			req,
+			"function",
+			fn,
+		)
 		return err
 	}
 	defer resp.Body.Close()
