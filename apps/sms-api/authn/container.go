@@ -1,21 +1,16 @@
 package authn
 
 import (
-	"log"
 	"sync"
 
-	"encore.app/internal/authtokens"
 	"encore.app/internal/cache"
 	"encore.app/internal/categories"
 	"encore.app/internal/config"
 	"encore.app/internal/controllers"
-	"encore.app/internal/db"
-	"encore.app/internal/logger"
 	"encore.app/internal/mdlapi"
 	"encore.app/internal/oauth2"
 	"encore.app/internal/pool"
 	"encore.app/internal/usecases"
-	"encore.app/internal/users"
 )
 
 var container *Container
@@ -38,20 +33,18 @@ type Container struct {
 
 func NewContainer() *Container {
 	cfg := config.GetConfig()
-	db, err := db.New(&cfg.DatabaseConfig)
-	if err != nil {
-		logger.Error("Init db error", "err", err)
-		log.Fatal(err)
-	}
 
 	rdb := cache.New(&cfg.CacheConfig)
-
-	mdlUserRepo := users.NewRepo(db)
-	mdlAuthToken := authtokens.NewRepo(db)
 	tokenRepo := oauth2.NewOauth2Repository(rdb)
 
+	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
+	courseGradesProvider := mdlapi.NewLocalCourseGradesProvider(mdlApi)
+	userGradeItemsProvider := mdlapi.NewMdlApiUserGradeItemsProvider(mdlApi)
+	teacherProvider := mdlapi.NewLocalTeacherProvider(mdlApi)
+	localUserInfoProvider := mdlapi.NewLocalUserInfoProvider(mdlApi)
+
 	oauth2Provider := oauth2.NewMoodleOauth2Provider(cfg)
-	userInfoProvider := oauth2.NewDBUserInfoProvider(mdlUserRepo, mdlAuthToken)
+	userInfoProvider := oauth2.NewHTTPUserInfoProvider(localUserInfoProvider)
 	tokenProvider := oauth2.NewAppTokenProvider(&cfg.AuthnConfig)
 	useCase := usecases.NewAuthnUseCase(
 		oauth2Provider,
@@ -63,11 +56,6 @@ func NewContainer() *Container {
 
 	p := pool.New(nil)
 	p.Start()
-
-	mdlApi := mdlapi.New(&cfg.MoodleApiConfig)
-	courseGradesProvider := mdlapi.NewLocalCourseGradesProvider(mdlApi)
-	userGradeItemsProvider := mdlapi.NewMdlApiUserGradeItemsProvider(mdlApi)
-	teacherProvider := mdlapi.NewLocalTeacherProvider(mdlApi)
 
 	courseUseCase := usecases.NewCourseUseCase(
 		courseGradesProvider,

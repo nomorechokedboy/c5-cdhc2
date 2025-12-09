@@ -17,6 +17,7 @@ type UserInfo struct {
 	Lastname    string `json:"lastname"`
 	Phone1      string `json:"phone1"`
 	Username    string `json:"username"`
+	IsTeacher   bool   `json:"isTeacher"`
 }
 
 type MoodleOauth2AccessToken struct {

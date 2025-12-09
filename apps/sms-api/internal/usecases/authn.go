@@ -105,7 +105,7 @@ func (uc *AuthnUseCase) HandleCallback(
 	// Get user info using the token
 	userInfo, err := uc.getUserInfoByMdlToken(ctx, token.AccessToken)
 	if err != nil {
-		logger.Error("Failed to get user info", "err", err)
+		logger.Error("Failed to get user info", "err", err, "accessToken", token.AccessToken)
 		return nil, fmt.Errorf("user info retrieval failed: %w", err)
 	}
 

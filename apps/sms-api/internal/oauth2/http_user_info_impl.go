@@ -2,72 +2,76 @@ package oauth2
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"strings"
 
-	"encore.app/internal/config"
 	"encore.app/internal/entities"
-	"encore.app/internal/logger"
-	// "github.com/joshuapare/moodle-client-go/v4"
+	"encore.app/internal/mdlapi"
 )
 
-// var _ UserInfoProvider = (*HTTPUserInfoProvider)(nil)
+var _ UserInfoProvider = (*HTTPUserInfoProvider)(nil)
 
 type HTTPUserInfoProvider struct {
-	config *config.Config
-	client *http.Client
+	mdlUserInfoProvider mdlapi.LocalUserInfoProvider
 }
 
-func NewHTTPUserInfoProvider(cfg *config.Config, client *http.Client) *HTTPUserInfoProvider {
-	if client == nil {
-		client = &http.Client{}
-	}
-	return &HTTPUserInfoProvider{
-		config: cfg,
-		client: client,
-	}
+func NewHTTPUserInfoProvider(
+	mdlApiUserInfoProvider mdlapi.LocalUserInfoProvider,
+) *HTTPUserInfoProvider {
+	return &HTTPUserInfoProvider{mdlUserInfoProvider: mdlApiUserInfoProvider}
 }
 
+// GetUserInfo implements UserInfoProvider.
+func (p *HTTPUserInfoProvider) GetUserInfo(
+	ctx context.Context,
+	userId int64,
+) (*entities.UserInfo, error) {
+	uId := int(userId)
+	resp, err := p.mdlUserInfoProvider.GetUserInfo(
+		ctx,
+		&mdlapi.GetUserInfoRequest{UserId: &uId},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.UserInfo{
+		Id:          int64(resp.UserID),
+		Address:     "",
+		Description: "",
+		Email:       resp.Email,
+		Firstname:   resp.FirstName,
+		Idnumber:    resp.IdNumber,
+		Lang:        "",
+		Lastname:    resp.LastName,
+		Username:    "",
+		Phone1:      "",
+		IsTeacher:   resp.IsTeacher,
+	}, nil
+}
+
+// GetUserInfoByMdlToken implements UserInfoProvider.
 func (p *HTTPUserInfoProvider) GetUserInfoByMdlToken(
 	ctx context.Context,
 	token string,
 ) (*entities.UserInfo, error) {
-	userInfoEndpoint := fmt.Sprintf(
-		"%s/local/oauth2/user_info.php",
-		p.config.Oauth2Config.OriginUrl,
-	)
-
-	userInfoData := url.Values{}
-	userInfoData.Set("access_token", token)
-
-	resp, err := p.client.Post(
-		userInfoEndpoint,
-		"application/x-www-form-urlencoded",
-		strings.NewReader(userInfoData.Encode()),
+	resp, err := p.mdlUserInfoProvider.GetUserInfo(
+		ctx,
+		&mdlapi.GetUserInfoRequest{AccessToken: &token},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to request user info: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, fmt.Errorf("unauthorized access to user info endpoint")
+		return nil, err
 	}
 
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	var userInfo entities.UserInfo
-	if err := json.Unmarshal(respBody, &userInfo); err != nil {
-		logger.Error("GetUserInfo.Unmarshal err", "err", err, "respBody", string(respBody))
-		return nil, fmt.Errorf("failed to unmarshal user info: %w", err)
-	}
-
-	return &userInfo, nil
+	return &entities.UserInfo{
+		Id:          int64(resp.UserID),
+		Address:     "",
+		Description: "",
+		Email:       resp.Email,
+		Firstname:   resp.FirstName,
+		Idnumber:    resp.IdNumber,
+		Lang:        "",
+		Lastname:    resp.LastName,
+		Username:    "",
+		Phone1:      "",
+		IsTeacher:   resp.IsTeacher,
+	}, nil
 }
