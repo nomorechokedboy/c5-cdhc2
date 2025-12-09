@@ -103,6 +103,7 @@ func (uc *AuthnUseCase) HandleCallback(
 	}
 
 	// Get user info using the token
+	logger.InfoContext(ctx, "Get UserInfo by access token", "AccessToken", token.AccessToken)
 	userInfo, err := uc.getUserInfoByMdlToken(ctx, token.AccessToken)
 	if err != nil {
 		logger.Error("Failed to get user info", "err", err, "accessToken", token.AccessToken)
@@ -110,6 +111,7 @@ func (uc *AuthnUseCase) HandleCallback(
 	}
 
 	req := &entities.TokenPayload{UserID: userInfo.Id}
+	logger.InfoContext(ctx, "GenTokens request", "requset", req)
 	resp, err := uc.tokenProvider.GenTokens(ctx, req)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to generate tokens", "err", err, "request", req)
