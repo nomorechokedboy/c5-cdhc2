@@ -358,6 +358,7 @@ export namespace entities {
 		lastname: string
 		phone1: string
 		username: string
+		isTeacher: boolean
 	}
 }
 
