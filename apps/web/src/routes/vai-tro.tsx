@@ -1,3 +1,4 @@
+import ProtectedRoute from '@/components/ProtectedRoute'
 import RolesTab from '@/components/role'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -6,5 +7,9 @@ export const Route = createFileRoute('/vai-tro')({
 })
 
 function RouteComponent() {
-	return <RolesTab />
+	return (
+		<ProtectedRoute>
+			<RolesTab />
+		</ProtectedRoute>
+	)
 }
