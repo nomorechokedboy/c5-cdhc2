@@ -42,7 +42,7 @@ class controller {
 			actionId,
 			name: permissionName,
 			displayName,
-			description: `Permission to ${action.name} ${resource.name}`
+			description: `Quyền để ${action.name} ${resource.name}`
 		}
 		return this.repo.create(permissionParams).catch(AppError.handleAppErr)
 	}

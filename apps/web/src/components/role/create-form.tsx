@@ -17,6 +17,7 @@ export default function CreateRoleForm() {
 			queryClient.invalidateQueries({ queryKey: ['roles'] })
 		},
 		onError: (err) => {
+			console.error('CreateRole error', err)
 			toast.error('Thêm mới vai trò thất bại.', {
 				description: err.message
 			})

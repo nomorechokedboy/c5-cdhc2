@@ -1,143 +1,86 @@
-import type React from 'react'
-import { useState, useEffect } from 'react'
+import { type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
+import { DialogClose, DialogTitle, DialogTrigger } from '@radix-ui/react-dialog'
 
 interface PermissionModalProps {
-	isOpen: boolean
+	actionText: string
+	loadingText: string
 	title: string
-	initialData?: {
-		key: string
-		name: string
-		description: string
-		category: string
-	}
-	onClose: () => void
-	onSubmit: (data: {
-		key: string
-		name: string
-		description: string
-		category: string
-	}) => void
+	trigger: ReactNode
+	form: any
+	formId: string
+	open: boolean
+	onOpenChange: (open: boolean) => void
 }
 
 export default function PermissionModal({
-	isOpen,
+	actionText,
+	loadingText,
+	form,
+	formId,
+	open,
 	title,
-	initialData,
-	onClose,
-	onSubmit
+	trigger,
+	onOpenChange
 }: PermissionModalProps) {
-	const [formData, setFormData] = useState({
-		key: '',
-		name: '',
-		description: '',
-		category: ''
-	})
-
-	useEffect(() => {
-		if (initialData) {
-			setFormData(initialData)
-		} else {
-			setFormData({ key: '', name: '', description: '', category: '' })
-		}
-	}, [initialData, isOpen])
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault()
-		onSubmit(formData)
-	}
-
-	if (!isOpen) return null
+	const handleSubmit = () => {}
 
 	return (
-		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
-			<div className='w-full max-w-md rounded-lg border bg-background p-6 shadow-lg'>
-				<h2 className='text-lg font-semibold'>{title}</h2>
-				<form onSubmit={handleSubmit} className='mt-4 space-y-4'>
-					<div>
-						<Label htmlFor='key'>Permission Key</Label>
-						<Input
-							id='key'
-							value={formData.key}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									key: e.target.value
-								})
-							}
-							placeholder='e.g., users.read, content.write'
-							disabled={!!initialData}
-							required
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<form
+				onSubmit={handleSubmit}
+				className='mt-4 space-y-4'
+				id={formId}
+			>
+				<DialogTrigger>{trigger}</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+					</DialogHeader>
+					<form.AppField name='name'>
+						{(field: any) => (
+							<field.TextField label='Tên quyền' disabled />
+						)}
+					</form.AppField>
+					<form.AppField name='displayName'>
+						{(field: any) => (
+							<field.TextField label='Tên hiển thị' />
+						)}
+					</form.AppField>
+					<form.AppField name='description'>
+						{(field: any) => <field.TextField label='Mô tả' />}
+					</form.AppField>
+					<form.AppField name='resourceId'>
+						{(field: any) => <field.TextField label='Tài nguyên' />}
+					</form.AppField>
+					<form.AppField name='actionId'>
+						{(field: any) => <field.TextField label='Hành động' />}
+					</form.AppField>
+					<DialogFooter>
+						<DialogClose>
+							<Button type='button' variant='outline'>
+								Hủy
+							</Button>
+						</DialogClose>
+						<form.Subscribe
+							selector={(state: any) => [
+								state.canSubmit,
+								state.isSubmitting
+							]}
+							children={([canSubmit, isSubmitting]: any) => (
+								<Button
+									type='submit'
+									disabled={!canSubmit}
+									form={formId}
+								>
+									{isSubmitting ? loadingText : actionText}
+								</Button>
+							)}
 						/>
-						<p className='mt-1 text-xs text-muted-foreground'>
-							Use format: resource.action
-						</p>
-					</div>
-					<div>
-						<Label htmlFor='name'>Permission Name</Label>
-						<Input
-							id='name'
-							value={formData.name}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									name: e.target.value
-								})
-							}
-							placeholder='e.g., Delete Users'
-							required
-						/>
-					</div>
-					<div>
-						<Label htmlFor='description'>Description</Label>
-						<Textarea
-							id='description'
-							value={formData.description}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									description: e.target.value
-								})
-							}
-							placeholder='What does this permission allow?'
-							rows={2}
-							required
-						/>
-					</div>
-					<div>
-						<Label htmlFor='category'>Category</Label>
-						<Input
-							id='category'
-							value={formData.category}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									category: e.target.value
-								})
-							}
-							placeholder='e.g., Users, Content, System'
-							required
-						/>
-					</div>
-					<div className='flex gap-2 pt-2'>
-						<Button
-							type='button'
-							variant='outline'
-							onClick={onClose}
-						>
-							Cancel
-						</Button>
-						<Button type='submit'>
-							{initialData
-								? 'Update Permission'
-								: 'Create Permission'}
-						</Button>
-					</div>
-				</form>
-			</div>
-		</div>
+					</DialogFooter>
+				</DialogContent>
+			</form>
+		</Dialog>
 	)
 }

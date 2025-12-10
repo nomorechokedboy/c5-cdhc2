@@ -193,26 +193,6 @@ export default function PermissionsTab() {
 					</CardContent>
 				</Card>
 			)}
-
-			{/* Modals */}
-			<PermissionModal
-				isOpen={isCreateModalOpen}
-				onClose={() => setIsCreateModalOpen(false)}
-				onSubmit={handleCreatePermission}
-				title='Create New Permission'
-			/>
-
-			{editingPermission && (
-				<PermissionModal
-					isOpen={!!editingPermission}
-					onClose={() => setEditingPermissionId(null)}
-					onSubmit={(data) =>
-						handleUpdatePermission(editingPermission.id, data)
-					}
-					initialData={editingPermission}
-					title='Edit Permission'
-				/>
-			)}
 		</div>
 	)
 }

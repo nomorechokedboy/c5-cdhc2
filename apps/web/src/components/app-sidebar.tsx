@@ -145,11 +145,6 @@ const data = {
 					title: 'Danh sách vai trò',
 					url: '/vai-tro',
 					icon: UserRoundCog
-				},
-				{
-					title: 'Danh sách các quyền',
-					url: '/cac-quyen',
-					icon: ShieldUser
 				}
 			]
 		}

@@ -1,10 +1,14 @@
 import { api } from 'encore.dev/api'
 import permissionController from './controller'
-import { Action, Permission, Resource, Role } from '../schema'
+import { Permission } from '../schema'
 
 interface CreatePermissionRequest {
 	actionId: number
 	resourceId: number
+}
+
+interface CreatePermissionResponse {
+	data: Permission
 }
 
 export const CreatePermission = api(
