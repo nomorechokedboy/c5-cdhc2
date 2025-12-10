@@ -15,7 +15,9 @@ import {
 	Home,
 	Proportions,
 	List,
-	HouseHeart
+	HouseHeart,
+	UserRoundCog,
+	ShieldUser
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -138,6 +140,11 @@ const data = {
 					title: 'Danh sách người dùng',
 					url: '/list-user',
 					icon: List
+				},
+				{
+					title: 'Danh sách vai trò',
+					url: '/vai-tro',
+					icon: UserRoundCog
 				}
 			]
 		}

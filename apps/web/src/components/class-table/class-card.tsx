@@ -8,15 +8,15 @@ import {
 import type { Class } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { EllipsisText } from '@/components/data-table/ellipsis-text'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { toVNTz } from '@/lib/utils'
 import { Pencil, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import ClassEditForm from '../ClassEditForm'
+import ClassEditForm from '@/components/ClassEditForm'
 import { useDeleteClasses } from '@/hooks/useDeleteClasses'
 import { toast } from 'sonner'
-import { Button } from '../ui/button'
+import { Button } from '@/components/ui/button'
 
 interface ClassCardProps {
 	data: Class
@@ -47,8 +47,13 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 		navigate({ to: `/classes/${data.id}` })
 	}
 
-	const status =data.status;
-	const statusLabel = status === 'ongoing' ? 'Đang diễn ra' : status === 'graduated' ? 'Đã tốt nghiệp' : ''
+	const status = data.status
+	const statusLabel =
+		status === 'ongoing'
+			? 'Đang diễn ra'
+			: status === 'graduated'
+				? 'Đã tốt nghiệp'
+				: ''
 	const statusVariant = status === 'ongoing' ? 'secondary' : 'destructive'
 
 	return (
@@ -60,11 +65,15 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 				<CardHeader className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-							{data.name}  {status && (
-						<Badge variant={statusVariant} className='text-xs'>
-							{statusLabel}
-						</Badge>
-					)}
+							{data.name}{' '}
+							{status && (
+								<Badge
+									variant={statusVariant}
+									className='text-xs'
+								>
+									{statusLabel}
+								</Badge>
+							)}
 						</CardTitle>
 						<CardDescription>
 							<EllipsisText>{data.description}</EllipsisText>

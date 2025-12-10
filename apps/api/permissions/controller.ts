@@ -4,6 +4,7 @@ import actionRepo from '../actions/repo'
 import { AppError } from '../errors'
 import { Repository as ResourceRepository } from '../resources'
 import resourceRepo from '../resources/repo'
+import { Permission } from '../schema'
 import permissionRepo from './repo'
 
 class controller {
@@ -41,9 +42,17 @@ class controller {
 			actionId,
 			name: permissionName,
 			displayName,
-			description: `Permission to ${action.name} ${resource.name}`
+			description: `Quyền để ${action.name} ${resource.name}`
 		}
 		return this.repo.create(permissionParams).catch(AppError.handleAppErr)
+	}
+
+	find(): Promise<Permission[]> {
+		return this.repo.find().catch(AppError.handleAppErr)
+	}
+
+	findOne(id: number): Promise<Permission | undefined> {
+		return this.repo.findOne(id).catch(AppError.handleAppErr)
 	}
 }
 
