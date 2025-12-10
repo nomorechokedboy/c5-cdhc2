@@ -9,29 +9,39 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit2, Trash2, Shield } from 'lucide-react'
-import RoleModal from './modal'
+import { Trash2, Shield } from 'lucide-react'
 import PermissionsModal from '@/components/permission/modals'
 import RoleCardSkeleton from './skeleton'
 import { ErrorState } from '@/components/error-state'
-import type { Role } from '@/types'
-import { useQuery } from '@tanstack/react-query'
-import { GetRoles } from '@/api'
-import PermissionModal from '../permission/modal'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { DeleteRole, GetRoles } from '@/api'
+import CreateRoleForm from './create-form'
+import { toast } from 'sonner'
+import UpdateRoleForm from './update-form'
 
 export default function RolesTab() {
 	const {
 		data: roles = [],
 		isLoading,
 		error,
-		refetch
+		refetch: refetchRoles
 	} = useQuery({ queryKey: ['roles'], queryFn: GetRoles })
 	const [searchQuery, setSearchQuery] = useState('')
-	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-	const [editingRoleId, setEditingRoleId] = useState<number | null>(null)
-	const [permissionsRoleId, setPermissionsRoleId] = useState<number | null>(
-		null
-	)
+	const { mutateAsync: deleteRole, isPending: isDeleteRolePending } =
+		useMutation({
+			mutationFn: DeleteRole,
+			onSuccess: () => {
+				toast.success('Xóa vai trò thành công!')
+				refetchRoles()
+			},
+			onError: (err) => {
+				console.error('DeleteRole error', err)
+
+				toast.error('Xóa vai trò thất bại.', {
+					description: err.message
+				})
+			}
+		})
 
 	const filteredRoles = roles.filter(
 		(role) =>
@@ -39,28 +49,12 @@ export default function RolesTab() {
 			role.description.toLowerCase().includes(searchQuery.toLowerCase())
 	)
 
-	const handleCreateRole = (data: { name: string; description: string }) => {
-		setIsCreateModalOpen(false)
+	const handleDeleteRole = (id: number) => {
+		deleteRole([id])
 	}
-
-	const handleUpdateRole = (
-		roleId: number,
-		data: { name: string; description: string }
-	) => {
-		setEditingRoleId(null)
-	}
-
-	const handleUpdatePermissions = (roleId: number, permissions: string[]) => {
-		setPermissionsRoleId(null)
-	}
-
-	const handleDeleteRole = (id: number) => {}
-
-	const editingRole = roles?.find((r) => r.id === editingRoleId)
-	const permissionsRole = roles?.find((r) => r.id === permissionsRoleId)
 
 	const handleRetry = () => {
-		refetch()
+		refetchRoles()
 	}
 
 	if (error) {
@@ -77,13 +71,7 @@ export default function RolesTab() {
 					onChange={(e) => setSearchQuery(e.target.value)}
 					className='sm:max-w-xs'
 				/>
-				<Button
-					onClick={() => setIsCreateModalOpen(true)}
-					className='gap-2'
-				>
-					<Plus className='h-4 w-4' />
-					Tạo quyền
-				</Button>
+				<CreateRoleForm />
 			</div>
 
 			{/* Roles Grid */}
@@ -119,11 +107,11 @@ export default function RolesTab() {
 											.slice(0, 3)
 											.map((permission) => (
 												<Badge
-													key={permission}
+													key={permission.id}
 													variant='secondary'
 													className='text-xs'
 												>
-													{permission}
+													{permission.key}
 												</Badge>
 											))}
 										{role.permissions.length > 3 && (
@@ -145,28 +133,13 @@ export default function RolesTab() {
 
 								{/* Actions */}
 								<div className='flex gap-2 pt-2'>
-									<PermissionsModal
-										role={role}
-										onSubmit={(permissions) =>
-											handleUpdatePermissions(
-												permissionsRole!.id,
-												permissions
-											)
-										}
-										onRoleIdChange={(id) => {
-											setPermissionsRoleId(id)
-										}}
-									/>
+									<PermissionsModal role={role} />
 
-									<Button
-										variant='outline'
-										size='sm'
-										onClick={() =>
-											setEditingRoleId(role.id)
-										}
-									>
-										<Edit2 className='h-4 w-4' />
-									</Button>
+									<UpdateRoleForm
+										id={role.id}
+										name={role.name}
+										description={role.description}
+									/>
 
 									<Button
 										variant='outline'
@@ -174,6 +147,7 @@ export default function RolesTab() {
 										onClick={() =>
 											handleDeleteRole(role.id)
 										}
+										disabled={isDeleteRolePending}
 									>
 										<Trash2 className='h-4 w-4' />
 									</Button>
@@ -185,7 +159,7 @@ export default function RolesTab() {
 			)}
 
 			{/* Empty State */}
-			{filteredRoles.length === 0 && (
+			{filteredRoles.length === 0 && !isLoading && (
 				<Card className='border-dashed'>
 					<CardContent className='flex flex-col items-center justify-center py-12'>
 						<Shield className='mb-4 h-8 w-8 text-muted-foreground' />
@@ -194,35 +168,6 @@ export default function RolesTab() {
 						</p>
 					</CardContent>
 				</Card>
-			)}
-
-			{/* Modals */}
-			<RoleModal
-				isOpen={isCreateModalOpen}
-				onClose={() => setIsCreateModalOpen(false)}
-				onSubmit={handleCreateRole}
-				title='Tạo vai trò mới'
-			/>
-
-			{editingRole && (
-				<RoleModal
-					isOpen={!!editingRole}
-					onClose={() => setEditingRoleId(null)}
-					onSubmit={(data) => handleUpdateRole(editingRole.id, data)}
-					initialData={editingRole}
-					title='Chỉnh sửa vai trò'
-				/>
-			)}
-
-			{permissionsRole && (
-				<PermissionsModal
-					isOpen={!!permissionsRole}
-					onClose={() => setPermissionsRoleId(null)}
-					role={permissionsRole}
-					onSubmit={(permissions) =>
-						handleUpdatePermissions(permissionsRole.id, permissions)
-					}
-				/>
 			)}
 		</div>
 	)

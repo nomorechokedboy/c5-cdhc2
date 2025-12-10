@@ -11,12 +11,11 @@ import {
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { CreateClass, RefreshToken } from '@/api'
+import { CreateClass } from '@/api'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import type { Class, ClassBody } from '@/types'
 import { toast } from 'sonner'
-import { AuthController } from '@/biz'
 
 const schema = z.object({
 	name: z.string().min(1, 'Tên lớp không được bỏ trống'),

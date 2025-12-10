@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import type { Role } from '@/types'
-import { useQuery } from '@tanstack/react-query'
-import { GetPermissions } from '@/api'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { GetPermissions, UpdateRole } from '@/api'
 import { ErrorState } from '@/components/error-state'
 import {
 	Dialog,
@@ -13,22 +13,18 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
+	DialogTrigger,
+	DialogClose
 } from '@/components/ui/dialog'
-import { DialogClose } from '@radix-ui/react-dialog'
 import { Shield } from 'lucide-react'
+import { toast } from 'sonner'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
 
 interface PermissionsModalProps {
 	role: Role
-	onSubmit: (permissions: string[]) => void
-	onRoleIdChange: (id: number) => void
 }
 
-export default function PermissionsModal({
-	role,
-	onSubmit,
-	onRoleIdChange
-}: PermissionsModalProps) {
+export default function PermissionsModal({ role }: PermissionsModalProps) {
 	const [open, setOpen] = useState(false)
 	const {
 		data: permissions = [],
@@ -37,21 +33,34 @@ export default function PermissionsModal({
 		refetch
 	} = useQuery({ queryKey: ['permissions'], queryFn: GetPermissions })
 	const [selectedPermissions, setSelectedPermissions] = useState<
-		Record<string, boolean>
+		Record<number, boolean>
 	>({})
+	const { mutateAsync, isPending } = useMutation({
+		mutationFn: UpdateRole,
+		onSuccess: () => {
+			toast.success('Chỉnh sửa vai trò thành công!')
+			refetch()
+			queryClient.invalidateQueries({ queryKey: ['roles'] })
+		},
+		onError: (err) => {
+			toast.error('Chỉnh sửa vai trò thất bại.', {
+				description: err.message
+			})
+		}
+	})
 
 	useEffect(() => {
 		if (open) {
 			setSelectedPermissions(
 				role?.permissions.reduce(
-					(acc, perm) => ({ ...acc, [perm]: true }),
+					(acc, perm) => ({ ...acc, [perm.id]: true }),
 					{}
 				) || {}
 			)
 		}
 	}, [open, role])
 
-	const handlePermissionToggle = (key: string) => {
+	const handlePermissionToggle = (key: number) => {
 		setSelectedPermissions((prev) => ({
 			...prev,
 			[key]: !prev[key]
@@ -59,10 +68,19 @@ export default function PermissionsModal({
 	}
 
 	const handleSave = () => {
-		const selectedKeys = Object.keys(selectedPermissions).filter(
-			(key) => selectedPermissions[key]
-		)
-		onSubmit(selectedKeys)
+		const selectedKeyIds: number[] = []
+		for (const key in selectedPermissions) {
+			if (selectedPermissions[key] === true) {
+				selectedKeyIds.push(Number(key))
+			}
+		}
+
+		mutateAsync({
+			id: role.id,
+			name: role.name,
+			description: role.description,
+			permissionIds: selectedKeyIds
+		})
 	}
 
 	const categories = Array.from(new Set(permissions.map((p) => p.category)))
@@ -82,11 +100,6 @@ export default function PermissionsModal({
 					variant='outline'
 					size='sm'
 					className='flex-1 gap-2 bg-transparent'
-					onClick={() => {
-						if (role) {
-							onRoleIdChange(role.id)
-						}
-					}}
 				>
 					<Shield className='h-4 w-4' />
 					Các quyền
@@ -142,19 +155,19 @@ export default function PermissionsModal({
 										{categoryPermissions.map(
 											(permission) => (
 												<div
-													key={permission.key}
+													key={permission.id}
 													className='flex items-center space-x-2'
 												>
 													<Checkbox
 														id={permission.key}
 														checked={
 															selectedPermissions[
-																permission.key
+																permission.id
 															] || false
 														}
 														onCheckedChange={() =>
 															handlePermissionToggle(
-																permission.key
+																permission.id
 															)
 														}
 													/>
@@ -180,11 +193,17 @@ export default function PermissionsModal({
 				)}
 				<DialogFooter className='sticky bottom-0'>
 					<DialogClose asChild>
-						<Button variant='outline' disabled={isLoading}>
+						<Button
+							variant='outline'
+							disabled={isLoading || isPending}
+						>
 							Hủy
 						</Button>
 					</DialogClose>
-					<Button onClick={handleSave} disabled={isLoading}>
+					<Button
+						onClick={handleSave}
+						disabled={isLoading || isPending}
+					>
 						Lưu lại
 					</Button>
 				</DialogFooter>

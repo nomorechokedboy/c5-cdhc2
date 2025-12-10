@@ -388,3 +388,10 @@ export type InitAdminRequest = {
 	password: string
 	displayName: string
 }
+
+export type UpdateRoleBody = {
+	id: number
+	name: string
+	description?: string
+	permissionIds?: number[]
+}

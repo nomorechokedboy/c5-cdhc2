@@ -1,69 +1,50 @@
-import type React from 'react'
+import { useMutation } from '@tanstack/react-query'
+import RoleModal from './modal'
+import { useAppForm } from '@/hooks/demo.form'
+import { CreateRole } from '@/api'
+import { toast } from 'sonner'
 import { useState } from 'react'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import { Plus } from 'lucide-react'
 
-interface RoleFormProps {
-	initialData?: {
-		name: string
-		description: string
-	}
-	onSubmit: (data: {
-		name: string
-		description: string
-		permissions: string[]
-	}) => void
-}
-
-export default function RoleForm({ initialData, onSubmit }: RoleFormProps) {
-	const [formData, setFormData] = useState({
-		name: initialData?.name || '',
-		description: initialData?.description || ''
+export default function CreateRoleForm() {
+	const { mutateAsync } = useMutation({
+		mutationFn: CreateRole,
+		onSuccess: () => {
+			toast.success('Thêm mới vai trò thành công!')
+			setOpen(false)
+			queryClient.invalidateQueries({ queryKey: ['roles'] })
+		},
+		onError: (err) => {
+			toast.error('Thêm mới vai trò thất bại.', {
+				description: err.message
+			})
+		}
 	})
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault()
-		onSubmit({
-			...formData,
-			permissions: []
-		})
-	}
+	const form = useAppForm({
+		defaultValues: { name: '', description: '' },
+		onSubmit: async ({ value }) => {
+			await mutateAsync(value)
+		}
+	})
+	const [open, setOpen] = useState(false)
 
 	return (
-		<form onSubmit={handleSubmit} className='space-y-4'>
-			<div>
-				<Label htmlFor='name'>Role Name</Label>
-				<Input
-					id='name'
-					value={formData.name}
-					onChange={(e) =>
-						setFormData({ ...formData, name: e.target.value })
-					}
-					placeholder='e.g., Manager, Moderator'
-					required
-				/>
-			</div>
-			<div>
-				<Label htmlFor='description'>Description</Label>
-				<Textarea
-					id='description'
-					value={formData.description}
-					onChange={(e) =>
-						setFormData({
-							...formData,
-							description: e.target.value
-						})
-					}
-					placeholder='Describe what this role can do'
-					rows={3}
-					required
-				/>
-			</div>
-			<Button type='submit' className='w-full'>
-				{initialData ? 'Update Role' : 'Create Role'}
-			</Button>
-		</form>
+		<RoleModal
+			title='Tạo vai trò mới'
+			form={form}
+			formId='createRoleForm'
+			open={open}
+			onOpenChange={setOpen}
+			actionText='Thêm mới'
+			loadingText='Đang thêm...'
+			trigger={
+				<Button className='gap-2'>
+					<Plus className='h-4 w-4' />
+					Tạo quyền
+				</Button>
+			}
+		/>
 	)
 }

@@ -1,92 +1,87 @@
 import type React from 'react'
-import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger
+} from '@/components/ui/dialog'
+import type { ReactNode } from 'react'
 
 interface RoleModalProps {
-	isOpen: boolean
+	actionText: string
+	loadingText: string
 	title: string
-	initialData?: { name: string; description: string }
-	onClose: () => void
-	onSubmit: (data: { name: string; description: string }) => void
+	form: any
+	formId: string
+	open: boolean
+	trigger: ReactNode
+	onOpenChange: (open: boolean) => void
 }
 
 export default function RoleModal({
-	isOpen,
+	actionText,
+	loadingText,
 	title,
-	initialData,
-	onClose,
-	onSubmit
+	form,
+	formId,
+	open,
+	trigger,
+	onOpenChange
 }: RoleModalProps) {
-	const [formData, setFormData] = useState({ name: '', description: '' })
-
-	useEffect(() => {
-		if (initialData) {
-			setFormData(initialData)
-		} else {
-			setFormData({ name: '', description: '' })
-		}
-	}, [initialData, isOpen])
-
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		onSubmit(formData)
+		e.stopPropagation()
+		form.handleSubmit()
 	}
 
-	if (!isOpen) return null
-
 	return (
-		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
-			<div className='w-full max-w-md rounded-lg border bg-background p-6 shadow-lg'>
-				<h2 className='text-lg font-semibold'>{title}</h2>
-				<form onSubmit={handleSubmit} className='mt-4 space-y-4'>
-					<div>
-						<Label htmlFor='name'>Role Name</Label>
-						<Input
-							id='name'
-							value={formData.name}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									name: e.target.value
-								})
-							}
-							placeholder='e.g., Manager, Moderator'
-							required
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<form onSubmit={handleSubmit} id={formId}>
+				<DialogTrigger asChild>{trigger}</DialogTrigger>
+				<DialogContent className='sm:max-w-md'>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+					</DialogHeader>
+					<div className='grid grid-cols-1 gap-4'>
+						<form.AppField name='name'>
+							{(field: any) => (
+								<field.TextField label='Tên quyền' />
+							)}
+						</form.AppField>
+
+						<form.AppField name='description'>
+							{(field: any) => <field.TextField label='Mô tả' />}
+						</form.AppField>
+					</div>
+
+					<DialogFooter>
+						<DialogClose asChild>
+							<Button type='button' variant='outline'>
+								Hủy
+							</Button>
+						</DialogClose>
+						<form.Subscribe
+							selector={(state: any) => [
+								state.canSubmit,
+								state.isSubmitting
+							]}
+							children={([canSubmit, isSubmitting]: any) => (
+								<Button
+									type='submit'
+									disabled={!canSubmit}
+									form={formId}
+								>
+									{isSubmitting ? loadingText : actionText}
+								</Button>
+							)}
 						/>
-					</div>
-					<div>
-						<Label htmlFor='description'>Description</Label>
-						<Textarea
-							id='description'
-							value={formData.description}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									description: e.target.value
-								})
-							}
-							placeholder='Describe what this role can do'
-							rows={3}
-							required
-						/>
-					</div>
-					<div className='flex gap-2 pt-2'>
-						<Button
-							type='button'
-							variant='outline'
-							onClick={onClose}
-						>
-							Cancel
-						</Button>
-						<Button type='submit'>
-							{initialData ? 'Update Role' : 'Create Role'}
-						</Button>
-					</div>
-				</form>
-			</div>
-		</div>
+					</DialogFooter>
+				</DialogContent>
+			</form>
+		</Dialog>
 	)
 }

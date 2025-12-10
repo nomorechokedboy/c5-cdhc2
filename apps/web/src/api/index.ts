@@ -15,6 +15,7 @@ import {
 	type StudentBody,
 	type Unit,
 	type UnitLevel,
+	type UpdateRoleBody,
 	type UpdateStudentsBody,
 	type UpdateUserBody,
 	type UserBody
@@ -206,6 +207,23 @@ export function CreateRole(body: {
 	permissionIds?: number[]
 }) {
 	return requestClient.roles.CreateRole(body)
+}
+
+export function DeleteRole(ids: number[]) {
+	return requestClient.roles.DeleteRoles({ ids })
+}
+
+export function UpdateRole({
+	permissionIds,
+	description,
+	id,
+	name
+}: UpdateRoleBody) {
+	return requestClient.roles.UpdateRole(id, {
+		name,
+		description,
+		permissionIds
+	})
 }
 
 export function GetPermissions() {

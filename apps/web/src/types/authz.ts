@@ -5,7 +5,7 @@ export class Role {
 		readonly id: number,
 		readonly name: string,
 		readonly description: string,
-		readonly permissions: string[],
+		readonly permissions: Permission[],
 		readonly userCount: number,
 		readonly createdAt: string
 	) {}
@@ -20,9 +20,9 @@ export class Role {
 	}: schema.Role) {
 		return new Role(
 			id,
-			description,
 			name,
-			permissions.map((p) => p.name),
+			description,
+			permissions.map(Permission.From),
 			users.length,
 			createdAt
 		)
