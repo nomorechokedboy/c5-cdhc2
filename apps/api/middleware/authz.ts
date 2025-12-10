@@ -115,6 +115,8 @@ export const authzMiddleware = middleware(
 
 // Define permission mapping based on method and path patterns
 const PERMISSION_MAP: Record<string, string[]> = {
+	'GET:/actions': ['actions:read'],
+
 	'POST:/classes': ['classes:create'],
 	'GET:/classes': ['classes:read'],
 	'GET:/classes/:id': ['classes:read'],
@@ -138,6 +140,8 @@ const PERMISSION_MAP: Record<string, string[]> = {
 	'GET:/users/:id': ['users:read'],
 	'PATCH:/users': ['users:update'],
 	'DELETE:/users': ['users:delete'],
+
+	'GET:/resources': ['resources:read'],
 
 	'POST:/roles': ['roles:create'],
 	'GET:/roles': ['roles:read'],
