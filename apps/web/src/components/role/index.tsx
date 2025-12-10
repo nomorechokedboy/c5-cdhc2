@@ -18,6 +18,8 @@ import { DeleteRole, GetRoles } from '@/api'
 import CreateRoleForm from './create-form'
 import { toast } from 'sonner'
 import UpdateRoleForm from './update-form'
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from '../ui/dialog'
+import { DialogClose, DialogTrigger } from '@radix-ui/react-dialog'
 
 export default function RolesTab() {
 	const {
@@ -141,16 +143,70 @@ export default function RolesTab() {
 										description={role.description}
 									/>
 
-									<Button
-										variant='outline'
-										size='sm'
-										onClick={() =>
-											handleDeleteRole(role.id)
-										}
-										disabled={isDeleteRolePending}
-									>
-										<Trash2 className='h-4 w-4' />
-									</Button>
+									<Dialog>
+										<DialogTrigger asChild>
+											<Button
+												variant='outline'
+												size='sm'
+												disabled={isDeleteRolePending}
+											>
+												<Trash2 className='h-4 w-4' />
+											</Button>
+										</DialogTrigger>
+										<DialogContent className='max-w-md max-h-1/4'>
+											<DialogTitle className='sr-only'>
+												Xác nhận xoá vai trò
+											</DialogTitle>
+											<div className='flex flex-col gap-4'>
+												<div className='font-semibold text-lg text-center'>
+													Xác nhận xoá vai trò?
+												</div>
+												<div className='text-center text-muted-foreground'>
+													Bạn có chắc muốn xoá vai trò{' '}
+													<b className='text-red-600'>
+														{role.name}
+													</b>{' '}
+													không?
+													<p>
+														Hành động này{' '}
+														<b>
+															không thể hoàn tác.
+														</b>
+													</p>
+												</div>
+												<DialogFooter className='flex justify-end gap-2 mt-4'>
+													<DialogClose asChild>
+														<Button
+															variant='outline'
+															type='button'
+															className='px-4 py-2 rounded-lg border'
+															disabled={
+																isDeleteRolePending
+															}
+														>
+															Huỷ
+														</Button>
+													</DialogClose>
+													<Button
+														type='button'
+														className='px-4 py-2 rounded-lg bg-destructive text-white font-semibold hover:bg-destructive/90 disabled:opacity-50'
+														onClick={() =>
+															handleDeleteRole(
+																role.id
+															)
+														}
+														disabled={
+															isDeleteRolePending
+														}
+													>
+														{isDeleteRolePending
+															? 'Đang xoá...'
+															: 'Xoá'}
+													</Button>
+												</DialogFooter>
+											</div>
+										</DialogContent>
+									</Dialog>
 								</div>
 							</CardContent>
 						</Card>
