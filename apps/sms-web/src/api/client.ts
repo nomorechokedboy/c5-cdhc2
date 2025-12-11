@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
  */
 export default class Client {
 	public readonly authn: authn.ServiceClient
+	public readonly healthz: healthz.ServiceClient
 	public readonly usrcategories: usrcategories.ServiceClient
 	public readonly usrcourses: usrcourses.ServiceClient
 	public readonly usrgrades: usrgrades.ServiceClient
@@ -68,6 +69,7 @@ export default class Client {
 		this.options = options ?? {}
 		const base = new BaseClient(this.target, this.options)
 		this.authn = new authn.ServiceClient(base)
+		this.healthz = new healthz.ServiceClient(base)
 		this.usrcategories = new usrcategories.ServiceClient(base)
 		this.usrcourses = new usrcourses.ServiceClient(base)
 		this.usrgrades = new usrgrades.ServiceClient(base)
@@ -183,6 +185,26 @@ export namespace authn {
 				JSON.stringify(params)
 			)
 			return (await resp.json()) as entities.CallbackResponse
+		}
+	}
+}
+
+export namespace healthz {
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.HealthCheck = this.HealthCheck.bind(this)
+		}
+
+		/**
+		 * Healthcheck endpoint
+		 */
+		public async HealthCheck(): Promise<healthcheck.HealthCheckResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI('GET', `/healthz`)
+			return (await resp.json()) as healthcheck.HealthCheckResponse
 		}
 	}
 }
@@ -359,6 +381,14 @@ export namespace entities {
 		phone1: string
 		username: string
 		isTeacher: boolean
+	}
+}
+
+export namespace healthcheck {
+	export interface HealthCheckResponse {
+		message: string
+		uptime: number
+		timestamp: number
 	}
 }
 
