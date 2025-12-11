@@ -41,6 +41,8 @@ ENV VITE_TOKEN_URI=$VITE_TOKEN_URI
 ENV VITE_REDIRECT_URI=$VITE_REDIRECT_URI
 ENV VITE_API_URL=$VITE_API_URL
 
+RUN echo "BUILD WITH OAUTH2=$VITE_OAUTH2_URL API=$VITE_API_URL"
+
 # Copy the pruned workspace package.json files and lockfile
 COPY --from=builder /app/out/json/ .
 COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
