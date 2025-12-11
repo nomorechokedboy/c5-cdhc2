@@ -62,3 +62,4 @@ COPY --from=installer /app/apps/sms-web/dist /usr/share/nginx/html
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
