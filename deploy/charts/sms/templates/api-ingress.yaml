@@ -35,7 +35,7 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "sms.fullname" $ }}
+                name: {{ include "sms.fullname" $ }}-api
                 port:
                   number: {{ $.Values.api.service.port }}
           {{- end }}

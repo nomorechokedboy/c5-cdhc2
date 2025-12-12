@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-registry-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/registry
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-chartmuseum-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/chartmuseum
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-jobservice-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/jobservice
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-database-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/database
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-redis-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/redis
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-trivy-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/hdd/harbor/trivy
+

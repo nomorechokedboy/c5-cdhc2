@@ -250,12 +250,6 @@ jobs:
                   registry: ${{ env.REGISTRY }}
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
-            - name: Debug environment variables
-              run: |
-                  echo "BUILD ENV: ${{ matrix.env }}"
-                  echo "OAUTH2 URL: ${{ vars.VITE_OAUTH2_URL }}"
-                  echo "API URL: ${{ vars.VITE_API_URL }}"
-                  echo "CLIENT ID: ${{ vars.VITE_CLIENT_ID }}"
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
             - name: Extract metadata
