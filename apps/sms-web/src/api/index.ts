@@ -2,8 +2,9 @@ import { ApiUrl } from '@/const'
 import Client, { type mdlapi } from './client'
 import { AuthController } from '@/biz'
 import { CourseCategory } from '@/types'
+import { env } from '@/env'
 
-console.log({ ApiUrl })
+console.log({ ApiUrl, redirectUrl: env.VITE_REDIRECT_URI })
 const client = new Client(ApiUrl, { fetcher: appFetcher })
 const tempClient = new Client(ApiUrl, {})
 
