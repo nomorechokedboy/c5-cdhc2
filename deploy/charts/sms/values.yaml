@@ -10,13 +10,26 @@ api:
   image:
     repository: ghcr.io/nomorechokedboy/sms-api
     # This sets the pull policy for images.
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
   # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   imagePullSecrets: []
   env:
     LOG_LEVEL: "info"
+    ENV: "prod"
+    ORIGIN_URL: "https://hoclieuso.hc2"
+
+    CLIENT_ID: "sms-oauth2"
+    CLIENT_SECRET: "606d6c736b3d964418d24bbc9223dcbd1b0b9ce9ef37989f"
+    AUTH_URL: "/local/oauth2/login.php"
+    TOKEN_URL: "/local/oauth2/token.php"
+
+    MOODLE_API_TOKEN: "a39c63b7124957fe0e796ad523e411b4"
+    MOODLE_URL: "https://hoclieuso.hc2"
+
+    REDIRECT_URL: "https://qld.hc2/oauth2/callback"
+    CLIENT_ORIGIN_URL: "https://qld.hc2"
   envFrom: []
   # This is to override the chart name.
   nameOverride: ""
@@ -56,16 +69,16 @@ api:
     # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
     # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-    port: 4000
+    port: 8080
   # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
-    enabled: false
+    enabled: true
     className: ""
     annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
     hosts:
-      - host: chart-example.local
+      - host: api.qld.hc2
         paths:
           - path: /
             pathType: ImplementationSpecific
@@ -88,11 +101,11 @@ api:
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     httpGet:
-      path: /
+      path: /healthz
       port: http
   readinessProbe:
     httpGet:
-      path: /
+      path: /healthz
       port: http
   # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   autoscaling:
@@ -100,7 +113,7 @@ api:
     minReplicas: 5
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
-    # targetMemoryUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
   # Additional volumes on the output Deployment definition.
   volumes: []
   # - name: foo
@@ -129,13 +142,14 @@ web:
   image:
     repository: ghcr.io/nomorechokedboy/sms-web
     # This sets the pull policy for images.
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
   # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   imagePullSecrets: []
   env:
     LOG_LEVEL: "info"
+
   envFrom: []
   # This is to override the chart name.
   nameOverride: ""
@@ -175,7 +189,7 @@ web:
     # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
     # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-    port: 3000
+    port: 80
   # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
   ingress:
     enabled: true
@@ -184,7 +198,7 @@ web:
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: 'true'
     hosts:
-      - host: sms.local
+      - host: qld.hc2
         paths:
           - path: /
             pathType: Prefix
