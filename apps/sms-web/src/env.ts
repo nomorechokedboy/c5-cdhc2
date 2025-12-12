@@ -17,7 +17,9 @@ export const env = createEnv({
 		VITE_CLIENT_ID: z.string().nonempty(),
 		VITE_OAUTH2_URL: z.string().default('http://localhost:8081'),
 		VITE_TOKEN_URI: z.string().default('local/oauth2/login.php'),
-		VITE_REDIRECT_URI: z.string().default('oauth2/callback'),
+		VITE_REDIRECT_URI: z
+			.string()
+			.default('http://localhost:4000/oauth2/callback'),
 		VITE_API_URL: z.string().default('')
 	},
 
