@@ -18,12 +18,12 @@ import {
 } from '@/components/ui/dialog'
 import UserInfoTabs from './user-info-tabs'
 import { useState, type MouseEvent } from 'react'
-import useDeleteStudents from '@/hooks/useDeleteStudents'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { useDeleteUsers } from './useDeleteUsers'
-import useUserData from '@/hooks/useUsers'
 import { isSuperAdmin } from '@/lib/utils'
+import AssignRoleDialog from './assign-role-dialog'
+import useUserData from '@/hooks/useUsers'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -39,14 +39,12 @@ export function DataTableRowActions<TData>({
 	console.log('Row original:', row.original)
 	console.log('Student cast:', user)
 	const [dialogOpen, setDialogOpen] = useState(false)
-	const {
-		data: users = [],
-		isLoading: isLoadingStudents,
-		refetch: refetchStudents
-	} = useUserData()
-	console.log('isloading', isLoadingStudents)
+	const { refetch: refetchStudents } = useUserData()
+
 	const { mutateAsync: deleteUserMutate, isPending: isDeletingStudent } =
 		useDeleteUsers()
+
+	const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false)
 
 	function handleOpenDialog() {
 		setDialogOpen(true)
@@ -93,6 +91,11 @@ export function DataTableRowActions<TData>({
 					</DropdownMenuItem>
 					{isSuperAdmin() && (
 						<>
+							<DropdownMenuItem
+								onClick={() => setAssignRoleDialogOpen(true)}
+							>
+								Phân quyền
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								disabled={isDeletingStudent}
@@ -114,6 +117,15 @@ export function DataTableRowActions<TData>({
 					<UserInfoTabs user={user} />
 				</DialogContent>
 			</Dialog>
+
+			{assignRoleDialogOpen && (
+				<AssignRoleDialog
+					open={assignRoleDialogOpen}
+					onOpenChange={setAssignRoleDialogOpen}
+					userId={user.id}
+					userName={user.displayName}
+				/>
+			)}
 		</>
 	)
 }
