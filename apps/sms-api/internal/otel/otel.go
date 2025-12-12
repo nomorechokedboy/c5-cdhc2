@@ -72,6 +72,15 @@ func init() {
 		// Don't panic in init, let the service initialization handle it
 		logger.Warn("OTLP_ENDPOINT not set, OTEL will not be initialized")
 	}
+
+	ctx := context.Background()
+	cfg, err := New(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "Initialize otlp error", "err", err)
+		panic("Initialize otlp error")
+	}
+
+	globalConfig = cfg
 }
 
 func newTraceExporter(ctx context.Context) (oteltrace.SpanExporter, error) {

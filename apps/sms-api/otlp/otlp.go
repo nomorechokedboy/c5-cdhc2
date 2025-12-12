@@ -7,8 +7,6 @@ import (
 	"encore.app/internal/otel"
 )
 
-var otlpConfig otel.OtelConfig
-
 //encore:service
 type Service struct {
 	config otel.OtelConfig
@@ -24,7 +22,6 @@ func initService() (*Service, error) {
 		return nil, err
 	}
 
-	otlpConfig = cfg
 	return &Service{config: cfg}, nil
 }
 
@@ -47,10 +44,4 @@ func (s *Service) Health(ctx context.Context) (*HealthResponse, error) {
 type HealthResponse struct {
 	Status          string `json:"status"`
 	OTELInitialized bool   `json:"otel_initialized"`
-}
-
-// GetOTELConfig returns the initialized OTEL configuration
-// Other services can call this to access the OTEL config
-func GetOTELConfig() otel.OtelConfig {
-	return otlpConfig
 }
