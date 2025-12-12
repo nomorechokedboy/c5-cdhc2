@@ -26,7 +26,7 @@ func SetGlobalLogger(loggerType LoggerType, options ...Option) {
 		env = "dev"
 	}
 
-	var logger Logger = initRlogLogger(env, options...)
+	var logger Logger = initRlogAndOtelLogger(env, options...)
 	switch loggerType {
 	/* case File:
 		logger, err = NewFileLogger("app.log")
@@ -71,6 +71,19 @@ func initDefaultLogger(env string, options ...Option) *SlogLogger {
 	allOptions := append(defaultOptions, options...)
 
 	return NewSlogLogger("sms-api", allOptions...)
+}
+
+func initRlogAndOtelLogger(env string, options ...Option) *SlogLogger {
+	logLevel := slog.LevelDebug
+	if env == "prod" {
+		logLevel = slog.LevelInfo
+	}
+
+	// Merge default options with provided options
+	defaultOptions := []Option{WithLevel(logLevel)}
+	allOptions := append(defaultOptions, options...)
+
+	return NewSlogLoggerWithRlogAndOtel("sms-api", allOptions...)
 }
 
 // Global logger methods for convenience

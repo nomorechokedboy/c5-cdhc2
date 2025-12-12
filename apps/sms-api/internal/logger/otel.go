@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"slices"
 
+	"encore.dev"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/log"
@@ -334,21 +335,48 @@ func convertValue(v slog.Value) log.Value {
 }
 
 // Handle adds contextual attributes to the Record before calling the underlying
-// handler
+// handler. This version automatically extracts Encore trace information.
 func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
+	// Add fields from context
 	if attrs, ok := ctx.Value(slogFields).([]slog.Attr); ok {
 		for _, v := range attrs {
 			r.AddAttrs(v)
 		}
 	}
 
+	// Extract Encore trace information and add to record
+	encoreReq := encore.CurrentRequest()
+	if encoreReq.Type == encore.APICall && encoreReq.Trace != nil {
+		attrs := make([]slog.Attr, 0, 4)
+
+		if encoreReq.Trace.TraceID != "" {
+			attrs = append(attrs, slog.String("trace_id", encoreReq.Trace.TraceID))
+		}
+		if encoreReq.Trace.SpanID != "" {
+			attrs = append(attrs, slog.String("span_id", encoreReq.Trace.SpanID))
+		}
+
+		// Optional: Add service and endpoint info
+		if encoreReq.Service != "" {
+			attrs = append(attrs, slog.String("service", encoreReq.Service))
+		}
+		if encoreReq.Endpoint != "" {
+			attrs = append(attrs, slog.String("endpoint", encoreReq.Endpoint))
+		}
+
+		if len(attrs) > 0 {
+			r.AddAttrs(attrs...)
+		}
+	}
+
+	// Check for OpenTelemetry span in context
 	span := trace.SpanFromContext(ctx)
 	if span.IsRecording() {
 		h.addTraceInfoToRecord(&r, span)
 		// h.addLogToSpan(r, span)
 	}
 
-	// Emit log to log to otel collector
+	// Emit log to OTEL collector
 	h.logger.Emit(ctx, h.convertRecord(r))
 	return h.Handler.Handle(ctx, r)
 }
@@ -426,11 +454,14 @@ func (h *ContextHandler) WithGroup(name string) slog.Handler {
 func (h *ContextHandler) addTraceInfoToRecord(r *slog.Record, span trace.Span) {
 	sCtx := span.SpanContext()
 	attrs := make([]slog.Attr, 0)
+
+	// Only add OpenTelemetry trace IDs if they differ from Encore's
+	// (Encore's trace IDs are already added above)
 	if sCtx.HasTraceID() {
-		attrs = append(attrs, slog.String("traceId", sCtx.TraceID().String()))
+		attrs = append(attrs, slog.String("otel_trace_id", sCtx.TraceID().String()))
 	}
 	if sCtx.HasSpanID() {
-		attrs = append(attrs, slog.String("spanId", sCtx.SpanID().String()))
+		attrs = append(attrs, slog.String("otel_span_id", sCtx.SpanID().String()))
 	}
 	if len(attrs) > 0 {
 		r.AddAttrs(attrs...)

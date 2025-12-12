@@ -123,6 +123,27 @@ func NewSlogLoggerWithRlog(name string, options ...Option) *SlogLogger {
 	return &SlogLogger{logger: logger}
 }
 
+// NewSlogLoggerWithRlogAndOtel creates a logger that sends logs to both Rlog (Encore) and OpenTelemetry.
+func NewSlogLoggerWithRlogAndOtel(name string, options ...Option) *SlogLogger {
+	cfg := newConfig(options)
+
+	// Create Rlog handler
+	rlogHandler := NewRlogHandler(cfg.HandlerOptions)
+
+	// Create OpenTelemetry handler
+	otelHandler := &ContextHandler{
+		Handler: slog.NewJSONHandler(os.Stdout, cfg.HandlerOptions),
+		logger:  cfg.logger(name),
+	}
+
+	// Combine both handlers using CompositeHandler
+	compositeHandler := NewCompositeHandler(rlogHandler, otelHandler)
+
+	logger := slog.New(compositeHandler)
+	slog.SetDefault(logger)
+	return &SlogLogger{logger: logger}
+}
+
 func (l *SlogLogger) Debug(msg string, args ...any) {
 	l.DebugContext(context.Background(), msg, args...)
 }

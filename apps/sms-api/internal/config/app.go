@@ -34,11 +34,11 @@ type Config struct {
 	DatabaseConfig
 	Oauth2Config
 	MoodleApiConfig
+	OtelConfig
 	ClientOriginUrl      string `env:"CLIENT_ORIGIN_URL"      env-default:"http://localhost:3000" json:"client_origin_url"`
 	ClientOauth2Callback string `env:"CLIENT_OAUTH2_CALLBACK" env-default:"oauth2/callback"       json:"client_oauth2_callback"`
 	Env                  string `env:"ENV"                    env-default:"dev"                   json:"env"`
 	Port                 int    `env:"PORT"                   env-default:"4000"                  json:"port"`
-	// OtelEndpoint    string `env:"OTEL_ENDPOINT" env-default:"localhost:4318" json:"otel_endpoint"`
 }
 
 func (c *Config) GetOauth2Config() oauth2.Config {
@@ -57,6 +57,7 @@ func (c *Config) GetOauth2Config() oauth2.Config {
 func (c *Config) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.Int("port", c.Port),
+		slog.Any("otel_config", &c.OtelConfig),
 		slog.Any("authn_config", &c.AuthnConfig),
 		slog.String("client_origin_url", c.ClientOriginUrl),
 		slog.Any("oauth2_cfg", &c.Oauth2Config),
@@ -90,6 +91,7 @@ func init() {
 		logger.Error("Failed to load config: ", err)
 	}
 
+	logger.SetGlobalLogger(logger.Default, logger.WithSchemaURL(config.OtelConfig.SchemaUrl))
 	logger.Info("Init config success", "config", config)
 }
 

@@ -25,4 +25,5 @@ const (
 	File
 	FileAndCentralized
 	Otel
+	RlogAndOtel
 )
