@@ -111,7 +111,7 @@ export interface UserUpdate {
 	position?: string
 }
 
-export interface Student extends Base, StudentBody {}
+export interface Student extends Base, StudentBody { }
 export interface User extends Base, UserBody {
 	unitName?: string
 }
@@ -389,9 +389,12 @@ export type InitAdminRequest = {
 	displayName: string
 }
 
-export type UpdateRoleBody = {
-	id: number
-	name: string
-	description?: string
-	permissionIds?: number[]
+
+export interface AssignRoleRequest {
+	userId: number
+	roleIds: number[]
+}
+
+export interface GetUserRolesResponse {
+	roleIds: number[]
 }

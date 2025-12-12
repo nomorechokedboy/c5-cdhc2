@@ -5,7 +5,7 @@ import { AssignRoleRequest, userRoles } from '../schema'
 import log from 'encore.dev/log'
 
 class sqliteRepo implements Repository {
-	constructor(private readonly db: DrizzleDatabase) {}
+	constructor(private readonly db: DrizzleDatabase) { }
 
 	assignRolesToUser(params: AssignRoleRequest): Promise<void> {
 		log.info('UserRolesRepo.assignRolesToUser params', { params })
@@ -25,6 +25,14 @@ class sqliteRepo implements Repository {
 				await tx.insert(userRoles).values(userRoleData)
 			}
 		})
+	}
+
+	getRolesByUserId(userId: number): Promise<number[]> {
+		return this.db
+			.select({ roleId: userRoles.roleId })
+			.from(userRoles)
+			.where(eq(userRoles.userId, userId))
+			.then((rows) => rows.map((r) => r.roleId))
 	}
 }
 

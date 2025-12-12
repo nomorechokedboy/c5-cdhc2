@@ -18,7 +18,9 @@ import {
 	type UpdateRoleBody,
 	type UpdateStudentsBody,
 	type UpdateUserBody,
-	type UserBody
+	type UserBody,
+	type AssignRoleRequest,
+	type GetUserRolesResponse
 } from '@/types'
 import { appFetcher } from '@/lib/axios'
 import Client, { auth, classes, students, units } from './client'
@@ -27,6 +29,8 @@ import { ApiUrl } from '@/lib/const'
 export const requestClient = new Client(ApiUrl, {
 	fetcher: appFetcher
 })
+
+// ... (omitting middle parts, better to target specific blocks)
 
 export function CreateClass(body: ClassBody) {
 	return requestClient.classes.CreateClass(body).then((resp) => resp.data)
@@ -238,4 +242,12 @@ export function CreatePermission(body: {
 	resourceId: number
 }) {
 	return requestClient.permissions.CreatePermission(body)
+}
+
+export function AssignRolesToUser(body: AssignRoleRequest) {
+	return requestClient.user_roles.AssignRolesToUser(body)
+}
+
+export function GetUserRoles(userId: number) {
+	return requestClient.user_roles.GetUserRoles(userId)
 }
