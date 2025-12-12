@@ -1,0 +1,102 @@
+# -----------------------------
+# Harbor Ingress + NGINX config
+# -----------------------------
+
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: secret
+    secret:
+      secretName: harbor-tls
+
+  ingress:
+    className: nginx
+    hosts:
+      core: registry.hc2
+      notary: notary.registry.hc2
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-production"
+
+externalURL: https://registry.hc2
+
+internalTLS:
+  enabled: false
+
+# -----------------------------
+# Persistence (HDD via PVCs)
+# -----------------------------
+persistence:
+  enabled: true
+  resourcePolicy: keep
+  persistentVolumeClaim:
+    registry:
+      existingClaim: harbor-registry-pvc
+    chartmuseum:
+      existingClaim: harbor-chartmuseum-pvc
+    jobservice:
+      existingClaim: harbor-jobservice-pvc
+    database:
+      existingClaim: harbor-database-pvc
+    redis:
+      existingClaim: harbor-redis-pvc
+    trivy:
+      existingClaim: harbor-trivy-pvc
+
+harborAdminPassword: "Harbor12345"
+
+database:
+  type: internal
+  internal:
+    password: "harborDBpass"
+
+redis:
+  type: internal
+
+notary:
+  enabled: false
+
+trivy:
+  enabled: true
+  persistence:
+    enabled: true
+
+# -----------------------------
+# Production Resource Settings
+# -----------------------------
+
+core:
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+portal:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+jobservice:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+nginx:
+  resources:
+    requests:
+      cpu: "100m"
+
