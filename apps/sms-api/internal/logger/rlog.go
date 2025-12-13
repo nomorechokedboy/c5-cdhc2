@@ -5,10 +5,12 @@ import (
 	"log/slog"
 	"runtime"
 
+	"encore.dev"
 	"encore.dev/rlog"
 )
 
 // RlogHandler implements slog.Handler backed by rlog.
+// This version automatically extracts Encore trace information.
 type RlogHandler struct {
 	opts  *slog.HandlerOptions
 	attrs []slog.Attr
@@ -31,8 +33,26 @@ func (h *RlogHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return true
 }
 
-func (h *RlogHandler) Handle(_ context.Context, r slog.Record) error {
-	args := make([]any, 0, len(h.attrs)*2+r.NumAttrs()*2)
+func (h *RlogHandler) Handle(ctx context.Context, r slog.Record) error {
+	args := make([]any, 0, len(h.attrs)*2+r.NumAttrs()*2+8) // +8 for trace fields
+
+	// Add Encore trace information automatically
+	encoreReq := encore.CurrentRequest()
+	if encoreReq.Type == encore.APICall && encoreReq.Trace != nil {
+		if encoreReq.Trace.TraceID != "" {
+			args = append(args, "trace_id", encoreReq.Trace.TraceID)
+		}
+		if encoreReq.Trace.SpanID != "" {
+			args = append(args, "span_id", encoreReq.Trace.SpanID)
+		}
+		// Optional: Add service and endpoint
+		if encoreReq.Service != "" {
+			args = append(args, "service", encoreReq.Service)
+		}
+		if encoreReq.Endpoint != "" {
+			args = append(args, "endpoint", encoreReq.Endpoint)
+		}
+	}
 
 	// include persistent attrs
 	for _, a := range h.attrs {
