@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Library functions
  *
@@ -70,16 +71,16 @@ function local_customgradeexport_get_user_org_data($userid)
 function local_customgradeexport_extend_settings_navigation($settingsnav, $context)
 {
     global $PAGE;
-    
+
     // Debug logging to file
     $debug = false; // Set to true to enable debug logging
     $logfile = '/tmp/moodle_customexport_debug.log';
-    
+
     if ($debug) {
         file_put_contents($logfile, "\n" . date('Y-m-d H:i:s') . " - extend_settings_navigation called\n", FILE_APPEND);
         file_put_contents($logfile, "Context level: " . $context->contextlevel . "\n", FILE_APPEND);
     }
-    
+
     // Only in module context
     if ($context->contextlevel != CONTEXT_MODULE) {
         if ($debug) file_put_contents($logfile, "Not module context\n", FILE_APPEND);
@@ -91,7 +92,7 @@ function local_customgradeexport_extend_settings_navigation($settingsnav, $conte
         if ($debug) file_put_contents($logfile, "No cm found\n", FILE_APPEND);
         return;
     }
-    
+
     if ($debug) file_put_contents($logfile, "Module: " . $cm->modname . "\n", FILE_APPEND);
 
     // Only for quiz and assignment
@@ -111,7 +112,7 @@ function local_customgradeexport_extend_settings_navigation($settingsnav, $conte
         if ($debug) file_put_contents($logfile, "No module capability\n", FILE_APPEND);
         return;
     }
-    
+
     if ($debug) file_put_contents($logfile, "All checks passed, adding node\n", FILE_APPEND);
 
     // Create the export URL
@@ -157,31 +158,33 @@ function local_customgradeexport_extend_settings_navigation($settingsnav, $conte
 function local_customgradeexport_before_footer()
 {
     global $PAGE;
-    
+
     // Only on quiz and assignment pages
     if (!$PAGE->cm || !in_array($PAGE->cm->modname, ['quiz', 'assign'])) {
         return;
     }
-    
+
     $context = context_module::instance($PAGE->cm->id);
-    
+
     // Check capabilities
     if (!has_capability('local/customgradeexport:export', $context)) {
         return;
     }
-    
+
     $capability = ($PAGE->cm->modname == 'quiz') ? 'mod/quiz:viewreports' : 'mod/assign:grade';
     if (!has_capability($capability, $context)) {
         return;
     }
-    
+
     // Create the export URL
-    $url = new moodle_url('/local/customgradeexport/' . $PAGE->cm->modname . '_export.php', 
-                          ['cmid' => $PAGE->cm->id]);
-    
+    $url = new moodle_url(
+        '/local/customgradeexport/' . $PAGE->cm->modname . '_export.php',
+        ['cmid' => $PAGE->cm->id]
+    );
+
     $buttontext = get_string('exportgrades', 'local_customgradeexport');
     $urlout = $url->out(false);
-    
+
     // Inject button via JavaScript - this will ALWAYS work
     $PAGE->requires->js_amd_inline("
         require(['jquery'], function($) {
@@ -252,34 +255,4 @@ function local_customgradeexport_before_footer()
             });
         });
     ");
-}
-
-/**
- * Add to page header - Alternative method
- */
-function local_customgradeexport_before_standard_html_head()
-{
-    global $PAGE;
-    
-    // Only on quiz and assignment pages
-    if (!$PAGE->cm || !in_array($PAGE->cm->modname, ['quiz', 'assign'])) {
-        return '';
-    }
-    
-    $context = context_module::instance($PAGE->cm->id);
-    
-    // Check capabilities
-    if (!has_capability('local/customgradeexport:export', $context)) {
-        return '';
-    }
-    
-    $capability = ($PAGE->cm->modname == 'quiz') ? 'mod/quiz:viewreports' : 'mod/assign:grade';
-    if (!has_capability($capability, $context)) {
-        return '';
-    }
-    
-    // Add CSS to style the button
-    $PAGE->requires->css('/local/customgradeexport/styles.css');
-    
-    return '';
 }

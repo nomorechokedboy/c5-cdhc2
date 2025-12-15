@@ -1,4 +1,5 @@
 <?php
+
 /**
  * DOCX Exporter class
  *
@@ -24,30 +25,33 @@ use PhpOffice\PhpWord\TemplateProcessor;
 /**
  * Helper class for exporting to DOCX format
  */
-class docx_exporter {
-    
+class docx_exporter
+{
+
     /**
      * Check if PHPWord is available
      * 
      * @return bool
      */
-    public static function is_available() {
+    public static function is_available()
+    {
         return class_exists('PhpOffice\PhpWord\PhpWord');
     }
-    
+
     /**
      * Export data to DOCX using a table
      *
      * @param array $data 2D array of export data
      * @param string $filename Output filename
      */
-    public static function export_table($data, $filename) {
+    public static function export_table($data, $filename)
+    {
         if (!self::is_available()) {
             throw new \moodle_exception('PHPWord library not installed');
         }
-        
+
         $phpWord = new PhpWord();
-        
+
         // Add section
         $section = $phpWord->addSection([
             'marginLeft' => 600,
@@ -55,25 +59,25 @@ class docx_exporter {
             'marginTop' => 600,
             'marginBottom' => 600,
         ]);
-        
+
         // Add title
         $section->addText(
             'Grade Export Report',
             ['bold' => true, 'size' => 16],
             ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]
         );
-        
+
         $section->addTextBreak(1);
-        
+
         // Add export date
         $section->addText(
             'Exported: ' . date('Y-m-d H:i:s'),
             ['size' => 10],
             ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::RIGHT]
         );
-        
+
         $section->addTextBreak(1);
-        
+
         // Create table
         $table = $section->addTable([
             'borderSize' => 6,
@@ -82,12 +86,12 @@ class docx_exporter {
             'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
             'width' => 100 * 50, // 100% width
         ]);
-        
+
         // Add rows
         $isHeader = true;
         foreach ($data as $rowData) {
             $table->addRow();
-            
+
             foreach ($rowData as $cellData) {
                 if ($isHeader) {
                     // Header style
@@ -99,22 +103,22 @@ class docx_exporter {
                         ->addText($cellData, ['size' => 9]);
                 }
             }
-            
+
             $isHeader = false;
         }
-        
+
         // Save file
         $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-        
+
         // Send headers
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         $objWriter->save('php://output');
         exit;
     }
-    
+
     /**
      * Export data using a template file
      *
@@ -123,37 +127,38 @@ class docx_exporter {
      * @param array $tableData Optional table data to insert
      * @param string $filename Output filename
      */
-    public static function export_from_template($templatePath, $variables, $tableData, $filename) {
+    public static function export_from_template($templatePath, $variables, $tableData, $filename)
+    {
         if (!self::is_available()) {
             throw new \moodle_exception('PHPWord library not installed');
         }
-        
+
         if (!file_exists($templatePath)) {
             throw new \moodle_exception('Template file not found: ' . $templatePath);
         }
-        
+
         $templateProcessor = new TemplateProcessor($templatePath);
-        
+
         // Replace simple variables
         foreach ($variables as $key => $value) {
             $templateProcessor->setValue($key, $value);
         }
-        
+
         // Clone table rows if template has a table block
         if (!empty($tableData) && count($tableData) > 1) {
             // First row is headers, skip it for cloning
             $dataRows = array_slice($tableData, 1);
-            
+
             // Try to clone the row (requires ${} placeholders in template)
             try {
                 $templateProcessor->cloneRow('firstname', count($dataRows));
-                
+
                 // Fill in the data
                 $rowNum = 1;
                 foreach ($dataRows as $row) {
                     $colNum = 0;
                     foreach ($tableData[0] as $headerIndex => $header) {
-                        $placeholder = $this->get_placeholder_for_column($headerIndex);
+                        $placeholder = self::get_placeholder_for_column($headerIndex);
                         if (isset($row[$colNum])) {
                             $templateProcessor->setValue($placeholder . '#' . $rowNum, $row[$colNum]);
                         }
@@ -166,68 +171,81 @@ class docx_exporter {
                 // This means template doesn't have proper table structure
             }
         }
-        
+
         // Send headers
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         $templateProcessor->saveAs('php://output');
         exit;
     }
-    
+
     /**
      * Get placeholder name for column index
      *
      * @param int $index Column index
      * @return string Placeholder name
      */
-    protected static function get_placeholder_for_column($index) {
+    protected static function get_placeholder_for_column($index)
+    {
         $placeholders = [
-            'firstname', 'lastname', 'idnumber', 'institution', 'department',
-            'email', 'attempt', 'status', 'grade', 'outof', 'percentage',
-            'timestarted', 'timefinished', 'timetaken'
+            'firstname',
+            'lastname',
+            'idnumber',
+            'institution',
+            'department',
+            'email',
+            'attempt',
+            'status',
+            'grade',
+            'outof',
+            'percentage',
+            'timestarted',
+            'timefinished',
+            'timetaken'
         ];
-        
+
         return isset($placeholders[$index]) ? $placeholders[$index] : 'col' . $index;
     }
-    
+
     /**
      * Create a simple list document
      *
      * @param array $data Array of data rows
      * @param string $filename Output filename
      */
-    public static function export_list($data, $filename) {
+    public static function export_list($data, $filename)
+    {
         if (!self::is_available()) {
             throw new \moodle_exception('PHPWord library not installed');
         }
-        
+
         $phpWord = new PhpWord();
         $section = $phpWord->addSection();
-        
+
         // Add title
         $section->addText(
             'Grade Export Report',
             ['bold' => true, 'size' => 16],
             ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]
         );
-        
+
         $section->addTextBreak(2);
-        
+
         // Skip header row, process data
         for ($i = 1; $i < count($data); $i++) {
             $row = $data[$i];
             $headers = $data[0];
-            
+
             // Add student section
             $section->addText(
                 'Student ' . $i,
                 ['bold' => true, 'size' => 12, 'color' => '2E75B5']
             );
-            
+
             $section->addTextBreak(1);
-            
+
             // Add each field as a line
             foreach ($row as $index => $value) {
                 $headerName = isset($headers[$index]) ? $headers[$index] : 'Field ' . $index;
@@ -236,19 +254,19 @@ class docx_exporter {
                     ['size' => 10]
                 );
             }
-            
+
             $section->addTextBreak(1);
             $section->addLine(['weight' => 1, 'width' => 450, 'height' => 0]);
             $section->addTextBreak(1);
         }
-        
+
         // Save file
         $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-        
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         $objWriter->save('php://output');
         exit;
     }
