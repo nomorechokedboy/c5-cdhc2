@@ -39,7 +39,7 @@ export const calculateConditionalGrade = ({
 export const calculateFinalGrade = (studentGrades: Record<string, Grade>) => {
 	const grades = Object.values(studentGrades)
 	if (grades.length === 0) {
-		return 0
+		return { conditionalGrade: 0, finalGrade: 0 }
 	}
 
 	const grade15M = grades.filter((v) => v.examType === '15P')
@@ -48,6 +48,8 @@ export const calculateFinalGrade = (studentGrades: Record<string, Grade>) => {
 
 	const avg15MGrades = calculateAverage(grade15M.map((g) => g.grade)) || 0
 	const avg1TGrades = calculateAverage(grade1T.map((g) => g.grade)) || 0
+	console.log({ avg15MGrades, avg1TGrades })
+
 	const avgFinalExamGrades =
 		calculateAverage(gradeFinalExam.map((g) => g.grade)) || 0
 
@@ -56,7 +58,10 @@ export const calculateFinalGrade = (studentGrades: Record<string, Grade>) => {
 		avg15MGrades
 	})
 
-	return conditionalGrade * 0.4 + avgFinalExamGrades * 0.6
+	return {
+		conditionalGrade,
+		finalGrade: conditionalGrade * 0.4 + avgFinalExamGrades * 0.6
+	}
 }
 
 export const getGradeColor = (average: number) => {

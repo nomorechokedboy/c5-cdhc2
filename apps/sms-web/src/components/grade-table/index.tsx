@@ -36,35 +36,43 @@ export default function GradesTable({
 						<TableHead className='font-semibold text-foreground'>
 							Tên học viên
 						</TableHead>
-						{gradeCategories.map((category) => (
-							<TableHead
-								key={category.value}
-								className='font-semibold text-foreground text-center'
-							>
-								<div className='flex items-center justify-center gap-2'>
-									{category.label}
-									{bulkEditMode === 'single-category' && (
-										<Button
-											size='sm'
-											variant={
-												bulkEditCategory?.value ===
+						{gradeCategories.map((category, idx) => (
+							<>
+								<TableHead
+									key={category.value}
+									className='font-semibold text-foreground text-center'
+								>
+									<div className='flex items-center justify-center gap-2'>
+										{category.label}
+										{bulkEditMode === 'single-category' && (
+											<Button
+												size='sm'
+												variant={
+													bulkEditCategory?.value ===
+													category.value
+														? 'default'
+														: 'ghost'
+												}
+												onClick={() =>
+													onCategorySelect(category)
+												}
+												className='h-6 px-2 text-xs'
+											>
+												{bulkEditCategory?.value ===
 												category.value
-													? 'default'
-													: 'ghost'
-											}
-											onClick={() =>
-												onCategorySelect(category)
-											}
-											className='h-6 px-2 text-xs'
-										>
-											{bulkEditCategory?.value ===
-											category.value
-												? 'Đang chọn'
-												: 'Chọn'}
-										</Button>
+													? 'Đang chọn'
+													: 'Chọn'}
+											</Button>
+										)}
+									</div>
+								</TableHead>
+								{gradeCategories.length > 2 &&
+									idx === gradeCategories.length - 2 && (
+										<TableHead className='font-semibold text-foreground text-center'>
+											Điểm điều kiện
+										</TableHead>
 									)}
-								</div>
-							</TableHead>
+							</>
 						))}
 						<TableHead className='font-semibold text-foreground text-center'>
 							Tổng kết môn
