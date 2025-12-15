@@ -256,3 +256,37 @@ function local_customgradeexport_before_footer()
         });
     ");
 }
+
+/**
+ * Extend course navigation to add course grade export link.
+ *
+ * @param navigation_node $navigation Course navigation node
+ * @param stdClass $course Course object
+ * @param context_course $context Course context
+ */
+function local_customgradeexport_extend_navigation_course(
+    navigation_node $navigation,
+    stdClass $course,
+    context_course $context
+) {
+    // Capability check.
+    if (!has_capability('local/customgradeexport:export', $context)) {
+        return;
+    }
+
+    // Build URL to course export page.
+    $url = new moodle_url(
+        '/local/customgradeexport/course_export.php',
+        ['id' => $course->id]
+    );
+
+    // Add node to course navigation.
+    $navigation->add(
+        get_string('exportcoursegrades', 'local_customgradeexport'),
+        $url,
+        navigation_node::TYPE_CUSTOM,
+        null,
+        'local_customgradeexport_course_export',
+        new pix_icon('i/export', '')
+    );
+}

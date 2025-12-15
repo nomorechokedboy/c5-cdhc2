@@ -1,7 +1,3 @@
-# Vendor libraries (installed via git clone or setup script)
-phpoffice/
-laminas/
-
 # Keep autoload.php
 !autoload.php
 !.gitignore

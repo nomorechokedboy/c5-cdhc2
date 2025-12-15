@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Quiz grade export script with format selection
  *
@@ -28,7 +29,7 @@ require_capability('local/customgradeexport:export', $context);
 // If format is specified, do the export
 if ($format) {
     $exporter = new \local_customgradeexport\quiz_export_helper($quiz, $cm, $course);
-    
+
     if ($format === 'docx') {
         $exporter->export_grades_docx();
     } else {
@@ -92,7 +93,7 @@ echo '</div>';
 if (has_capability('local/customgradeexport:uploadtemplate', context_system::instance())) {
     echo '<div class="alert alert-info">';
     echo '<strong>Template Management:</strong> ';
-    $templateurl = new moodle_url('/local/customgradeexport/upload_template.php', ['type' => 'quiz']);
+    $templateurl = new moodle_url('/local/customgradeexport/manage_templates.php', ['type' => 'quiz']);
     echo html_writer::link($templateurl, 'Manage export templates');
     echo '</div>';
 }
