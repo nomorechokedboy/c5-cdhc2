@@ -228,7 +228,7 @@ export function ToStudentGradesSummary(
 		studentGrades[g.modulename] = g.grade
 		studentGradesMap[g.modulename] = Grade.From(g)
 	})
-	const finalScore = calculateFinalGrade(studentGradesMap)
+	const { finalScore } = calculateFinalGrade(studentGradesMap)
 
 	return { grades: studentGrades, finalScore }
 }
