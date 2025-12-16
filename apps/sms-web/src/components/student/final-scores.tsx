@@ -204,8 +204,8 @@ export default function StudentFinalScores({
 																gradeInfo.finalScore
 															)} group-hover:shadow-sm transition-all`}
 														>
-															{gradeInfo.finalScore.toFixed(
-																1
+															{gradeInfo.finalScore?.toFixed(
+																2
 															)}
 														</Badge>
 													) : (
