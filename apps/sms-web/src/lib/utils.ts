@@ -48,7 +48,6 @@ export const calculateFinalGrade = (studentGrades: Record<string, Grade>) => {
 
 	const avg15MGrades = calculateAverage(grade15M.map((g) => g.grade)) || 0
 	const avg1TGrades = calculateAverage(grade1T.map((g) => g.grade)) || 0
-	console.log({ avg15MGrades, avg1TGrades })
 
 	const avgFinalExamGrades =
 		calculateAverage(gradeFinalExam.map((g) => g.grade)) || 0
