@@ -3,7 +3,7 @@
 	"pubsub": [
 		{
 			"type": "nsq",
-			"hosts": "nsqd:4150",
+			"hosts": "nsq-nsqd.amqp.svc.cluster.local:4150",
 			"topics": {
 				"notification-events": {
 					"name": "notification-events-topic",
