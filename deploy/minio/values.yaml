@@ -34,9 +34,15 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod # If using cert-manager
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, DELETE, HEAD"
+    #nginx.ingress.kubernetes.io/configuration-snippet: |
+      #proxy_set_header Host $host;
+      #proxy_set_header X-Forwarded-Proto $scheme;
   hosts:
     - s3.hc2 # CHANGE THIS to your domain
+    - "*.s3.hc2" 
 ## Console ingress (MinIO Web UI)
 consoleIngress:
   enabled: true
