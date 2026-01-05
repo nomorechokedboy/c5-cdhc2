@@ -87,7 +87,7 @@ export default function Login() {
 									width={24}
 									height={24}
 								/>
-								Đăng nhập bằng Học liệu số
+								Đăng nhập bằng LMS
 							</Button>
 						</CardContent>
 					</Card>
