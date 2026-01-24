@@ -72,7 +72,10 @@ class course_export_helper
         } else {
             // Use default Excel export
             $filename = clean_filename($this->course->shortname . '_course_grades.xls');
-            $this->send_excel_download($data, $filename);
+            $this->send_excel_download(
+                array_merge([$data['headers']], $data['rows']),
+                $filename
+            );
         }
     }
 
@@ -96,7 +99,10 @@ class course_export_helper
         } else {
             // Send standard download
             $filename = clean_filename($this->course->shortname . '_course_grades.xls');
-            $this->send_excel_download($data, $filename);
+            $this->send_excel_download(
+                array_merge([$data['headers']], $data['rows']),
+                $filename
+            );
         }
     }
 
@@ -163,7 +169,8 @@ class course_export_helper
         ];
 
         // Export using DOCX exporter with course-specific column mapping
-        docx_exporter::export_course_template($templatePath, $variables, $data, $filename);
+        $export = $this->prepare_export_data();
+        docx_exporter::export_course_template($templatePath, $variables, $export, $filename);
     }
 
     /**
@@ -173,28 +180,84 @@ class course_export_helper
      */
     protected function prepare_export_data()
     {
-        global $DB;
-
-        // Get all grade items for this course
+        // Get grade items
         $gradeItems = $this->get_grade_items_by_exam_type();
 
-        // Build dynamic headers
+        // Headers (Excel only)
         $headers = $this->build_headers($gradeItems);
 
-        $data = [];
-        $data[] = $headers;
+        $rows = [];     // numeric (Excel)
+        $rows_kv = [];  // associative (DOCX)
 
-        // Get enrolled students
         $students = $this->get_enrolled_students();
-
         $rowNum = 1;
+
         foreach ($students as $student) {
-            $row = $this->build_student_row($student, $gradeItems, $rowNum);
-            $data[] = $row;
+
+            // ---------- GRADES ----------
+            $grades15P = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_15P]);
+            $grades1T  = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_1T]);
+            $gradesThi = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_THI]);
+
+            $tkmh = $this->calculate_tkmh($grades15P, $grades1T, $gradesThi);
+            $xepLoai = $this->get_classification($tkmh);
+
+            // ---------- EXCEL ROW (NUMERIC) ----------
+            $row = [
+                $rowNum,
+                fullname($student),
+                $student->idnumber ?: '',
+            ];
+
+            for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_15P])); $i++) {
+                $row[] = $grades15P[$i] !== null ? round($grades15P[$i], 1) : '';
+            }
+
+            for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_1T])); $i++) {
+                $row[] = $grades1T[$i] !== null ? round($grades1T[$i], 1) : '';
+            }
+
+            $row[] = $gradesThi[0] ?? '';
+            $row[] = $gradesThi[1] ?? '';
+
+            $row[] = $tkmh !== null ? round($tkmh, 1) : '';
+            $row[] = $xepLoai;
+            $row[] = '';
+
+            $rows[] = $row;
+
+            // ---------- DOCX ROW (ASSOCIATIVE) ----------
+            $row_kv = [
+                'stt'        => $rowNum,
+                'fullname'   => fullname($student),
+                'idnumber'   => $student->idnumber ?: '',
+                'tkmh'       => $tkmh !== null ? round($tkmh, 1) : '',
+                'xep_loai'   => $xepLoai,
+                'ghi_chu'    => '',
+            ];
+
+            // dynamic columns
+            for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_15P])); $i++) {
+                $row_kv['15p_' . sprintf('%02d', $i + 1)] = $grades15P[$i] !== null ? round($grades15P[$i], 1) : '';
+            }
+
+            for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_1T])); $i++) {
+                $row_kv['1t_' . sprintf('%02d', $i + 1)] = $grades1T[$i] !== null ? round($grades1T[$i], 1) : '';
+            }
+
+            $row_kv['thi_01'] = $gradesThi[0] ? round($gradesThi[0], 1) : '';
+            $row_kv['thi_02'] = $gradesThi[1] ? round($gradesThi[1], 1) : '';
+
+            $rows_kv[] = $row_kv;
+
             $rowNum++;
         }
 
-        return $data;
+        return [
+            'headers' => $headers,
+            'rows'    => $rows,
+            'rows_kv' => $rows_kv,
+        ];
     }
 
     /**
@@ -414,63 +477,52 @@ class course_export_helper
     {
         global $DB;
 
-        $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.idnumber,
-                       u.institution, u.department
-                FROM {user} u
-                JOIN {user_enrolments} ue ON u.id = ue.userid
-                JOIN {enrol} e ON ue.enrolid = e.id
-                WHERE e.courseid = :courseid
-                  AND ue.status = 0
-                  AND e.status = 0
-                ORDER BY u.lastname, u.firstname";
+        // Get course context id
+        $context = \context_course::instance($this->course->id);
 
-        return $DB->get_records_sql($sql, ['courseid' => $this->course->id]);
-    }
+        // Get all student-role ids (archetype = 'student')
+        $studentroleids = $DB->get_fieldset_select(
+            'role',
+            'id',
+            'archetype = :arch',
+            ['arch' => 'student']
+        );
 
-    /**
-     * Build student row with grades and calculations
-     *
-     * @param stdClass $student Student record
-     * @param array $gradeItems Grade items by exam type
-     * @param int $rowNum Row number
-     * @return array Row data
-     */
-    protected function build_student_row($student, $gradeItems, $rowNum)
-    {
-        $row = [
-            $rowNum,
-            fullname($student),
-            $student->idnumber ?: '',
-        ];
-
-        // Get all grades for this student
-        $grades15P = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_15P]);
-        $grades1T = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_1T]);
-        $gradesThi = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_THI]);
-
-        // Add 15P grades (pad to at least 3 columns)
-        for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_15P])); $i++) {
-            $row[] = isset($grades15P[$i]) ? round($grades15P[$i], 2) : '';
+        if (empty($studentroleids)) {
+            return [];
         }
 
-        // Add 1T grades (pad to at least 3 columns)
-        for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_1T])); $i++) {
-            $row[] = isset($grades1T[$i]) ? round($grades1T[$i], 2) : '';
-        }
+        list($rolesql, $roleparams) = $DB->get_in_or_equal(
+            $studentroleids,
+            SQL_PARAMS_NAMED,
+            'rid'
+        );
 
-        // Add Thi grades (always 2 columns)
-        $row[] = isset($gradesThi[0]) ? round($gradesThi[0], 2) : '';
-        $row[] = isset($gradesThi[1]) ? round($gradesThi[1], 2) : '';
+        $sql = "SELECT DISTINCT u.id,
+                               u.firstname,
+                               u.lastname,
+                               u.idnumber,
+                               u.institution,
+                               u.department
+                  FROM {user} u
+                  JOIN {user_enrolments} ue ON ue.userid = u.id
+                  JOIN {enrol} e ON e.id = ue.enrolid
+                  JOIN {role_assignments} ra ON ra.userid = u.id
+                 WHERE e.courseid = :courseid
+                   AND ra.contextid = :contextid
+                   AND ra.roleid $rolesql
+                   AND ue.status = 0
+                   AND e.status = 0
+                   AND u.deleted = 0
+                   AND u.suspended = 0
+              ORDER BY u.lastname, u.firstname";
 
-        // Calculate TKMH and classification
-        $tkmh = $this->calculate_tkmh($grades15P, $grades1T, $gradesThi);
-        $classification = $this->get_classification($tkmh);
+        $params = array_merge([
+            'courseid'  => $this->course->id,
+            'contextid' => $context->id,
+        ], $roleparams);
 
-        $row[] = $tkmh !== null ? round($tkmh, 2) : '';
-        $row[] = $classification;
-        $row[] = ''; // Notes column
-
-        return $row;
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
