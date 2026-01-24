@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Course grade export helper class
+ * Course grade export helper class - Enhanced with DOCX support
  *
  * @package    local_customgradeexport
  * @copyright  2024 Your Name
@@ -44,7 +44,7 @@ class course_export_helper
     }
 
     /**
-     * Export course grades to Excel with template
+     * Export course grades to Excel or DOCX with template
      *
      * @param string|null $templatePath Optional template path
      */
@@ -56,25 +56,82 @@ class course_export_helper
         // Get export data
         $data = $this->prepare_export_data();
 
-        $filename = clean_filename($this->course->shortname . '_course_grades.xls');
-
         if ($templatePath && file_exists($templatePath)) {
-            // Use template
-            $this->export_with_template($data, $templatePath, $filename);
+            // Detect format from template
+            $ext = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
+
+            if ($ext === 'docx') {
+                // DOCX export
+                $filename = clean_filename($this->course->shortname . '_course_grades.docx');
+                $this->export_with_docx_template($data, $templatePath, $filename);
+            } else {
+                // Excel export
+                $filename = clean_filename($this->course->shortname . '_course_grades.xls');
+                $this->export_with_excel_template($data, $templatePath, $filename);
+            }
         } else {
-            // Use default export
+            // Use default Excel export
+            $filename = clean_filename($this->course->shortname . '_course_grades.xls');
             $this->send_excel_download($data, $filename);
         }
     }
 
     /**
-     * Export using template
+     * Export course grades to Excel with template
+     *
+     * @param string|null $templatePath Optional path to template file
+     */
+    public function export_grades_excel($templatePath = null)
+    {
+        require_capability('moodle/grade:viewall', $this->context);
+        require_capability('local/customgradeexport:export', $this->context);
+
+        // Get export data
+        $data = $this->prepare_export_data();
+
+        if ($templatePath && file_exists($templatePath)) {
+            // Export with template
+            $filename = clean_filename($this->course->shortname . '_course_grades.xlsx');
+            $this->export_with_excel_template($data, $templatePath, $filename);
+        } else {
+            // Send standard download
+            $filename = clean_filename($this->course->shortname . '_course_grades.xls');
+            $this->send_excel_download($data, $filename);
+        }
+    }
+
+    /**
+     * Export course grades to DOCX
+     *
+     * @param string|null $templatePath Optional path to template file
+     */
+    public function export_grades_docx($templatePath = null)
+    {
+        require_capability('moodle/grade:viewall', $this->context);
+        require_capability('local/customgradeexport:export', $this->context);
+
+        // Get export data
+        $data = $this->prepare_export_data();
+
+        $filename = clean_filename($this->course->shortname . '_course_grades.docx');
+
+        if ($templatePath && file_exists($templatePath)) {
+            // Use provided template
+            $this->export_with_docx_template($data, $templatePath, $filename);
+        } else {
+            // Use default table format
+            docx_exporter::export_table($data, $filename);
+        }
+    }
+
+    /**
+     * Export using Excel template
      *
      * @param array $data Export data
      * @param string $templatePath Template file path
      * @param string $filename Output filename
      */
-    protected function export_with_template($data, $templatePath, $filename)
+    protected function export_with_excel_template($data, $templatePath, $filename)
     {
         // Prepare variables for template
         $variables = [
@@ -86,6 +143,27 @@ class course_export_helper
 
         // Use Excel template processor
         excel_template_processor::export_from_template($templatePath, $variables, $data, $filename);
+    }
+
+    /**
+     * Export using DOCX template with proper table data insertion
+     *
+     * @param array $data Export data
+     * @param string $templatePath Template file path
+     * @param string $filename Output filename
+     */
+    protected function export_with_docx_template($data, $templatePath, $filename)
+    {
+        // Prepare variables for template
+        $variables = [
+            'coursename' => $this->course->fullname,
+            'courseshortname' => $this->course->shortname,
+            'exportdate' => userdate(time(), '%d/%m/%Y'),
+            'exporttime' => userdate(time(), '%H:%M:%S'),
+        ];
+
+        // Export using DOCX exporter with course-specific column mapping
+        docx_exporter::export_course_template($templatePath, $variables, $data, $filename);
     }
 
     /**
@@ -143,7 +221,7 @@ class course_export_helper
 
         $items = $DB->get_records_sql($sql, ['courseid' => $this->course->id]);
 
-        // Collect all cmids for batch retrieval (same as your get_student_grades)
+        // Collect all cmids for batch retrieval
         $cmids = [];
         $itemmap = []; // Map cmid to grade item
 
@@ -180,7 +258,6 @@ class course_export_helper
 
     /**
      * Get custom field data for course modules
-     * Same implementation as your get_student_grades for consistency
      * 
      * @param array $cmids Array of course module IDs
      * @return array Array of custom field data indexed by cmid
@@ -227,7 +304,6 @@ class course_export_helper
 
     /**
      * Decode custom field value based on its type
-     * Same implementation as your get_student_grades for consistency
      * 
      * @param object $record Database record with field data
      * @return string|null Decoded value
@@ -244,7 +320,6 @@ class course_export_helper
                 $options = explode("\n", trim($configdata->options));
 
                 // Select fields store the selected index in intvalue (1-based indexing)
-                // Subtract 1 to convert to 0-based array index
                 $index = (int)$record->intvalue - 1;
 
                 if ($index >= 0 && isset($options[$index])) {
@@ -253,14 +328,14 @@ class course_export_helper
                     // Options can be in format "VALUE|Display Text" or just "VALUE"
                     if (strpos($option, '|') !== false) {
                         $parts = explode('|', $option, 2);
-                        return trim($parts[0]); // Return the VALUE part (e.g., "15P")
+                        return trim($parts[0]); // Return the VALUE part
                     }
 
-                    return $option; // Return as-is if no | separator
+                    return $option;
                 }
             }
 
-            return null; // Return null if index not found
+            return null;
         }
 
         // For text and other field types, return value as-is
@@ -290,36 +365,6 @@ class course_export_helper
         }
 
         return '';
-    }
-
-    /**
-     * Get examtype custom field value for a course module
-     * Uses the local_modcustomfields plugin structure
-     *
-     * @param int $cmid Course module ID
-     * @return string|null Exam type value or null
-     */
-    protected function get_examtype_from_customfield($cmid)
-    {
-        global $DB;
-
-        // Query custom field data - same structure as your code
-        $sql = "
-            SELECT cd.value, cd.intvalue, cf.type, cf.configdata
-            FROM {customfield_data} cd
-            JOIN {customfield_field} cf ON cf.id = cd.fieldid
-            WHERE cd.instanceid = :cmid
-              AND cf.shortname = 'examtype'
-        ";
-
-        $record = $DB->get_record_sql($sql, ['cmid' => $cmid]);
-
-        if (!$record) {
-            return null;
-        }
-
-        // Decode value using same logic as your code
-        return $this->decode_custom_field_value($record);
     }
 
     /**
