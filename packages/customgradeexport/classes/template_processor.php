@@ -67,6 +67,8 @@ class template_processor
                 // Table row variables
                 'stt' => 'Row number (required for table row cloning)',
                 'fullname' => 'Student full name',
+                'fistname' => 'Student firstname',
+                'lastname' => 'Student lastname',
                 'idnumber' => 'Student ID number',
                 // Grade columns (dynamic based on course)
                 '15p_01' => '15-minute test score 1',
