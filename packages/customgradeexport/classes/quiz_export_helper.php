@@ -71,7 +71,10 @@ class quiz_export_helper
             $this->export_with_excel_template($exportdata, $templatePath);
         } else {
             // Send standard download
-            $this->send_excel_download($exportdata);
+            // $export = $this->prepare_export_data();
+            $this->send_excel_download(
+                array_merge([$exportdata['headers']], $exportdata['rows']),
+            );
         }
     }
 
@@ -151,7 +154,7 @@ class quiz_export_helper
         $variables = [
             'coursename' => $this->course->fullname,
             'activityname' => $this->quiz->name,
-            'exportdate' => date('Y-m-d'),
+            'exportdate' => date('d-m-Y'),
             'exporttime' => date('H:i:s'),
         ];
 
@@ -206,11 +209,14 @@ class quiz_export_helper
             'Time started',
             'Time finished',
             'Time taken',
+            'No',
         ];
 
         $data = [];
         $data[] = $headers;
+        $data_kv = [];
 
+        $rowNum = 1;
         // Process each attempt
         foreach ($attempts as $attempt) {
             // Calculate grade
@@ -240,15 +246,39 @@ class quiz_export_helper
                 $finalgrade !== null ? round($finalgrade, 1) : '-',
                 round($this->quiz->grade, 1),
                 $percentage . '%',
-                $attempt->timestart > 0 ? userdate($attempt->timestart) : '-',
-                $attempt->timefinish > 0 ? userdate($attempt->timefinish) : '-',
+                $attempt->timestart > 0 ? userdate($attempt->timestart,  '%d/%m/%Y') : '-',
+                $attempt->timefinish > 0 ? userdate($attempt->timefinish,  '%d/%m/%Y') : '-',
                 $timetaken,
+                $rowNum,
+            ];
+            $row_kv = [
+                'firstname' => $attempt->firstname,
+                'lastname' => $attempt->lastname,
+                'idnumber' => $attempt->idnumber ?: '',
+                'institution' => $attempt->institution ?: '',
+                'department' => $attempt->department ?: '',
+                'email' => $attempt->email,
+                'attemp' => $attempt->attempt,
+                'statedisplay' => $statedisplay,
+                'finalgrade' => $finalgrade !== null ? round($finalgrade, 1) : '-',
+                'grade' =>  round($this->quiz->grade, 1),
+                'percentage' => $percentage . '%',
+                'timestart' => $attempt->timestart > 0 ? userdate($attempt->timestart,  '%d/%m/%Y') : '-',
+                'timefinish' => $attempt->timefinish > 0 ? userdate($attempt->timefinish,  '%d/%m/%Y') : '-',
+                'timetaken' => $timetaken,
+                'stt' => $rowNum,
             ];
 
             $data[] = $row;
+            $data_kv[] = $row_kv;
+            $rowNum++;
         }
 
-        return $data;
+        return [
+            'headers' => $headers,
+            'rows'    => $data,
+            'rows_kv' => $data_kv,
+        ];
     }
 
     /**

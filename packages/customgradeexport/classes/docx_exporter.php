@@ -145,30 +145,19 @@ class docx_exporter
         }
 
         // Clone table rows if template has a table block
-        if (!empty($tableData) && count($tableData) > 1) {
-            // First row is headers, skip it for cloning
-            $dataRows = array_slice($tableData, 1);
+        if (!empty($tableData['rows_kv'])) {
+            $rows = [];
 
-            // Try to clone the row (requires ${} placeholders in template)
-            try {
-                $templateProcessor->cloneRow('firstname', count($dataRows));
-
-                // Fill in the data
-                $rowNum = 1;
-                foreach ($dataRows as $row) {
-                    $colNum = 0;
-                    foreach ($tableData[0] as $headerIndex => $header) {
-                        $placeholder = self::get_placeholder_for_column($headerIndex);
-                        if (isset($row[$colNum])) {
-                            $templateProcessor->setValue($placeholder . '#' . $rowNum, $row[$colNum]);
-                        }
-                        $colNum++;
-                    }
-                    $rowNum++;
-                }
-            } catch (\Exception $e) {
-                // If cloning fails, just use simple variable replacement
+            foreach ($tableData['rows_kv'] as $row) {
+                // keys MUST match placeholders in the DOCX table row
+                $rows[] = array_map(
+                    static fn($v) => $v === null ? '' : (string)$v,
+                    $row
+                );
             }
+
+            // Atomic clone + bind (NO ${stt#1} leftovers)
+            $templateProcessor->cloneRowAndSetValues('stt', $rows);
         }
 
         // Send headers
@@ -208,22 +197,23 @@ class docx_exporter
 
         // Handle table data if present
         if (!empty($tableData['rows_kv'])) {
+            $rows = [];
 
-            $rows = $tableData['rows_kv'];
-
-            // Clone table rows using ${stt}
-            $templateProcessor->cloneRow('stt', count($rows));
-
-            $rowNum = 1;
-            foreach ($rows as $row) {
-                foreach ($row as $key => $value) {
-                    $templateProcessor->setValue(
-                        $key . '#' . $rowNum,
-                        $value === null ? '' : $value
-                    );
-                }
-                $rowNum++;
+            foreach ($tableData['rows_kv'] as $row) {
+                // IMPORTANT: keys MUST match placeholders in DOCX table row
+                $rows[] = array_map(
+                    static fn($v) => $v === null ? '' : (string)$v,
+                    $row
+                );
             }
+
+            /**
+             * DOCX TEMPLATE REQUIREMENT:
+             * The table row MUST contain all placeholders:
+             * ${stt} ${firstname} ${lastname} ${fullname} ${idnumber}
+             * ${15p_01} ${1t_01} ${thi_01} ${tkmh} ${xep_loai} ${ghi_chu}
+             */
+            $templateProcessor->cloneRowAndSetValues('stt', $rows);
         }
 
         // Send headers

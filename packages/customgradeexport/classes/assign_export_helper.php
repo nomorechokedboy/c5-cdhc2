@@ -151,7 +151,7 @@ class assign_export_helper
         $variables = [
             'coursename' => $this->course->fullname,
             'activityname' => $this->assignment->name,
-            'exportdate' => date('Y-m-d'),
+            'exportdate' => date('d-m-Y'),
             'exporttime' => date('H:i:s'),
         ];
 
@@ -171,6 +171,7 @@ class assign_export_helper
 
         // Headers
         $headers = [
+            'No',
             'First name',
             'Last name',
             'ID number',
@@ -202,6 +203,7 @@ class assign_export_helper
         list($insql, $params) = $DB->get_in_or_equal($userids);
         $userorgdata = $DB->get_records_select('user', "id $insql", $params, '', 'id, institution, department');
 
+        $rowNum = 1;
         foreach ($participants as $user) {
             // Get submission
             $submission = $assign->get_user_submission($user->id, false);
@@ -237,6 +239,7 @@ class assign_export_helper
             $feedback = $this->get_feedback_comments($grade);
 
             $row = [
+                $rowNum,
                 $user->firstname,
                 $user->lastname,
                 $user->idnumber ?: '',
@@ -247,13 +250,14 @@ class assign_export_helper
                 $gradevalue !== null ? round($gradevalue, 2) : '-',
                 round($this->assignment->grade, 2),
                 $percentage,
-                $submission ? userdate($submission->timemodified) : '-',
-                $grade ? userdate($grade->timemodified) : '-',
+                $submission ? userdate($submission->timemodified,  '%d/%m/%Y') : '-',
+                $grade ? userdate($grade->timemodified,  '%d/%m/%Y') : '-',
                 $gradername,
                 $feedback,
             ];
 
             $data[] = $row;
+            $rowNum++;
         }
 
         return $data;

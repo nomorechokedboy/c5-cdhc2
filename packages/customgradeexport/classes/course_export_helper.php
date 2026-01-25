@@ -234,6 +234,8 @@ class course_export_helper
                 'tkmh'       => $tkmh !== null ? round($tkmh, 1) : '',
                 'xep_loai'   => $xepLoai,
                 'ghi_chu'    => '',
+                'firstname'  => $student->firstname,
+                'lastname'   => $student->lastname,
             ];
 
             // dynamic columns
