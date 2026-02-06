@@ -85,3 +85,36 @@ $string['downloadexampletemplate'] = 'Tải xuống mẫu ví dụ để bắt �
 $string['downloadexample'] = 'Tải mẫu ví dụ';
 $string['managetemplates'] = 'Quản lý mẫu';
 $string['selecttemplate'] = 'Chọn mẫu';
+
+// Question export strings (Vietnamese)
+$string['customexportdesc'] = 'Export with institution and department information';
+$string['exportquestions'] = 'Xuất câu hỏi';
+$string['exportoptions'] = 'Tuỳ chọn xuất';
+$string['includeanswers'] = 'Bao gồm đáp án và đánh dấu đáp án đúng';
+$string['includeanswershelp'] = 'Đáp án đúng sẽ được đánh dấu bằng ký hiệu ✓';
+$string['applyrandomization'] = 'Áp dụng ngẫu nhiên hoá (xáo trộn đáp án và câu hỏi ngẫu nhiên)';
+$string['applyrandomizationhelp'] = 'Tuân theo cài đặt bài trắc nghiệm về xáo trộn đáp án và chọn câu hỏi ngẫu nhiên';
+$string['defaulttemplate'] = 'Sử dụng định dạng mặc định';
+$string['aboutquestionexport'] = 'Giới thiệu về xuất câu hỏi';
+$string['questionexportinfo1'] = 'Xuất tất cả câu hỏi từ bài trắc nghiệm này sang định dạng DOCX';
+$string['questionexportinfo2'] = 'Câu hỏi ngẫu nhiên sẽ được chọn theo cài đặt bài trắc nghiệm';
+$string['questionexportinfo3'] = 'Xáo trộn đáp án sẽ được áp dụng nếu được bật trong cài đặt';
+$string['questionexportinfo4'] = 'Hỗ trợ tất cả loại câu hỏi: trắc nghiệm, đúng/sai, câu trả lời ngắn, tự luận, ghép đôi, số, và tính toán';
+$string['quizstructure'] = 'Cấu trúc bài trắc nghiệm';
+$string['totalquestions'] = 'Tổng số câu hỏi';
+$string['fixedquestions'] = 'Câu hỏi cố định';
+$string['randomquestions'] = 'Câu hỏi ngẫu nhiên';
+$string['shuffleanswers'] = 'Xáo trộn đáp án';
+$string['quizquestionstemplates'] = 'Mẫu câu hỏi trắc nghiệm';
+$string['quizquestionstemplateinstructions'] = 'Mẫu câu hỏi trắc nghiệm cho phép bạn xuất câu hỏi theo định dạng tuỳ chỉnh. Mẫu cần bao gồm các biến giữ chỗ cho thông tin bài trắc nghiệm và một dòng lặp lại cho các câu hỏi.';
+$string['questionsdynamiccolumnshelp'] = 'Mẫu cần có một dòng chứa các biến giữ chỗ cho câu hỏi. Hệ thống sẽ sao chép dòng này cho mỗi câu hỏi trong bài trắc nghiệm.';
+
+// Template variables for quiz questions (Vietnamese)
+$string['var_quiz_name'] = 'Tên bài trắc nghiệm';
+$string['var_total_questions'] = 'Tổng số câu hỏi';
+$string['var_total_marks'] = 'Tổng điểm';
+$string['var_question_number'] = 'Số thứ tự câu hỏi';
+$string['var_question_type'] = 'Loại câu hỏi';
+$string['var_question_text'] = 'Nội dung câu hỏi';
+$string['var_question_marks'] = 'Điểm câu hỏi';
+$string['var_question_answers'] = 'Các đáp án';

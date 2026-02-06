@@ -85,3 +85,36 @@ $string['downloadexampletemplate'] = 'Download an example template to get starte
 $string['downloadexample'] = 'Download Example';
 $string['managetemplates'] = 'Manage Templates';
 $string['selecttemplate'] = 'Select Template';
+
+// Question export strings
+$string['customexportdesc'] = 'Export with institution and department information';
+$string['exportquestions'] = 'Export Questions';
+$string['exportoptions'] = 'Export Options';
+$string['includeanswers'] = 'Include answers with correct answer marked';
+$string['includeanswershelp'] = 'Correct answers will be shown in <strong>bold</strong>.';
+$string['applyrandomization'] = 'Apply randomization (shuffle answers and random questions)';
+$string['applyrandomizationhelp'] = 'Respects quiz settings for shuffling answers and selecting random questions';
+$string['defaulttemplate'] = 'Use default format';
+$string['aboutquestionexport'] = 'About Question Export';
+$string['questionexportinfo1'] = 'Export all questions from this quiz in DOCX format';
+$string['questionexportinfo2'] = 'Random questions will be selected according to quiz settings';
+$string['questionexportinfo3'] = 'Answer shuffling will be applied if enabled in quiz settings';
+$string['questionexportinfo4'] = 'Supports all question types: multiple choice, true/false, short answer, essay, matching, numerical, and calculated';
+$string['quizstructure'] = 'Quiz Structure';
+$string['totalquestions'] = 'Total questions';
+$string['fixedquestions'] = 'Fixed questions';
+$string['randomquestions'] = 'Random questions';
+$string['shuffleanswers'] = 'Shuffle answers';
+$string['quizquestionstemplates'] = 'Quiz Questions Templates';
+$string['quizquestionstemplateinstructions'] = 'Quiz questions templates allow you to export quiz questions in a custom format. The template should include placeholders for quiz information and a repeating row for questions.';
+$string['questionsdynamiccolumnshelp'] = 'The template should include a row with question placeholders. The system will clone this row for each question in the quiz.';
+
+// Template variables for quiz questions
+$string['var_quiz_name'] = 'Quiz name';
+$string['var_total_questions'] = 'Total number of questions';
+$string['var_total_marks'] = 'Total marks';
+$string['var_question_number'] = 'Question number';
+$string['var_question_type'] = 'Question type';
+$string['var_question_text'] = 'Question text';
+$string['var_question_marks'] = 'Question marks';
+$string['var_question_answers'] = 'Question answers';

@@ -13,7 +13,8 @@ require_once($CFG->libdir . '/adminlib.php');
 
 require_login();
 
-$type = required_param('type', PARAM_ALPHA); // 'quiz', 'assign', or 'course'
+$type = required_param('type', PARAM_TEXT); // 'quiz', 'assign', or 'course'
+$type = trim($type);
 $action = optional_param('action', '', PARAM_ALPHA);
 $templateid = optional_param('templateid', '', PARAM_ALPHANUMEXT);
 
@@ -60,6 +61,11 @@ $tabs[] = new tabobject(
     'quiz',
     new moodle_url('/local/customgradeexport/manage_templates.php', ['type' => 'quiz']),
     get_string('quiztemplates', 'local_customgradeexport')
+);
+$tabs[] = new tabobject(
+    'quiz_questions',
+    new moodle_url('/local/customgradeexport/manage_templates.php', ['type' => 'quiz_questions']),
+    get_string('quizquestionstemplates', 'local_customgradeexport')
 );
 $tabs[] = new tabobject(
     'assign',
@@ -187,6 +193,41 @@ if ($type === 'course') {
     echo '<p>' . get_string('downloadexampletemplate', 'local_customgradeexport') . ': ';
 
     $exampleurl = new moodle_url('/local/customgradeexport/example_templates/course_template_example.xlsx');
+    echo html_writer::link($exampleurl, get_string('downloadexample', 'local_customgradeexport'), ['class' => 'btn btn-sm btn-secondary']);
+    echo '</p>';
+} else if ($type === 'quiz_questions') {
+    // Quiz questions template instructions
+    echo '<p>' . get_string('quizquestionstemplateinstructions', 'local_customgradeexport') . '</p>';
+
+    echo '<h6>' . get_string('availablevariables', 'local_customgradeexport') . '</h6>';
+    echo '<table class="table table-sm table-bordered">';
+    echo '<thead><tr><th>' . get_string('variable', 'local_customgradeexport') . '</th><th>' . get_string('description', 'local_customgradeexport') . '</th></tr></thead>';
+    echo '<tbody>';
+    echo '<tr><td><code>${quiz_name}</code></td><td>' . get_string('var_quiz_name', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${course_name}</code></td><td>' . get_string('var_coursename', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${total_questions}</code></td><td>' . get_string('var_total_questions', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${total_marks}</code></td><td>' . get_string('var_total_marks', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${export_date}</code></td><td>' . get_string('var_exportdate', 'local_customgradeexport') . '</td></tr>';
+    echo '</tbody>';
+    echo '</table>';
+
+    echo '<h6>' . get_string('dynamiccolumns', 'local_customgradeexport') . '</h6>';
+    echo '<p>' . get_string('questionsdynamiccolumnshelp', 'local_customgradeexport') . '</p>';
+
+    echo '<table class="table table-sm table-bordered">';
+    echo '<thead><tr><th>' . get_string('variable', 'local_customgradeexport') . '</th><th>' . get_string('description', 'local_customgradeexport') . '</th></tr></thead>';
+    echo '<tbody>';
+    echo '<tr><td><code>${question_number}</code></td><td>' . get_string('var_question_number', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${question_type}</code></td><td>' . get_string('var_question_type', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${question_text}</code></td><td>' . get_string('var_question_text', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${question_marks}</code></td><td>' . get_string('var_question_marks', 'local_customgradeexport') . '</td></tr>';
+    echo '<tr><td><code>${question_answers}</code></td><td>' . get_string('var_question_answers', 'local_customgradeexport') . '</td></tr>';
+    echo '</tbody>';
+    echo '</table>';
+
+    echo '<h6>' . get_string('exampletemplate', 'local_customgradeexport') . '</h6>';
+    echo '<p>' . get_string('downloadexampletemplate', 'local_customgradeexport') . ': ';
+    $exampleurl = new moodle_url('/local/customgradeexport/example_templates/quiz_questions_template_example.docx');
     echo html_writer::link($exampleurl, get_string('downloadexample', 'local_customgradeexport'), ['class' => 'btn btn-sm btn-secondary']);
     echo '</p>';
 } else {

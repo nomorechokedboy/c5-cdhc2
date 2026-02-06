@@ -176,42 +176,56 @@ function local_customgradeexport_before_footer()
         return;
     }
 
-    // Create the export URL
-    $url = new moodle_url(
+    // Create URLs for both grade export and question export (quiz only)
+    $gradeUrl = new moodle_url(
         '/local/customgradeexport/' . $PAGE->cm->modname . '_export.php',
         ['cmid' => $PAGE->cm->id]
     );
 
-    $buttontext = get_string('exportgrades', 'local_customgradeexport');
-    $urlout = $url->out(false);
+    $gradeButtonText = get_string('exportgrades', 'local_customgradeexport');
+    $gradeUrlOut = $gradeUrl->out(false);
 
-    // Inject button via JavaScript - this will ALWAYS work
+    // Build button HTML
+    $buttonHtml = '<div class=\"custom-export-wrapper\" style=\"margin: 15px 0; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;\">';
+    $buttonHtml .= '<a href=\"' . $gradeUrlOut . '\" class=\"btn btn-secondary\" style=\"margin-right: 10px;\">';
+    $buttonHtml .= '<i class=\"icon fa fa-download fa-fw\"></i> ' . $gradeButtonText;
+    $buttonHtml .= '</a>';
+
+    // Add question export button for quiz
+    if ($PAGE->cm->modname === 'quiz') {
+        $questionUrl = new moodle_url(
+            '/local/customgradeexport/quiz_questions_export.php',
+            ['cmid' => $PAGE->cm->id]
+        );
+        $questionButtonText = get_string('exportquestions', 'local_customgradeexport');
+        $questionUrlOut = $questionUrl->out(false);
+
+        $buttonHtml .= '<a href=\"' . $questionUrlOut . '\" class=\"btn btn-secondary\" style=\"margin-right: 10px;\">';
+        $buttonHtml .= '<i class=\"icon fa fa-file-text-o fa-fw\"></i> ' . $questionButtonText;
+        $buttonHtml .= '</a>';
+    }
+
+    $buttonHtml .= '<span class=\"text-muted\">' . get_string('customexportdesc', 'local_customgradeexport') . '</span>';
+    $buttonHtml .= '</div>';
+
+    // Inject button via JavaScript
     $PAGE->requires->js_amd_inline("
         require(['jquery'], function($) {
             $(document).ready(function() {
-                // Create export button with Moodle styling
-                var exportButton = $('<div class=\"custom-export-wrapper\" style=\"margin: 15px 0; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;\">' +
-                    '<a href=\"{$urlout}\" class=\"btn btn-secondary\" style=\"margin-right: 10px;\">' +
-                    '<i class=\"icon fa fa-download fa-fw\"></i> {$buttontext}' +
-                    '</a>' +
-                    '<span class=\"text-muted\">Export grades with institution and department</span>' +
-                    '</div>');
+                var exportButton = $('{$buttonHtml}');
                 
                 var inserted = false;
                 
                 // For quiz: Try multiple insertion points
                 if ($('.path-mod-quiz').length) {
-                    // After quiz navigation tabs
                     if ($('.tertiary-navigation').length) {
                         $('.tertiary-navigation').after(exportButton);
                         inserted = true;
                     }
-                    // After quiz attempts count
                     else if ($('.quizattemptcounts').length) {
                         $('.quizattemptcounts').after(exportButton);
                         inserted = true;
                     }
-                    // Before quiz report table
                     else if ($('#mod_quiz_navblock').length) {
                         $('#mod_quiz_navblock').before(exportButton);
                         inserted = true;
@@ -220,12 +234,10 @@ function local_customgradeexport_before_footer()
                 
                 // For assignment: Try multiple insertion points
                 if (!inserted && $('.path-mod-assign').length) {
-                    // After assignment header
                     if ($('.submissionstatustable').length) {
                         $('.submissionstatustable').before(exportButton);
                         inserted = true;
                     }
-                    // At the top of grading table
                     else if ($('.gradingtable').length) {
                         $('.gradingtable').before(exportButton);
                         inserted = true;
@@ -246,10 +258,8 @@ function local_customgradeexport_before_footer()
                     }
                 }
                 
-                // Debug: Alert if button wasn't inserted
                 if (!inserted) {
                     console.log('Custom export button could not find insertion point');
-                    // Last resort: append to body
                     $('body').prepend(exportButton);
                 }
             });

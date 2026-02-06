@@ -19,6 +19,16 @@ class template_manager
 {
 
     /**
+     * Get valid template types
+     *
+     * @return array Valid template types
+     */
+    public static function get_valid_types()
+    {
+        return ['quiz', 'quiz_questions', 'assign', 'course'];
+    }
+
+    /**
      * Get template directory
      *
      * @return string
@@ -39,24 +49,36 @@ class template_manager
     /**
      * Get all templates for a type
      *
-     * @param string $type 'quiz', 'assign', or 'course'
-     * @return array Array of template info: [id => ['name' => '', 'path' => '', 'size' => '', 'modified' => '']]
+     * @param string $type 'quiz', 'quiz_questions', 'assign', or 'course'
+     * @return array Array of template info: [id => ['name' => '', 'path' => '', 'size' => '', 'modified' => '', 'format' => '']]
      */
     public static function get_templates($type)
     {
+        // Validate type
+        if (!in_array($type, self::get_valid_types())) {
+            debugging('Invalid template type: ' . $type, DEBUG_DEVELOPER);
+            return [];
+        }
+
         $dir = self::get_template_dir();
         $pattern = $dir . '/' . $type . '_*.{xls,xlsx,docx}';
 
         $files = glob($pattern, GLOB_BRACE);
         $templates = [];
 
+        if ($files === false) {
+            return [];
+        }
+
         foreach ($files as $filepath) {
             $filename = basename($filepath);
 
             // Extract template ID from filename (type_ID.ext)
-            if (preg_match('/' . $type . '_([^.]+)\.(xls|xlsx|docx)$/', $filename, $matches)) {
+            // Escape special regex characters in type
+            $typePattern = preg_quote($type, '/');
+            if (preg_match('/' . $typePattern . '_([^.]+)\.(xls|xlsx|docx)$/i', $filename, $matches)) {
                 $id = $matches[1];
-                $ext = $matches[2];
+                $ext = strtolower($matches[2]);
 
                 $templates[$id] = [
                     'name' => self::get_template_name($type, $id),
@@ -75,16 +97,22 @@ class template_manager
     /**
      * Get template file path
      *
-     * @param string $type 'quiz', 'assign', or 'course'
+     * @param string $type 'quiz', 'quiz_questions', 'assign', or 'course'
      * @param string $templateId Template ID
      * @return string|null Path to template or null if not found
      */
     public static function get_template_path($type, $templateId)
     {
+        // Validate type
+        if (!in_array($type, self::get_valid_types())) {
+            debugging('Invalid template type: ' . $type, DEBUG_DEVELOPER);
+            return null;
+        }
+
         $dir = self::get_template_dir();
 
         // Try different extensions
-        $extensions = ['xlsx', 'xls', 'docx'];
+        $extensions = ['docx', 'xlsx', 'xls'];
 
         foreach ($extensions as $ext) {
             $path = $dir . '/' . $type . '_' . $templateId . '.' . $ext;
@@ -99,13 +127,19 @@ class template_manager
     /**
      * Save uploaded template
      *
-     * @param string $type 'quiz', 'assign', or 'course'
+     * @param string $type 'quiz', 'quiz_questions', 'assign', or 'course'
      * @param string $name Template name
      * @param array $file Uploaded file info from $_FILES
      * @return string|false Template ID on success, false on failure
      */
     public static function save_template($type, $name, $file)
     {
+        // Validate type
+        if (!in_array($type, self::get_valid_types())) {
+            debugging('Invalid template type: ' . $type, DEBUG_DEVELOPER);
+            return false;
+        }
+
         if ($file['error'] !== UPLOAD_ERR_OK) {
             return false;
         }
@@ -135,7 +169,7 @@ class template_manager
             $ext = 'xls';
         }
 
-        // Generate template ID
+        // Generate template ID from name
         $templateId = clean_param($name, PARAM_ALPHANUMEXT);
         $templateId = substr($templateId, 0, 50); // Limit length
 
@@ -149,8 +183,9 @@ class template_manager
 
         // If file exists, append number
         $counter = 1;
+        $originalTemplateId = $templateId;
         while (file_exists($destination)) {
-            $templateId = clean_param($name, PARAM_ALPHANUMEXT) . '_' . $counter;
+            $templateId = $originalTemplateId . '_' . $counter;
             $filename = $type . '_' . $templateId . '.' . $ext;
             $destination = $dir . '/' . $filename;
             $counter++;
@@ -168,12 +203,18 @@ class template_manager
     /**
      * Delete template
      *
-     * @param string $type 'quiz', 'assign', or 'course'
+     * @param string $type 'quiz', 'quiz_questions', 'assign', or 'course'
      * @param string $templateId Template ID
      * @return bool Success
      */
     public static function delete_template($type, $templateId)
     {
+        // Validate type
+        if (!in_array($type, self::get_valid_types())) {
+            debugging('Invalid template type: ' . $type, DEBUG_DEVELOPER);
+            return false;
+        }
+
         $path = self::get_template_path($type, $templateId);
 
         if ($path && file_exists($path)) {
@@ -259,7 +300,7 @@ class template_manager
     /**
      * Check if any templates exist for type
      *
-     * @param string $type 'quiz', 'assign', or 'course'
+     * @param string $type 'quiz', 'quiz_questions', 'assign', or 'course'
      * @return bool
      */
     public static function has_templates($type)
@@ -292,5 +333,23 @@ class template_manager
         }
 
         return '';
+    }
+
+    /**
+     * Get human-readable type name
+     *
+     * @param string $type Template type
+     * @return string Human-readable name
+     */
+    public static function get_type_display_name($type)
+    {
+        $names = [
+            'quiz' => 'Quiz Grades',
+            'quiz_questions' => 'Quiz Questions',
+            'assign' => 'Assignment Grades',
+            'course' => 'Course Grades',
+        ];
+
+        return $names[$type] ?? ucfirst($type);
     }
 }
