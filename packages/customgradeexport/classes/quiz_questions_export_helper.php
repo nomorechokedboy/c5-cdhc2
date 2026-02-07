@@ -93,36 +93,68 @@ class quiz_questions_export_helper
         $questions = [];
         $questionNumber = 1;
 
-        // Get all slots for this quiz
         $slots = $DB->get_records('quiz_slots', ['quizid' => $this->quiz->id], 'slot ASC');
 
         foreach ($slots as $slot) {
-            // Check if this slot has a real question ID or is random
-            if (empty($slot->questionid) || $slot->questionid == 0) {
-                // This is a random question slot
-                $questions[] = $this->format_random_question($slot, $questionNumber++);
-            } else {
-                // This is a fixed question
-                try {
-                    $question = \question_bank::load_question($slot->questionid);
-                    $question->qtype->get_question_options($question);
-                    $questions[] = $this->format_question($question, $questionNumber++, $slot);
-                } catch (\Exception $e) {
-                    debugging('Could not load question ' . $slot->questionid . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
-                    // Add placeholder for broken question
-                    $questions[] = [
-                        'number' => $questionNumber++,
-                        'slot' => $slot->slot,
-                        'type' => 'unknown',
-                        'name' => '[Question Not Found]',
-                        'text' => 'Question ID ' . $slot->questionid . ' could not be loaded.',
-                        'questiontext' => 'Question ID ' . $slot->questionid . ' could not be loaded.',
-                        'answers' => [],
-                        'grade' => $slot->maxmark,
-                        'is_random' => false,
-                    ];
+
+            try {
+                // 🔑 FIXED: Get the LATEST version of the question
+                // In Moodle 5, slot->questionid = question_bank_entries.id
+                $sql = "
+                SELECT q.*
+                  FROM {question} q
+                  JOIN {question_versions} qv ON qv.questionid = q.id
+                  JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+                 WHERE qbe.id = :qbeid
+                   AND qv.version = (
+                       SELECT MAX(qv2.version)
+                       FROM {question_versions} qv2
+                       WHERE qv2.questionbankentryid = qbe.id
+                         AND qv2.status = 'ready'
+                   )
+                   AND qv.status = 'ready'
+                 ORDER BY qv.version DESC
+                 LIMIT 1
+            ";
+
+                $questionrecord = $DB->get_record_sql($sql, [
+                    'qbeid' => $slot->questionid
+                ]);
+
+                if (!$questionrecord) {
+                    throw new \Exception('Question not found for entry ID: ' . $slot->questionid);
                 }
+
+                $question = \question_bank::load_question($questionrecord->id);
+            } catch (\Exception $e) {
+                debugging(
+                    'Failed to resolve slot ' . $slot->slot . ': ' . $e->getMessage(),
+                    DEBUG_DEVELOPER
+                );
+
+                $questions[] = [
+                    'number' => $questionNumber++,
+                    'slot' => $slot->slot,
+                    'type' => 'unknown',
+                    'name' => '[Question Not Found]',
+                    'text' => 'Question could not be loaded.',
+                    'questiontext' => 'Question could not be loaded.',
+                    'answers' => [],
+                    'grade' => $slot->maxmark,
+                    'is_random' => false,
+                ];
+                continue;
             }
+
+            // ✅ Detect RANDOM correctly
+            if ($question->qtype->name() === 'random') {
+                $questions[] = $this->format_random_question($slot, $questionNumber++);
+                continue;
+            }
+
+            // Normal question
+            $question->qtype->get_question_options($question);
+            $questions[] = $this->format_question($question, $questionNumber++, $slot);
         }
 
         return $questions;
@@ -139,70 +171,137 @@ class quiz_questions_export_helper
     {
         global $DB;
 
-        // Try to get category information from question_set_references
+        // 1. Load the random question from the slot
+        try {
+            // FIXED: Get latest version of random question
+            $sql = "
+            SELECT q.*
+              FROM {question} q
+              JOIN {question_versions} qv ON qv.questionid = q.id
+              JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+             WHERE qbe.id = :qbeid
+               AND qv.version = (
+                   SELECT MAX(qv2.version)
+                   FROM {question_versions} qv2
+                   WHERE qv2.questionbankentryid = qbe.id
+                     AND qv2.status = 'ready'
+               )
+               AND qv.status = 'ready'
+             ORDER BY qv.version DESC
+             LIMIT 1
+        ";
+
+            $questionrecord = $DB->get_record_sql($sql, ['qbeid' => $slot->questionid]);
+
+            if (!$questionrecord) {
+                throw new \Exception('Random question not found');
+            }
+
+            $randomquestion = \question_bank::load_question($questionrecord->id);
+        } catch (\Exception $e) {
+            debugging('Cannot load random question: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return $this->random_placeholder($slot, $questionNumber);
+        }
+
+        if ($randomquestion->qtype->name() !== 'random') {
+            // Safety fallback
+            return $this->random_placeholder($slot, $questionNumber);
+        }
+
+        $categoryids = [];
+
+        // 2. Preferred: question_set_references (new engine)
         $qsetref = $DB->get_record('question_set_references', [
-            'component' => 'mod_quiz',
+            'component'    => 'mod_quiz',
             'questionarea' => 'slot',
-            'itemid' => $slot->id
+            'itemid'       => $slot->id,
         ]);
 
         if ($qsetref && !empty($qsetref->filtercondition)) {
             $filter = json_decode($qsetref->filtercondition, true);
-            if (isset($filter['questioncategoryid'])) {
-                $categoryid = $filter['questioncategoryid'];
 
-                // Moodle 5.0 uses question_bank_entries and question_versions
-                $sql = "SELECT q.*
-                        FROM {question} q
-                        JOIN {question_versions} qv ON qv.questionid = q.id
-                        JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
-                        WHERE qbe.questioncategoryid = :categoryid
-                          AND q.qtype != 'random'
-                          AND q.parent = 0
-                          AND qv.status = 'ready'
-                        ORDER BY RAND()
-                        LIMIT 1";
+            if (!empty($filter['questioncategoryid'])) {
+                $categoryids[] = (int)$filter['questioncategoryid'];
 
-                $questionrecord = $DB->get_record_sql($sql, ['categoryid' => $categoryid]);
-
-                if ($questionrecord) {
-                    // We found a question! Load it fully and format it
-                    try {
-                        $question = \question_bank::load_question($questionrecord->id);
-                        $question->qtype->get_question_options($question);
-                        $formattedQuestion = $this->format_question($question, $questionNumber, $slot);
-                        // Mark it as coming from a random slot
-                        $formattedQuestion['is_random'] = true;
-                        // Ensure type is a string before concatenation
-                        $originalType = (string)$formattedQuestion['type'];
-                        $formattedQuestion['type'] = 'random-' . $originalType; // e.g., "random-multichoice"
-                        return $formattedQuestion;
-                    } catch (\Exception $e) {
-                        debugging('Could not load random question ' . $questionrecord->id . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
-                    }
+                if (!empty($filter['includesubcategories'])) {
+                    $categoryids = array_merge(
+                        $categoryids,
+                        $DB->get_fieldset_sql(
+                            "SELECT id FROM {question_categories} WHERE parent = :parent",
+                            ['parent' => $filter['questioncategoryid']]
+                        )
+                    );
                 }
-
-                // If we couldn't get a question, show placeholder with category info
-                $category = $DB->get_record('question_categories', ['id' => $categoryid]);
-                $categoryInfo = $category ? 'category "' . $category->name . '"' : 'category ID ' . $categoryid;
-
-                return [
-                    'number' => $questionNumber,
-                    'slot' => $slot->slot,
-                    'type' => 'random',
-                    'name' => '[No Questions Available]',
-                    'text' => 'No questions found in ' . $categoryInfo . '. Please add questions to this category.',
-                    'questiontext' => 'No questions found in ' . $categoryInfo . '. Please add questions to this category.',
-                    'answers' => [],
-                    'grade' => $slot->maxmark,
-                    'is_random' => true,
-                ];
             }
         }
 
-        // Fallback if we can't determine the category
+        // 3. Fallback: category stored in random question itself
+        if (empty($categoryids) && !empty($randomquestion->category)) {
+            $categoryids[] = (int)$randomquestion->category;
+        }
+
+        // 4. LAST fallback: course question bank
+        if (empty($categoryids)) {
+            $coursecontext = \context_course::instance($this->course->id);
+
+            $categoryids = $DB->get_fieldset_sql(
+                "SELECT id FROM {question_categories} WHERE contextid = :ctx",
+                ['ctx' => $coursecontext->id]
+            );
+        }
+
+        if (empty($categoryids)) {
+            return $this->random_placeholder($slot, $questionNumber);
+        }
+
+        list($insql, $params) = $DB->get_in_or_equal($categoryids, SQL_PARAMS_NAMED);
+
+        // FIXED: Ensure we get the latest version of questions from the category
+        $sql = "
+        SELECT q.*
+          FROM {question} q
+          JOIN {question_versions} qv ON qv.questionid = q.id
+          JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+         WHERE qbe.questioncategoryid $insql
+           AND q.qtype <> 'random'
+           AND q.parent = 0
+           AND qv.status = 'ready'
+           AND qv.version = (
+               SELECT MAX(qv2.version)
+               FROM {question_versions} qv2
+               WHERE qv2.questionbankentryid = qbe.id
+                 AND qv2.status = 'ready'
+           )
+         ORDER BY RAND()
+         LIMIT 1
+    ";
+
+        $record = $DB->get_record_sql($sql, $params);
+
+        if (!$record) {
+            return $this->random_placeholder($slot, $questionNumber);
+        }
+
+        try {
+            $question = \question_bank::load_question($record->id);
+            $question->qtype->get_question_options($question);
+
+            $data = $this->format_question($question, $questionNumber, $slot);
+            $data['is_random'] = true;
+            $data['type'] = 'random-' . $data['type'];
+
+            return $data;
+        } catch (\Exception $e) {
+            debugging('Random resolved question load failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+
+        return $this->random_placeholder($slot, $questionNumber);
+    }
+
+    protected function random_placeholder($slot, $number)
+    {
         return [
-            'number' => $questionNumber,
+            'number' => $number,
             'slot' => $slot->slot,
             'type' => 'random',
             'name' => '[Random Question]',

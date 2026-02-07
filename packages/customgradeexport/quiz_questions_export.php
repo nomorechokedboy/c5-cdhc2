@@ -73,7 +73,7 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('exportquestions', 'local_customgradeexport'));
-echo html_writer::tag('p', get_string('quiz') . ': ' . format_string($quiz->name));
+echo html_writer::tag('p', format_string($quiz->name));
 
 echo '<div class="export-template-selection" style="margin: 20px 0;">';
 
