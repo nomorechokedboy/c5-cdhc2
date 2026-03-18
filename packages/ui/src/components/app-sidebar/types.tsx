@@ -7,7 +7,15 @@ export interface NavItem {
 	items?: NavItem[]
 	search?: Record<string, string>
 	icon?: ElementType
-	metadata?: Record<string, any> // For custom data
+	metadata?: Record<string, any>
+	/**
+	 * Optional lazy renderer for children.
+	 * When provided, the item is treated as a collapsible parent.
+	 * The function is called once the collapsible is opened for the first time,
+	 * allowing consumers to implement lazy/async child loading.
+	 * Takes priority over `items` if both are set.
+	 */
+	renderChildren?: () => ReactNode
 }
 
 export interface SidebarData {
@@ -23,7 +31,6 @@ export interface SidebarConfig {
 	defaultOpenGroups?: boolean
 }
 
-// Generic data transformer interface
 export interface DataTransformer<TInput, TOutput = NavItem[]> {
 	transform(input: TInput[]): TOutput
 }

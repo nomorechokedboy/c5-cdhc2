@@ -16,6 +16,9 @@ type DBUserInfoProvider struct {
 
 var _ UserInfoProvider = (*DBUserInfoProvider)(nil)
 
+// NOTE: The DB provider reads from Moodle's database directly and does not
+// have access to the role-computation logic in the PHP plugin. It defaults
+// to RoleStudent. Prefer HTTPUserInfoProvider for accurate role data.
 func (p *DBUserInfoProvider) GetUserInfoByMdlToken(
 	ctx context.Context,
 	token string,
@@ -24,7 +27,7 @@ func (p *DBUserInfoProvider) GetUserInfoByMdlToken(
 	if err := p.authTokenRepo.FindOne(ctx, accessToken); err != nil {
 		logger.ErrorContext(
 			ctx,
-			"DBUserInfoProvider.GetUserInfo.FindOneAccessToken error",
+			"DBUserInfoProvider.GetUserInfoByMdlToken.FindOneAccessToken error",
 			"err",
 			err,
 		)
@@ -33,12 +36,8 @@ func (p *DBUserInfoProvider) GetUserInfoByMdlToken(
 
 	mdlUser := &entities.MoodleUser{ID: accessToken.UserID}
 	if err := p.userRepo.FindOne(ctx, mdlUser); err != nil {
-		logger.ErrorContext(
-			ctx,
-			"DBUserInfoProvider.GetUserInfo.FindOneMoodleUser error",
-			"err",
-			err,
-		)
+		logger.ErrorContext(ctx, "DBUserInfoProvider.GetUserInfoByMdlToken.FindOneMoodleUser error",
+			"err", err)
 		return nil, err
 	}
 
@@ -52,6 +51,7 @@ func (p *DBUserInfoProvider) GetUserInfoByMdlToken(
 		Lastname:  mdlUser.LastName,
 		Phone1:    mdlUser.Phone1,
 		Username:  mdlUser.Username,
+		Role:      entities.RoleStudent,
 	}
 	if mdlUser.Description != nil {
 		userInfo.Description = *mdlUser.Description
@@ -66,12 +66,8 @@ func (p *DBUserInfoProvider) GetUserInfo(
 ) (*entities.UserInfo, error) {
 	mdlUser := &entities.MoodleUser{ID: userId}
 	if err := p.userRepo.FindOne(ctx, mdlUser); err != nil {
-		logger.ErrorContext(
-			ctx,
-			"DBUserInfoProvider.GetUserInfo.FindOneMoodleUser error",
-			"err",
-			err,
-		)
+		logger.ErrorContext(ctx, "DBUserInfoProvider.GetUserInfo.FindOneMoodleUser error",
+			"err", err)
 		return nil, err
 	}
 
@@ -85,6 +81,7 @@ func (p *DBUserInfoProvider) GetUserInfo(
 		Lastname:  mdlUser.LastName,
 		Phone1:    mdlUser.Phone1,
 		Username:  mdlUser.Username,
+		Role:      entities.RoleStudent,
 	}
 	if mdlUser.Description != nil {
 		userInfo.Description = *mdlUser.Description

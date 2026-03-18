@@ -36,49 +36,31 @@ use context_system;
  */
 class get_oauth2_user_info extends external_api
 {
-
-    /**
-     * Returns description of method parameters
-     *
-     * @return external_function_parameters
-     */
     public static function get_oauth2_user_info_parameters()
     {
         return new external_function_parameters([
             'accesstoken' => new external_value(PARAM_TEXT, 'OAuth2 access token', VALUE_DEFAULT, ''),
-            'userid' => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
-            'courseid' => new external_value(PARAM_INT, 'Course ID for role context (optional)', VALUE_DEFAULT, 0)
+            'userid'      => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
+            'courseid'    => new external_value(PARAM_INT, 'Course ID for role context (optional)', VALUE_DEFAULT, 0),
         ]);
     }
 
-    /**
-     * Get user info from OAuth2 access token or user ID
-     *
-     * @param string $accesstoken OAuth2 access token
-     * @param int $userid User ID
-     * @param int $courseid Course ID for context-specific roles
-     * @return array User information
-     */
     public static function get_oauth2_user_info($accesstoken = '', $userid = 0, $courseid = 0)
     {
         global $DB;
 
-        // Parameter validation
         $params = self::validate_parameters(
             self::get_oauth2_user_info_parameters(),
             ['accesstoken' => $accesstoken, 'userid' => $userid, 'courseid' => $courseid]
         );
 
-        // Validate context
         $context = context_system::instance();
         self::validate_context($context);
 
-        // Normalize parameters
         $accesstoken = trim($params['accesstoken']);
-        $userid = (int)$params['userid'];
-        $courseid = (int)$params['courseid'];
+        $userid      = (int)$params['userid'];
+        $courseid    = (int)$params['courseid'];
 
-        // Check that at least one parameter is provided
         if (empty($accesstoken) && empty($userid)) {
             throw new \moodle_exception(
                 'missingparameter',
@@ -89,7 +71,6 @@ class get_oauth2_user_info extends external_api
             );
         }
 
-        // Check that only one parameter is provided
         if (!empty($accesstoken) && !empty($userid)) {
             throw new \moodle_exception(
                 'toomanyparameters',
@@ -102,9 +83,7 @@ class get_oauth2_user_info extends external_api
 
         $useridToFetch = null;
 
-        // If access token is provided, validate it and get user ID
         if (!empty($accesstoken)) {
-            // Look up the access token (without mdl_ prefix - Moodle adds it automatically)
             $tokenrecord = $DB->get_record(
                 'local_oauth2_access_token',
                 ['access_token' => $accesstoken],
@@ -121,7 +100,6 @@ class get_oauth2_user_info extends external_api
                 );
             }
 
-            // Check if token is expired
             if ($tokenrecord->expires > 0 && $tokenrecord->expires < time()) {
                 throw new \moodle_exception(
                     'tokenexpired',
@@ -134,11 +112,9 @@ class get_oauth2_user_info extends external_api
 
             $useridToFetch = $tokenrecord->user_id;
         } else {
-            // Use the provided user ID directly
             $useridToFetch = $userid;
         }
 
-        // Get user information
         $user = $DB->get_record(
             'user',
             ['id' => $useridToFetch],
@@ -155,7 +131,6 @@ class get_oauth2_user_info extends external_api
             );
         }
 
-        // Check if user is suspended or deleted
         if ($user->deleted) {
             throw new \moodle_exception(
                 'userdeleted',
@@ -176,50 +151,72 @@ class get_oauth2_user_info extends external_api
             );
         }
 
-        // Get user roles
         $roles = self::get_user_roles($useridToFetch, $courseid);
 
         return [
-            'userid' => $user->id,
-            'username' => $user->username,
-            'firstname' => $user->firstname,
-            'lastname' => $user->lastname,
-            'email' => $user->email,
-            'idnumber' => $user->idnumber ?? '',
-            'auth' => $user->auth,
-            'suspended' => $user->suspended,
-            'deleted' => $user->deleted,
-            'roles' => $roles['roles'],
+            'userid'      => $user->id,
+            'username'    => $user->username,
+            'firstname'   => $user->firstname,
+            'lastname'    => $user->lastname,
+            'email'       => $user->email,
+            'idnumber'    => $user->idnumber ?? '',
+            'auth'        => $user->auth,
+            'suspended'   => $user->suspended,
+            'deleted'     => $user->deleted,
+            'roles'       => $roles['roles'],
             'systemroles' => $roles['systemroles'],
-            'isteacher' => $roles['isteacher'],
-            'isstudent' => $roles['isstudent'],
+            'isteacher'   => $roles['isteacher'],
+            'isstudent'   => $roles['isstudent'],
+            'role'        => $roles['role'],
         ];
     }
 
     /**
-     * Get user roles
+     * Determine a single canonical role for the user, in priority order:
+     *   admin > manager > teacher > student
      *
-     * @param int $userid User ID
-     * @param int $courseid Course ID (0 for system-wide roles)
-     * @return array Role information
+     * - admin:   Moodle site administrator (is_siteadmin)
+     * - manager: Has the 'manager' archetype at system context
+     * - teacher: Has 'editingteacher' or 'teacher' archetype in any course
+     * - student: Everything else
      */
+    private static function determine_role($userid, $systemroles, $isteacher)
+    {
+        // Site administrators trump everything
+        if (is_siteadmin($userid)) {
+            return 'admin';
+        }
+
+        // System-level manager role
+        foreach ($systemroles as $sr) {
+            if ($sr['archetype'] === 'manager' || $sr['shortname'] === 'manager') {
+                return 'manager';
+            }
+        }
+
+        if ($isteacher) {
+            return 'teacher';
+        }
+
+        return 'student';
+    }
+
     private static function get_user_roles($userid, $courseid = 0)
     {
         global $DB;
 
-        $roles = [];
+        $roles       = [];
         $systemroles = [];
-        $isteacher = false;
-        $isstudent = false;
+        $isteacher   = false;
+        $isstudent   = false;
 
-        // First, check across ALL course enrollments if user has ever been a teacher or student
-        // This query checks all role assignments in course contexts
+        // Check all course-level role archetypes for this user
         $allarchetypes = $DB->get_records_sql(
             "SELECT DISTINCT r.archetype
              FROM {role_assignments} ra
              JOIN {role} r ON r.id = ra.roleid
              JOIN {context} ctx ON ctx.id = ra.contextid
-             WHERE ra.userid = :userid 
+             WHERE ra.userid = :userid
              AND ctx.contextlevel = 50
              AND r.archetype IN ('student', 'teacher', 'editingteacher')",
             ['userid' => $userid]
@@ -234,8 +231,8 @@ class get_oauth2_user_info extends external_api
             }
         }
 
-        // Get system-wide roles
-        $systemcontext = \context_system::instance();
+        // System-wide roles
+        $systemcontext        = \context_system::instance();
         $systemroleassignments = $DB->get_records_sql(
             "SELECT r.id, r.shortname, r.name, r.archetype
              FROM {role_assignments} ra
@@ -246,45 +243,43 @@ class get_oauth2_user_info extends external_api
 
         foreach ($systemroleassignments as $role) {
             $systemroles[] = [
-                'roleid' => $role->id,
+                'roleid'    => $role->id,
                 'shortname' => $role->shortname,
-                'name' => $role->name,
+                'name'      => $role->name,
                 'archetype' => $role->archetype ?? '',
             ];
         }
 
-        // If courseid is provided, get course-specific roles
+        // Course-level roles
         if ($courseid > 0) {
             $course = $DB->get_record('course', ['id' => $courseid]);
             if ($course) {
-                $coursecontext = \context_course::instance($courseid);
+                $coursecontext        = \context_course::instance($courseid);
                 $courseroleassignments = $DB->get_records_sql(
                     "SELECT r.id, r.shortname, r.name, r.archetype
                      FROM {role_assignments} ra
                      JOIN {role} r ON r.id = ra.roleid
                      JOIN {context} ctx ON ctx.id = ra.contextid
-                     WHERE ra.userid = :userid 
+                     WHERE ra.userid = :userid
                      AND (ctx.id = :contextid OR ctx.path LIKE :contextpath)",
                     [
-                        'userid' => $userid,
-                        'contextid' => $coursecontext->id,
-                        'contextpath' => $coursecontext->path . '/%'
+                        'userid'      => $userid,
+                        'contextid'   => $coursecontext->id,
+                        'contextpath' => $coursecontext->path . '/%',
                     ]
                 );
 
                 foreach ($courseroleassignments as $role) {
-                    $roleinfo = [
-                        'roleid' => $role->id,
+                    $roles[] = [
+                        'roleid'    => $role->id,
                         'shortname' => $role->shortname,
-                        'name' => $role->name,
+                        'name'      => $role->name,
                         'archetype' => $role->archetype ?? '',
-                        'courseid' => $courseid,
+                        'courseid'  => $courseid,
                     ];
-                    $roles[] = $roleinfo;
                 }
             }
         } else {
-            // Get all roles across all courses
             $allroles = $DB->get_records_sql(
                 "SELECT r.id, r.shortname, r.name, r.archetype, c.id as courseid, c.fullname as coursename
                  FROM {role_assignments} ra
@@ -296,50 +291,47 @@ class get_oauth2_user_info extends external_api
             );
 
             foreach ($allroles as $role) {
-                $roleinfo = [
-                    'roleid' => $role->id,
-                    'shortname' => $role->shortname,
-                    'name' => $role->name,
-                    'archetype' => $role->archetype ?? '',
-                    'courseid' => $role->courseid ?? 0,
+                $roles[] = [
+                    'roleid'     => $role->id,
+                    'shortname'  => $role->shortname,
+                    'name'       => $role->name,
+                    'archetype'  => $role->archetype ?? '',
+                    'courseid'   => $role->courseid ?? 0,
                     'coursename' => $role->coursename ?? '',
                 ];
-                $roles[] = $roleinfo;
             }
         }
 
+        $role = self::determine_role($userid, $systemroles, $isteacher);
+
         return [
-            'roles' => $roles,
+            'roles'       => $roles,
             'systemroles' => $systemroles,
-            'isteacher' => $isteacher,
-            'isstudent' => $isstudent,
+            'isteacher'   => $isteacher,
+            'isstudent'   => $isstudent,
+            'role'        => $role,
         ];
     }
 
-    /**
-     * Returns description of method result value
-     *
-     * @return external_single_structure
-     */
     public static function get_oauth2_user_info_returns()
     {
         return new external_single_structure([
-            'userid' => new external_value(PARAM_INT, 'User ID'),
-            'username' => new external_value(PARAM_TEXT, 'Username'),
+            'userid'    => new external_value(PARAM_INT, 'User ID'),
+            'username'  => new external_value(PARAM_TEXT, 'Username'),
             'firstname' => new external_value(PARAM_TEXT, 'First name'),
-            'lastname' => new external_value(PARAM_TEXT, 'Last name'),
-            'email' => new external_value(PARAM_EMAIL, 'Email address'),
-            'idnumber' => new external_value(PARAM_TEXT, 'ID number'),
-            'auth' => new external_value(PARAM_TEXT, 'Authentication method'),
+            'lastname'  => new external_value(PARAM_TEXT, 'Last name'),
+            'email'     => new external_value(PARAM_EMAIL, 'Email address'),
+            'idnumber'  => new external_value(PARAM_TEXT, 'ID number'),
+            'auth'      => new external_value(PARAM_TEXT, 'Authentication method'),
             'suspended' => new external_value(PARAM_INT, 'Is user suspended (1=yes, 0=no)'),
-            'deleted' => new external_value(PARAM_INT, 'Is user deleted (1=yes, 0=no)'),
-            'roles' => new external_multiple_structure(
+            'deleted'   => new external_value(PARAM_INT, 'Is user deleted (1=yes, 0=no)'),
+            'roles'     => new external_multiple_structure(
                 new external_single_structure([
-                    'roleid' => new external_value(PARAM_INT, 'Role ID'),
-                    'shortname' => new external_value(PARAM_TEXT, 'Role short name'),
-                    'name' => new external_value(PARAM_TEXT, 'Role name'),
-                    'archetype' => new external_value(PARAM_TEXT, 'Role archetype'),
-                    'courseid' => new external_value(PARAM_INT, 'Course ID', VALUE_OPTIONAL),
+                    'roleid'     => new external_value(PARAM_INT, 'Role ID'),
+                    'shortname'  => new external_value(PARAM_TEXT, 'Role short name'),
+                    'name'       => new external_value(PARAM_TEXT, 'Role name'),
+                    'archetype'  => new external_value(PARAM_TEXT, 'Role archetype'),
+                    'courseid'   => new external_value(PARAM_INT, 'Course ID', VALUE_OPTIONAL),
                     'coursename' => new external_value(PARAM_TEXT, 'Course name', VALUE_OPTIONAL),
                 ]),
                 'User roles in courses',
@@ -347,9 +339,9 @@ class get_oauth2_user_info extends external_api
             ),
             'systemroles' => new external_multiple_structure(
                 new external_single_structure([
-                    'roleid' => new external_value(PARAM_INT, 'Role ID'),
+                    'roleid'    => new external_value(PARAM_INT, 'Role ID'),
                     'shortname' => new external_value(PARAM_TEXT, 'Role short name'),
-                    'name' => new external_value(PARAM_TEXT, 'Role name'),
+                    'name'      => new external_value(PARAM_TEXT, 'Role name'),
                     'archetype' => new external_value(PARAM_TEXT, 'Role archetype'),
                 ]),
                 'User system-wide roles',
@@ -357,6 +349,10 @@ class get_oauth2_user_info extends external_api
             ),
             'isteacher' => new external_value(PARAM_BOOL, 'Has teacher role in any course'),
             'isstudent' => new external_value(PARAM_BOOL, 'Has student role in any course'),
+            'role'      => new external_value(
+                PARAM_TEXT,
+                'Canonical role: admin | manager | teacher | student'
+            ),
         ]);
     }
 }

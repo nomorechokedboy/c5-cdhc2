@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
 export default class Client {
 	public readonly authn: authn.ServiceClient
 	public readonly healthz: healthz.ServiceClient
+	public readonly otlp: otlp.ServiceClient
 	public readonly usrcategories: usrcategories.ServiceClient
 	public readonly usrcourses: usrcourses.ServiceClient
 	public readonly usrgrades: usrgrades.ServiceClient
@@ -70,6 +71,7 @@ export default class Client {
 		const base = new BaseClient(this.target, this.options)
 		this.authn = new authn.ServiceClient(base)
 		this.healthz = new healthz.ServiceClient(base)
+		this.otlp = new otlp.ServiceClient(base)
 		this.usrcategories = new usrcategories.ServiceClient(base)
 		this.usrcourses = new usrcourses.ServiceClient(base)
 		this.usrgrades = new usrgrades.ServiceClient(base)
@@ -205,6 +207,34 @@ export namespace healthz {
 			// Now make the actual call to the API
 			const resp = await this.baseClient.callTypedAPI('GET', `/healthz`)
 			return (await resp.json()) as healthcheck.HealthCheckResponse
+		}
+	}
+}
+
+export namespace otlp {
+	export interface HealthResponse {
+		status: string
+		otel_initialized: boolean
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.Health = this.Health.bind(this)
+		}
+
+		/**
+		 * Health check endpoint to verify OTEL is initialized
+		 */
+		public async Health(): Promise<HealthResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/otel/health`
+			)
+			return (await resp.json()) as HealthResponse
 		}
 	}
 }
@@ -380,8 +410,17 @@ export namespace entities {
 		lastname: string
 		phone1: string
 		username: string
-		isTeacher: boolean
+		/**
+		 * Role is the canonical role: "admin" | "manager" | "teacher" | "student"
+		 */
+		role: UserRole
 	}
+
+	/**
+	 * UserRole is the canonical role for a user in the SMS application.
+	 * Priority order (highest to lowest): admin > manager > teacher > student
+	 */
+	export type UserRole = string
 }
 
 export namespace healthcheck {

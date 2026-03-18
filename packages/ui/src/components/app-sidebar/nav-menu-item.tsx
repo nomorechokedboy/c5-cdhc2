@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -29,7 +30,13 @@ export function NavMenuItem({
 	const { state } = useSidebar()
 	const isCollapsed = state === 'collapsed'
 	const hasChildren = item.items && item.items.length > 0
+	const hasLazyChildren = !!item.renderChildren
+	const isExpandable = hasChildren || hasLazyChildren
 	const Icon = item.icon
+
+	// Track whether lazy children have been triggered at least once
+	const [hasFetched, setHasFetched] = useState(false)
+	const [isOpen, setIsOpen] = useState(false)
 
 	const iconElement =
 		Icon && renderIcon ? (
@@ -38,13 +45,24 @@ export function NavMenuItem({
 			<Icon className='w-5 h-5' />
 		) : null
 
+	const handleOpenChange = (open: boolean) => {
+		setIsOpen(open)
+		if (open && !hasFetched) {
+			setHasFetched(true)
+		}
+	}
+
 	if (level === 0) {
-		if (hasChildren) {
+		if (isExpandable) {
 			return (
 				<SidebarMenuItem>
 					<Collapsible
 						className='group/collapsible'
 						defaultOpen={false}
+						open={hasLazyChildren ? isOpen : undefined}
+						onOpenChange={
+							hasLazyChildren ? handleOpenChange : undefined
+						}
 					>
 						<CollapsibleTrigger asChild>
 							<SidebarMenuButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
@@ -57,12 +75,16 @@ export function NavMenuItem({
 						</CollapsibleTrigger>
 						{!isCollapsed && (
 							<CollapsibleContent>
-								<NavMenuItems
-									items={item.items!}
-									level={level + 1}
-									renderLink={renderLink}
-									renderIcon={renderIcon}
-								/>
+								{hasLazyChildren && hasFetched
+									? item.renderChildren!()
+									: hasChildren && (
+											<NavMenuItems
+												items={item.items!}
+												level={level + 1}
+												renderLink={renderLink}
+												renderIcon={renderIcon}
+											/>
+										)}
 							</CollapsibleContent>
 						)}
 					</Collapsible>
@@ -85,8 +107,14 @@ export function NavMenuItem({
 
 	return (
 		<SidebarMenuSubItem>
-			{hasChildren ? (
-				<Collapsible className='group/collapsible'>
+			{isExpandable ? (
+				<Collapsible
+					className='group/collapsible'
+					open={hasLazyChildren ? isOpen : undefined}
+					onOpenChange={
+						hasLazyChildren ? handleOpenChange : undefined
+					}
+				>
 					<CollapsibleTrigger asChild>
 						<SidebarMenuSubButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
 							{iconElement}
@@ -98,12 +126,16 @@ export function NavMenuItem({
 					</CollapsibleTrigger>
 					{!isCollapsed && (
 						<CollapsibleContent>
-							<NavMenuItems
-								items={item.items!}
-								level={level + 1}
-								renderLink={renderLink}
-								renderIcon={renderIcon}
-							/>
+							{hasLazyChildren && hasFetched
+								? item.renderChildren!()
+								: hasChildren && (
+										<NavMenuItems
+											items={item.items!}
+											level={level + 1}
+											renderLink={renderLink}
+											renderIcon={renderIcon}
+										/>
+									)}
 						</CollapsibleContent>
 					)}
 				</Collapsible>

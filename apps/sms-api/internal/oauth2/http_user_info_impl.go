@@ -19,6 +19,19 @@ func NewHTTPUserInfoProvider(
 	return &HTTPUserInfoProvider{mdlUserInfoProvider: mdlApiUserInfoProvider}
 }
 
+func mapRole(resp *mdlapi.GetUserInfoResponse) entities.UserRole {
+	// The PHP plugin computes the canonical role; use it directly.
+	// Fall back to inferring from IsTeacher for backward compatibility
+	// with older plugin versions that don't yet return "role".
+	if resp.Role != "" {
+		return resp.Role
+	}
+	if resp.IsTeacher {
+		return entities.RoleTeacher
+	}
+	return entities.RoleStudent
+}
+
 // GetUserInfo implements UserInfoProvider.
 func (p *HTTPUserInfoProvider) GetUserInfo(
 	ctx context.Context,
@@ -34,17 +47,12 @@ func (p *HTTPUserInfoProvider) GetUserInfo(
 	}
 
 	return &entities.UserInfo{
-		Id:          int64(resp.UserID),
-		Address:     "",
-		Description: "",
-		Email:       resp.Email,
-		Firstname:   resp.FirstName,
-		Idnumber:    resp.IdNumber,
-		Lang:        "",
-		Lastname:    resp.LastName,
-		Username:    "",
-		Phone1:      "",
-		IsTeacher:   resp.IsTeacher,
+		Id:        int64(resp.UserID),
+		Email:     resp.Email,
+		Firstname: resp.FirstName,
+		Idnumber:  resp.IdNumber,
+		Lastname:  resp.LastName,
+		Role:      mapRole(resp),
 	}, nil
 }
 
@@ -62,16 +70,11 @@ func (p *HTTPUserInfoProvider) GetUserInfoByMdlToken(
 	}
 
 	return &entities.UserInfo{
-		Id:          int64(resp.UserID),
-		Address:     "",
-		Description: "",
-		Email:       resp.Email,
-		Firstname:   resp.FirstName,
-		Idnumber:    resp.IdNumber,
-		Lang:        "",
-		Lastname:    resp.LastName,
-		Username:    "",
-		Phone1:      "",
-		IsTeacher:   resp.IsTeacher,
+		Id:        int64(resp.UserID),
+		Email:     resp.Email,
+		Firstname: resp.FirstName,
+		Idnumber:  resp.IdNumber,
+		Lastname:  resp.LastName,
+		Role:      mapRole(resp),
 	}, nil
 }

@@ -2,6 +2,8 @@ import { AuthApi } from '@/api'
 import { AuthController } from '@/biz'
 import { useQuery } from '@tanstack/react-query'
 
+export type AppRole = 'admin' | 'manager' | 'teacher' | 'student'
+
 export default function useAuth() {
 	const {
 		data: user,
@@ -23,16 +25,23 @@ export default function useAuth() {
 		refetchUser()
 	}
 
+	// Use the canonical role from the API.
+	// The PHP plugin computes: admin > manager > teacher > student
+	const role: AppRole = (user?.role as AppRole) ?? 'student'
+
 	return {
-		// Auth state
 		user,
 		isAuthenticated: !!user && !isAuthError,
 		isAuthLoading,
 		authError,
-
-		// Actions
 		logout,
-
-		role: user?.isTeacher === true ? 'teacher' : 'student'
+		role,
+		isTeacher: role === 'teacher',
+		isManager: role === 'manager',
+		isAdmin: role === 'admin',
+		isStudent: role === 'student',
+		// True for any role that manages courses
+		hasElevatedAccess:
+			role === 'teacher' || role === 'manager' || role === 'admin'
 	}
 }
