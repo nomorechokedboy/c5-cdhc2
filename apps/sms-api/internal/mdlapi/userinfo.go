@@ -7,6 +7,13 @@ type GetUserInfoRequest struct {
 	UserId      *int    `json:"userid"`
 }
 
+type SystemRole struct {
+	Roleid    int    `json:"roleid"`
+	Shortname string `json:"shortname"`
+	Name      string `json:"name"`
+	Archetype string `json:"archetype"`
+}
+
 type GetUserInfoResponse struct {
 	UserID    int    `json:"userid"`
 	Username  string `json:"username"`
@@ -25,9 +32,12 @@ type GetUserInfoResponse struct {
 		Courseid   int    `json:"courseid"`
 		Coursename string `json:"coursename"`
 	} `json:"roles"`
-	SystemRoles []string `json:"systemroles"`
-	IsTeacher   bool     `json:"isteacher"`
-	IsStudent   bool     `json:"isstudent"`
+	SystemRoles []SystemRole `json:"systemroles"`
+	IsTeacher   bool         `json:"isteacher"`
+	IsStudent   bool         `json:"isstudent"`
+	// Role is the canonical application role, computed by the PHP plugin.
+	// Values: "admin" | "manager" | "teacher" | "student"
+	Role string `json:"role"`
 }
 
 type LocalUserInfoProvider interface {

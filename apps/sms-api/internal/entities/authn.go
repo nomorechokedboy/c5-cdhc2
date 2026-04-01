@@ -6,6 +6,17 @@ type OAuth2Token struct {
 	ExpiresIn    int64  `json:"expires_in"`
 }
 
+// UserRole is the canonical role for a user in the SMS application.
+// Priority order (highest to lowest): admin > manager > teacher > student
+type UserRole = string
+
+const (
+	RoleAdmin   UserRole = "admin"
+	RoleManager UserRole = "manager"
+	RoleTeacher UserRole = "teacher"
+	RoleStudent UserRole = "student"
+)
+
 type UserInfo struct {
 	Id          int64  `json:"id"`
 	Address     string `json:"address"`
@@ -17,7 +28,8 @@ type UserInfo struct {
 	Lastname    string `json:"lastname"`
 	Phone1      string `json:"phone1"`
 	Username    string `json:"username"`
-	IsTeacher   bool   `json:"isTeacher"`
+	// Role is the canonical role: "admin" | "manager" | "teacher" | "student"
+	Role UserRole `json:"role"`
 }
 
 type MoodleOauth2AccessToken struct {

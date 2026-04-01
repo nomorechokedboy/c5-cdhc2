@@ -8,13 +8,16 @@ import {
 } from '@repo/ui/components/ui/breadcrumb'
 import { Separator } from '@repo/ui/components/ui/separator'
 import { SidebarTrigger } from '@repo/ui/components/ui/sidebar'
-import { Link, useLocation } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Fragment } from 'react/jsx-runtime'
 import { UserNav } from '@repo/ui/components/user-nav'
+import type { MenuItem } from '@repo/ui/components/user-nav'
 import useAuth from '@/hooks/useAuth'
+import { User } from 'lucide-react'
 
 export default function Header() {
-	const { logout } = useAuth()
+	const { logout, user, role } = useAuth()
+	const navigate = useNavigate()
 	const location = useLocation()
 	const path = location.pathname
 	const segments = path.split('/').filter(Boolean)
@@ -26,6 +29,26 @@ export default function Header() {
 			href: '/' + segments.slice(0, idx + 1).join('/')
 		}))
 	]
+
+	const roleLabelMap: Record<string, string> = {
+		admin: 'Quản trị viên',
+		manager: 'Quản lý',
+		teacher: 'Giáo viên',
+		student: 'Học viên'
+	}
+
+	const menuItems: MenuItem[] = [
+		{
+			type: 'item',
+			label: 'Hồ sơ cá nhân',
+			icon: <User className='w-4 h-4' />,
+			onClick: () => navigate({ to: '/profile' })
+		},
+		{ type: 'separator' }
+	]
+
+	const displayName = user ? `${user.firstname} ${user.lastname}`.trim() : ''
+	const fallback = user?.firstname?.[0]?.toUpperCase() ?? 'U'
 
 	return (
 		<header className='flex flex-row items-center justify-between h-16 shrink-0 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20 border-b'>
@@ -60,12 +83,13 @@ export default function Header() {
 					</BreadcrumbList>
 				</Breadcrumb>
 			</div>
+
 			<div className='px-4 flex items-center gap-5'>
-				{/* <NotificationBell />
-				 */}
 				<UserNav
-					username=''
-					fallbackDisplayName='T'
+					displayName={displayName}
+					username={`${user?.email ?? ''} · ${roleLabelMap[role] ?? role}`}
+					fallbackDisplayName={fallback}
+					menuItems={menuItems}
 					onLogout={logout}
 				/>
 			</div>
