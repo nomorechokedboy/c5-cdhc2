@@ -1,6 +1,6 @@
 import { AuthController } from '@/biz'
 import { initiateOAuth2Login } from '@/biz/oauth2'
-import useAuth from '@/hooks/useAuth'
+import useAuth, { AUTH_QUERY_KEY } from '@/hooks/useAuth'
 import type { TokenEvent } from '@/types'
 import { Button } from '@repo/ui/components/ui/button'
 import {
@@ -12,7 +12,7 @@ import {
 } from '@repo/ui/components/ui/card'
 import { SidebarInset } from '@repo/ui/components/ui/sidebar'
 import { toast } from '@repo/ui/components/ui/sonner'
-import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Navigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 
@@ -24,8 +24,7 @@ export const Route = createFileRoute('/login')({
 })
 
 export default function Login() {
-	const navigate = useNavigate()
-	const { isAuthenticated, isAuthLoading } = useAuth()
+	const { isAuthenticated, isAuthLoading, queryClient } = useAuth()
 	const { redirect } = Route.useSearch()
 
 	const handleLoginWithMoodle = () => {
@@ -37,13 +36,15 @@ export default function Login() {
 			const { accessToken, refreshToken } = event.data.token
 			AuthController.setTokens({ accessToken, refreshToken })
 			toast.success('Đăng nhập thành công!')
-			navigate({ to: '/', replace: true })
+			// Invalidate clears any prior error state and triggers a fresh fetch.
+			// Once /authn/me succeeds, isAuthenticated flips true and the
+			// <Navigate> below redirects the user automatically.
+			queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY })
 		}
 	}
 
 	useEffect(() => {
 		window.addEventListener('message', handleEventListener)
-
 		return () => {
 			window.removeEventListener('message', handleEventListener)
 		}
