@@ -20,8 +20,10 @@ import { FullPageErrorState } from '@/components/error-state'
 import { Course, GetStudentGrades, type StudentGrades } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import { UserApi } from '@/api'
+import { useTranslation } from 'react-i18next'
 
 export function StudentDashboard() {
+	const { t } = useTranslation()
 	const [courses, setCourses] = useState<Course[]>([])
 	const [studentGrades, setStudentGrades] = useState<StudentGrades>({})
 	const [selectedCourseId, setSelectedCourseId] = useState<number | null>(
@@ -35,15 +37,10 @@ export function StudentDashboard() {
 		error
 	} = useQuery({ queryKey: ['userGrades'], queryFn: UserApi.GetGrades })
 
-	// Parse backend data
 	useEffect(() => {
 		if (!userGrades) return
-
-		const parsedCourses = Course.ToCourses(userGrades)
-		const parsedGrades = GetStudentGrades(userGrades.courses)
-
-		setCourses(parsedCourses)
-		setStudentGrades(parsedGrades)
+		setCourses(Course.ToCourses(userGrades))
+		setStudentGrades(GetStudentGrades(userGrades.courses))
 	}, [userGrades])
 
 	const handleRetry = () => {
@@ -55,36 +52,32 @@ export function StudentDashboard() {
 		? courses.find((c) => c.id === selectedCourseId)
 		: null
 
-	// --- Group Courses by Semester (semester is a number) ---
 	const groupedCourses = useMemo(() => {
 		return courses.reduce(
 			(acc, course) => {
 				if (typeof course.semester !== 'number') return acc
-
 				if (!acc[course.semester]) acc[course.semester] = []
 				acc[course.semester].push(course)
-
 				return acc
 			},
 			{} as Record<number, Course[]>
 		)
 	}, [courses])
 
-	// Sort numerically
-	const sortedSemesters = useMemo(() => {
-		return Object.keys(groupedCourses)
-			.map(Number)
-			.sort((a, b) => a - b)
-	}, [groupedCourses])
+	const sortedSemesters = useMemo(
+		() =>
+			Object.keys(groupedCourses)
+				.map(Number)
+				.sort((a, b) => a - b),
+		[groupedCourses]
+	)
 
-	// Initialize with first semester
 	useEffect(() => {
 		if (!activeSemester && sortedSemesters.length > 0) {
 			setActiveSemester(String(sortedSemesters[0]))
 		}
 	}, [sortedSemesters, activeSemester])
 
-	// --- Course Detail View ---
 	if (selectedCourse) {
 		return (
 			<StudentCourseDetail
@@ -96,11 +89,10 @@ export function StudentDashboard() {
 		)
 	}
 
-	// --- Error State ---
 	if (error && !isLoading) {
 		return (
 			<FullPageErrorState
-				title='Unable to Load Courses'
+				title={t('error.courseLoadTitle')}
 				description={error.message}
 				onRetry={handleRetry}
 			/>
@@ -111,10 +103,10 @@ export function StudentDashboard() {
 		<div className='container mx-auto p-6 space-y-8'>
 			<div className='space-y-2'>
 				<h2 className='text-3xl font-bold text-foreground'>
-					Các khóa học của tôi
+					{t('dashboard.student.title')}
 				</h2>
 				<p className='text-muted-foreground'>
-					Xem các khóa học bạn đã đăng ký và theo dõi điểm số của bạn
+					{t('dashboard.student.subtitle')}
 				</p>
 			</div>
 
@@ -140,7 +132,6 @@ export function StudentDashboard() {
 				</div>
 			) : (
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-					{/* LEFT SIDE – COURSE LIST */}
 					<div className='lg:col-span-2 space-y-6'>
 						{courses.length > 0 ? (
 							<Tabs
@@ -160,7 +151,12 @@ export function StudentDashboard() {
 															)}
 															className='px-4 min-w-[100px]'
 														>
-															Học kỳ {semester}
+															{t(
+																'dashboard.student.semester',
+																{
+																	number: semester
+																}
+															)}
 														</TabsTrigger>
 													)
 												)}
@@ -201,17 +197,16 @@ export function StudentDashboard() {
 							<Card className='border-dashed'>
 								<CardHeader className='text-center py-12'>
 									<CardTitle>
-										Không tìm thấy khóa học
+										{t('dashboard.student.noClassesTitle')}
 									</CardTitle>
 									<CardDescription>
-										Bạn chưa đăng ký khóa học nào
+										{t('dashboard.student.noClasses')}
 									</CardDescription>
 								</CardHeader>
 							</Card>
 						)}
 					</div>
 
-					{/* RIGHT SIDE – FINAL SCORES */}
 					<div className='lg:col-span-1'>
 						<div className='sticky top-20 space-y-6'>
 							{courses.length > 0 && (

@@ -10,6 +10,7 @@ import {
 	CardTitle
 } from '@repo/ui/components/ui/card'
 import { Layers, ChevronRight, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function CategoryCard({
 	category
@@ -50,34 +51,31 @@ function CategoryCard({
 }
 
 export function ManagerDashboard() {
+	const { t } = useTranslation()
 	const { user } = useAuth()
 	const { data: categories = [], isLoading } = useQuery({
 		queryKey: ['categories'],
 		queryFn: CategoryApi.GetCategories
 	})
 
+	const name = `${user?.firstname ?? ''} ${user?.lastname ?? ''}`.trim()
+
 	return (
 		<div className='container mx-auto p-6 space-y-6'>
-			{/* Welcome */}
 			<div className='flex items-start gap-3'>
 				<div className='p-2 rounded-md bg-orange-500/10 mt-0.5'>
 					<ShieldCheck className='w-5 h-5 text-orange-500' />
 				</div>
 				<div className='space-y-1'>
 					<h1 className='text-2xl font-bold tracking-tight'>
-						Xin chào, {user?.firstname} {user?.lastname}
+						{t('dashboard.manager.welcome', { name })}
 					</h1>
 					<p className='text-muted-foreground'>
-						Bạn đang đăng nhập với vai trò{' '}
-						<span className='font-medium text-orange-600'>
-							Quản lý
-						</span>
-						. Bạn có thể xem và quản lý các lớp học được phân công.
+						{t('dashboard.manager.subtitle')}
 					</p>
 				</div>
 			</div>
 
-			{/* Summary */}
 			<Card>
 				<CardContent className='flex items-center gap-3 pt-6'>
 					<div className='p-2 rounded-md bg-orange-500/10'>
@@ -88,15 +86,16 @@ export function ManagerDashboard() {
 							{categories.length}
 						</p>
 						<p className='text-xs text-muted-foreground'>
-							Lớp học được phân công
+							{t('dashboard.manager.assignedClasses')}
 						</p>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Categories grid */}
 			<div className='space-y-3'>
-				<h2 className='text-lg font-semibold'>Lớp học quản lý</h2>
+				<h2 className='text-lg font-semibold'>
+					{t('dashboard.manager.yourClasses')}
+				</h2>
 				{isLoading && (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
 						{Array.from({ length: 4 }).map((_, i) => (
@@ -112,7 +111,7 @@ export function ManagerDashboard() {
 				{!isLoading && categories.length === 0 && (
 					<Card>
 						<CardContent className='pt-6 text-center text-muted-foreground'>
-							Chưa có lớp học nào được phân công.
+							{t('dashboard.manager.noClasses')}
 						</CardContent>
 					</Card>
 				)}

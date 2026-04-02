@@ -1,5 +1,6 @@
 import { Button } from '@repo/ui/components/ui/button'
 import { Edit2, Edit3, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface BulkEditControlsProps {
 	bulkEditMode: 'single-category' | 'all-grades' | null
@@ -14,11 +15,13 @@ export default function BulkEditControls({
 	onEditCategory,
 	onExitBulkEdit
 }: BulkEditControlsProps) {
+	const { t } = useTranslation()
+
 	if (bulkEditMode) {
 		return (
 			<Button variant='outline' onClick={onExitBulkEdit}>
 				<X className='h-4 w-4 mr-2' />
-				Thoát khỏi chế độ chỉnh sửa
+				{t('grades.exitEdit')}
 			</Button>
 		)
 	}
@@ -27,11 +30,11 @@ export default function BulkEditControls({
 		<div className='flex items-center gap-2'>
 			<Button variant='outline' onClick={onEditAll}>
 				<Edit2 className='h-4 w-4 mr-2' />
-				Chỉnh sửa toàn bộ điểm số học viên
+				{t('grades.editAllButton')}
 			</Button>
 			<Button variant='outline' onClick={onEditCategory}>
 				<Edit3 className='h-4 w-4 mr-2' />
-				Chỉnh sửa một cột điểm học viên
+				{t('grades.editCategoryButton')}
 			</Button>
 		</div>
 	)

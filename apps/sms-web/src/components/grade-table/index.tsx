@@ -8,6 +8,7 @@ import {
 } from '@repo/ui/components/ui/table'
 import type { Course, Student } from '@/types'
 import StudentGrades from './student-grades'
+import { useTranslation } from 'react-i18next'
 
 interface GradesTableProps {
 	students: Student[]
@@ -28,13 +29,15 @@ export default function GradesTable({
 	onGradeSave,
 	onCategorySelect
 }: GradesTableProps) {
+	const { t } = useTranslation()
+
 	return (
 		<div className='rounded-md border border-border overflow-hidden'>
 			<Table>
 				<TableHeader>
 					<TableRow className='bg-muted/50'>
 						<TableHead className='font-semibold text-foreground'>
-							Tên học viên
+							{t('grades.studentName')}
 						</TableHead>
 						{gradeCategories.map((category, idx) => (
 							<>
@@ -60,8 +63,8 @@ export default function GradesTable({
 											>
 												{bulkEditCategory?.value ===
 												category.value
-													? 'Đang chọn'
-													: 'Chọn'}
+													? t('grades.selected')
+													: t('grades.select')}
 											</Button>
 										)}
 									</div>
@@ -69,13 +72,13 @@ export default function GradesTable({
 								{gradeCategories.length > 2 &&
 									idx === gradeCategories.length - 2 && (
 										<TableHead className='font-semibold text-foreground text-center'>
-											Điểm điều kiện
+											{t('grades.conditionalGrade')}
 										</TableHead>
 									)}
 							</>
 						))}
 						<TableHead className='font-semibold text-foreground text-center'>
-							Tổng kết môn
+							{t('grades.finalGrade')}
 						</TableHead>
 					</TableRow>
 				</TableHeader>

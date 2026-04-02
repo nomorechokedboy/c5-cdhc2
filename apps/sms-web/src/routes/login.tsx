@@ -14,6 +14,7 @@ import { SidebarInset } from '@repo/ui/components/ui/sidebar'
 import { toast } from '@repo/ui/components/ui/sonner'
 import { Navigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 
 export const Route = createFileRoute('/login')({
@@ -24,6 +25,7 @@ export const Route = createFileRoute('/login')({
 })
 
 export default function Login() {
+	const { t } = useTranslation()
 	const { isAuthenticated, isAuthLoading, queryClient } = useAuth()
 	const { redirect } = Route.useSearch()
 
@@ -35,10 +37,7 @@ export default function Login() {
 		if (event.data?.token) {
 			const { accessToken, refreshToken } = event.data.token
 			AuthController.setTokens({ accessToken, refreshToken })
-			toast.success('Đăng nhập thành công!')
-			// Invalidate clears any prior error state and triggers a fresh fetch.
-			// Once /authn/me succeeds, isAuthenticated flips true and the
-			// <Navigate> below redirects the user automatically.
+			toast.success(t('auth.loginSuccess'))
 			queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY })
 		}
 	}
@@ -69,11 +68,10 @@ export default function Login() {
 						</div>
 						<CardHeader className='text-center'>
 							<CardTitle className='text-2xl font-bold'>
-								Chào mừng bạn đã quay lại
+								{t('auth.loginTitle')}
 							</CardTitle>
 							<CardDescription className='text-base'>
-								Hệ thống quản lý điểm số Trường Cao đẳng Hậu cần
-								2
+								{t('auth.loginSubtitle')}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='space-y-4'>
@@ -88,7 +86,7 @@ export default function Login() {
 									width={24}
 									height={24}
 								/>
-								Đăng nhập bằng LMS
+								{t('auth.loginButton')}
 							</Button>
 						</CardContent>
 					</Card>

@@ -18,6 +18,7 @@ import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import type { Course, StudentGrades } from '@/types'
 import { getGradeColor } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface StudentFinalScoresProps {
 	courses: Course[]
@@ -30,6 +31,8 @@ export default function StudentFinalScores({
 	studentGrades,
 	isLoading = false
 }: StudentFinalScoresProps) {
+	const { t } = useTranslation()
+
 	const validCourses = courses.filter((c) => studentGrades[c.id])
 	const totalCredits = courses.reduce(
 		(accum, curr) => accum + (curr.credits ?? 0),
@@ -45,9 +48,6 @@ export default function StudentFinalScores({
 			: 0
 	).toFixed(2)
 
-	// ===========================
-	// LOADING STATE
-	// ===========================
 	if (isLoading) {
 		return (
 			<Card className='border-border'>
@@ -67,11 +67,17 @@ export default function StudentFinalScores({
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Khóa học</TableHead>
-								<TableHead>Học kỳ</TableHead>
-								<TableHead>Giảng viên</TableHead>
+								<TableHead>
+									{t('finalScores.courseColumn')}
+								</TableHead>
+								<TableHead>
+									{t('finalScores.semesterColumn')}
+								</TableHead>
+								<TableHead>
+									{t('finalScores.teacherColumn')}
+								</TableHead>
 								<TableHead className='text-right'>
-									Điểm tổng kết
+									{t('finalScores.gradeColumn')}
 								</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -99,27 +105,23 @@ export default function StudentFinalScores({
 		)
 	}
 
-	// ===========================
-	// MAIN VIEW
-	// ===========================
 	return (
 		<Card className='border-border shadow-sm'>
 			<CardHeader className='pb-4'>
 				<div className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='text-xl'>
-							Kết quả học tập
+							{t('finalScores.title')}
 						</CardTitle>
 						<CardDescription>
-							Theo dõi điểm số của bạn qua các kỳ
+							{t('finalScores.subtitle')}
 						</CardDescription>
 					</div>
 
 					<div className='text-center bg-muted/50 p-2 rounded-lg border'>
 						<p className='text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider'>
-							Điểm tổng kết
+							{t('finalScores.overallGrade')}
 						</p>
-
 						<Badge
 							className={`${getGradeColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1 shadow-sm`}
 						>
@@ -136,14 +138,16 @@ export default function StudentFinalScores({
 							<TableHeader>
 								<TableRow className='hover:bg-transparent'>
 									<TableHead className='w-[40%]'>
-										Môn
+										{t('finalScores.courseColumn')}
 									</TableHead>
-									<TableHead>Kỳ</TableHead>
+									<TableHead>
+										{t('finalScores.semesterColumn')}
+									</TableHead>
 									<TableHead className='hidden xl:table-cell'>
-										Giảng viên
+										{t('finalScores.teacherColumn')}
 									</TableHead>
 									<TableHead className='text-right'>
-										Điểm
+										{t('finalScores.gradeColumn')}
 									</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -158,7 +162,6 @@ export default function StudentFinalScores({
 									.map((course) => {
 										const gradeInfo =
 											studentGrades[course.id]
-
 										return (
 											<TableRow
 												key={course.id}
@@ -172,7 +175,6 @@ export default function StudentFinalScores({
 														>
 															{course.title}
 														</span>
-
 														<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
 															{
 																course
@@ -182,11 +184,9 @@ export default function StudentFinalScores({
 														</span>
 													</div>
 												</TableCell>
-
 												<TableCell className='whitespace-nowrap text-xs text-muted-foreground'>
 													{course.semester}
 												</TableCell>
-
 												<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
 													{course.teachers
 														?.map(
@@ -195,14 +195,11 @@ export default function StudentFinalScores({
 														)
 														.join(', ')}
 												</TableCell>
-
 												<TableCell className='text-right'>
 													{gradeInfo ? (
 														<Badge
 															variant='outline'
-															className={`${getGradeColor(
-																gradeInfo.finalScore
-															)} group-hover:shadow-sm transition-all`}
+															className={`${getGradeColor(gradeInfo.finalScore)} group-hover:shadow-sm transition-all`}
 														>
 															{gradeInfo.finalScore?.toFixed(
 																2

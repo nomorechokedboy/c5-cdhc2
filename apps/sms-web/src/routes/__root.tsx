@@ -8,6 +8,7 @@ import { Fragment } from 'react/jsx-runtime'
 import { SidebarProvider } from '@repo/ui/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import useAuth from '@/hooks/useAuth'
+import { useLangPack } from '@/hooks/useLangPack'
 import { Toaster } from '@repo/ui/components/ui/sonner'
 
 interface MyRouterContext {
@@ -17,6 +18,10 @@ interface MyRouterContext {
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	component: () => {
 		const { isAuthenticated } = useAuth()
+
+		// Fetch the app-level language pack once and apply it globally.
+		// Runs for all users including unauthenticated ones (GET is public).
+		useLangPack()
 
 		return (
 			<Fragment>
@@ -30,9 +35,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 						<Outlet />
 					</div>
 					<TanstackDevtools
-						config={{
-							position: 'bottom-left'
-						}}
+						config={{ position: 'bottom-left' }}
 						plugins={[
 							{
 								name: 'Tanstack Router',

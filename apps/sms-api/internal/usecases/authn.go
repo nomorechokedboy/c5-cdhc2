@@ -36,11 +36,7 @@ func NewAuthnUseCase(
 }
 
 func (uc *AuthnUseCase) setToken(ctx context.Context, req *oauth2.SaveRequest) error {
-	if err := uc.tokenRepository.SetEx(ctx, req); err != nil {
-		return err
-	}
-
-	return nil
+	return uc.tokenRepository.SetEx(ctx, req)
 }
 
 func (uc *AuthnUseCase) setAccessToken(ctx context.Context, key string, val string) error {
@@ -54,7 +50,6 @@ func (uc *AuthnUseCase) setAccessToken(ctx context.Context, key string, val stri
 		logger.ErrorContext(ctx, "Failed to set access token", "err", err, "request", req)
 		return err
 	}
-
 	return nil
 }
 
@@ -69,7 +64,6 @@ func (uc *AuthnUseCase) setRefreshToken(ctx context.Context, key string, val str
 		logger.ErrorContext(ctx, "Failed to set refresh token", "err", err, "request", req)
 		return err
 	}
-
 	return nil
 }
 
@@ -81,12 +75,7 @@ func (uc *AuthnUseCase) setTokens(
 	if err := uc.setAccessToken(ctx, appTokens.AccessToken, mdlTokens.AccessToken); err != nil {
 		return err
 	}
-
-	if err := uc.setRefreshToken(ctx, appTokens.RefreshToken, mdlTokens.RefreshToken); err != nil {
-		return err
-	}
-
-	return nil
+	return uc.setRefreshToken(ctx, appTokens.RefreshToken, mdlTokens.RefreshToken)
 }
 
 func (uc *AuthnUseCase) HandleCallback(
@@ -95,14 +84,12 @@ func (uc *AuthnUseCase) HandleCallback(
 ) (*entities.CallbackResponse, error) {
 	logger.InfoContext(ctx, "Processing OAuth2 callback", "state", state, "code", code)
 
-	// Exchange code for token
 	token, err := uc.oauth2Provider.ExchangeCodeForToken(ctx, code)
 	if err != nil {
 		logger.Error("Failed to exchange code for token", "err", err)
 		return nil, fmt.Errorf("token exchange failed: %w", err)
 	}
 
-	// Get user info using the token
 	logger.InfoContext(ctx, "Get UserInfo by access token", "AccessToken", token.AccessToken)
 	userInfo, err := uc.getUserInfoByMdlToken(ctx, token.AccessToken)
 	if err != nil {
@@ -110,8 +97,9 @@ func (uc *AuthnUseCase) HandleCallback(
 		return nil, fmt.Errorf("user info retrieval failed: %w", err)
 	}
 
-	req := &entities.TokenPayload{UserID: userInfo.Id}
-	logger.InfoContext(ctx, "GenTokens request", "requset", req)
+	// Embed the role in the JWT so handlers can authorize without extra lookups.
+	req := &entities.TokenPayload{UserID: userInfo.Id, Role: userInfo.Role}
+	logger.InfoContext(ctx, "GenTokens request", "request", req)
 	resp, err := uc.tokenProvider.GenTokens(ctx, req)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to generate tokens", "err", err, "request", req)
@@ -125,8 +113,7 @@ func (uc *AuthnUseCase) HandleCallback(
 		if err := uc.setTokens(ctxWithTimeout, token, resp); err != nil {
 			logger.ErrorContext(ctx, "Failed to set tokens", "err", err)
 		}
-
-		if err := uc.setAccessToken(ctxWithTimeout, string(userInfo.Id), token.AccessToken); err != nil {
+		if err := uc.setAccessToken(ctxWithTimeout, fmt.Sprint(userInfo.Id), token.AccessToken); err != nil {
 			logger.ErrorContext(ctx, "Failed to setAccessToken by userId", "err", err)
 		}
 	}()
@@ -141,20 +128,15 @@ func (uc *AuthnUseCase) getUserInfoByMdlToken(
 	return uc.userInfoProvider.GetUserInfoByMdlToken(ctx, accessToken)
 }
 
-func (uc *AuthnUseCase) getCacheVal(ctx context.Context, key string) (string, error) {
-	return uc.tokenRepository.Get(ctx, key)
-}
-
 func (uc *AuthnUseCase) GetUserInfo(
 	ctx context.Context,
 	userId int64,
 ) (*entities.UserInfo, error) {
 	userInfo, err := uc.userInfoProvider.GetUserInfo(ctx, userId)
 	if err != nil {
-		logger.ErrorContext(ctx, "Get UserInfo by mdl token error", "err", err, "userId", userId)
+		logger.ErrorContext(ctx, "Get UserInfo error", "err", err, "userId", userId)
 		return nil, err
 	}
-
 	return userInfo, nil
 }
 
@@ -167,10 +149,9 @@ func (uc *AuthnUseCase) VerifyAccessToken(
 		&oauth2.VerifyRequest{TokenStr: token, Secret: uc.authnConfig.JWTSecret},
 	)
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to verify access token", "err", err, "token", token)
+		logger.ErrorContext(ctx, "Failed to verify access token", "err", err)
 		return nil, err
 	}
-
 	return payload, nil
 }
 
@@ -183,10 +164,9 @@ func (uc *AuthnUseCase) VerifyRefreshToken(
 		&oauth2.VerifyRequest{TokenStr: token, Secret: uc.authnConfig.JWTRefreshToken},
 	)
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to verify refresh token", "err", err, "token", token)
+		logger.ErrorContext(ctx, "Failed to verify refresh token", "err", err)
 		return nil, err
 	}
-
 	return payload, nil
 }
 
@@ -200,7 +180,9 @@ func (uc *AuthnUseCase) RefreshToken(
 		return nil, err
 	}
 
-	req := &entities.TokenPayload{UserID: payload.UserID}
+	// Preserve the role from the existing payload so the new token still
+	// carries the correct role without an extra Moodle lookup.
+	req := &entities.TokenPayload{UserID: payload.UserID, Role: payload.Role}
 	resp, err := uc.tokenProvider.GenTokens(ctx, req)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to generate tokens", "err", err, "request", req)

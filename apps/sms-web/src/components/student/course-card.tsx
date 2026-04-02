@@ -8,6 +8,7 @@ import {
 import { Badge } from '@repo/ui/components/ui/badge'
 import type { Course, StudentGradesSummary } from '@/types'
 import { formatDate, getGradeColor } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface StudentCourseCardProps {
 	course: Course
@@ -20,6 +21,8 @@ export default function StudentCourseCard({
 	grades,
 	onClick
 }: StudentCourseCardProps) {
+	const { t } = useTranslation()
+
 	return (
 		<Card
 			onClick={onClick}
@@ -35,7 +38,7 @@ export default function StudentCourseCard({
 							? course.teachers
 									.map((teacher) => teacher.fullName)
 									.join(', ')
-							: 'Chưa gán giảng viên'}
+							: t('course.noTeacher')}
 					</CardDescription>
 				</div>
 			</CardHeader>
@@ -47,18 +50,18 @@ export default function StudentCourseCard({
 				<div className='flex items-center justify-between text-sm'>
 					<span className='text-muted-foreground'>
 						{course.startDate === 0
-							? 'Chưa có'
+							? t('course.noDate')
 							: formatDate(course.startDate)}
-						-{' '}
+						{' - '}
 						{course.endDate === 0
-							? 'Chưa có'
+							? t('course.noDate')
 							: formatDate(course.endDate)}
 					</span>
 				</div>
 
 				<div className='flex items-center justify-between pt-4 border-t border-border'>
 					<span className='text-sm font-medium text-muted-foreground'>
-						Điểm tổng kết môn
+						{t('course.finalGrade')}
 					</span>
 					<Badge
 						className={`${getGradeColor(grades.finalScore)} font-semibold`}

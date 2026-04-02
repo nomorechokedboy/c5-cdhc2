@@ -10,6 +10,7 @@ import {
 	CardTitle
 } from '@repo/ui/components/ui/card'
 import { Layers, ChevronRight, Crown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function CategoryCard({
 	category
@@ -50,34 +51,31 @@ function CategoryCard({
 }
 
 export function AdminDashboard() {
+	const { t } = useTranslation()
 	const { user } = useAuth()
 	const { data: categories = [], isLoading } = useQuery({
 		queryKey: ['categories'],
 		queryFn: CategoryApi.GetCategories
 	})
 
+	const name = `${user?.firstname ?? ''} ${user?.lastname ?? ''}`.trim()
+
 	return (
 		<div className='container mx-auto p-6 space-y-6'>
-			{/* Welcome */}
 			<div className='flex items-start gap-3'>
 				<div className='p-2 rounded-md bg-red-500/10 mt-0.5'>
 					<Crown className='w-5 h-5 text-red-500' />
 				</div>
 				<div className='space-y-1'>
 					<h1 className='text-2xl font-bold tracking-tight'>
-						Xin chào, {user?.firstname} {user?.lastname}
+						{t('dashboard.admin.welcome', { name })}
 					</h1>
 					<p className='text-muted-foreground'>
-						Bạn đang đăng nhập với vai trò{' '}
-						<span className='font-medium text-red-600'>
-							Quản trị viên
-						</span>
-						. Bạn có thể xem và quản lý toàn bộ hệ thống.
+						{t('dashboard.admin.subtitle')}
 					</p>
 				</div>
 			</div>
 
-			{/* Summary */}
 			<Card>
 				<CardContent className='flex items-center gap-3 pt-6'>
 					<div className='p-2 rounded-md bg-red-500/10'>
@@ -88,15 +86,16 @@ export function AdminDashboard() {
 							{categories.length}
 						</p>
 						<p className='text-xs text-muted-foreground'>
-							Tổng số lớp học
+							{t('dashboard.admin.totalClasses')}
 						</p>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* All categories */}
 			<div className='space-y-3'>
-				<h2 className='text-lg font-semibold'>Tất cả lớp học</h2>
+				<h2 className='text-lg font-semibold'>
+					{t('dashboard.admin.allClasses')}
+				</h2>
 				{isLoading && (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
 						{Array.from({ length: 6 }).map((_, i) => (
@@ -112,7 +111,7 @@ export function AdminDashboard() {
 				{!isLoading && categories.length === 0 && (
 					<Card>
 						<CardContent className='pt-6 text-center text-muted-foreground'>
-							Không có lớp học nào trong hệ thống.
+							{t('dashboard.admin.noClasses')}
 						</CardContent>
 					</Card>
 				)}

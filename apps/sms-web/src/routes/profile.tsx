@@ -10,25 +10,13 @@ import {
 } from '@repo/ui/components/ui/card'
 import { Avatar, AvatarFallback } from '@repo/ui/components/ui/avatar'
 import { Badge } from '@repo/ui/components/ui/badge'
-import { Separator } from '@repo/ui/components/ui/separator'
 import { Mail, Phone, Hash, BookUser, IdCard } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { LangPackManager } from '@/components/langpack-manager'
 
 export const Route = createFileRoute('/profile')({
 	component: ProfilePage
 })
-
-const roleLabelMap: Record<
-	string,
-	{
-		label: string
-		variant: 'default' | 'secondary' | 'outline' | 'destructive'
-	}
-> = {
-	admin: { label: 'Quản trị viên', variant: 'destructive' },
-	manager: { label: 'Quản lý', variant: 'default' },
-	teacher: { label: 'Giáo viên', variant: 'secondary' },
-	student: { label: 'Học viên', variant: 'outline' }
-}
 
 type InfoRowProps = {
 	icon: React.ReactNode
@@ -50,11 +38,25 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
 }
 
 function ProfilePage() {
+	const { t } = useTranslation()
 	const { user, role } = useAuth()
+
+	const roleLabelMap: Record<
+		string,
+		{
+			label: string
+			variant: 'default' | 'secondary' | 'outline' | 'destructive'
+		}
+	> = {
+		admin: { label: t('roles.admin'), variant: 'destructive' },
+		manager: { label: t('roles.manager'), variant: 'default' },
+		teacher: { label: t('roles.teacher'), variant: 'secondary' },
+		student: { label: t('roles.student'), variant: 'outline' }
+	}
 
 	const displayName = user
 		? `${user.firstname} ${user.lastname}`.trim()
-		: 'Đang tải...'
+		: t('profile.loading')
 
 	const initials = user
 		? `${user.firstname?.[0] ?? ''}${user.lastname?.[0] ?? ''}`.toUpperCase()
@@ -70,10 +72,10 @@ function ProfilePage() {
 			<div className='container max-w-2xl mx-auto p-6 space-y-6'>
 				<div>
 					<h1 className='text-2xl font-bold tracking-tight'>
-						Hồ sơ cá nhân
+						{t('profile.title')}
 					</h1>
 					<p className='text-muted-foreground'>
-						Thông tin tài khoản của bạn
+						{t('profile.subtitle')}
 					</p>
 				</div>
 
@@ -105,40 +107,40 @@ function ProfilePage() {
 					</CardContent>
 				</Card>
 
-				{/* Info card */}
+				{/* Contact info card */}
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-base'>
-							Thông tin liên hệ
+							{t('profile.contactInfo')}
 						</CardTitle>
 						<CardDescription>
-							Dữ liệu được đồng bộ từ hệ thống LMS
+							{t('profile.syncNote')}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className='divide-y divide-border'>
 						<InfoRow
 							icon={<Mail className='w-4 h-4' />}
-							label='Email'
+							label={t('profile.email')}
 							value={user?.email}
 						/>
 						<InfoRow
 							icon={<Phone className='w-4 h-4' />}
-							label='Số điện thoại'
+							label={t('profile.phone')}
 							value={user?.phone1}
 						/>
 						<InfoRow
 							icon={<Hash className='w-4 h-4' />}
-							label='Số hiệu'
+							label={t('profile.idNumber')}
 							value={user?.idnumber}
 						/>
 						<InfoRow
 							icon={<BookUser className='w-4 h-4' />}
-							label='Tên đăng nhập'
+							label={t('profile.username')}
 							value={user?.username}
 						/>
 						<InfoRow
 							icon={<IdCard className='w-4 h-4' />}
-							label='Mã số'
+							label={t('profile.userCode')}
 							value={user?.id ? String(user.id) : undefined}
 						/>
 					</CardContent>
@@ -148,7 +150,9 @@ function ProfilePage() {
 				{user?.description && (
 					<Card>
 						<CardHeader>
-							<CardTitle className='text-base'>Mô tả</CardTitle>
+							<CardTitle className='text-base'>
+								{t('profile.description')}
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<p className='text-sm text-muted-foreground'>
@@ -157,6 +161,9 @@ function ProfilePage() {
 						</CardContent>
 					</Card>
 				)}
+
+				{/* Language pack customisation */}
+				<LangPackManager />
 			</div>
 		</ProtectedRoute>
 	)

@@ -8,7 +8,6 @@ console.log({ ApiUrl, redirectUrl: env.VITE_REDIRECT_URI })
 const client = new Client(ApiUrl, { fetcher: appFetcher })
 const tempClient = new Client(ApiUrl, {})
 
-// Store the ongoing refresh promise
 let refreshPromise: Promise<string> | null = null
 
 export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
@@ -25,17 +24,12 @@ export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
 	}
 	const resp = await fetch(url, initWithToken)
 
-	if (resp.status !== 401) {
-		return resp
-	}
+	if (resp.status !== 401) return resp
 
 	const refreshToken = AuthController.getRefreshToken()
-	if (!refreshToken) {
-		return resp
-	}
+	if (!refreshToken) return resp
 
 	try {
-		// If a refresh is already in progress, wait for it
 		if (!refreshPromise) {
 			refreshPromise = (async () => {
 				try {
@@ -48,28 +42,23 @@ export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
 					})
 					return refreshResp.accessToken
 				} finally {
-					// Clear the promise when done (success or failure)
 					refreshPromise = null
 				}
 			})()
 		}
 
-		// Wait for the refresh to complete
 		const newAccessToken = await refreshPromise
-
-		// Retry the original request with the new token
-		const newInit = {
+		return await fetch(url, {
 			...init,
 			headers: {
 				...init?.headers,
 				Authorization: `Bearer ${newAccessToken}`
 			}
-		}
-		return await fetch(url, newInit)
+		})
 	} catch (err) {
 		console.error('Token refresh failed:', err)
 		AuthController.clearTokens()
-		refreshPromise = null // Clear on error
+		refreshPromise = null
 		return resp
 	}
 }
@@ -79,7 +68,6 @@ class authnApi {
 		return client.authn.Me()
 	}
 }
-
 export const AuthApi = new authnApi()
 
 class categoryApi {
@@ -95,7 +83,6 @@ class categoryApi {
 			.then((resp) => resp.data)
 	}
 }
-
 export const CategoryApi = new categoryApi()
 
 class courseApi {
@@ -111,7 +98,6 @@ class courseApi {
 		return client.usrcourses.UpdateCourseGrades(params)
 	}
 }
-
 export const CourseApi = new courseApi()
 
 class userApi {
@@ -119,5 +105,48 @@ class userApi {
 		return client.usrgrades.GetUserGrades()
 	}
 }
-
 export const UserApi = new userApi()
+
+// ── Application-level language pack ──────────────────────────────────────────
+// These calls bypass the generated Encore client because the appconfig package
+// is new and the client.ts hasn't been regenerated yet. They use appFetcher so
+// the PUT/DELETE requests automatically carry the auth token.
+
+class langPackApi {
+	/** Fetch the current app-level language pack. Public endpoint. */
+	async Get(): Promise<Record<string, unknown>> {
+		try {
+			const resp = await fetch(`${ApiUrl}/config/langpack`)
+			if (!resp.ok) return {}
+			const data = await resp.json()
+			return (data.pack as Record<string, unknown>) ?? {}
+		} catch {
+			return {}
+		}
+	}
+
+	/** Save a new language pack. Admin only. */
+	async Set(pack: Record<string, unknown>): Promise<void> {
+		const resp = await appFetcher(`${ApiUrl}/config/langpack`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ pack })
+		})
+		if (!resp.ok) {
+			const body = await resp.json().catch(() => ({}))
+			throw new Error(body?.message ?? 'Failed to save lang pack')
+		}
+	}
+
+	/** Remove the custom pack, reverting all users to defaults. Admin only. */
+	async Delete(): Promise<void> {
+		const resp = await appFetcher(`${ApiUrl}/config/langpack`, {
+			method: 'DELETE'
+		})
+		if (!resp.ok) {
+			const body = await resp.json().catch(() => ({}))
+			throw new Error(body?.message ?? 'Failed to delete lang pack')
+		}
+	}
+}
+export const LangPackApi = new langPackApi()
