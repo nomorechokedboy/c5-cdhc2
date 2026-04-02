@@ -15,6 +15,7 @@ import CourseDetailsError from './error'
 import { useMutation } from '@tanstack/react-query'
 import { CourseApi } from '@/api'
 import { toast } from '@repo/ui/components/ui/sonner'
+import { useTranslation } from 'react-i18next'
 
 type InnerCourseDetailsProps = {
 	data: Course
@@ -25,6 +26,7 @@ function InnerCourseDetails({
 	data: course,
 	onReload
 }: InnerCourseDetailsProps) {
+	const { t } = useTranslation()
 	const { mutateAsync } = useMutation({
 		mutationFn: CourseApi.UpdateCourseGrades
 	})
@@ -46,9 +48,7 @@ function InnerCourseDetails({
 			(c) => c.value === category
 		)
 		if (categoryInfo === undefined) {
-			toast.error(
-				'Lỗi hệ thống khi cập nhật điểm! Vui lòng liên hệ quản trị viên.'
-			)
+			toast.error(t('grades.systemError'))
 			return
 		}
 
@@ -62,10 +62,10 @@ function InnerCourseDetails({
 				source: `mod/${categoryInfo.type}`
 			})
 			await onReload()
-			toast.success('Cập nhật điểm thành công!')
+			toast.success(t('grades.updateSuccess'))
 		} catch (err) {
 			console.error('GradeSave error', err)
-			toast.error('Cập nhật điểm thất bại! ')
+			toast.error(t('grades.updateError'))
 		}
 	}
 
@@ -84,6 +84,16 @@ function InnerCourseDetails({
 		setBulkEditCategory(undefined)
 	}
 
+	const editModeDescription = bulkEditMode
+		? `${t('grades.editMode')}: ${
+				bulkEditMode === 'single-category'
+					? t('grades.editCategory', {
+							label: bulkEditCategory?.label
+						})
+					: t('grades.editAll')
+			}`
+		: t('grades.editHint')
+
 	return (
 		<div className='container mx-auto p-6 space-y-6'>
 			<CourseHeader course={course} studentCount={students.length} />
@@ -93,12 +103,10 @@ function InnerCourseDetails({
 					<div className='flex items-center justify-between'>
 						<div>
 							<CardTitle className='text-xl font-semibold text-foreground'>
-								Điểm số học viên
+								{t('grades.studentGrades')}
 							</CardTitle>
 							<CardDescription className='text-muted-foreground'>
-								{bulkEditMode
-									? `Chế độ sửa điểm: ${bulkEditMode === 'single-category' ? `Sửa điểm ${bulkEditCategory?.label} cho tất cả học viên` : 'Sửa điểm tất cả các môn của tất cả học viên'}`
-									: 'Nhấp chuột vào điểm để chỉnh sửa. Điểm tổng kết sẽ được tính tự động.'}
+								{editModeDescription}
 							</CardDescription>
 						</div>
 						<BulkEditControls
@@ -139,21 +147,8 @@ export default function CourseDetails({
 	onRetry,
 	onReload
 }: CourseDetailsProps) {
-	// Show loading skeleton
-	if (isLoading) {
-		return <CourseDetailsSkeleton />
-	}
-
-	// Show error state
-	if (error) {
-		return <CourseDetailsError error={error} onRetry={onRetry} />
-	}
-
-	// Show actual content
-	if (data) {
-		return <InnerCourseDetails data={data} onReload={onReload} />
-	}
-
-	// Fallback - shouldn't normally reach here
+	if (isLoading) return <CourseDetailsSkeleton />
+	if (error) return <CourseDetailsError error={error} onRetry={onRetry} />
+	if (data) return <InnerCourseDetails data={data} onReload={onReload} />
 	return <CourseDetailsSkeleton />
 }

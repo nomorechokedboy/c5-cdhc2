@@ -18,18 +18,17 @@ const (
 )
 
 type UserInfo struct {
-	Id          int64  `json:"id"`
-	Address     string `json:"address"`
-	Description string `json:"description"`
-	Email       string `json:"email"`
-	Firstname   string `json:"firstname"`
-	Idnumber    string `json:"idnumber"`
-	Lang        string `json:"lang"`
-	Lastname    string `json:"lastname"`
-	Phone1      string `json:"phone1"`
-	Username    string `json:"username"`
-	// Role is the canonical role: "admin" | "manager" | "teacher" | "student"
-	Role UserRole `json:"role"`
+	Id          int64    `json:"id"`
+	Address     string   `json:"address"`
+	Description string   `json:"description"`
+	Email       string   `json:"email"`
+	Firstname   string   `json:"firstname"`
+	Idnumber    string   `json:"idnumber"`
+	Lang        string   `json:"lang"`
+	Lastname    string   `json:"lastname"`
+	Phone1      string   `json:"phone1"`
+	Username    string   `json:"username"`
+	Role        UserRole `json:"role"`
 }
 
 type MoodleOauth2AccessToken struct {
@@ -50,8 +49,11 @@ type CallbackResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+// TokenPayload is embedded in JWT claims. Role is included so that
+// authorization checks in handlers don't require an extra DB/cache lookup.
 type TokenPayload struct {
-	UserID int64
+	UserID int64    `json:"userID"`
+	Role   UserRole `json:"role"`
 }
 
 type HttpCallbackResponse struct {

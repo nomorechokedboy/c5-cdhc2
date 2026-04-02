@@ -1,0 +1,138 @@
+{
+	"auth": {
+		"loginTitle": "Chào mừng bạn đã quay lại",
+		"loginSubtitle": "Hệ thống quản lý điểm số Trường Cao đẳng Hậu cần 2",
+		"loginButton": "Đăng nhập bằng LMS",
+		"loginSuccess": "Đăng nhập thành công!",
+		"logout": "Đăng xuất"
+	},
+	"nav": {
+		"home": "Trang chủ",
+		"classList": "Danh sách lớp",
+		"profile": "Hồ sơ cá nhân",
+		"appTitle": "Hệ thống quản lý học viên",
+		"appSubtitle": "Trường Cao đẳng hậu cần 2"
+	},
+	"roles": {
+		"admin": "Quản trị viên",
+		"manager": "Quản lý",
+		"teacher": "Giáo viên",
+		"student": "Học viên"
+	},
+	"dashboard": {
+		"teacher": {
+			"welcome": "Xin chào, {{name}}",
+			"subtitle": "Chọn một lớp học từ thanh bên hoặc từ danh sách dưới đây để xem và chỉnh sửa điểm học viên.",
+			"classes": "Lớp học",
+			"subjects": "Môn học",
+			"students": "Học viên",
+			"yourClasses": "Lớp học của bạn",
+			"noClasses": "Bạn chưa được phân công lớp học nào."
+		},
+		"manager": {
+			"welcome": "Xin chào, {{name}}",
+			"roleLabel": "Quản lý",
+			"subtitle": "Bạn có thể xem và quản lý các lớp học được phân công.",
+			"assignedClasses": "Lớp học được phân công",
+			"yourClasses": "Lớp học quản lý",
+			"noClasses": "Chưa có lớp học nào được phân công."
+		},
+		"admin": {
+			"welcome": "Xin chào, {{name}}",
+			"roleLabel": "Quản trị viên",
+			"subtitle": "Bạn có thể xem và quản lý toàn bộ hệ thống.",
+			"totalClasses": "Tổng số lớp học",
+			"allClasses": "Tất cả lớp học",
+			"noClasses": "Không có lớp học nào trong hệ thống."
+		},
+		"student": {
+			"title": "Các khóa học của tôi",
+			"subtitle": "Xem các khóa học bạn đã đăng ký và theo dõi điểm số của bạn",
+			"semester": "Học kỳ {{number}}",
+			"noClassesTitle": "Không tìm thấy khóa học",
+			"noClasses": "Bạn chưa đăng ký khóa học nào"
+		}
+	},
+	"course": {
+		"teaching": "Đang dạy",
+		"ended": "Kết thúc",
+		"noDescription": "Chưa có mô tả",
+		"noTeacher": "Chưa gán giảng viên",
+		"startDate": "Ngày bắt đầu",
+		"endDate": "Ngày kết thúc",
+		"noDate": "Chưa có",
+		"students": "{{count}} Học viên",
+		"backToMyCourses": "Quay trở lại các khóa học của tôi",
+		"teacherLabel": "Giảng viên",
+		"gradeTitle": "Điểm số môn học",
+		"gradeSubtitle": "Điểm của bạn trong các bài kiểm tra",
+		"examColumn": "Kiểm tra",
+		"gradeColumn": "Điểm",
+		"finalGrade": "Điểm tổng kết môn"
+	},
+	"grades": {
+		"studentGrades": "Điểm số học viên",
+		"editHint": "Nhấp chuột vào điểm để chỉnh sửa. Điểm tổng kết sẽ được tính tự động.",
+		"editMode": "Chế độ sửa điểm",
+		"editCategory": "Sửa điểm {{label}} cho tất cả học viên",
+		"editAll": "Sửa điểm tất cả các môn của tất cả học viên",
+		"editAllButton": "Chỉnh sửa toàn bộ điểm số học viên",
+		"editCategoryButton": "Chỉnh sửa một cột điểm học viên",
+		"exitEdit": "Thoát khỏi chế độ chỉnh sửa",
+		"updateSuccess": "Cập nhật điểm thành công!",
+		"updateError": "Cập nhật điểm thất bại!",
+		"systemError": "Lỗi hệ thống khi cập nhật điểm! Vui lòng liên hệ quản trị viên.",
+		"finalGrade": "Tổng kết môn",
+		"conditionalGrade": "Điểm điều kiện",
+		"studentName": "Tên học viên",
+		"selected": "Đang chọn",
+		"select": "Chọn"
+	},
+	"finalScores": {
+		"title": "Kết quả học tập",
+		"subtitle": "Theo dõi điểm số của bạn qua các kỳ",
+		"overallGrade": "Điểm tổng kết",
+		"courseColumn": "Môn",
+		"semesterColumn": "Kỳ",
+		"teacherColumn": "Giảng viên",
+		"gradeColumn": "Điểm"
+	},
+	"sidebar": {
+		"loading": "Đang tải môn học...",
+		"noSubjects": "Không có môn học"
+	},
+	"profile": {
+		"title": "Hồ sơ cá nhân",
+		"subtitle": "Thông tin tài khoản của bạn",
+		"contactInfo": "Thông tin liên hệ",
+		"syncNote": "Dữ liệu được đồng bộ từ hệ thống LMS",
+		"email": "Email",
+		"phone": "Số điện thoại",
+		"idNumber": "Số hiệu",
+		"username": "Tên đăng nhập",
+		"userCode": "Mã số",
+		"description": "Mô tả",
+		"loading": "Đang tải..."
+	},
+	"error": {
+		"courseLoadTitle": "Không thể tải chi tiết môn học",
+		"courseLoadDesc": "Đã xảy ra lỗi khi tải thông tin môn học",
+		"retryButton": "Thử lại",
+		"retryHint": "Nhấn để tải lại dữ liệu",
+		"unexpected": "Đã xảy ra lỗi không mong muốn"
+	},
+	"langpack": {
+		"title": "Tùy chỉnh giao diện",
+		"subtitle": "Tải lên file JSON để thay đổi các nhãn, nút bấm và văn bản trong hệ thống.",
+		"upload": "Tải lên language pack",
+		"reset": "Khôi phục mặc định",
+		"active": "Đang dùng language pack tùy chỉnh",
+		"default": "Đang dùng ngôn ngữ mặc định",
+		"dropzone": "Kéo thả file JSON hoặc nhấn để chọn",
+		"formatHint": "Chỉ chấp nhận file .json",
+		"downloadDefault": "Tải xuống file mặc định",
+		"parseError": "File JSON không hợp lệ",
+		"uploadSuccess": "Tải lên thành công!",
+		"resetSuccess": "Đã khôi phục ngôn ngữ mặc định"
+	}
+}

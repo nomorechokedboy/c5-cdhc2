@@ -10,6 +10,7 @@ import {
 	CardTitle
 } from '@repo/ui/components/ui/card'
 import { BookOpen, Users, ChevronRight, Layers } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function CategoryCard({
 	category
@@ -50,26 +51,26 @@ function CategoryCard({
 }
 
 export function TeacherDashboard() {
+	const { t } = useTranslation()
 	const { user } = useAuth()
 	const { data: categories = [], isLoading } = useQuery({
 		queryKey: ['categories'],
 		queryFn: CategoryApi.GetCategories
 	})
 
+	const name = `${user?.firstname ?? ''} ${user?.lastname ?? ''}`.trim()
+
 	return (
 		<div className='container mx-auto p-6 space-y-6'>
-			{/* Welcome */}
 			<div className='space-y-1'>
 				<h1 className='text-2xl font-bold tracking-tight'>
-					Xin chào, {user?.firstname} {user?.lastname}
+					{t('dashboard.teacher.welcome', { name })}
 				</h1>
 				<p className='text-muted-foreground'>
-					Chọn một lớp học từ thanh bên hoặc từ danh sách dưới đây để
-					xem và chỉnh sửa điểm học viên.
+					{t('dashboard.teacher.subtitle')}
 				</p>
 			</div>
 
-			{/* Stats row */}
 			<div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
 				<Card>
 					<CardContent className='flex items-center gap-3 pt-6'>
@@ -81,7 +82,7 @@ export function TeacherDashboard() {
 								{categories.length}
 							</p>
 							<p className='text-xs text-muted-foreground'>
-								Lớp học
+								{t('dashboard.teacher.classes')}
 							</p>
 						</div>
 					</CardContent>
@@ -94,7 +95,7 @@ export function TeacherDashboard() {
 						<div>
 							<p className='text-2xl font-bold'>—</p>
 							<p className='text-xs text-muted-foreground'>
-								Môn học
+								{t('dashboard.teacher.subjects')}
 							</p>
 						</div>
 					</CardContent>
@@ -107,16 +108,17 @@ export function TeacherDashboard() {
 						<div>
 							<p className='text-2xl font-bold'>—</p>
 							<p className='text-xs text-muted-foreground'>
-								Học viên
+								{t('dashboard.teacher.students')}
 							</p>
 						</div>
 					</CardContent>
 				</Card>
 			</div>
 
-			{/* Categories grid */}
 			<div className='space-y-3'>
-				<h2 className='text-lg font-semibold'>Lớp học của bạn</h2>
+				<h2 className='text-lg font-semibold'>
+					{t('dashboard.teacher.yourClasses')}
+				</h2>
 				{isLoading && (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
 						{Array.from({ length: 6 }).map((_, i) => (
@@ -133,7 +135,7 @@ export function TeacherDashboard() {
 				{!isLoading && categories.length === 0 && (
 					<Card>
 						<CardContent className='pt-6 text-center text-muted-foreground'>
-							Bạn chưa được phân công lớp học nào.
+							{t('dashboard.teacher.noClasses')}
 						</CardContent>
 					</Card>
 				)}

@@ -21,6 +21,7 @@ import { DetailPageSkeleton } from './loading-skeleton'
 import ErrorState from '@/components/error-state'
 import type { Course, StudentGradesSummary } from '@/types'
 import { formatDate, getGradeColor } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface StudentCourseDetailProps {
 	course: Course
@@ -35,6 +36,7 @@ export default function StudentCourseDetail({
 	onBack,
 	isLoading = false
 }: StudentCourseDetailProps) {
+	const { t } = useTranslation()
 	const [detailLoading, setDetailLoading] = useState(true)
 	const [detailError, setDetailError] = useState<string | null>(null)
 
@@ -43,15 +45,13 @@ export default function StudentCourseDetail({
 			try {
 				setDetailLoading(true)
 				setDetailError(null)
-				// Simulate loading grade details
 				await new Promise((resolve) => setTimeout(resolve, 800))
-			} catch (err) {
-				setDetailError('Failed to load grade details')
+			} catch {
+				setDetailError(t('error.courseLoadDesc'))
 			} finally {
 				setDetailLoading(false)
 			}
 		}
-
 		loadDetails()
 	}, [course.id])
 
@@ -64,7 +64,7 @@ export default function StudentCourseDetail({
 					className='mb-4 ml-6 text-muted-foreground hover:text-foreground'
 				>
 					<ArrowLeft className='w-4 h-4 mr-2' />
-					Quay trở lại các khóa học của tôi
+					{t('course.backToMyCourses')}
 				</Button>
 				<DetailPageSkeleton />
 			</div>
@@ -79,12 +79,12 @@ export default function StudentCourseDetail({
 				className='mb-4 text-muted-foreground hover:text-foreground'
 			>
 				<ArrowLeft className='w-4 h-4 mr-2' />
-				Quay trở lại các khóa học của tôi
+				{t('course.backToMyCourses')}
 			</Button>
 
 			{detailError && (
 				<ErrorState
-					title='Failed to Load Grade Details'
+					title={t('error.courseLoadTitle')}
 					description={detailError}
 					onRetry={() => setDetailError(null)}
 				/>
@@ -99,13 +99,15 @@ export default function StudentCourseDetail({
 									{course.title}
 								</CardTitle>
 								<CardDescription className='text-base'>
-									Giảng viên:{' '}
+									{t('course.teacherLabel')}:{' '}
 									<div className='flex flex-wrap gap-2'>
 										{course.teachers
 											? course.teachers.map((t) => (
-													<Badge>{t.fullName}</Badge>
+													<Badge key={t.id}>
+														{t.fullName}
+													</Badge>
 												))
-											: 'Chưa gán giảng viên'}
+											: t('course.noTeacher')}
 									</div>
 								</CardDescription>
 							</div>
@@ -121,21 +123,21 @@ export default function StudentCourseDetail({
 						<div className='flex gap-6 text-sm pt-4 border-t border-border'>
 							<div>
 								<span className='text-muted-foreground'>
-									Ngày bắt đầu
+									{t('course.startDate')}
 								</span>
 								<p className='font-medium text-foreground'>
 									{course.startDate === 0
-										? 'Chưa có'
+										? t('course.noDate')
 										: formatDate(course.startDate)}
 								</p>
 							</div>
 							<div>
 								<span className='text-muted-foreground'>
-									Ngày kết thúc
+									{t('course.endDate')}
 								</span>
 								<p className='font-medium text-foreground'>
 									{course.endDate === 0
-										? 'Chưa có'
+										? t('course.noDate')
 										: formatDate(course.endDate)}
 								</p>
 							</div>
@@ -146,18 +148,18 @@ export default function StudentCourseDetail({
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Điểm số môn học</CardTitle>
+					<CardTitle>{t('course.gradeTitle')}</CardTitle>
 					<CardDescription>
-						Điểm của bạn trong các bài kiểm tra
+						{t('course.gradeSubtitle')}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Kiểm tra</TableHead>
+								<TableHead>{t('course.examColumn')}</TableHead>
 								<TableHead className='text-right'>
-									Điểm
+									{t('course.gradeColumn')}
 								</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -181,7 +183,7 @@ export default function StudentCourseDetail({
 							))}
 							<TableRow className='border-t-2 border-border'>
 								<TableCell className='font-bold text-foreground'>
-									Điểm tổng kết môn
+									{t('course.finalGrade')}
 								</TableCell>
 								<TableCell className='text-right'>
 									<Badge

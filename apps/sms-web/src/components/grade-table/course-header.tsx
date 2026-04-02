@@ -9,6 +9,7 @@ import { Badge } from '@repo/ui/components/ui/badge'
 import { CalendarDays, Users, BookOpen } from 'lucide-react'
 import type { Course } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface CourseHeaderProps {
 	course: Course
@@ -19,6 +20,8 @@ export default function CourseHeader({
 	course,
 	studentCount
 }: CourseHeaderProps) {
+	const { t } = useTranslation()
+
 	return (
 		<Card className='border-border sticky top-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
 			<CardHeader className='pb-4'>
@@ -37,7 +40,7 @@ export default function CourseHeader({
 						className='text-sm bg-blue-500 text-white dark:bg-blue-600 font-bold'
 					>
 						<Users className='h-4 w-4 mr-1' />
-						{studentCount} Học viên
+						{t('course.students', { count: studentCount })}
 					</Badge>
 				</div>
 			</CardHeader>
@@ -46,18 +49,18 @@ export default function CourseHeader({
 					<div className='flex items-center gap-2'>
 						<CalendarDays className='h-4 w-4' />
 						<span>
-							Ngày bắt đầu:{' '}
+							{t('course.startDate')}:{' '}
 							{course.startDate === 0
-								? 'Chưa có'
+								? t('course.noDate')
 								: formatDate(course.startDate)}
 						</span>
 					</div>
 					<div className='flex items-center gap-2'>
 						<CalendarDays className='h-4 w-4' />
 						<span>
-							Ngày kết thúc:{' '}
+							{t('course.endDate')}:{' '}
 							{course.endDate === 0
-								? 'Chưa có'
+								? t('course.noDate')
 								: formatDate(course.endDate)}
 						</span>
 					</div>

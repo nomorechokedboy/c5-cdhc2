@@ -23,10 +23,12 @@ import { useQuery } from '@tanstack/react-query'
 import { CategoryApi } from '@/api'
 import useAuth from '@/hooks/useAuth'
 import type { CourseCategory } from '@/types'
+import { useTranslation } from 'react-i18next'
 
-// ─── Lazy course list rendered inside a category's CollapsibleContent ────────
+// ─── Lazy course list ────────────────────────────────────────────────────────
 
 function LazyCourseList({ category }: { category: CourseCategory }) {
+	const { t } = useTranslation()
 	const { data: courses = [], isLoading } = useQuery({
 		queryKey: ['categoryCourses', category.id],
 		queryFn: () => CategoryApi.GetCourses({ CategoryId: category.id })
@@ -38,7 +40,7 @@ function LazyCourseList({ category }: { category: CourseCategory }) {
 				<SidebarMenuSubItem>
 					<span className='flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground'>
 						<Loader2 className='w-3 h-3 animate-spin' />
-						Đang tải môn học...
+						{t('sidebar.loading')}
 					</span>
 				</SidebarMenuSubItem>
 			</SidebarMenuSub>
@@ -50,7 +52,7 @@ function LazyCourseList({ category }: { category: CourseCategory }) {
 			<SidebarMenuSub>
 				<SidebarMenuSubItem>
 					<span className='px-3 py-1.5 text-xs text-muted-foreground'>
-						Không có môn học
+						{t('sidebar.noSubjects')}
 					</span>
 				</SidebarMenuSubItem>
 			</SidebarMenuSub>
@@ -81,7 +83,7 @@ function LazyCourseList({ category }: { category: CourseCategory }) {
 	)
 }
 
-// ─── DataTransformer: categories → NavItems with lazy renderChildren ─────────
+// ─── DataTransformer ─────────────────────────────────────────────────────────
 
 class CourseCategoryToNavTransformer
 	implements DataTransformer<CourseCategory, NavItem[]>
@@ -92,27 +94,15 @@ class CourseCategoryToNavTransformer
 			url: `/khoa-hoc/${category.idnumber}`,
 			icon: UsersRound,
 			metadata: { category: { id: category.id } },
-			// renderChildren triggers lazy fetch only when the collapsible is opened
 			renderChildren: () => <LazyCourseList category={category} />
 		}))
 	}
 }
 
-// ─── Static base navigation ──────────────────────────────────────────────────
-
-const APP_BASE_NAVIGATION: SidebarData = {
-	navMain: [
-		{
-			title: 'Chung',
-			url: '#',
-			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
-		}
-	]
-}
-
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const { t } = useTranslation()
 	const { hasElevatedAccess } = useAuth()
 
 	const { data: courseCategories = [], isLoading: isCourseCategoryLoading } =
@@ -122,11 +112,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			enabled: hasElevatedAccess
 		})
 
+	const APP_BASE_NAVIGATION: SidebarData = {
+		navMain: [
+			{
+				title: 'Chung',
+				url: '#',
+				items: [{ title: t('nav.home'), url: '/', icon: Home }]
+			}
+		]
+	}
+
 	const courseCategoryTransformer = new CourseCategoryToNavTransformer()
 	const { navigationData } = useSidebarLogic({
 		baseNavigation: APP_BASE_NAVIGATION,
 		insertPosition: 1,
-		groupTitle: 'Danh sách lớp',
+		groupTitle: t('nav.classList'),
 		dataTransformer: hasElevatedAccess
 			? courseCategoryTransformer
 			: undefined,
@@ -135,8 +135,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	const config: SidebarConfig = {
 		logoSrc: Cdhc2Logo,
-		title: 'Hệ thống quản lý học viên',
-		subtitle: 'Trường Cao đẳng hậu cần 2',
+		title: t('nav.appTitle'),
+		subtitle: t('nav.appSubtitle'),
 		showCustomContent: true,
 		defaultOpenGroups: true
 	}
