@@ -1,4 +1,4 @@
-import { Home, UsersRound, BookOpen, Loader2 } from 'lucide-react'
+import { Home, UsersRound, BookOpen, Loader2, ShieldAlert } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from '@repo/ui/components/app-sidebar-skeleton'
@@ -103,7 +103,7 @@ class CourseCategoryToNavTransformer
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { t } = useTranslation()
-	const { hasElevatedAccess } = useAuth()
+	const { hasElevatedAccess, isAdmin } = useAuth()
 
 	const { data: courseCategories = [], isLoading: isCourseCategoryLoading } =
 		useQuery({
@@ -112,12 +112,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			enabled: hasElevatedAccess
 		})
 
+	const adminItems = isAdmin
+		? [{ title: t('nav.auditLog'), url: '/audit', icon: ShieldAlert }]
+		: []
+
 	const APP_BASE_NAVIGATION: SidebarData = {
 		navMain: [
 			{
 				title: 'Chung',
 				url: '#',
-				items: [{ title: t('nav.home'), url: '/', icon: Home }]
+				items: [
+					{ title: t('nav.home'), url: '/', icon: Home },
+					...adminItems
+				]
 			}
 		]
 	}

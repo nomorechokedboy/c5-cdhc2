@@ -11,7 +11,8 @@
 		"classList": "Danh sách lớp",
 		"profile": "Hồ sơ cá nhân",
 		"appTitle": "Hệ thống quản lý học viên",
-		"appSubtitle": "Trường Cao đẳng hậu cần 2"
+		"appSubtitle": "Trường Cao đẳng hậu cần 2",
+		"auditLog": "Nhật ký hoạt động"
 	},
 	"roles": {
 		"admin": "Quản trị viên",
@@ -166,5 +167,81 @@
 		"parseError": "File JSON không hợp lệ",
 		"uploadSuccess": "Tải lên thành công!",
 		"resetSuccess": "Đã khôi phục ngôn ngữ mặc định"
+	},
+	"audit": {
+		"title": "Nhật ký hoạt động",
+		"subtitle": "Toàn bộ hành động trong hệ thống — chỉ quản trị viên",
+		"refresh": "Làm mới",
+		"purgeButton": "Xóa logs cũ",
+		"purgeTitle": "Xóa nhật ký cũ",
+		"purgeDesc": "Hành động này xóa vĩnh viễn tất cả bản ghi cũ hơn số ngày đã chọn và không thể hoàn tác.",
+		"purgeOlderThan": "Cũ hơn",
+		"purgeDays": "ngày",
+		"purgeConfirm": "Xác nhận xóa",
+		"purgeCancel": "Hủy",
+		"purging": "Đang xóa...",
+		"purgeSuccess": "Đã xóa {{count}} bản ghi",
+		"stats": {
+			"total": "Tổng sự kiện",
+			"today": "Hôm nay",
+			"failures": "Thất bại",
+			"denied": "Từ chối"
+		},
+		"filter": {
+			"title": "Bộ lọc",
+			"active": "{{count}} đang áp dụng",
+			"search": "Tìm kiếm toàn văn",
+			"searchPlaceholder": "Tìm trong lỗi và chi tiết...",
+			"eventType": "Loại sự kiện",
+			"allEvents": "Tất cả sự kiện",
+			"outcome": "Kết quả",
+			"allOutcomes": "Tất cả kết quả",
+			"actorId": "ID người dùng",
+			"from": "Từ ngày",
+			"to": "Đến ngày",
+			"apply": "Áp dụng",
+			"clear": "Xóa bộ lọc",
+			"recordCount": "{{total}} bản ghi"
+		},
+		"table": {
+			"title": "Danh sách nhật ký",
+			"perPage": "Mỗi trang:",
+			"time": "Thời gian",
+			"event": "Sự kiện",
+			"actorId": "ID",
+			"role": "Vai trò",
+			"outcome": "Kết quả",
+			"endpoint": "Endpoint",
+			"details": "Chi tiết",
+			"empty": "Không có bản ghi nào",
+			"show": "Xem",
+			"hide": "Ẩn",
+			"errorLabel": "Lỗi:",
+			"page": "Trang {{current}} / {{total}}"
+		},
+		"outcome": {
+			"success": "Thành công",
+			"failure": "Thất bại",
+			"denied": "Từ chối"
+		},
+		"insights": {
+			"topEvents": "Top 5 sự kiện",
+			"topActors": "Top 5 người dùng hoạt động",
+			"noData": "Chưa có dữ liệu"
+		},
+		"eventTypes": {
+			"auth.login": "Đăng nhập",
+			"auth.token_refresh": "Làm mới token",
+			"user.get_info": "Xem thông tin",
+			"grade.update": "Cập nhật điểm",
+			"grade.get_user": "Xem điểm",
+			"course.list": "Danh sách khóa học",
+			"course.get_detail": "Chi tiết khóa học",
+			"category.list": "Danh sách lớp",
+			"config.langpack_set": "Cài ngôn ngữ",
+			"config.langpack_delete": "Xóa ngôn ngữ",
+			"admin.action": "Hành động quản trị",
+			"audit.purge": "Xóa nhật ký"
+		}
 	}
 }
