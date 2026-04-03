@@ -8,6 +8,12 @@ const (
 	GET_CATEGORIES            = "local_teachercourses_get_teacher_categories"
 	GET_CATEGORY_COURSES      = "local_teachercourses_get_teacher_courses"
 	GET_USER_INFO             = "local_oauth2userinfo_get_user_info"
+	UPDATE_GRADES             = "core_grades_update_grades"
 
-	UPDATE_GRADES = "core_grades_update_grades"
+	// Export / template management (local_customgradeexport)
+	GET_COURSE_TEMPLATES = "local_customgradeexport_get_course_templates"
+	EXPORT_COURSE_GRADES = "local_customgradeexport_export_course_grades"
+	GET_ALL_TEMPLATES    = "local_customgradeexport_get_all_templates"
+	UPLOAD_TEMPLATE      = "local_customgradeexport_upload_template"
+	DELETE_TEMPLATE      = "local_customgradeexport_delete_template"
 )
