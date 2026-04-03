@@ -1,10 +1,10 @@
 <?php
 
 /**
- * DOCX Exporter class - Enhanced with better template support
+ * DOCX Exporter class - Enhanced with content-return methods for API use
  *
  * @package    local_customgradeexport
- * @copyright  2024 Your Name
+ * @copyright  2024 CDHC2
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -12,7 +12,6 @@ namespace local_customgradeexport;
 
 defined('MOODLE_INTERNAL') || die();
 
-// Try to load PHPWord
 $phpwordpath = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($phpwordpath)) {
     require_once($phpwordpath);
@@ -23,266 +22,216 @@ use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 /**
- * Helper class for exporting to DOCX format
+ * Helper class for exporting to DOCX format.
+ *
+ * Methods ending in _content() return the raw file bytes (string).
+ * Methods NOT ending in _content() stream directly to the browser and call exit.
  */
-class docx_exporter
-{
+class docx_exporter {
 
-    /**
-     * Check if PHPWord is available
-     * 
-     * @return bool
-     */
-    public static function is_available()
-    {
+    public static function is_available(): bool {
         return class_exists('PhpOffice\PhpWord\PhpWord');
     }
 
+    // ── shared private helper ─────────────────────────────────────────────
+
     /**
-     * Export data to DOCX using a table
-     *
-     * @param array $data 2D array of export data
-     * @param string $filename Output filename
+     * Build and return a PhpWord table document from 2-D data.
+     * First row is treated as a header row.
      */
-    public static function export_table($data, $filename)
-    {
-        if (!self::is_available()) {
-            throw new \moodle_exception('PHPWord library not installed');
-        }
-
+    private static function build_table_document(array $data): PhpWord {
         $phpWord = new PhpWord();
+        $phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language('vi-VN'));
 
-        // Add section
         $section = $phpWord->addSection([
-            'marginLeft' => 600,
-            'marginRight' => 600,
-            'marginTop' => 600,
+            'marginLeft'   => 600,
+            'marginRight'  => 600,
+            'marginTop'    => 600,
             'marginBottom' => 600,
         ]);
 
-        // Add title
         $section->addText(
-            'Grade Export Report',
-            ['bold' => true, 'size' => 16],
+            'Bảng điểm',
+            ['bold' => true, 'size' => 14],
             ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]
         );
-
         $section->addTextBreak(1);
 
-        // Add export date
-        $section->addText(
-            'Exported: ' . date('Y-m-d H:i:s'),
-            ['size' => 10],
-            ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::RIGHT]
-        );
-
-        $section->addTextBreak(1);
-
-        // Create table
         $table = $section->addTable([
-            'borderSize' => 6,
+            'borderSize'  => 6,
             'borderColor' => '999999',
-            'cellMargin' => 80,
-            'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
-            'width' => 100 * 50, // 100% width
+            'cellMargin'  => 80,
         ]);
 
-        // Add rows
         $isHeader = true;
         foreach ($data as $rowData) {
             $table->addRow();
-
             foreach ($rowData as $cellData) {
                 if ($isHeader) {
-                    // Header style
                     $table->addCell(2000, ['bgColor' => 'CCCCCC'])
-                        ->addText($cellData, ['bold' => true, 'size' => 10]);
+                        ->addText((string) $cellData, ['bold' => true, 'size' => 9]);
                 } else {
-                    // Data cell style
                     $table->addCell(2000)
-                        ->addText($cellData, ['size' => 9]);
+                        ->addText((string) $cellData, ['size' => 9]);
                 }
             }
-
             $isHeader = false;
         }
 
-        // Save file
-        $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-
-        // Send headers
-        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $objWriter->save('php://output');
-        exit;
+        return $phpWord;
     }
 
     /**
-     * Export quiz/assignment data using a template file
-     *
-     * @param string $templatePath Path to template file
-     * @param array $variables Variables to replace in template
-     * @param array $tableData Optional table data to insert
-     * @param string $filename Output filename
+     * Save a PhpWord document to a temp file and return its content.
+     * Caller is responsible for nothing — temp file is cleaned up automatically.
      */
-    public static function export_from_template($templatePath, $variables, $tableData, $filename)
-    {
+    private static function phpword_to_string(PhpWord $phpWord): string {
+        $tmp = tempnam(sys_get_temp_dir(), 'mdl_gradeexport_');
+        try {
+            IOFactory::createWriter($phpWord, 'Word2007')->save($tmp);
+            return file_get_contents($tmp);
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    /**
+     * Apply a TemplateProcessor to a template file and return raw bytes.
+     */
+    private static function template_processor_to_string(TemplateProcessor $tp): string {
+        $tmp = tempnam(sys_get_temp_dir(), 'mdl_gradeexport_');
+        try {
+            $tp->saveAs($tmp);
+            return file_get_contents($tmp);
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    // ── content-return (API) methods ──────────────────────────────────────
+
+    /**
+     * Generate a plain table DOCX and return raw bytes.
+     *
+     * @param  array  $data  2-D array; first row = headers
+     * @return string        Raw DOCX bytes
+     */
+    public static function get_table_content(array $data): string {
         if (!self::is_available()) {
-            throw new \moodle_exception('PHPWord library not installed');
+            throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
         }
-
-        if (!file_exists($templatePath)) {
-            throw new \moodle_exception('Template file not found: ' . $templatePath);
-        }
-
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // Replace simple variables
-        foreach ($variables as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // Clone table rows if template has a table block
-        if (!empty($tableData['rows_kv'])) {
-            $rows = [];
-
-            foreach ($tableData['rows_kv'] as $row) {
-                // keys MUST match placeholders in the DOCX table row
-                $rows[] = array_map(
-                    static fn($v) => $v === null ? '' : (string)$v,
-                    $row
-                );
-            }
-
-            // Atomic clone + bind (NO ${stt#1} leftovers)
-            $templateProcessor->cloneRowAndSetValues('stt', $rows);
-        }
-
-        // Send headers
-        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $templateProcessor->saveAs('php://output');
-        exit;
+        return self::phpword_to_string(self::build_table_document($data));
     }
 
     /**
-     * Export course grade data using a template file
-     * This method handles dynamic course grade columns
+     * Fill a course grade DOCX template and return raw bytes.
      *
-     * @param string $templatePath Path to template file
-     * @param array $variables Variables to replace in template (coursename, exportdate, etc.)
-     * @param array $tableData Table data with headers and student rows
-     * @param string $filename Output filename
+     * @param  string $templatePath  Absolute path to .docx template
+     * @param  array  $variables     Scalar ${key} replacements
+     * @param  array  $tableData     Export data with 'rows_kv' key
+     * @return string                Raw DOCX bytes
      */
-    public static function export_course_template($templatePath, $variables, $tableData, $filename)
-    {
+    public static function get_course_template_content(
+        string $templatePath,
+        array  $variables,
+        array  $tableData
+    ): string {
         if (!self::is_available()) {
-            throw new \moodle_exception('PHPWord library not installed');
+            throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
         }
-
         if (!file_exists($templatePath)) {
-            throw new \moodle_exception('Template file not found: ' . $templatePath);
+            throw new \moodle_exception('templatenotfound', 'local_customgradeexport', '', $templatePath);
         }
 
-        $templateProcessor = new TemplateProcessor($templatePath);
+        $tp = new TemplateProcessor($templatePath);
 
-        // Replace simple header variables
         foreach ($variables as $key => $value) {
-            $templateProcessor->setValue($key, $value);
+            $tp->setValue($key, (string) $value);
         }
 
-        // Handle table data if present
         if (!empty($tableData['rows_kv'])) {
-            $rows = [];
-
-            foreach ($tableData['rows_kv'] as $row) {
-                // IMPORTANT: keys MUST match placeholders in DOCX table row
-                $rows[] = array_map(
-                    static fn($v) => $v === null ? '' : (string)$v,
+            $rows = array_map(
+                static fn(array $row) => array_map(
+                    static fn($v) => $v === null ? '' : (string) $v,
                     $row
-                );
-            }
-
-            /**
-             * DOCX TEMPLATE REQUIREMENT:
-             * The table row MUST contain all placeholders:
-             * ${stt} ${firstname} ${lastname} ${fullname} ${idnumber}
-             * ${15p_01} ${1t_01} ${thi_01} ${tkmh} ${xep_loai} ${ghi_chu}
-             */
-            $templateProcessor->cloneRowAndSetValues('stt', $rows);
+                ),
+                $tableData['rows_kv']
+            );
+            $tp->cloneRowAndSetValues('stt', $rows);
         }
 
-        // Send headers
+        return self::template_processor_to_string($tp);
+    }
+
+    // ── streaming (browser) methods — unchanged ───────────────────────────
+
+    public static function export_table(array $data, string $filename): void {
+        if (!self::is_available()) {
+            throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
+        }
+
+        $content = self::phpword_to_string(self::build_table_document($data));
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
-        $templateProcessor->saveAs('php://output');
+        echo $content;
         exit;
     }
 
-    /**
-     * Get placeholder name for quiz/assignment column index
-     *
-     * @param int $index Column index
-     * @return string Placeholder name
-     */
-    protected static function get_placeholder_for_column($index)
-    {
-        $placeholders = [
-            'firstname',
-            'lastname',
-            'idnumber',
-            'institution',
-            'department',
-            'email',
-            'attempt',
-            'status',
-            'grade',
-            'outof',
-            'percentage',
-            'timestarted',
-            'timefinished',
-            'timetaken'
-        ];
+    public static function export_from_template(
+        string $templatePath,
+        array  $variables,
+        array  $tableData,
+        string $filename
+    ): void {
+        if (!self::is_available()) {
+            throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
+        }
+        if (!file_exists($templatePath)) {
+            throw new \moodle_exception('templatenotfound', 'local_customgradeexport', '', $templatePath);
+        }
 
-        return isset($placeholders[$index]) ? $placeholders[$index] : 'col' . $index;
+        $tp = new TemplateProcessor($templatePath);
+
+        foreach ($variables as $key => $value) {
+            $tp->setValue($key, (string) $value);
+        }
+
+        if (!empty($tableData['rows_kv'])) {
+            $rows = array_map(
+                static fn(array $row) => array_map(
+                    static fn($v) => $v === null ? '' : (string) $v,
+                    $row
+                ),
+                $tableData['rows_kv']
+            );
+            $tp->cloneRowAndSetValues('stt', $rows);
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        echo self::template_processor_to_string($tp);
+        exit;
     }
 
-    /**
-     * Get placeholder name for course grade column
-     * Maps column index and header to appropriate placeholder name
-     *
-     * @param int $index Column index
-     * @param string $header Column header text
-     * @return string Placeholder name
-     */
-    protected static function get_course_placeholder_for_column($index, $header)
-    {
-        // Map based on column index
-        switch ($index) {
-            case 0:
-                return 'stt'; // Row number (TT)
-            case 1:
-                return 'fullname'; // Họ và tên
-            case 2:
-                return 'idnumber'; // Mã số
-            default:
-                // For grade columns, create placeholder from header
-                // Replace spaces and special characters with underscores
-                $placeholder = preg_replace('/[^a-zA-Z0-9]/', '_', $header);
-                $placeholder = strtolower($placeholder);
-                $placeholder = trim($placeholder, '_');
+    public static function export_course_template(
+        string $templatePath,
+        array  $variables,
+        array  $tableData,
+        string $filename
+    ): void {
+        // Delegate to the shared implementation, then stream
+        $content = self::get_course_template_content($templatePath, $variables, $tableData);
 
-                // Shorten common prefixes
-                $placeholder = str_replace('_p_', 'p', $placeholder);
-                $placeholder = str_replace('_t_', 't', $placeholder);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
 
-                return $placeholder;
-        }
+        echo $content;
+        exit;
     }
 }

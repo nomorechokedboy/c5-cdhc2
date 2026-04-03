@@ -32,11 +32,13 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
  * Client is an API client for the x8sts Encore application.
  */
 export default class Client {
+	public readonly appconfig: appconfig.ServiceClient
 	public readonly authn: authn.ServiceClient
 	public readonly healthz: healthz.ServiceClient
 	public readonly otlp: otlp.ServiceClient
 	public readonly usrcategories: usrcategories.ServiceClient
 	public readonly usrcourses: usrcourses.ServiceClient
+	public readonly usrexport: usrexport.ServiceClient
 	public readonly usrgrades: usrgrades.ServiceClient
 	private readonly options: ClientOptions
 	private readonly target: string
@@ -69,11 +71,13 @@ export default class Client {
 		this.target = target
 		this.options = options ?? {}
 		const base = new BaseClient(this.target, this.options)
+		this.appconfig = new appconfig.ServiceClient(base)
 		this.authn = new authn.ServiceClient(base)
 		this.healthz = new healthz.ServiceClient(base)
 		this.otlp = new otlp.ServiceClient(base)
 		this.usrcategories = new usrcategories.ServiceClient(base)
 		this.usrcourses = new usrcourses.ServiceClient(base)
+		this.usrexport = new usrexport.ServiceClient(base)
 		this.usrgrades = new usrgrades.ServiceClient(base)
 	}
 
@@ -114,6 +118,65 @@ export interface ClientOptions {
 	 * These tokens will be sent as bearer tokens in the Authorization header.
 	 */
 	auth?: string | AuthDataGenerator
+}
+
+export namespace appconfig {
+	/**
+	 * LangPackResponse is the shape returned by GET /config/langpack.
+	 * Pack is raw JSON so we can support arbitrary nested structures.
+	 */
+	export interface LangPackResponse {
+		pack: JSONValue
+	}
+
+	/**
+	 * SetLangPackRequest is the body for PUT /config/langpack.
+	 */
+	export interface SetLangPackRequest {
+		pack: JSONValue
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.DeleteLangPack = this.DeleteLangPack.bind(this)
+			this.GetLangPack = this.GetLangPack.bind(this)
+			this.SetLangPack = this.SetLangPack.bind(this)
+		}
+
+		/**
+		 * DeleteLangPack removes the application-level language pack.
+		 */
+		public async DeleteLangPack(): Promise<void> {
+			await this.baseClient.callTypedAPI('DELETE', `/config/langpack`)
+		}
+
+		/**
+		 * GetLangPack returns the current application-level language pack.
+		 * Public so login page can use it.
+		 */
+		public async GetLangPack(): Promise<LangPackResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/config/langpack`
+			)
+			return (await resp.json()) as LangPackResponse
+		}
+
+		/**
+		 * SetLangPack saves a new application-level language pack. Admin only.
+		 */
+		public async SetLangPack(params: SetLangPackRequest): Promise<void> {
+			await this.baseClient.callTypedAPI(
+				'PUT',
+				`/config/langpack`,
+				JSON.stringify(params)
+			)
+		}
+	}
 }
 
 export namespace authn {
@@ -330,6 +393,177 @@ export namespace usrcourses {
 	}
 }
 
+export namespace usrexport {
+	/**
+	 * ExportCourseRequest carries the optional template selection.
+	 */
+	export interface ExportCourseRequest {
+		/**
+		 * TemplateID is the ID of the template to use.
+		 * Pass empty string (or omit the query param) for a default DOCX export.
+		 */
+		templateId: string
+	}
+
+	/**
+	 * ExportCourseResponse holds the base64-encoded file ready for browser download.
+	 */
+	export interface ExportCourseResponse {
+		filename: string
+		mimetype: string
+		/**
+		 * Content is the base64-encoded file. Decode with atob() in the browser.
+		 */
+		content: string
+	}
+
+	export interface ExportTemplate {
+		id: string
+		name: string
+		format: string
+		size: number
+		modified: number
+	}
+
+	/**
+	 * GetAllTemplatesRequest lets the admin filter by type.
+	 */
+	export interface GetAllTemplatesRequest {
+		/**
+		 * Type is one of: course | quiz | assign
+		 */
+		type: string
+	}
+
+	export interface GetTemplatesResponse {
+		data: ExportTemplate[]
+	}
+
+	/**
+	 * UploadExportTemplateRequest carries the base64-encoded template file.
+	 */
+	export interface UploadExportTemplateRequest {
+		/**
+		 * Type is one of: course | quiz | assign
+		 */
+		type: string
+
+		/**
+		 * Name is the human-readable label shown in the SMS admin panel.
+		 */
+		name: string
+
+		/**
+		 * Filename is the original filename (extension determines format).
+		 */
+		filename: string
+
+		/**
+		 * Filedata is the base64-encoded file content.
+		 */
+		filedata: string
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.DeleteExportTemplate = this.DeleteExportTemplate.bind(this)
+			this.ExportCourseGrades = this.ExportCourseGrades.bind(this)
+			this.GetAllExportTemplates = this.GetAllExportTemplates.bind(this)
+			this.GetCourseExportTemplates =
+				this.GetCourseExportTemplates.bind(this)
+			this.UploadExportTemplate = this.UploadExportTemplate.bind(this)
+		}
+
+		/**
+		 * DeleteExportTemplate removes a template by type and ID (admin only).
+		 */
+		public async DeleteExportTemplate(
+			templateType: string,
+			templateId: string
+		): Promise<void> {
+			await this.baseClient.callTypedAPI(
+				'DELETE',
+				`/admin/export/templates/${encodeURIComponent(templateType)}/${encodeURIComponent(templateId)}`
+			)
+		}
+
+		/**
+		 * ExportCourseGrades generates a grade export and returns the file as base64.
+		 */
+		public async ExportCourseGrades(
+			id: number,
+			params: ExportCourseRequest
+		): Promise<ExportCourseResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				templateId: params.templateId
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/courses/${encodeURIComponent(id)}/export`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as ExportCourseResponse
+		}
+
+		/**
+		 * GetAllExportTemplates lists all templates for the given type (admin only).
+		 */
+		public async GetAllExportTemplates(
+			params: GetAllTemplatesRequest
+		): Promise<GetTemplatesResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				type: params.type
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/admin/export/templates`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as GetTemplatesResponse
+		}
+
+		/**
+		 * GetCourseExportTemplates returns available DOCX/XLSX templates for a course.
+		 */
+		public async GetCourseExportTemplates(
+			id: number
+		): Promise<GetTemplatesResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/courses/${encodeURIComponent(id)}/export/templates`
+			)
+			return (await resp.json()) as GetTemplatesResponse
+		}
+
+		/**
+		 * UploadExportTemplate saves a new template (admin only).
+		 */
+		public async UploadExportTemplate(
+			params: UploadExportTemplateRequest
+		): Promise<ExportTemplate> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'POST',
+				`/admin/export/templates`,
+				JSON.stringify(params)
+			)
+			return (await resp.json()) as ExportTemplate
+		}
+	}
+}
+
 export namespace usrgrades {
 	export class ServiceClient {
 		private baseClient: BaseClient
@@ -410,9 +644,6 @@ export namespace entities {
 		lastname: string
 		phone1: string
 		username: string
-		/**
-		 * Role is the canonical role: "admin" | "manager" | "teacher" | "student"
-		 */
 		role: UserRole
 	}
 
@@ -537,6 +768,15 @@ export namespace mdlapi {
 		grades: UpdateGrade[]
 	}
 }
+
+// JSONValue represents an arbitrary JSON value.
+export type JSONValue =
+	| string
+	| number
+	| boolean
+	| null
+	| JSONValue[]
+	| { [key: string]: JSONValue }
 
 function encodeQuery(parts: Record<string, string | string[]>): string {
 	const pairs: string[] = []
