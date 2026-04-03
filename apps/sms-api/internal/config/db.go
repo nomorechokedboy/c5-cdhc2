@@ -3,13 +3,14 @@ package config
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
 
 type DatabaseConfig struct {
 	Host     string `env:"DB_HOST" env-default:"127.0.0.1"`
-	Port     string `env:"DB_PORT" env-default:"3306"`
+	Port     string `env:"DB_PORT" env-default:"3307"`
 	Name     string `env:"DB_NAME" env-default:"moodle"`
 	User     string `env:"DB_USER" env-default:"bn_moodle"`
 	Password string `env:"DB_PWD"  env-default:""`
@@ -34,6 +35,8 @@ func (c *DatabaseConfig) GetDNS() string {
 	cfg.Passwd = c.Password
 	cfg.User = c.User
 	cfg.Net = "tcp"
+	cfg.ParseTime = true
+	cfg.Loc = time.UTC
 
 	return cfg.FormatDSN()
 }
