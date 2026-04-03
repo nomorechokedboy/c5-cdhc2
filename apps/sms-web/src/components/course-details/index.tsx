@@ -9,6 +9,7 @@ import {
 import CourseHeader from '@/components/grade-table/course-header'
 import BulkEditControls from '@/components/grade-table/bulk-edit-controls'
 import GradesTable from '@/components/grade-table'
+import ExportButton from '@/components/course-details/export-button'
 import type { Course } from '@/types'
 import CourseDetailsSkeleton from './skeleton'
 import CourseDetailsError from './error'
@@ -51,7 +52,6 @@ function InnerCourseDetails({
 			toast.error(t('grades.systemError'))
 			return
 		}
-
 		try {
 			await mutateAsync({
 				itemnumber: categoryInfo.itemNumber,
@@ -100,7 +100,7 @@ function InnerCourseDetails({
 
 			<Card className='border-border'>
 				<CardHeader>
-					<div className='flex items-center justify-between'>
+					<div className='flex items-center justify-between gap-2 flex-wrap'>
 						<div>
 							<CardTitle className='text-xl font-semibold text-foreground'>
 								{t('grades.studentGrades')}
@@ -109,12 +109,17 @@ function InnerCourseDetails({
 								{editModeDescription}
 							</CardDescription>
 						</div>
-						<BulkEditControls
-							bulkEditMode={bulkEditMode}
-							onEditAll={handleBulkEditAll}
-							onEditCategory={handleBulkEditCategory}
-							onExitBulkEdit={exitBulkEditMode}
-						/>
+
+						{/* Right side: export button + bulk-edit controls */}
+						<div className='flex items-center gap-2'>
+							<ExportButton courseId={course.id} />
+							<BulkEditControls
+								bulkEditMode={bulkEditMode}
+								onEditAll={handleBulkEditAll}
+								onEditCategory={handleBulkEditCategory}
+								onExitBulkEdit={exitBulkEditMode}
+							/>
+						</div>
 					</div>
 				</CardHeader>
 				<CardContent>

@@ -13,6 +13,7 @@ import { Badge } from '@repo/ui/components/ui/badge'
 import { Mail, Phone, Hash, BookUser, IdCard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LangPackManager } from '@/components/langpack-manager'
+import { ExportTemplateManager } from '@/components/admin/export-template-manager'
 
 export const Route = createFileRoute('/profile')({
 	component: ProfilePage
@@ -79,7 +80,7 @@ function ProfilePage() {
 					</p>
 				</div>
 
-				{/* Avatar + name card */}
+				{/* Avatar + name */}
 				<Card>
 					<CardContent className='pt-6'>
 						<div className='flex items-center gap-4'>
@@ -107,7 +108,7 @@ function ProfilePage() {
 					</CardContent>
 				</Card>
 
-				{/* Contact info card */}
+				{/* Contact info */}
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-base'>
@@ -146,7 +147,7 @@ function ProfilePage() {
 					</CardContent>
 				</Card>
 
-				{/* Description if present */}
+				{/* Description */}
 				{user?.description && (
 					<Card>
 						<CardHeader>
@@ -162,8 +163,11 @@ function ProfilePage() {
 					</Card>
 				)}
 
-				{/* Language pack customisation */}
+				{/* Language pack (admin only) */}
 				<LangPackManager />
+
+				{/* Export template manager (admin + manager) */}
+				<ExportTemplateManager />
 			</div>
 		</ProtectedRoute>
 	)
