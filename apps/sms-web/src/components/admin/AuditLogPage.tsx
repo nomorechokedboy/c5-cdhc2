@@ -142,30 +142,30 @@ async function purge(daysOld: number) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const OUTCOME_CFG = {
-	success: {
-		label: 'Thành công',
-		Icon: CheckCircle2,
-		cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
-	},
-	failure: {
-		label: 'Thất bại',
-		Icon: AlertCircle,
-		cls: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400'
-	},
-	denied: {
-		label: 'Từ chối',
-		Icon: Ban,
-		cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
-	}
-} as const
-
+// OutcomeBadge resolves its label from i18n so it must call useTranslation itself.
 function OutcomeBadge({ outcome }: { outcome: AuditEntry['outcome'] }) {
-	const { label, Icon, cls } = OUTCOME_CFG[outcome] ?? OUTCOME_CFG.failure
+	const { t } = useTranslation()
+
+	const CFG = {
+		success: {
+			Icon: CheckCircle2,
+			cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400'
+		},
+		failure: {
+			Icon: AlertCircle,
+			cls: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400'
+		},
+		denied: {
+			Icon: Ban,
+			cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400'
+		}
+	} as const
+
+	const { Icon, cls } = CFG[outcome] ?? CFG.failure
 	return (
 		<Badge variant='outline' className={`gap-1 text-xs font-medium ${cls}`}>
 			<Icon className='w-3 h-3' />
-			{label}
+			{t(`audit.outcome.${outcome}`)}
 		</Badge>
 	)
 }
@@ -217,32 +217,36 @@ function SkeletonRows() {
 }
 
 // Mirrors the EventType constants in audit/entities.go.
-// Only whitelisted write operations appear here — read-only routes are not audited.
-const EVENT_TYPES = [
-	{ value: '', label: 'Tất cả sự kiện' },
-	// Authentication
-	{ value: 'auth.login', label: 'Đăng nhập' },
-	{ value: 'auth.token_refresh', label: 'Làm mới token' },
-	{ value: 'auth.denied', label: 'Từ chối xác thực' },
-	// Grades
-	{ value: 'grade.update', label: 'Cập nhật điểm' },
-	// Export
-	{ value: 'export.grades', label: 'Xuất bảng điểm' },
-	{ value: 'template.upload', label: 'Tải lên mẫu xuất' },
-	{ value: 'template.delete', label: 'Xóa mẫu xuất' },
-	// Config
-	{ value: 'config.langpack_set', label: 'Cài ngôn ngữ' },
-	{ value: 'config.langpack_delete', label: 'Xóa ngôn ngữ' },
-	// Audit
-	{ value: 'audit.purge', label: 'Xóa nhật ký' }
-]
+// labelKey is the i18n key resolved at render time via t().
+const EVENT_TYPE_OPTIONS = [
+	{ value: '', labelKey: 'audit.filter.allEvents' },
+	{ value: 'auth.login', labelKey: 'audit.eventTypes.auth.login' },
+	{
+		value: 'auth.token_refresh',
+		labelKey: 'audit.eventTypes.auth.token_refresh'
+	},
+	{ value: 'auth.denied', labelKey: 'audit.eventTypes.auth.denied' },
+	{ value: 'grade.update', labelKey: 'audit.eventTypes.grade.update' },
+	{ value: 'export.grades', labelKey: 'audit.eventTypes.export.grades' },
+	{ value: 'template.upload', labelKey: 'audit.eventTypes.template.upload' },
+	{ value: 'template.delete', labelKey: 'audit.eventTypes.template.delete' },
+	{
+		value: 'config.langpack_set',
+		labelKey: 'audit.eventTypes.config.langpack_set'
+	},
+	{
+		value: 'config.langpack_delete',
+		labelKey: 'audit.eventTypes.config.langpack_delete'
+	},
+	{ value: 'audit.purge', labelKey: 'audit.eventTypes.audit.purge' }
+] as const
 
-const OUTCOMES = [
-	{ value: '', label: 'Tất cả kết quả' },
-	{ value: 'success', label: 'Thành công' },
-	{ value: 'failure', label: 'Thất bại' },
-	{ value: 'denied', label: 'Từ chối' }
-]
+const OUTCOME_OPTIONS = [
+	{ value: '', labelKey: 'audit.filter.allOutcomes' },
+	{ value: 'success', labelKey: 'audit.outcome.success' },
+	{ value: 'failure', labelKey: 'audit.outcome.failure' },
+	{ value: 'denied', labelKey: 'audit.outcome.denied' }
+] as const
 
 const PER_PAGE = [20, 50, 100]
 
@@ -255,13 +259,14 @@ export function AuditLogPage() {
 }
 
 function AuditLogContent() {
+	const { t } = useTranslation()
 	const qc = useQueryClient()
 	const [page, setPage] = useState(1)
 	const [limit, setLimit] = useState(50)
 	const [purgeDays, setPurgeDays] = useState(30)
 	const [showPurge, setShowPurge] = useState(false)
 
-	// Pending = what the user is typing; active = what was last applied.
+	// pending = what the user is typing; active = what was last applied
 	const [pending, setPending] = useState<Filters>(EMPTY_FILTERS)
 	const [active, setActive] = useState<Filters>(EMPTY_FILTERS)
 
@@ -291,7 +296,9 @@ function AuditLogContent() {
 		mutationFn: purge,
 		onSuccess: (data) => {
 			toast.success(
-				`Đã xóa ${data.removed.toLocaleString('vi-VN')} bản ghi`
+				t('audit.purgeSuccess', {
+					count: data.removed.toLocaleString('vi-VN')
+				})
 			)
 			qc.invalidateQueries({ queryKey: ['auditLogs'] })
 			qc.invalidateQueries({ queryKey: ['auditStats'] })
@@ -322,7 +329,7 @@ function AuditLogContent() {
 
 	return (
 		<div className='container mx-auto p-6 space-y-6 max-w-screen-2xl'>
-			{/* Header */}
+			{/* ── Header ─────────────────────────────────────────────────── */}
 			<div className='flex items-start justify-between flex-wrap gap-3'>
 				<div className='flex items-start gap-3'>
 					<div className='p-2 rounded-md bg-violet-500/10 mt-0.5'>
@@ -330,17 +337,17 @@ function AuditLogContent() {
 					</div>
 					<div>
 						<h1 className='text-2xl font-bold tracking-tight'>
-							Nhật ký hoạt động
+							{t('audit.title')}
 						</h1>
 						<p className='text-sm text-muted-foreground'>
-							Toàn bộ hành động trong hệ thống — chỉ quản trị viên
+							{t('audit.subtitle')}
 						</p>
 					</div>
 				</div>
 				<div className='flex items-center gap-2'>
 					<Button variant='outline' size='sm' onClick={refresh}>
 						<RefreshCw className='w-4 h-4' />
-						Làm mới
+						{t('audit.refresh')}
 					</Button>
 					<Button
 						variant='outline'
@@ -348,56 +355,55 @@ function AuditLogContent() {
 						onClick={() => setShowPurge((v) => !v)}
 					>
 						<Trash2 className='w-4 h-4' />
-						Xóa logs cũ
+						{t('audit.purgeButton')}
 					</Button>
 				</div>
 			</div>
 
-			{/* Stats strip */}
+			{/* ── Stats strip ────────────────────────────────────────────── */}
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
 				<StatCard
 					icon={Activity}
-					label='Tổng sự kiện'
+					label={t('audit.stats.total')}
 					value={statsData?.total_events}
 					iconCls='bg-blue-500/10 text-blue-500'
 				/>
 				<StatCard
 					icon={Zap}
-					label='Hôm nay'
+					label={t('audit.stats.today')}
 					value={statsData?.today_events}
 					iconCls='bg-violet-500/10 text-violet-500'
 				/>
 				<StatCard
 					icon={AlertCircle}
-					label='Thất bại'
+					label={t('audit.stats.failures')}
 					value={statsData?.failure_count}
 					iconCls='bg-red-500/10 text-red-500'
 				/>
 				<StatCard
 					icon={Ban}
-					label='Từ chối'
+					label={t('audit.stats.denied')}
 					value={statsData?.denied_count}
 					iconCls='bg-amber-500/10 text-amber-500'
 				/>
 			</div>
 
-			{/* Purge panel */}
+			{/* ── Purge panel ────────────────────────────────────────────── */}
 			{showPurge && (
 				<Card className='border-destructive/40 bg-destructive/5'>
 					<CardHeader className='pb-3'>
 						<CardTitle className='text-sm text-destructive flex items-center gap-2'>
 							<Trash2 className='w-4 h-4' />
-							Xóa nhật ký cũ
+							{t('audit.purgeTitle')}
 						</CardTitle>
 						<CardDescription>
-							Hành động này xóa vĩnh viễn tất cả bản ghi cũ hơn số
-							ngày đã chọn và không thể hoàn tác.
+							{t('audit.purgeDesc')}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className='flex items-center gap-3 flex-wrap'>
 						<div className='flex items-center gap-2'>
 							<span className='text-sm text-muted-foreground whitespace-nowrap'>
-								Cũ hơn
+								{t('audit.purgeOlderThan')}
 							</span>
 							<Input
 								type='number'
@@ -410,7 +416,7 @@ function AuditLogContent() {
 								className='w-20 h-8'
 							/>
 							<span className='text-sm text-muted-foreground'>
-								ngày
+								{t('audit.purgeDays')}
 							</span>
 						</div>
 						<Button
@@ -419,28 +425,32 @@ function AuditLogContent() {
 							onClick={() => doPurge(purgeDays)}
 							disabled={isPurging}
 						>
-							{isPurging ? 'Đang xóa...' : 'Xác nhận xóa'}
+							{isPurging
+								? t('audit.purging')
+								: t('audit.purgeConfirm')}
 						</Button>
 						<Button
 							size='sm'
 							variant='ghost'
 							onClick={() => setShowPurge(false)}
 						>
-							Hủy
+							{t('audit.purgeCancel')}
 						</Button>
 					</CardContent>
 				</Card>
 			)}
 
-			{/* Filter bar */}
+			{/* ── Filter bar ─────────────────────────────────────────────── */}
 			<Card>
 				<CardHeader className='pb-3'>
 					<CardTitle className='text-sm flex items-center gap-2'>
 						<Filter className='w-4 h-4' />
-						Bộ lọc
+						{t('audit.filter.title')}
 						{hasActive && (
 							<Badge variant='secondary' className='text-xs'>
-								{activeCount} đang áp dụng
+								{t('audit.filter.active', {
+									count: activeCount
+								})}
 							</Badge>
 						)}
 					</CardTitle>
@@ -450,12 +460,14 @@ function AuditLogContent() {
 						{/* Full-text search */}
 						<div className='lg:col-span-2 space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								Tìm kiếm toàn văn
+								{t('audit.filter.search')}
 							</label>
 							<div className='relative'>
 								<Search className='absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground' />
 								<Input
-									placeholder='Tìm trong lỗi và chi tiết...'
+									placeholder={t(
+										'audit.filter.searchPlaceholder'
+									)}
 									value={pending.search}
 									onChange={(e) =>
 										setPending((p) => ({
@@ -474,7 +486,7 @@ function AuditLogContent() {
 						{/* Event type */}
 						<div className='space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								Loại sự kiện
+								{t('audit.filter.eventType')}
 							</label>
 							<select
 								className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm'
@@ -486,9 +498,9 @@ function AuditLogContent() {
 									}))
 								}
 							>
-								{EVENT_TYPES.map((o) => (
+								{EVENT_TYPE_OPTIONS.map((o) => (
 									<option key={o.value} value={o.value}>
-										{o.label}
+										{t(o.labelKey)}
 									</option>
 								))}
 							</select>
@@ -497,7 +509,7 @@ function AuditLogContent() {
 						{/* Outcome */}
 						<div className='space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								Kết quả
+								{t('audit.filter.outcome')}
 							</label>
 							<select
 								className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm'
@@ -509,9 +521,9 @@ function AuditLogContent() {
 									}))
 								}
 							>
-								{OUTCOMES.map((o) => (
+								{OUTCOME_OPTIONS.map((o) => (
 									<option key={o.value} value={o.value}>
-										{o.label}
+										{t(o.labelKey)}
 									</option>
 								))}
 							</select>
@@ -520,11 +532,13 @@ function AuditLogContent() {
 						{/* Actor ID */}
 						<div className='space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								ID người dùng
+								{t('audit.filter.actorId')}
 							</label>
 							<Input
 								type='number'
-								placeholder='VD: 42'
+								placeholder={t(
+									'audit.filter.actorIdPlaceholder'
+								)}
 								value={pending.actor_id}
 								onChange={(e) =>
 									setPending((p) => ({
@@ -536,10 +550,10 @@ function AuditLogContent() {
 							/>
 						</div>
 
-						{/* Date range */}
+						{/* From date */}
 						<div className='space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								Từ ngày
+								{t('audit.filter.from')}
 							</label>
 							<Input
 								type='datetime-local'
@@ -555,11 +569,11 @@ function AuditLogContent() {
 						</div>
 					</div>
 
-					{/* To date on its own row to keep layout clean */}
+					{/* To date */}
 					<div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3'>
 						<div className='space-y-1'>
 							<label className='text-xs text-muted-foreground font-medium'>
-								Đến ngày
+								{t('audit.filter.to')}
 							</label>
 							<Input
 								type='datetime-local'
@@ -578,7 +592,7 @@ function AuditLogContent() {
 					<div className='flex items-center gap-2 pt-1'>
 						<Button size='sm' onClick={applyFilters}>
 							<Filter className='w-3.5 h-3.5' />
-							Áp dụng
+							{t('audit.filter.apply')}
 						</Button>
 						{hasActive && (
 							<Button
@@ -587,27 +601,31 @@ function AuditLogContent() {
 								onClick={clearFilters}
 							>
 								<X className='w-3.5 h-3.5' />
-								Xóa bộ lọc
+								{t('audit.filter.clear')}
 							</Button>
 						)}
 						<span className='ml-auto text-xs text-muted-foreground'>
 							{logsData
-								? `${logsData.total.toLocaleString('vi-VN')} bản ghi`
+								? t('audit.filter.recordCount', {
+										total: logsData.total.toLocaleString(
+											'vi-VN'
+										)
+									})
 								: ''}
 						</span>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Log table */}
+			{/* ── Log table ──────────────────────────────────────────────── */}
 			<Card>
 				<CardHeader className='pb-3'>
 					<div className='flex items-center justify-between flex-wrap gap-2'>
 						<CardTitle className='text-base'>
-							Danh sách nhật ký
+							{t('audit.table.title')}
 						</CardTitle>
 						<div className='flex items-center gap-2 text-xs text-muted-foreground'>
-							<span>Mỗi trang:</span>
+							<span>{t('audit.table.perPage')}</span>
 							{PER_PAGE.map((n) => (
 								<button
 									key={n}
@@ -643,25 +661,29 @@ function AuditLogContent() {
 									<TableHead className='w-36'>
 										<span className='flex items-center gap-1'>
 											<Clock className='w-3.5 h-3.5' />
-											Thời gian
+											{t('audit.table.time')}
 										</span>
 									</TableHead>
-									<TableHead>Sự kiện</TableHead>
+									<TableHead>
+										{t('audit.table.event')}
+									</TableHead>
 									<TableHead className='w-20'>
 										<span className='flex items-center gap-1'>
 											<User className='w-3.5 h-3.5' />
-											ID
+											{t('audit.table.actorId')}
 										</span>
 									</TableHead>
 									<TableHead className='w-24'>
-										Vai trò
+										{t('audit.table.role')}
 									</TableHead>
 									<TableHead className='w-28'>
-										Kết quả
+										{t('audit.table.outcome')}
 									</TableHead>
-									<TableHead>Endpoint</TableHead>
+									<TableHead>
+										{t('audit.table.endpoint')}
+									</TableHead>
 									<TableHead className='w-20'>
-										Chi tiết
+										{t('audit.table.details')}
 									</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -675,7 +697,7 @@ function AuditLogContent() {
 											className='py-16 text-center text-muted-foreground'
 										>
 											<Activity className='w-8 h-8 mx-auto mb-2 opacity-25' />
-											Không có bản ghi nào
+											{t('audit.table.empty')}
 										</TableCell>
 									</TableRow>
 								) : (
@@ -694,7 +716,10 @@ function AuditLogContent() {
 					{logsData && logsData.total_pages > 1 && (
 						<div className='flex items-center justify-between px-4 py-3 border-t'>
 							<span className='text-xs text-muted-foreground'>
-								Trang {page} / {logsData.total_pages}
+								{t('audit.table.page', {
+									current: page,
+									total: logsData.total_pages
+								})}
 							</span>
 							<div className='flex items-center gap-1'>
 								<Button
@@ -752,19 +777,19 @@ function AuditLogContent() {
 				</CardContent>
 			</Card>
 
-			{/* Bottom insight cards */}
+			{/* ── Insight cards ──────────────────────────────────────────── */}
 			{statsData && (
 				<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 					<Card>
 						<CardHeader className='pb-2'>
 							<CardTitle className='text-sm'>
-								Top 5 sự kiện
+								{t('audit.insights.topEvents')}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className='space-y-2'>
 							{statsData.top_event_types.length === 0 ? (
 								<p className='text-xs text-muted-foreground'>
-									Chưa có dữ liệu
+									{t('audit.insights.noData')}
 								</p>
 							) : (
 								statsData.top_event_types.map((item) => (
@@ -773,7 +798,13 @@ function AuditLogContent() {
 										className='flex items-center justify-between'
 									>
 										<code className='text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded'>
-											{item.event_type}
+											{t(
+												`audit.eventTypes.${item.event_type}`,
+												{
+													defaultValue:
+														item.event_type
+												}
+											)}
 										</code>
 										<Badge variant='secondary'>
 											{item.count.toLocaleString('vi-VN')}
@@ -787,13 +818,13 @@ function AuditLogContent() {
 					<Card>
 						<CardHeader className='pb-2'>
 							<CardTitle className='text-sm'>
-								Top 5 người dùng hoạt động
+								{t('audit.insights.topActors')}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className='space-y-2'>
 							{statsData.recent_actors.length === 0 ? (
 								<p className='text-xs text-muted-foreground'>
-									Chưa có dữ liệu
+									{t('audit.insights.noData')}
 								</p>
 							) : (
 								statsData.recent_actors.map((a) => (
@@ -810,7 +841,15 @@ function AuditLogContent() {
 												variant='outline'
 												className='text-xs h-5'
 											>
-												{a.actor_role || '—'}
+												{a.actor_role
+													? t(
+															`roles.${a.actor_role}`,
+															{
+																defaultValue:
+																	a.actor_role
+															}
+														)
+													: '—'}
 											</Badge>
 										</div>
 										<Badge variant='secondary'>
@@ -830,6 +869,7 @@ function AuditLogContent() {
 // ── Row component with expandable detail ──────────────────────────────────────
 
 function AuditRow({ entry }: { entry: AuditEntry }) {
+	const { t } = useTranslation()
 	const [expanded, setExpanded] = useState(false)
 	const hasDetail = !!entry.error_msg || !!entry.details
 
@@ -850,7 +890,9 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
 				</TableCell>
 				<TableCell>
 					<code className='text-xs bg-muted px-1.5 py-0.5 rounded'>
-						{entry.event_type}
+						{t(`audit.eventTypes.${entry.event_type}`, {
+							defaultValue: entry.event_type
+						})}
 					</code>
 				</TableCell>
 				<TableCell className='text-xs tabular-nums'>
@@ -859,7 +901,9 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
 				<TableCell>
 					{entry.actor_role ? (
 						<Badge variant='outline' className='text-xs h-5'>
-							{entry.actor_role}
+							{t(`roles.${entry.actor_role}`, {
+								defaultValue: entry.actor_role
+							})}
 						</Badge>
 					) : (
 						<span className='text-muted-foreground text-xs'>—</span>
@@ -879,7 +923,9 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
 							className='h-6 px-2 text-xs'
 							onClick={() => setExpanded((v) => !v)}
 						>
-							{expanded ? 'Ẩn' : 'Xem'}
+							{expanded
+								? t('audit.table.hide')
+								: t('audit.table.show')}
 						</Button>
 					) : (
 						<span className='text-muted-foreground text-xs'>—</span>
@@ -896,7 +942,9 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
 						<div className='space-y-1.5'>
 							{entry.error_msg && (
 								<p className='text-xs text-red-600 dark:text-red-400 font-mono'>
-									<span className='font-semibold'>Lỗi:</span>{' '}
+									<span className='font-semibold'>
+										{t('audit.table.errorLabel')}
+									</span>{' '}
 									{entry.error_msg}
 								</p>
 							)}
