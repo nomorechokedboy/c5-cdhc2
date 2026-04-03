@@ -232,15 +232,13 @@
 		"eventTypes": {
 			"auth.login": "Đăng nhập",
 			"auth.token_refresh": "Làm mới token",
-			"user.get_info": "Xem thông tin",
+			"auth.denied": "Từ chối xác thực",
 			"grade.update": "Cập nhật điểm",
-			"grade.get_user": "Xem điểm",
-			"course.list": "Danh sách khóa học",
-			"course.get_detail": "Chi tiết khóa học",
-			"category.list": "Danh sách lớp",
+			"export.grades": "Xuất bảng điểm",
+			"template.upload": "Tải lên mẫu xuất",
+			"template.delete": "Xóa mẫu xuất",
 			"config.langpack_set": "Cài ngôn ngữ",
 			"config.langpack_delete": "Xóa ngôn ngữ",
-			"admin.action": "Hành động quản trị",
 			"audit.purge": "Xóa nhật ký"
 		}
 	}

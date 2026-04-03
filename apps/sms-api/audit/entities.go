@@ -7,27 +7,50 @@ import (
 )
 
 // =====================
-// Domain enums (UNCHANGED)
+// Domain enums
 // =====================
 
+// EventType classifies a significant state-changing or security-relevant
+// action in the SMS application. Only events in this list are audited —
+// read-only queries (GET categories, GET courses, etc.) are intentionally
+// excluded to keep the log meaningful and low-noise.
 type EventType string
 
 const (
-	EventLogin           EventType = "auth.login"
-	EventTokenRefresh    EventType = "auth.token_refresh"
-	EventGetUserInfo     EventType = "user.get_info"
-	EventGetCategories   EventType = "category.list"
-	EventGetCourses      EventType = "course.list"
-	EventGetCourseDetail EventType = "course.get_detail"
-	EventUpdateGrades    EventType = "grade.update"
-	EventGetUserGrades   EventType = "grade.get_user"
-	EventSetLangPack     EventType = "config.langpack_set"
-	EventDeleteLangPack  EventType = "config.langpack_delete"
-	EventGetLangPack     EventType = "config.langpack_get"
-	EventAdminAction     EventType = "admin.action"
-	EventAuditPurge      EventType = "audit.purge"
+	// ── Authentication ────────────────────────────────────────────────────────
+	// Login via Moodle OAuth2 callback.
+	EventLogin EventType = "auth.login"
+	// Successful refresh-token exchange that issues a new access token.
+	EventTokenRefresh EventType = "auth.token_refresh"
+	// A request was rejected because the token was missing, invalid, or expired.
+	EventAuthDenied EventType = "auth.denied"
+
+	// ── Grades ────────────────────────────────────────────────────────────────
+	// Teacher submits updated grade values for one or more students.
+	EventUpdateGrades EventType = "grade.update"
+
+	// ── Grade export ──────────────────────────────────────────────────────────
+	// A grade sheet is generated and downloaded by a teacher / manager.
+	EventExportGrades EventType = "export.grades"
+
+	// ── Export templates ──────────────────────────────────────────────────────
+	// Admin or manager uploads a new DOCX/XLSX export template.
+	EventUploadTemplate EventType = "template.upload"
+	// Admin or manager deletes an existing export template.
+	EventDeleteTemplate EventType = "template.delete"
+
+	// ── Language pack ─────────────────────────────────────────────────────────
+	// Admin saves a new application-level language pack.
+	EventSetLangPack EventType = "config.langpack_set"
+	// Admin removes the active language pack (reverts to defaults).
+	EventDeleteLangPack EventType = "config.langpack_delete"
+
+	// ── Audit log management ──────────────────────────────────────────────────
+	// Admin manually purges old audit log entries via the REST endpoint.
+	EventAuditPurge EventType = "audit.purge"
 )
 
+// Outcome describes whether an operation succeeded, failed, or was denied.
 type Outcome string
 
 const (
@@ -37,9 +60,10 @@ const (
 )
 
 // =====================
-// Audit Entry (UNCHANGED)
+// Audit Entry
 // =====================
 
+// Entry is a single immutable audit log record.
 type Entry struct {
 	ID        string          `json:"id"         db:"id"`
 	Timestamp time.Time       `json:"timestamp"  db:"timestamp"`
@@ -55,18 +79,20 @@ type Entry struct {
 }
 
 // =====================
-// REQUEST (FIXED)
+// List request / response
 // =====================
 
+// ListRequest is the query shape for GET /audit/logs.
+// All fields are optional filters; omitting them returns all entries.
 type ListRequest struct {
 	// Pagination
 	Page  int `json:"page"  query:"page"`
 	Limit int `json:"limit" query:"limit"`
 
-	// ✅ Use slice to represent optional
+	// Use a slice so Encore can serialise an absent value as nil.
 	ActorID []int64 `json:"actor_id,omitempty" query:"actor_id"`
 
-	// ✅ Use string instead of custom type
+	// Use plain strings so Encore doesn't need to know about the custom types.
 	EventType string `json:"event_type,omitempty" query:"event_type"`
 	Outcome   string `json:"outcome,omitempty"    query:"outcome"`
 
@@ -76,11 +102,7 @@ type ListRequest struct {
 	Search string `json:"search,omitempty" query:"search"`
 }
 
-// =====================
-// HELPERS (IMPORTANT)
-// =====================
-
-// Optional ActorID
+// GetActorID returns the first actor_id filter value, or nil when absent.
 func (r *ListRequest) GetActorID() *int64 {
 	if len(r.ActorID) == 0 {
 		return nil
@@ -88,7 +110,7 @@ func (r *ListRequest) GetActorID() *int64 {
 	return &r.ActorID[0]
 }
 
-// Optional EventType (convert to domain type)
+// GetEventType converts the raw string to a typed EventType pointer.
 func (r *ListRequest) GetEventType() *EventType {
 	if r.EventType == "" {
 		return nil
@@ -97,7 +119,7 @@ func (r *ListRequest) GetEventType() *EventType {
 	return &et
 }
 
-// Optional Outcome (convert to domain type)
+// GetOutcome converts the raw string to a typed Outcome pointer.
 func (r *ListRequest) GetOutcome() *Outcome {
 	if r.Outcome == "" {
 		return nil
@@ -106,49 +128,35 @@ func (r *ListRequest) GetOutcome() *Outcome {
 	return &o
 }
 
-// Optional time filters
-func (r *ListRequest) HasFrom() bool {
-	return !r.From.IsZero()
-}
+func (r *ListRequest) HasFrom() bool { return !r.From.IsZero() }
+func (r *ListRequest) HasTo() bool   { return !r.To.IsZero() }
 
-func (r *ListRequest) HasTo() bool {
-	return !r.To.IsZero()
-}
-
-// =====================
-// VALIDATION (OPTIONAL BUT RECOMMENDED)
-// =====================
-
+// Validate rejects unknown EventType and Outcome values early.
 func (r *ListRequest) Validate() error {
-	// Validate EventType
 	if r.EventType != "" {
 		switch EventType(r.EventType) {
 		case EventLogin,
 			EventTokenRefresh,
-			EventGetUserInfo,
-			EventGetCategories,
-			EventGetCourses,
-			EventGetCourseDetail,
+			EventAuthDenied,
 			EventUpdateGrades,
-			EventGetUserGrades,
+			EventExportGrades,
+			EventUploadTemplate,
+			EventDeleteTemplate,
 			EventSetLangPack,
 			EventDeleteLangPack,
-			EventGetLangPack,
-			EventAdminAction,
 			EventAuditPurge:
 			// valid
 		default:
-			return fmt.Errorf("invalid event_type")
+			return fmt.Errorf("invalid event_type: %q", r.EventType)
 		}
 	}
 
-	// Validate Outcome
 	if r.Outcome != "" {
 		switch Outcome(r.Outcome) {
 		case OutcomeSuccess, OutcomeFailure, OutcomeDenied:
 			// valid
 		default:
-			return fmt.Errorf("invalid outcome")
+			return fmt.Errorf("invalid outcome: %q", r.Outcome)
 		}
 	}
 
@@ -156,7 +164,7 @@ func (r *ListRequest) Validate() error {
 }
 
 // =====================
-// RESPONSE (UNCHANGED)
+// Responses
 // =====================
 
 type ListResponse struct {

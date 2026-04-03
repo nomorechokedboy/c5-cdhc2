@@ -79,8 +79,8 @@ func (r *mysqlRepository) List(ctx context.Context, req *ListRequest) (*ListResp
 	}
 
 	// Structured filters — each maps to a MySQL index.
-	if req.ActorID != nil {
-		qb.addEq("actor_id", *req.GetActorID())
+	if req.GetActorID() != nil {
+		qb.addEq("actor_id", req.GetActorID())
 	}
 	if req.EventType != "" {
 		qb.addEq("event_type", string(req.EventType))

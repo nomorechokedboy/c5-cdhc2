@@ -216,19 +216,24 @@ function SkeletonRows() {
 	)
 }
 
+// Mirrors the EventType constants in audit/entities.go.
+// Only whitelisted write operations appear here — read-only routes are not audited.
 const EVENT_TYPES = [
 	{ value: '', label: 'Tất cả sự kiện' },
+	// Authentication
 	{ value: 'auth.login', label: 'Đăng nhập' },
 	{ value: 'auth.token_refresh', label: 'Làm mới token' },
-	{ value: 'user.get_info', label: 'Xem thông tin' },
+	{ value: 'auth.denied', label: 'Từ chối xác thực' },
+	// Grades
 	{ value: 'grade.update', label: 'Cập nhật điểm' },
-	{ value: 'grade.get_user', label: 'Xem điểm' },
-	{ value: 'course.list', label: 'Danh sách khóa học' },
-	{ value: 'course.get_detail', label: 'Chi tiết khóa học' },
-	{ value: 'category.list', label: 'Danh sách lớp' },
+	// Export
+	{ value: 'export.grades', label: 'Xuất bảng điểm' },
+	{ value: 'template.upload', label: 'Tải lên mẫu xuất' },
+	{ value: 'template.delete', label: 'Xóa mẫu xuất' },
+	// Config
 	{ value: 'config.langpack_set', label: 'Cài ngôn ngữ' },
 	{ value: 'config.langpack_delete', label: 'Xóa ngôn ngữ' },
-	{ value: 'admin.action', label: 'Hành động quản trị' },
+	// Audit
 	{ value: 'audit.purge', label: 'Xóa nhật ký' }
 ]
 
