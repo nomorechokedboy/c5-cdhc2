@@ -4,8 +4,8 @@ import {
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger
-} from '../components/ui/tooltip'
-import { cn } from '@/lib/utils'
+} from '@ui/components/ui/tooltip'
+import { cn } from '@ui/lib/utils'
 import { type ReactNode } from 'react'
 
 interface EllipsisTextProps {
