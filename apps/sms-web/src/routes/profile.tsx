@@ -162,12 +162,6 @@ function ProfilePage() {
 						</CardContent>
 					</Card>
 				)}
-
-				{/* Language pack (admin only) */}
-				<LangPackManager />
-
-				{/* Export template manager (admin + manager) */}
-				<ExportTemplateManager />
 			</div>
 		</ProtectedRoute>
 	)
