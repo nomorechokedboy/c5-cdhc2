@@ -63,14 +63,26 @@ export default function CourseCard({ course }: CourseCardProps) {
 				</p>
 
 				<div className='space-y-2 text-sm'>
-					<div className='flex items-center justify-between'>
-						<span className='text-muted-foreground'>Students:</span>
-						<span className='font-medium'>{course.students}</span>
-					</div>
-					<div className='flex items-center justify-between'>
-						<span className='text-muted-foreground'>Semester:</span>
-						<span className='font-medium'>{course.semester}</span>
-					</div>
+					{course.students > 0 && (
+						<div className='flex items-center justify-between'>
+							<span className='text-muted-foreground'>
+								Students:
+							</span>
+							<span className='font-medium'>
+								{course.students}
+							</span>
+						</div>
+					)}
+					{course.semester && (
+						<div className='flex items-center justify-between'>
+							<span className='text-muted-foreground'>
+								Semester:
+							</span>
+							<span className='font-medium'>
+								{course.semester}
+							</span>
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>
