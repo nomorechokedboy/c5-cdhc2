@@ -1,4 +1,10 @@
-import { Home, UsersRound, Languages, FileSpreadsheet } from 'lucide-react'
+import {
+	Home,
+	UsersRound,
+	Languages,
+	FileSpreadsheet,
+	ShieldAlert
+} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from '@repo/ui/components/app-sidebar-skeleton'
@@ -152,6 +158,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						title: t('nav.exportTemplates'),
 						url: '/admin/export-templates',
 						icon: FileSpreadsheet
+					},
+					{
+						title: t('nav.auditLog'),
+						url: '/audit',
+						icon: ShieldAlert
 					}
 				]
 			}
