@@ -787,6 +787,7 @@ export namespace entities {
 		name: string
 		idnumber: string
 		description: string
+		parent: number
 		visible: boolean
 		timemodified: number
 	}
