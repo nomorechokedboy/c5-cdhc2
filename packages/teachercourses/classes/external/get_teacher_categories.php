@@ -1,18 +1,4 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-/**
- * External API for getting categories where user teaches courses
- *
- * @package    local_teachercourses
- * @copyright  2025 Your Name
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 namespace local_teachercourses\external;
 
@@ -25,24 +11,20 @@ use external_function_parameters;
 use external_value;
 use external_single_structure;
 use external_multiple_structure;
-use context_course;
 use context_system;
 
 /**
- * External API class for getting teacher categories
+ * Returns categories that contain courses where the user is a teacher,
+ * PLUS all ancestor categories so the frontend can build a proper tree.
  *
- * @package    local_teachercourses
- * @copyright  2025 Your Name
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Example: if a teacher teaches in "Lớp NVQYcK42A1" (parent=27),
+ * the response will also include id=27 "Nhân viên quân y đại đội khoá 42"
+ * (parent=26) and id=26 "Nhân viên quân y đại đội" (parent=0) even if
+ * the teacher has no courses directly in those intermediate categories.
  */
 class get_teacher_categories extends external_api
 {
 
-    /**
-     * Returns description of method parameters
-     *
-     * @return external_function_parameters
-     */
     public static function get_teacher_categories_parameters()
     {
         return new external_function_parameters([
@@ -50,163 +32,168 @@ class get_teacher_categories extends external_api
         ]);
     }
 
-    /**
-     * Get categories where user teaches courses
-     *
-     * @param int $userid User ID (0 for current user)
-     * @return array Categories where user is a teacher
-     */
     public static function get_teacher_categories($userid = 0)
     {
         global $DB, $USER;
 
-        // Parameter validation
         $params = self::validate_parameters(
             self::get_teacher_categories_parameters(),
             ['userid' => $userid]
         );
 
-        // If userid is 0, use current user
         if ($params['userid'] == 0) {
             $params['userid'] = $USER->id;
         }
 
-        // Validate context
         $context = context_system::instance();
         self::validate_context($context);
 
-        // Check if user exists
         $user = $DB->get_record('user', ['id' => $params['userid']], '*', MUST_EXIST);
 
-        // Get all courses the user is enrolled in
-        $allcourses = enrol_get_users_courses($params['userid'], true);
+        // ── Step 1: find categories the teacher directly teaches in ──────────
+        $directsql = "
+            SELECT DISTINCT c.category AS catid
+              FROM {course} c
+              JOIN {context} ctx ON ctx.instanceid = c.id AND ctx.contextlevel = 50
+              JOIN {role_assignments} ra ON ra.contextid = ctx.id
+              JOIN {role} r ON r.id = ra.roleid
+             WHERE ra.userid = :userid
+               AND r.archetype IN ('editingteacher', 'teacher')
+               AND c.id != 1
+        ";
+        $directrows = $DB->get_records_sql($directsql, ['userid' => $params['userid']]);
+        $directids = array_column($directrows, 'catid');
 
-        // Track categories and course count
-        $categorydata = [];
-
-        // Teacher capabilities to check
-        $teachercapabilities = [
-            'moodle/course:update',
-            'moodle/course:manageactivities',
-            'moodle/grade:edit',
-            'moodle/grade:viewall',
-        ];
-
-        foreach ($allcourses as $course) {
-            try {
-                $coursecontext = context_course::instance($course->id);
-
-                // Check if user has any teacher capability
-                $isteacher = false;
-                foreach ($teachercapabilities as $capability) {
-                    if (has_capability($capability, $coursecontext, $params['userid'])) {
-                        $isteacher = true;
-                        break;
-                    }
-                }
-
-                if ($isteacher) {
-                    // Add this category
-                    if (!isset($categorydata[$course->category])) {
-                        $categorydata[$course->category] = [
-                            'courseids' => [],
-                            'coursenames' => []
-                        ];
-                    }
-                    $categorydata[$course->category]['courseids'][] = $course->id;
-                    $categorydata[$course->category]['coursenames'][] = $course->fullname;
-                }
-            } catch (\Exception $e) {
-                // Skip courses with errors
-                debugging("Error processing course {$course->id}: " . $e->getMessage());
-                continue;
-            }
+        if (empty($directids)) {
+            return [
+                'userid'          => (int)$params['userid'],
+                'username'        => $user->username,
+                'firstname'       => $user->firstname,
+                'lastname'        => $user->lastname,
+                'email'           => $user->email,
+                'totalcategories' => 0,
+                'categories'      => [],
+            ];
         }
 
-        // Get full category information
-        $categories = [];
-        foreach (array_keys($categorydata) as $categoryid) {
-            $category = $DB->get_record(
-                'course_categories',
-                ['id' => $categoryid],
-                'id, name, description, parent, path, depth, visible, sortorder, idnumber'
+        // ── Step 2: collect all ancestors of those categories ─────────────────
+        // Walk up the parent chain until we reach parent=0.
+        $allids = array_flip($directids); // use as a set
+
+        $queue = $directids;
+        while (!empty($queue)) {
+            list($chunk, $queue) = [array_splice($queue, 0, 200), []];
+            if (empty($chunk)) break;
+
+            list($insql, $inparams) = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
+            $parents = $DB->get_records_sql(
+                "SELECT id, parent FROM {course_categories} WHERE id $insql",
+                $inparams
             );
-
-            if ($category) {
-                // Get parent category info if exists
-                $parentname = '';
-                if ($category->parent > 0) {
-                    $parent = $DB->get_record('course_categories', ['id' => $category->parent], 'name');
-                    $parentname = $parent ? $parent->name : '';
+            foreach ($parents as $row) {
+                if ((int)$row->parent > 0 && !isset($allids[$row->parent])) {
+                    $allids[$row->parent] = true;
+                    $queue[] = (int)$row->parent; // need to check its parent too
                 }
-
-                $categories[] = [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'description' => strip_tags($category->description ?? ''),
-                    'parent' => $category->parent,
-                    'parentname' => $parentname,
-                    'path' => $category->path,
-                    'depth' => $category->depth,
-                    'visible' => $category->visible,
-                    'sortorder' => $category->sortorder,
-                    'coursecount' => count($categorydata[$categoryid]['courseids']),
-                    'courseids' => $categorydata[$categoryid]['courseids'],
-                    'idnumber' => $category->idnumber,
-                ];
             }
         }
 
-        // Sort categories by name
-        usort($categories, function ($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
+        $allcatids = array_keys($allids);
+
+        // ── Step 3: fetch full records for every collected category id ────────
+        if (empty($allcatids)) {
+            $allcatids = $directids;
+        }
+
+        list($insql, $inparams) = $DB->get_in_or_equal($allcatids, SQL_PARAMS_NAMED);
+        $catrecords = $DB->get_records_sql(
+            "SELECT id, name, description, parent, path, depth, visible, sortorder, idnumber
+               FROM {course_categories}
+              WHERE id $insql
+              ORDER BY name",
+            $inparams
+        );
+
+        // ── Step 4: for direct categories, also count courses ─────────────────
+        $directset = array_flip($directids);
+
+        $categories = [];
+        foreach ($catrecords as $cat) {
+            $courseids = [];
+            if (isset($directset[$cat->id])) {
+                $coursesql = "
+                    SELECT c.id
+                      FROM {course} c
+                      JOIN {context} ctx ON ctx.instanceid = c.id AND ctx.contextlevel = 50
+                      JOIN {role_assignments} ra ON ra.contextid = ctx.id
+                      JOIN {role} r ON r.id = ra.roleid
+                     WHERE ra.userid = :userid
+                       AND r.archetype IN ('editingteacher', 'teacher')
+                       AND c.category = :catid
+                       AND c.id != 1
+                ";
+                $courserows = $DB->get_records_sql($coursesql, [
+                    'userid' => $params['userid'],
+                    'catid'  => $cat->id,
+                ]);
+                $courseids = array_keys($courserows);
+            }
+
+            $categories[] = [
+                'id'          => (int)$cat->id,
+                'name'        => $cat->name,
+                'description' => strip_tags($cat->description ?? ''),
+                'parent'      => (int)$cat->parent,
+                'parentname'  => '',   // not needed by frontend
+                'path'        => $cat->path,
+                'depth'       => (int)$cat->depth,
+                'visible'     => (int)$cat->visible,
+                'sortorder'   => (int)$cat->sortorder,
+                'coursecount' => count($courseids),
+                'courseids'   => $courseids,
+                'idnumber'    => $cat->idnumber ?? '',
+            ];
+        }
 
         return [
-            'userid' => $params['userid'],
-            'username' => $user->username,
-            'firstname' => $user->firstname,
-            'lastname' => $user->lastname,
-            'email' => $user->email,
-            'categories' => $categories,
-            'totalcategories' => count($categories)
+            'userid'          => (int)$params['userid'],
+            'username'        => $user->username,
+            'firstname'       => $user->firstname,
+            'lastname'        => $user->lastname,
+            'email'           => $user->email,
+            'totalcategories' => count($categories),
+            'categories'      => $categories,
         ];
     }
 
-    /**
-     * Returns description of method result value
-     *
-     * @return external_single_structure
-     */
     public static function get_teacher_categories_returns()
     {
         return new external_single_structure([
-            'userid' => new external_value(PARAM_INT, 'User ID'),
-            'username' => new external_value(PARAM_TEXT, 'Username'),
-            'firstname' => new external_value(PARAM_TEXT, 'First name'),
-            'lastname' => new external_value(PARAM_TEXT, 'Last name'),
-            'email' => new external_value(PARAM_EMAIL, 'Email address'),
-            'totalcategories' => new external_value(PARAM_INT, 'Total number of categories'),
-            'categories' => new external_multiple_structure(
+            'userid'          => new external_value(PARAM_INT,   'User ID'),
+            'username'        => new external_value(PARAM_TEXT,  'Username'),
+            'firstname'       => new external_value(PARAM_TEXT,  'First name'),
+            'lastname'        => new external_value(PARAM_TEXT,  'Last name'),
+            'email'           => new external_value(PARAM_EMAIL, 'Email'),
+            'totalcategories' => new external_value(PARAM_INT,   'Total categories (including ancestors)'),
+            'categories'      => new external_multiple_structure(
                 new external_single_structure([
-                    'id' => new external_value(PARAM_INT, 'Category ID'),
-                    'name' => new external_value(PARAM_TEXT, 'Category name'),
-                    'description' => new external_value(PARAM_RAW, 'Category description'),
-                    'parent' => new external_value(PARAM_INT, 'Parent category ID'),
-                    'parentname' => new external_value(PARAM_TEXT, 'Parent category name'),
-                    'path' => new external_value(PARAM_TEXT, 'Category path'),
-                    'depth' => new external_value(PARAM_INT, 'Category depth'),
-                    'visible' => new external_value(PARAM_INT, 'Category visibility'),
-                    'sortorder' => new external_value(PARAM_INT, 'Sort order'),
-                    'coursecount' => new external_value(PARAM_INT, 'Number of courses user teaches in this category'),
-                    'courseids' => new external_multiple_structure(
+                    'id'          => new external_value(PARAM_INT,  'Category ID'),
+                    'name'        => new external_value(PARAM_TEXT, 'Category name'),
+                    'description' => new external_value(PARAM_RAW,  'Category description'),
+                    'parent'      => new external_value(PARAM_INT,  'Parent category ID (0 = root)'),
+                    'parentname'  => new external_value(PARAM_TEXT, 'Parent category name'),
+                    'path'        => new external_value(PARAM_TEXT, 'Category path'),
+                    'depth'       => new external_value(PARAM_INT,  'Depth'),
+                    'visible'     => new external_value(PARAM_INT,  'Visible'),
+                    'sortorder'   => new external_value(PARAM_INT,  'Sort order'),
+                    'coursecount' => new external_value(PARAM_INT,  'Courses taught in this category (0 for ancestor-only nodes)'),
+                    'courseids'   => new external_multiple_structure(
                         new external_value(PARAM_INT, 'Course ID'),
-                        'List of course IDs in this category where user is teacher'
+                        'Taught course IDs (empty for ancestor-only nodes)'
                     ),
-                    'idnumber' => new external_value(PARAM_TEXT, 'Category id number'),
-                ]),
-                'Categories where user teaches courses'
-            )
+                    'idnumber'    => new external_value(PARAM_TEXT, 'ID number'),
+                ])
+            ),
         ]);
     }
 }

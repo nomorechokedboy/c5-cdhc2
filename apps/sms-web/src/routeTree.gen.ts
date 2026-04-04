@@ -16,6 +16,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as Oauth2CallbackRouteImport } from './routes/oauth2/callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
+import { Route as AdminLangpackRouteImport } from './routes/admin/langpack'
+import { Route as AdminExportTemplatesRouteImport } from './routes/admin/export-templates'
 import { Route as KhoaHocCategoryIdnumberIndexRouteImport } from './routes/khoa-hoc/$categoryIdnumber/index'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
@@ -56,6 +58,16 @@ const DemoTableRoute = DemoTableRouteImport.update({
   path: '/demo/table',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLangpackRoute = AdminLangpackRouteImport.update({
+  id: '/admin/langpack',
+  path: '/admin/langpack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminExportTemplatesRoute = AdminExportTemplatesRouteImport.update({
+  id: '/admin/export-templates',
+  path: '/admin/export-templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KhoaHocCategoryIdnumberIndexRoute =
   KhoaHocCategoryIdnumberIndexRouteImport.update({
     id: '/khoa-hoc/$categoryIdnumber/',
@@ -84,6 +96,8 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/admin/export-templates': typeof AdminExportTemplatesRoute
+  '/admin/langpack': typeof AdminLangpackRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/oauth2/callback': typeof Oauth2CallbackRoute
@@ -97,6 +111,8 @@ export interface FileRoutesByTo {
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/admin/export-templates': typeof AdminExportTemplatesRoute
+  '/admin/langpack': typeof AdminLangpackRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/oauth2/callback': typeof Oauth2CallbackRoute
@@ -111,6 +127,8 @@ export interface FileRoutesById {
   '/audit': typeof AuditRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/admin/export-templates': typeof AdminExportTemplatesRoute
+  '/admin/langpack': typeof AdminLangpackRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/oauth2/callback': typeof Oauth2CallbackRoute
@@ -126,6 +144,8 @@ export interface FileRouteTypes {
     | '/audit'
     | '/login'
     | '/profile'
+    | '/admin/export-templates'
+    | '/admin/langpack'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/oauth2/callback'
@@ -139,6 +159,8 @@ export interface FileRouteTypes {
     | '/audit'
     | '/login'
     | '/profile'
+    | '/admin/export-templates'
+    | '/admin/langpack'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/oauth2/callback'
@@ -152,6 +174,8 @@ export interface FileRouteTypes {
     | '/audit'
     | '/login'
     | '/profile'
+    | '/admin/export-templates'
+    | '/admin/langpack'
     | '/demo/table'
     | '/demo/tanstack-query'
     | '/oauth2/callback'
@@ -166,6 +190,8 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  AdminExportTemplatesRoute: typeof AdminExportTemplatesRoute
+  AdminLangpackRoute: typeof AdminLangpackRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   Oauth2CallbackRoute: typeof Oauth2CallbackRoute
@@ -226,6 +252,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/langpack': {
+      id: '/admin/langpack'
+      path: '/admin/langpack'
+      fullPath: '/admin/langpack'
+      preLoaderRoute: typeof AdminLangpackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/export-templates': {
+      id: '/admin/export-templates'
+      path: '/admin/export-templates'
+      fullPath: '/admin/export-templates'
+      preLoaderRoute: typeof AdminExportTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/khoa-hoc/$categoryIdnumber/': {
       id: '/khoa-hoc/$categoryIdnumber/'
       path: '/khoa-hoc/$categoryIdnumber'
@@ -262,6 +302,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  AdminExportTemplatesRoute: AdminExportTemplatesRoute,
+  AdminLangpackRoute: AdminLangpackRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   Oauth2CallbackRoute: Oauth2CallbackRoute,

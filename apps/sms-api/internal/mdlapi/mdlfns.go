@@ -10,6 +10,10 @@ const (
 	GET_USER_INFO             = "local_oauth2userinfo_get_user_info"
 	UPDATE_GRADES             = "core_grades_update_grades"
 
+	// Admin / manager — return all data regardless of caller's role in courses.
+	GET_ALL_CATEGORIES       = "local_teachercourses_get_all_categories"
+	GET_ALL_CATEGORY_COURSES = "local_teachercourses_get_all_category_courses"
+
 	// Export / template management (local_customgradeexport)
 	GET_COURSE_TEMPLATES = "local_customgradeexport_get_course_templates"
 	EXPORT_COURSE_GRADES = "local_customgradeexport_export_course_grades"

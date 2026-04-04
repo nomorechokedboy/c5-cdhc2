@@ -31,6 +31,7 @@ func (c *Category) ToAppCategory() *entities.Category {
 		Name:         c.Name,
 		Idnumber:     &c.IdNumber,
 		Description:  &c.Description,
+		Parent:       int64(c.Parent), // ← pass parent through
 		Visible:      c.Visible == 1,
 		TimeModified: 0,
 	}
@@ -45,6 +46,9 @@ type GetCategoriesResponse struct {
 	Totalcategories int        `json:"totalcategories"`
 	Categories      []Category `json:"categories"`
 }
+
+// GetAllCategoriesRequest has no parameters.
+type GetAllCategoriesRequest struct{}
 
 type GetCategoryCoursesRequest struct {
 	CategoryID int `json:"categoryid"`
@@ -100,6 +104,11 @@ type GetCategoryCoursesResponse struct {
 type LocalTeacherProvider interface {
 	GetCategories(context.Context, *GetCategoriesRequest) (*GetCategoriesResponse, error)
 	GetCategoryCourses(
+		context.Context,
+		*GetCategoryCoursesRequest,
+	) (*GetCategoryCoursesResponse, error)
+	GetAllCategories(context.Context, *GetAllCategoriesRequest) (*GetCategoriesResponse, error)
+	GetAllCategoryCoursesForAdmin(
 		context.Context,
 		*GetCategoryCoursesRequest,
 	) (*GetCategoryCoursesResponse, error)

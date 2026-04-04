@@ -19,24 +19,19 @@ export class CourseCategory {
 		public description: string,
 		public idnumber: string,
 		public visible: boolean,
-		public updatedAt: number
+		public updatedAt: number,
+		public parent: number = 0 // ← new: parent category ID (0 = root)
 	) {}
 
-	static fromEntity({
-		id,
-		name,
-		description,
-		idnumber,
-		visible,
-		timemodified
-	}: entities.Category) {
+	static fromEntity(entity: entities.Category & { parent?: number }) {
 		return new CourseCategory(
-			id,
-			name ?? '',
-			description ?? '',
-			idnumber ?? '',
-			visible ?? false,
-			timemodified ?? Date.now()
+			entity.id,
+			entity.name ?? '',
+			entity.description ?? '',
+			entity.idnumber ?? '',
+			entity.visible ?? false,
+			entity.timemodified ?? Date.now(),
+			entity.parent ?? 0
 		)
 	}
 }

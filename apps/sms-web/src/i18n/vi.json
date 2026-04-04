@@ -82,10 +82,14 @@
 	},
 	"nav": {
 		"home": "Trang chủ",
+		"general": "Chung",
 		"classList": "Danh sách lớp",
 		"profile": "Hồ sơ cá nhân",
 		"appTitle": "Hệ thống quản lý học viên",
 		"appSubtitle": "Trường Cao đẳng hậu cần 2",
+		"adminSection": "Quản trị",
+		"langpack": "Tuỳ chỉnh ngôn ngữ",
+		"exportTemplates": "Mẫu xuất điểm",
 		"auditLog": "Nhật ký hoạt động"
 	},
 	"roles": {

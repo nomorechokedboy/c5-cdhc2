@@ -5,6 +5,7 @@ type Category struct {
 	Name         string  `json:"name"`
 	Idnumber     *string `json:"idnumber"`
 	Description  *string `json:"description"`
+	Parent       int64   `json:"parent"`
 	Visible      bool    `json:"visible"`
 	TimeModified int64   `json:"timemodified"`
 }
