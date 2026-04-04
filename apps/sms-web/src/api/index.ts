@@ -2,9 +2,7 @@ import { ApiUrl } from '@/const'
 import Client, { type mdlapi } from './client'
 import { AuthController } from '@/biz'
 import { CourseCategory } from '@/types'
-import { env } from '@/env'
 
-console.log({ ApiUrl, redirectUrl: env.VITE_REDIRECT_URI })
 const client = new Client(ApiUrl, { fetcher: appFetcher })
 const tempClient = new Client(ApiUrl, {})
 
@@ -70,11 +68,45 @@ class authnApi {
 }
 export const AuthApi = new authnApi()
 
+// Shape returned by the Go /categories endpoint.
+// We bypass the generated client because the generated client's
+// entities.Category type doesn't include `parent` yet (needs client regen).
+interface RawCategory {
+	id: number
+	name: string
+	idnumber: string | null
+	description: string | null
+	parent: number
+	visible: boolean
+	timemodified: number
+}
+
 class categoryApi {
-	async GetCategories() {
-		return client.usrcategories
-			.GetCategories()
-			.then((resp) => resp.data.map(CourseCategory.fromEntity))
+	/**
+	 * Fetch the category list for the current user.
+	 * The Go backend already applies role-based filtering:
+	 *   admin/manager → all visible categories (flat list with parent info)
+	 *   teacher       → only categories containing their courses
+	 *
+	 * We use appFetcher directly instead of the generated client so that
+	 * the `parent` field is preserved before the generated client is regenerated.
+	 */
+	async GetCategories(): Promise<CourseCategory[]> {
+		const resp = await appFetcher(`${ApiUrl}/categories`)
+		if (!resp.ok) throw new Error('Failed to fetch categories')
+		const data = (await resp.json()) as { data: RawCategory[] }
+		return data.data.map(
+			(c) =>
+				new CourseCategory(
+					c.id,
+					c.name ?? '',
+					c.description ?? '',
+					c.idnumber ?? '',
+					c.visible ?? false,
+					c.timemodified ?? 0,
+					c.parent ?? 0
+				)
+		)
 	}
 
 	async GetCourses({ CategoryId }: { CategoryId: number }) {
@@ -108,12 +140,8 @@ class userApi {
 export const UserApi = new userApi()
 
 // ── Application-level language pack ──────────────────────────────────────────
-// These calls bypass the generated Encore client because the appconfig package
-// is new and the client.ts hasn't been regenerated yet. They use appFetcher so
-// the PUT/DELETE requests automatically carry the auth token.
 
 class langPackApi {
-	/** Fetch the current app-level language pack. Public endpoint. */
 	async Get(): Promise<Record<string, unknown>> {
 		try {
 			const resp = await fetch(`${ApiUrl}/config/langpack`)
@@ -125,7 +153,6 @@ class langPackApi {
 		}
 	}
 
-	/** Save a new language pack. Admin only. */
 	async Set(pack: Record<string, unknown>): Promise<void> {
 		const resp = await appFetcher(`${ApiUrl}/config/langpack`, {
 			method: 'PUT',
@@ -138,7 +165,6 @@ class langPackApi {
 		}
 	}
 
-	/** Remove the custom pack, reverting all users to defaults. Admin only. */
 	async Delete(): Promise<void> {
 		const resp = await appFetcher(`${ApiUrl}/config/langpack`, {
 			method: 'DELETE'

@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === 'object' && 'window' in globalThis
  */
 export default class Client {
 	public readonly appconfig: appconfig.ServiceClient
+	public readonly auditlog: auditlog.ServiceClient
 	public readonly authn: authn.ServiceClient
 	public readonly healthz: healthz.ServiceClient
 	public readonly otlp: otlp.ServiceClient
@@ -72,6 +73,7 @@ export default class Client {
 		this.options = options ?? {}
 		const base = new BaseClient(this.target, this.options)
 		this.appconfig = new appconfig.ServiceClient(base)
+		this.auditlog = new auditlog.ServiceClient(base)
 		this.authn = new authn.ServiceClient(base)
 		this.healthz = new healthz.ServiceClient(base)
 		this.otlp = new otlp.ServiceClient(base)
@@ -175,6 +177,102 @@ export namespace appconfig {
 				`/config/langpack`,
 				JSON.stringify(params)
 			)
+		}
+	}
+}
+
+export namespace auditlog {
+	/**
+	 * PurgeRequest specifies the minimum age of logs to delete.
+	 */
+	export interface PurgeRequest {
+		/**
+		 * DaysOld deletes entries older than this many days. Minimum: 7.
+		 */
+		days_old: number
+	}
+
+	/**
+	 * PurgeResponse reports how many rows were removed.
+	 */
+	export interface PurgeResponse {
+		removed: number
+		message: string
+	}
+
+	export class ServiceClient {
+		private baseClient: BaseClient
+
+		constructor(baseClient: BaseClient) {
+			this.baseClient = baseClient
+			this.GetAuditStats = this.GetAuditStats.bind(this)
+			this.ListAuditLogs = this.ListAuditLogs.bind(this)
+			this.PurgeAuditLogs = this.PurgeAuditLogs.bind(this)
+		}
+
+		/**
+		 * GetAuditStats returns aggregate counts for the admin dashboard.
+		 * Admin only.
+		 */
+		public async GetAuditStats(): Promise<audit.StatsResponse> {
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/audit/stats`
+			)
+			return (await resp.json()) as audit.StatsResponse
+		}
+
+		/**
+		 * ListAuditLogs returns a paginated, filterable list of audit log entries.
+		 * Supports structured filters and full-text search simultaneously.
+		 * Admin only.
+		 */
+		public async ListAuditLogs(
+			params: audit.ListRequest
+		): Promise<audit.ListResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				actor_id: params['actor_id'].map((v) => String(v)),
+				event_type: params['event_type'],
+				from: String(params.from),
+				limit: String(params.limit),
+				outcome: params.outcome,
+				page: String(params.page),
+				search: params.search,
+				to: String(params.to)
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'GET',
+				`/audit/logs`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as audit.ListResponse
+		}
+
+		/**
+		 * PurgeAuditLogs deletes audit entries older than DaysOld days.
+		 * Admin only.
+		 */
+		public async PurgeAuditLogs(
+			params: PurgeRequest
+		): Promise<PurgeResponse> {
+			// Convert our params into the objects we need for the request
+			const query = makeRecord<string, string | string[]>({
+				days_old: String(params['days_old'])
+			})
+
+			// Now make the actual call to the API
+			const resp = await this.baseClient.callTypedAPI(
+				'DELETE',
+				`/audit/logs`,
+				undefined,
+				{ query }
+			)
+			return (await resp.json()) as PurgeResponse
 		}
 	}
 }
@@ -313,7 +411,9 @@ export namespace usrcategories {
 		}
 
 		/**
-		 * Get user categories endpoint
+		 * GetCategories returns categories appropriate to the caller's role:
+		 *   - admin / manager → all visible Moodle categories
+		 *   - teacher         → only categories containing courses where they are assigned
 		 */
 		public async GetCategories(): Promise<entities.GetUsersCategoriesResponse> {
 			// Now make the actual call to the API
@@ -325,7 +425,9 @@ export namespace usrcategories {
 		}
 
 		/**
-		 * Get category's courses endpoint
+		 * GetCategoryCourses returns courses inside a category.
+		 * Admin / manager → all courses in the category.
+		 * Teacher         → only courses where they are assigned as teacher.
 		 */
 		public async GetCategoryCourses(
 			categoryId: number
@@ -584,6 +686,93 @@ export namespace usrgrades {
 			)
 			return (await resp.json()) as mdlapi.GetUserGradesResponse
 		}
+	}
+}
+
+export namespace audit {
+	export interface ActorActivity {
+		actor_id: number
+		actor_role: string
+		count: number
+	}
+
+	/**
+	 * Entry is a single immutable audit log record.
+	 */
+	export interface Entry {
+		id: string
+		timestamp: string
+		event_type: EventType
+		actor_id: number
+		actor_role: string
+		outcome: Outcome
+		service: string
+		endpoint: string
+		ip_address: string
+		details: JSONValue
+		error_msg: string
+	}
+
+	/**
+	 * EventType classifies a significant state-changing or security-relevant
+	 * action in the SMS application. Only events in this list are audited —
+	 * read-only queries (GET categories, GET courses, etc.) are intentionally
+	 * excluded to keep the log meaningful and low-noise.
+	 */
+	export type EventType = string
+
+	export interface EventTypeCount {
+		event_type: EventType
+		count: number
+	}
+
+	/**
+	 * ListRequest is the query shape for GET /audit/logs.
+	 * All fields are optional filters; omitting them returns all entries.
+	 */
+	export interface ListRequest {
+		/**
+		 * Pagination
+		 */
+		page: number
+
+		limit: number
+		/**
+		 * Use a slice so Encore can serialise an absent value as nil.
+		 */
+		actor_id: number[]
+
+		/**
+		 * Use plain strings so Encore doesn't need to know about the custom types.
+		 */
+		event_type: string
+
+		outcome: string
+		from: string
+		to: string
+		search: string
+	}
+
+	export interface ListResponse {
+		data: Entry[]
+		total: number
+		page: number
+		limit: number
+		total_pages: number
+	}
+
+	/**
+	 * Outcome describes whether an operation succeeded, failed, or was denied.
+	 */
+	export type Outcome = string
+
+	export interface StatsResponse {
+		total_events: number
+		today_events: number
+		failure_count: number
+		denied_count: number
+		top_event_types: EventTypeCount[]
+		recent_actors: ActorActivity[]
 	}
 }
 
