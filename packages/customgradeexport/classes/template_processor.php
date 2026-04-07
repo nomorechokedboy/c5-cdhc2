@@ -26,12 +26,10 @@ class template_processor
      */
     public static function get_template_path($type)
     {
-        // Use new template manager to get first available template
         $templates = template_manager::get_templates($type);
         if (empty($templates)) {
             return null;
         }
-        // Return first template
         $firstTemplate = reset($templates);
         return $firstTemplate['path'];
     }
@@ -56,72 +54,90 @@ class template_processor
     public static function get_available_variables($type)
     {
         $common = [
-            'coursename' => 'Course name',
-            'exportdate' => 'Export date',
-            'exporttime' => 'Export time',
+            'coursename'  => 'Course full name',
+            'classname'   => 'Course short name (used as class identifier, e.g. LỚP: ${classname})',
+            'exportdate'  => 'Export date (dd/mm/yyyy)',
+            'exporttime'  => 'Export time (HH:MM:SS)',
         ];
 
         if ($type === 'course') {
             return array_merge($common, [
-                'courseshortname' => 'Course short name',
-                // Table row variables
-                'stt' => 'Row number (required for table row cloning)',
-                'fullname' => 'Student full name',
-                'fistname' => 'Student firstname',
-                'lastname' => 'Student lastname',
-                'idnumber' => 'Student ID number',
-                // Grade columns (dynamic based on course)
+                'courseshortname' => 'Course short name (alias for classname)',
+
+                // ── Table row variables ──────────────────────────────────
+                'stt'       => 'Row number (required for table row cloning)',
+                'fullname'  => 'Student full name',
+                'firstname' => 'Student first name',
+                'lastname'  => 'Student last name',
+                'idnumber'  => 'Student ID number',
+
+                // Grade columns (dynamic based on course grade items)
                 '15p_01' => '15-minute test score 1',
                 '15p_02' => '15-minute test score 2',
                 '15p_03' => '15-minute test score 3',
-                '1t_01' => 'Midterm test score 1',
-                '1t_02' => 'Midterm test score 2',
-                '1t_03' => 'Midterm test score 3',
+                '1t_01'  => 'Midterm test score 1',
+                '1t_02'  => 'Midterm test score 2',
+                '1t_03'  => 'Midterm test score 3',
                 'thi_01' => 'Final exam score 1',
                 'thi_02' => 'Final exam score 2',
-                'tkmh' => 'Course final grade (calculated)',
-                'xep_loai' => 'Grade classification (XS/G/Khá/TB/Yếu)',
-                'ghi_chu' => 'Notes',
+                'tkmh'   => 'Course final grade (TKMH, calculated automatically)',
+                'xep_loai' => 'Grade classification (XS / G / Khá / Đạt / Không đạt)',
+                'ghi_chu'  => 'Notes / remarks',
+
+                // ── Classification statistics (document-level, not per-row) ─
+                'xuat_sac_count'  => 'Number of students classified as Xuất sắc (TKMH ≥ 9)',
+                'xuat_sac_pct'    => 'Percentage of Xuất sắc students',
+                'gioi_count'      => 'Number of students classified as Giỏi (8 ≤ TKMH < 9)',
+                'gioi_pct'        => 'Percentage of Giỏi students',
+                'kha_count'       => 'Number of students classified as Khá (7 ≤ TKMH < 8)',
+                'kha_pct'         => 'Percentage of Khá students',
+                'dat_count'       => 'Number of students classified as Đạt (5 ≤ TKMH < 7)',
+                'dat_pct'         => 'Percentage of Đạt students',
+                'khong_dat_count' => 'Number of students classified as Không đạt (TKMH < 5)',
+                'khong_dat_pct'   => 'Percentage of Không đạt students',
+                'total_students'  => 'Total number of students with a grade',
             ]);
-        } else if ($type === 'quiz') {
+        }
+
+        if ($type === 'quiz') {
             return array_merge($common, [
-                'stt' => 'Row number (required for table row cloning)',
-                'activityname' => 'Quiz/Activity name',
-                // Table row variables
-                'firstname' => 'Student first name',
-                'lastname' => 'Student last name',
-                'idnumber' => 'Student ID number',
+                'stt'         => 'Row number (required for table row cloning)',
+                'activityname' => 'Quiz / activity name',
+                'firstname'   => 'Student first name',
+                'lastname'    => 'Student last name',
+                'idnumber'    => 'Student ID number',
                 'institution' => 'Institution',
-                'department' => 'Department',
-                'email' => 'Email address',
-                'attempt' => 'Attempt number',
-                'status' => 'Attempt status',
-                'grade' => 'Grade received',
-                'outof' => 'Maximum grade',
-                'percentage' => 'Percentage score',
-                'timestarted' => 'Time started',
+                'department'  => 'Department',
+                'email'       => 'Email address',
+                'attempt'     => 'Attempt number',
+                'status'      => 'Attempt status',
+                'grade'       => 'Grade received',
+                'outof'       => 'Maximum grade',
+                'percentage'  => 'Percentage score',
+                'timestarted'  => 'Time started',
                 'timefinished' => 'Time finished',
-                'timetaken' => 'Time taken',
+                'timetaken'   => 'Time taken',
             ]);
-        } else if ($type === 'assign') {
+        }
+
+        if ($type === 'assign') {
             return array_merge($common, [
-                'stt' => 'Row number (required for table row cloning)',
+                'stt'          => 'Row number (required for table row cloning)',
                 'activityname' => 'Assignment name',
-                // Table row variables
-                'firstname' => 'Student first name',
-                'lastname' => 'Student last name',
-                'idnumber' => 'Student ID number',
-                'institution' => 'Institution',
-                'department' => 'Department',
-                'email' => 'Email address',
-                'status' => 'Submission status',
-                'grade' => 'Grade received',
-                'outof' => 'Maximum grade',
-                'percentage' => 'Percentage score',
+                'firstname'    => 'Student first name',
+                'lastname'     => 'Student last name',
+                'idnumber'     => 'Student ID number',
+                'institution'  => 'Institution',
+                'department'   => 'Department',
+                'email'        => 'Email address',
+                'status'       => 'Submission status',
+                'grade'        => 'Grade received',
+                'outof'        => 'Maximum grade',
+                'percentage'   => 'Percentage score',
                 'timesubmitted' => 'Time submitted',
-                'timemarked' => 'Time graded',
-                'grader' => 'Grader name',
-                'feedback' => 'Feedback comments',
+                'timemarked'   => 'Time graded',
+                'grader'       => 'Grader name',
+                'feedback'     => 'Feedback comments',
             ]);
         }
 
@@ -138,30 +154,26 @@ class template_processor
     {
         $variables = self::get_available_variables($type);
 
-        $html = '<div class="template-instructions">';
+        $html  = '<div class="template-instructions">';
         $html .= '<h5>Available Template Variables</h5>';
         $html .= '<p>Use these variables in your template file. They will be replaced with actual data during export.</p>';
 
-        // Header variables
+        // ── Document-level header variables ──────────────────────────────
         $html .= '<h6>Document Header Variables</h6>';
         $html .= '<table class="table table-sm table-bordered">';
-        $html .= '<thead><tr><th>Variable</th><th>Description</th></tr></thead>';
-        $html .= '<tbody>';
+        $html .= '<thead><tr><th>Variable</th><th>Description</th></tr></thead><tbody>';
 
-        $headerVars = ['coursename', 'courseshortname', 'activityname', 'exportdate', 'exporttime'];
+        $headerVars = ['coursename', 'classname', 'courseshortname', 'activityname', 'exportdate', 'exporttime'];
         foreach ($headerVars as $var) {
             if (isset($variables[$var])) {
-                $html .= '<tr>';
-                $html .= '<td><code>${' . $var . '}</code></td>';
-                $html .= '<td>' . $variables[$var] . '</td>';
-                $html .= '</tr>';
+                $html .= '<tr><td><code>${' . $var . '}</code></td><td>' . $variables[$var] . '</td></tr>';
             }
         }
         $html .= '</tbody></table>';
 
-        // Table row variables
+        // ── Table row variables ───────────────────────────────────────────
         $html .= '<h6>Table Row Variables</h6>';
-        $html .= '<p><strong>Important:</strong> For table data to work, your template must include a table with placeholders in the second row.</p>';
+        $html .= '<p><strong>Important:</strong> For table data to work, your template must include a table with placeholders in the data row.</p>';
 
         if ($type === 'course') {
             $html .= '<p><strong>Required:</strong> The first column MUST contain <code>${stt}</code> to enable row cloning.</p>';
@@ -170,35 +182,60 @@ class template_processor
         }
 
         $html .= '<table class="table table-sm table-bordered">';
-        $html .= '<thead><tr><th>Variable</th><th>Description</th></tr></thead>';
-        $html .= '<tbody>';
+        $html .= '<thead><tr><th>Variable</th><th>Description</th></tr></thead><tbody>';
 
+        $excludeFromRows = array_merge($headerVars, [
+            'xuat_sac_count',
+            'xuat_sac_pct',
+            'gioi_count',
+            'gioi_pct',
+            'kha_count',
+            'kha_pct',
+            'dat_count',
+            'dat_pct',
+            'khong_dat_count',
+            'khong_dat_pct',
+            'total_students',
+        ]);
         foreach ($variables as $var => $desc) {
-            if (!in_array($var, $headerVars)) {
-                $html .= '<tr>';
-                $html .= '<td><code>${' . $var . '}</code></td>';
-                $html .= '<td>' . $desc . '</td>';
-                $html .= '</tr>';
+            if (!in_array($var, $excludeFromRows, true)) {
+                $html .= '<tr><td><code>${' . $var . '}</code></td><td>' . $desc . '</td></tr>';
             }
         }
         $html .= '</tbody></table>';
 
-        // Special notes for course templates
+        // ── Stats variables (course only) ─────────────────────────────────
         if ($type === 'course') {
-            $html .= '<div class="alert alert-info">';
-            $html .= '<h6>Dynamic Columns</h6>';
-            $html .= '<p>Course grade templates have dynamic columns:</p>';
-            $html .= '<ul>';
-            $html .= '<li><strong>15P columns:</strong> Minimum 3, up to 15P-01 through 15P-NN (based on course activities)</li>';
-            $html .= '<li><strong>1T columns:</strong> Minimum 3, up to 1T-01 through 1T-NN (based on course activities)</li>';
-            $html .= '<li><strong>Thi columns:</strong> Always 2 (Thi-01, Thi-02)</li>';
-            $html .= '</ul>';
-            $html .= '<p>Include placeholders for the columns you need. The system will automatically fill them based on your course\'s grade items.</p>';
-            $html .= '</div>';
+            $html .= '<h6>Classification Statistics Variables</h6>';
+            $html .= '<p>Place these anywhere in the document (outside the cloned row) to show summary statistics.</p>';
+            $html .= '<p>Example: <code>Kết quả: Xuất sắc ${xuat_sac_count} tỷ lệ ${xuat_sac_pct}%; Giỏi: ${gioi_count} tỷ lệ ${gioi_pct}%;</code></p>';
+            $html .= '<table class="table table-sm table-bordered">';
+            $html .= '<thead><tr><th>Variable</th><th>Description</th></tr></thead><tbody>';
+            $statsVars = [
+                'xuat_sac_count',
+                'xuat_sac_pct',
+                'gioi_count',
+                'gioi_pct',
+                'kha_count',
+                'kha_pct',
+                'dat_count',
+                'dat_pct',
+                'khong_dat_count',
+                'khong_dat_pct',
+                'total_students',
+            ];
+            foreach ($statsVars as $var) {
+                if (isset($variables[$var])) {
+                    $html .= '<tr><td><code>${' . $var . '}</code></td><td>' . $variables[$var] . '</td></tr>';
+                }
+            }
+            $html .= '</tbody></table>';
+
+            $html .= '<div class="alert alert-info"><h6>Dynamic Grade Columns</h6>';
+            $html .= '<p>The number of 15P/1T columns adjusts automatically to match the course\'s grade items (minimum 3 columns each).</p></div>';
         }
 
         $html .= '</div>';
-
         return $html;
     }
 }

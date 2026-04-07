@@ -1,13 +1,5 @@
 <?php
 
-/**
- * DOCX Exporter class - Enhanced with content-return methods for API use
- *
- * @package    local_customgradeexport
- * @copyright  2024 CDHC2
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace local_customgradeexport;
 
 defined('MOODLE_INTERNAL') || die();
@@ -16,6 +8,8 @@ $phpwordpath = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($phpwordpath)) {
     require_once($phpwordpath);
 }
+
+require_once(__DIR__ . '/fixed_template_processor.php');
 
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
@@ -27,19 +21,18 @@ use PhpOffice\PhpWord\TemplateProcessor;
  * Methods ending in _content() return the raw file bytes (string).
  * Methods NOT ending in _content() stream directly to the browser and call exit.
  */
-class docx_exporter {
+class docx_exporter
+{
 
-    public static function is_available(): bool {
+    public static function is_available(): bool
+    {
         return class_exists('PhpOffice\PhpWord\PhpWord');
     }
 
     // ── shared private helper ─────────────────────────────────────────────
 
-    /**
-     * Build and return a PhpWord table document from 2-D data.
-     * First row is treated as a header row.
-     */
-    private static function build_table_document(array $data): PhpWord {
+    private static function build_table_document(array $data): PhpWord
+    {
         $phpWord = new PhpWord();
         $phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language('vi-VN'));
 
@@ -81,11 +74,8 @@ class docx_exporter {
         return $phpWord;
     }
 
-    /**
-     * Save a PhpWord document to a temp file and return its content.
-     * Caller is responsible for nothing — temp file is cleaned up automatically.
-     */
-    private static function phpword_to_string(PhpWord $phpWord): string {
+    private static function phpword_to_string(PhpWord $phpWord): string
+    {
         $tmp = tempnam(sys_get_temp_dir(), 'mdl_gradeexport_');
         try {
             IOFactory::createWriter($phpWord, 'Word2007')->save($tmp);
@@ -95,10 +85,8 @@ class docx_exporter {
         }
     }
 
-    /**
-     * Apply a TemplateProcessor to a template file and return raw bytes.
-     */
-    private static function template_processor_to_string(TemplateProcessor $tp): string {
+    private static function template_processor_to_string(TemplateProcessor $tp): string
+    {
         $tmp = tempnam(sys_get_temp_dir(), 'mdl_gradeexport_');
         try {
             $tp->saveAs($tmp);
@@ -110,27 +98,14 @@ class docx_exporter {
 
     // ── content-return (API) methods ──────────────────────────────────────
 
-    /**
-     * Generate a plain table DOCX and return raw bytes.
-     *
-     * @param  array  $data  2-D array; first row = headers
-     * @return string        Raw DOCX bytes
-     */
-    public static function get_table_content(array $data): string {
+    public static function get_table_content(array $data): string
+    {
         if (!self::is_available()) {
             throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
         }
         return self::phpword_to_string(self::build_table_document($data));
     }
 
-    /**
-     * Fill a course grade DOCX template and return raw bytes.
-     *
-     * @param  string $templatePath  Absolute path to .docx template
-     * @param  array  $variables     Scalar ${key} replacements
-     * @param  array  $tableData     Export data with 'rows_kv' key
-     * @return string                Raw DOCX bytes
-     */
     public static function get_course_template_content(
         string $templatePath,
         array  $variables,
@@ -143,12 +118,9 @@ class docx_exporter {
             throw new \moodle_exception('templatenotfound', 'local_customgradeexport', '', $templatePath);
         }
 
-        $tp = new TemplateProcessor($templatePath);
+        $tp = new fixed_template_processor($templatePath);
 
-        foreach ($variables as $key => $value) {
-            $tp->setValue($key, (string) $value);
-        }
-
+        // Clone rows FIRST before scalar replacements
         if (!empty($tableData['rows_kv'])) {
             $rows = array_map(
                 static fn(array $row) => array_map(
@@ -160,12 +132,18 @@ class docx_exporter {
             $tp->cloneRowAndSetValues('stt', $rows);
         }
 
+        // Scalar variable replacements AFTER cloneRow
+        foreach ($variables as $key => $value) {
+            $tp->setValue($key, (string) $value);
+        }
+
         return self::template_processor_to_string($tp);
     }
 
-    // ── streaming (browser) methods — unchanged ───────────────────────────
+    // ── streaming (browser) methods ───────────────────────────────────────
 
-    public static function export_table(array $data, string $filename): void {
+    public static function export_table(array $data, string $filename): void
+    {
         if (!self::is_available()) {
             throw new \moodle_exception('phpwordnotinstalled', 'local_customgradeexport');
         }
@@ -193,12 +171,9 @@ class docx_exporter {
             throw new \moodle_exception('templatenotfound', 'local_customgradeexport', '', $templatePath);
         }
 
-        $tp = new TemplateProcessor($templatePath);
+        $tp = new fixed_template_processor($templatePath);
 
-        foreach ($variables as $key => $value) {
-            $tp->setValue($key, (string) $value);
-        }
-
+        // Clone rows FIRST before scalar replacements
         if (!empty($tableData['rows_kv'])) {
             $rows = array_map(
                 static fn(array $row) => array_map(
@@ -208,6 +183,11 @@ class docx_exporter {
                 $tableData['rows_kv']
             );
             $tp->cloneRowAndSetValues('stt', $rows);
+        }
+
+        // Scalar variable replacements AFTER cloneRow
+        foreach ($variables as $key => $value) {
+            $tp->setValue($key, (string) $value);
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -224,7 +204,6 @@ class docx_exporter {
         array  $tableData,
         string $filename
     ): void {
-        // Delegate to the shared implementation, then stream
         $content = self::get_course_template_content($templatePath, $variables, $tableData);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
