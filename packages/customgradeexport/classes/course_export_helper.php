@@ -15,7 +15,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/excellib.class.php');
 
-class course_export_helper {
+class course_export_helper
+{
 
     protected $course;
     protected $context;
@@ -24,7 +25,8 @@ class course_export_helper {
     const EXAM_TYPE_1T  = '1T';
     const EXAM_TYPE_THI = 'Thi';
 
-    public function __construct($course) {
+    public function __construct($course)
+    {
         $this->course  = $course;
         $this->context = \context_course::instance($course->id);
     }
@@ -42,15 +44,21 @@ class course_export_helper {
      * @param  string|null $templatePath  Absolute path to .docx template, or null
      * @return array  {content: string, filename: string, mimetype: string}
      */
-    public function get_export_bytes(?string $templatePath): array {
+    public function get_export_bytes(?string $templatePath): array
+    {
         $data = $this->prepare_export_data();
+        $category = \core_course_category::get($this->course->category);
 
-        $variables = [
-            'coursename'      => $this->course->fullname,
-            'courseshortname' => $this->course->shortname,
-            'exportdate'      => userdate(time(), '%d/%m/%Y'),
-            'exporttime'      => userdate(time(), '%H:%M:%S'),
-        ];
+        $variables = array_merge(
+            [
+                'coursename'      => $this->course->fullname,
+                'classname'       => $category->idnumber,
+                'courseshortname' => $this->course->shortname,
+                'exportdate'      => userdate(time(), '%d/%m/%Y'),
+                'exporttime'      => userdate(time(), '%H:%M:%S'),
+            ],
+            $data['stats']
+        );
 
         if ($templatePath !== null && file_exists($templatePath)) {
             $ext = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
@@ -68,7 +76,6 @@ class course_export_helper {
                 ];
             }
             // For xlsx templates, fall through to default DOCX
-            // (PHPExcel/PhpSpreadsheet template support is optional)
         }
 
         // Default: generate a simple table DOCX without a template
@@ -83,10 +90,11 @@ class course_export_helper {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // BROWSER-STREAMING METHODS (unchanged from original)
+    // BROWSER-STREAMING METHODS
     // ────────────────────────────────────────────────────────────────────────
 
-    public function export_grades($templatePath = null) {
+    public function export_grades($templatePath = null)
+    {
         require_capability('moodle/grade:viewall', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
@@ -110,7 +118,8 @@ class course_export_helper {
         }
     }
 
-    public function export_grades_excel($templatePath = null) {
+    public function export_grades_excel($templatePath = null)
+    {
         require_capability('moodle/grade:viewall', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
@@ -128,7 +137,8 @@ class course_export_helper {
         }
     }
 
-    public function export_grades_docx($templatePath = null) {
+    public function export_grades_docx($templatePath = null)
+    {
         require_capability('moodle/grade:viewall', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
@@ -149,30 +159,46 @@ class course_export_helper {
     // PROTECTED HELPERS
     // ────────────────────────────────────────────────────────────────────────
 
-    protected function export_with_excel_template(array $data, string $templatePath, string $filename): void {
-        $variables = [
-            'coursename'      => $this->course->fullname,
-            'courseshortname' => $this->course->shortname,
-            'exportdate'      => userdate(time(), '%d/%m/%Y'),
-            'exporttime'      => userdate(time(), '%H:%M:%S'),
-        ];
+    /**
+     * Build the $variables array including classname and all classification stats.
+     */
+    protected function build_variables(array $data): array
+    {
+        return array_merge(
+            [
+                'coursename'      => $this->course->fullname,
+                'classname'       => $this->course->shortname,
+                'courseshortname' => $this->course->shortname,
+                'exportdate'      => userdate(time(), '%d/%m/%Y'),
+                'exporttime'      => userdate(time(), '%H:%M:%S'),
+            ],
+            $data['stats']
+        );
+    }
+
+    protected function export_with_excel_template(array $data, string $templatePath, string $filename): void
+    {
+        $variables = $this->build_variables($data);
         excel_template_processor::export_from_template($templatePath, $variables, $data, $filename);
     }
 
-    protected function export_with_docx_template(array $data, string $templatePath, string $filename): void {
-        $variables = [
-            'coursename'      => $this->course->fullname,
-            'courseshortname' => $this->course->shortname,
-            'exportdate'      => userdate(time(), '%d/%m/%Y'),
-            'exporttime'      => userdate(time(), '%H:%M:%S'),
-        ];
+    protected function export_with_docx_template(array $data, string $templatePath, string $filename): void
+    {
+        $variables = $this->build_variables($data);
         docx_exporter::export_course_template($templatePath, $variables, $data, $filename);
     }
 
     /**
      * Core data-preparation logic shared by both streaming and API paths.
+     *
+     * Returns an array with keys:
+     *   'headers'  => string[]       — column header labels
+     *   'rows'     => array[]        — numeric rows for Excel
+     *   'rows_kv'  => array[]        — associative rows for DOCX template cloning
+     *   'stats'    => array          — classification counts/percentages + total
      */
-    protected function prepare_export_data(): array {
+    protected function prepare_export_data(): array
+    {
         $gradeItems = $this->get_grade_items_by_exam_type();
         $headers    = $this->build_headers($gradeItems);
         $rows       = [];
@@ -186,6 +212,7 @@ class course_export_helper {
             $gradesThi = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_THI]);
 
             $tkmh    = $this->calculate_tkmh($grades15P, $grades1T, $gradesThi);
+            $tkmh = $tkmh !== null ? round($tkmh, 1) : null;
             $xepLoai = $this->get_classification($tkmh);
 
             // Numeric row (Excel)
@@ -198,7 +225,7 @@ class course_export_helper {
             }
             $row[] = isset($gradesThi[0]) ? round($gradesThi[0], 1) : '';
             $row[] = isset($gradesThi[1]) ? round($gradesThi[1], 1) : '';
-            $row[] = $tkmh !== null ? round($tkmh, 1) : '';
+            $row[] = $tkmh !== null ? $tkmh : '';
             $row[] = $xepLoai;
             $row[] = '';
             $rows[] = $row;
@@ -210,7 +237,7 @@ class course_export_helper {
                 'firstname' => $student->firstname,
                 'lastname'  => $student->lastname,
                 'idnumber'  => $student->idnumber ?: '',
-                'tkmh'      => $tkmh !== null ? round($tkmh, 1) : '',
+                'tkmh'      => $tkmh !== null ? $tkmh : '',
                 'xep_loai'  => $xepLoai,
                 'ghi_chu'   => '',
             ];
@@ -227,10 +254,69 @@ class course_export_helper {
             $rowNum++;
         }
 
-        return ['headers' => $headers, 'rows' => $rows, 'rows_kv' => $rows_kv];
+        // ── Classification statistics ────────────────────────────────────
+        // Counts based on the final tkmh value of each student.
+        // Thresholds:
+        //   XS (Xuất sắc) : tkmh >= 9
+        //   G  (Giỏi)     : 8  <= tkmh < 9
+        //   Khá           : 7  <= tkmh < 8
+        //   Đạt           : 5  <= tkmh < 7
+        //   Không đạt     : tkmh < 5
+        $counts = [
+            'xuat_sac'  => 0,
+            'gioi'      => 0,
+            'kha'       => 0,
+            'dat'       => 0,
+            'khong_dat' => 0,
+        ];
+        $totalWithGrade = 0;
+
+        foreach ($rows_kv as $kv) {
+            $raw = $kv['tkmh'];
+            if ($raw === '' || $raw === null) {
+                continue;
+            }
+            $t = (float) $raw;
+            $totalWithGrade++;
+            if ($t >= 9)      $counts['xuat_sac']++;
+            if ($t >= 8)  $counts['gioi']++;
+            if ($t >= 7)  $counts['kha']++;
+            if ($t >= 5)  $counts['dat']++;
+            if ($t < 5) $counts['khong_dat']++;
+        }
+
+        // Format percentage: one decimal place, no trailing zero (e.g. 33.3 or 100)
+        $pct = static function (int $count) use ($totalWithGrade): string {
+            if ($totalWithGrade === 0) {
+                return '0';
+            }
+            $p = round($count / $totalWithGrade * 100, 1);
+            // Strip unnecessary trailing ".0"
+            return rtrim(rtrim(number_format($p, 1, '.', ''), '0'), '.');
+        };
+
+        $stats = [
+            // Counts
+            'xuat_sac_count'  => $counts['xuat_sac'],
+            'gioi_count'      => $counts['gioi'],
+            'kha_count'       => $counts['kha'],
+            'dat_count'       => $counts['dat'],
+            'khong_dat_count' => $counts['khong_dat'],
+            // Percentages
+            'xuat_sac_pct'    => $pct($counts['xuat_sac']),
+            'gioi_pct'        => $pct($counts['gioi']),
+            'kha_pct'         => $pct($counts['kha']),
+            'dat_pct'         => $pct($counts['dat']),
+            'khong_dat_pct'   => $pct($counts['khong_dat']),
+            // Total
+            'total_students'  => $totalWithGrade,
+        ];
+
+        return ['headers' => $headers, 'rows' => $rows, 'rows_kv' => $rows_kv, 'stats' => $stats];
     }
 
-    protected function get_grade_items_by_exam_type(): array {
+    protected function get_grade_items_by_exam_type(): array
+    {
         global $DB;
 
         $result = [
@@ -252,7 +338,9 @@ class course_export_helper {
         foreach ($items as $item) {
             if ($item->iteminstance) {
                 $cm = get_coursemodule_from_instance(
-                    $item->itemmodule, $item->iteminstance, $item->courseid
+                    $item->itemmodule,
+                    $item->iteminstance,
+                    $item->courseid
                 );
                 if ($cm) {
                     $cmids[]        = $cm->id;
@@ -278,7 +366,8 @@ class course_export_helper {
         return $result;
     }
 
-    protected function get_custom_field_data(array $cmids): array {
+    protected function get_custom_field_data(array $cmids): array
+    {
         global $DB;
 
         if (empty($cmids)) {
@@ -311,7 +400,8 @@ class course_export_helper {
         return $result;
     }
 
-    protected function decode_custom_field_value($record): ?string {
+    protected function decode_custom_field_value($record): ?string
+    {
         if ($record->type === 'select') {
             $configdata = json_decode($record->configdata);
             if (isset($configdata->options)) {
@@ -330,7 +420,8 @@ class course_export_helper {
         return $record->value ?? null;
     }
 
-    protected function parse_examtype_from_name(string $itemname): string {
+    protected function parse_examtype_from_name(string $itemname): string
+    {
         $lower = strtolower($itemname);
         if (strpos($lower, '15p') !== false || strpos($lower, 'thường xuyên') !== false) {
             return self::EXAM_TYPE_15P;
@@ -344,7 +435,8 @@ class course_export_helper {
         return '';
     }
 
-    protected function build_headers(array $gradeItems): array {
+    protected function build_headers(array $gradeItems): array
+    {
         $headers = ['TT', 'Họ và tên', 'Mã số'];
 
         for ($i = 1; $i <= max(3, count($gradeItems[self::EXAM_TYPE_15P])); $i++) {
@@ -362,7 +454,8 @@ class course_export_helper {
         return $headers;
     }
 
-    protected function get_enrolled_students(): array {
+    protected function get_enrolled_students(): array
+    {
         global $DB;
 
         $context       = \context_course::instance($this->course->id);
@@ -395,7 +488,8 @@ class course_export_helper {
         );
     }
 
-    protected function get_student_grades(int $userid, array $items): array {
+    protected function get_student_grades(int $userid, array $items): array
+    {
         global $DB;
         $grades = [];
         foreach ($items as $item) {
@@ -407,7 +501,8 @@ class course_export_helper {
         return $grades;
     }
 
-    protected function calculate_tkmh(array $g15P, array $g1T, array $gThi): ?float {
+    protected function calculate_tkmh(array $g15P, array $g1T, array $gThi): ?float
+    {
         $avg15P = !empty($g15P) ? array_sum($g15P) / count($g15P) : 0;
         $avg1T  = !empty($g1T)  ? array_sum($g1T)  / count($g1T)  : 0;
         $avgThi = !empty($gThi) ? array_sum($gThi) / count($gThi) : 0;
@@ -415,7 +510,18 @@ class course_export_helper {
         return (($avg15P + $avg1T * 2) / 3) * 0.4 + $avgThi * 0.6;
     }
 
-    protected function get_classification(?float $tkmh): string {
+    /**
+     * Returns the display label for a given TKMH score.
+     *
+     * Thresholds match the classification stats computed in prepare_export_data():
+     *   >= 9  → XS
+     *   >= 8  → G
+     *   >= 7  → Khá
+     *   >= 5  → Đạt   (previously "TB")
+     *   < 5   → Không đạt  (previously "Yếu")
+     */
+    protected function get_classification(?float $tkmh): string
+    {
         if ($tkmh === null) return '';
         if ($tkmh >= 9)  return 'XS';
         if ($tkmh >= 8)  return 'G';
@@ -424,7 +530,8 @@ class course_export_helper {
         return 'Yếu';
     }
 
-    protected function send_excel_download(array $data, string $filename): void {
+    protected function send_excel_download(array $data, string $filename): void
+    {
         $workbook  = new \MoodleExcelWorkbook('-');
         $workbook->send($filename);
         $worksheet = $workbook->add_worksheet('Grades');
