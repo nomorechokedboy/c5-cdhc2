@@ -85,3 +85,70 @@ $string['downloadexampletemplate'] = 'Download an example template to get starte
 $string['downloadexample'] = 'Download Example';
 $string['managetemplates'] = 'Manage Templates';
 $string['selecttemplate'] = 'Select Template';
+
+// Migration UI
+$string['migration_status']        = 'S3 Migration Status';
+$string['migrate_all']             = 'Queue {$a} local template(s) for migration';
+$string['migration_queued']        = '{$a} template(s) queued for migration. The scheduled task will process them within a minute.';
+$string['migration_retried']       = '{$a} template(s) re-queued for migration.';
+$string['migration_retry_queued']  = 'Template re-queued for migration.';
+$string['migration_retry_failed']  = 'Could not re-queue template.';
+$string['migration_problems']      = 'Migration Problems';
+$string['retry_all_failed']        = 'Retry all failed';
+$string['retry']                   = 'Retry';
+$string['cleanup_local']           = 'Delete local copies for {$a} migrated template(s)';
+$string['cleanup_result']          = 'Cleanup complete: {$a->ok} deleted, {$a->failed} failed (local file could not be removed).';
+
+// Status badges
+$string['status']                  = 'Status';
+$string['status_local']            = 'Local';
+$string['status_migrating']        = 'Migrating';
+$string['status_migration_failed'] = 'Failed';
+$string['status_migrated']         = 'Migrated';
+$string['status_s3']               = 'S3';
+$string['status_stuck']            = 'Stuck';
+
+// Problem labels
+$string['problem']                 = 'Problem';
+$string['problem_failed']          = 'S3 upload failed';
+$string['problem_stuck']           = 'Stuck in migrating state';
+
+// S3 settings
+$string['s3_heading']              = 'S3 / MinIO Storage';
+$string['s3_heading_desc']         = 'Templates are stored in an S3-compatible object store. Configure the connection below.';
+$string['s3_endpoint']             = 'Endpoint URL';
+$string['s3_endpoint_desc']        = 'Full URL including scheme and port, e.g. <code>http://minio-service:9000</code>';
+$string['s3_bucket']               = 'Bucket name';
+$string['s3_bucket_desc']          = 'The bucket must already exist and be writable by the access key.';
+$string['s3_region']               = 'Region';
+$string['s3_region_desc']          = 'AWS region, or <code>us-east-1</code> for MinIO.';
+$string['s3_access_key']           = 'Access key ID';
+$string['s3_secret_key']           = 'Secret access key';
+$string['s3_path_style']           = 'Use path-style access';
+$string['s3_path_style_desc']      = 'Required for MinIO and most self-hosted endpoints.';
+$string['s3notconfigured']         = 'S3 storage is not configured. Templates will be stored on local disk until S3 is configured and migration is run.';
+$string['s3notconfigured_warn']    = 'S3 storage is not fully configured. <a href="{$a}">Configure it here</a>. Templates are currently stored on local disk.';
+
+// Template edit / download
+$string['templateupdated']         = 'Template updated successfully.';
+$string['templateupdatefailed']    = 'Failed to update the template.';
+$string['replacefile']             = 'Replace file (optional)';
+$string['replacefilehelp']         = 'Leave empty to keep the current file and only update the name.';
+$string['download']                = 'Download';
+$string['templatenotavailable']    = 'This template is currently being migrated and is not available for download. Please try again in a moment.';
+
+// Task
+$string['task_migrate_templates']  = 'Migrate templates to S3';
+
+// Types
+$string['type']                    = 'Type';
+
+$string['s3test_heading']          = 'Test connection';
+$string['s3test_button']           = 'Test S3 connection';
+$string['s3test_testing']          = 'Testing…';
+$string['s3test_not_configured']   = 'S3 credentials are incomplete. Please fill in all fields above and save before testing.';
+$string['s3test_put_failed']       = 'PUT failed — check endpoint URL, bucket name, and access key permissions.';
+$string['s3test_get_failed']       = 'GET failed — object was uploaded but could not be read back. Check bucket policy.';
+$string['s3test_content_mismatch'] = 'Content mismatch — object was stored and retrieved but the content did not match. This may indicate a proxy is modifying responses.';
+$string['s3test_delete_warning']   = 'Connection OK, but the test object could not be deleted. Check that the access key has s3:DeleteObject permission.';
+$string['s3test_ok']               = 'Connection successful — PUT, GET and DELETE all passed.';

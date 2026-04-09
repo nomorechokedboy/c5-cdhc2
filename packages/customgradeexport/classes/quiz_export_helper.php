@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Quiz export helper class
  *
@@ -24,7 +25,8 @@ if (!defined('QUIZ_GRADEHIGHEST')) {
     define('QUIZ_ATTEMPTLAST',   4);
 }
 
-class quiz_export_helper {
+class quiz_export_helper
+{
 
     /** @var \stdClass Quiz record */
     protected $quiz;
@@ -38,7 +40,8 @@ class quiz_export_helper {
     /** @var \context_module Context */
     protected $context;
 
-    public function __construct($quiz, $cm, $course) {
+    public function __construct($quiz, $cm, $course)
+    {
         $this->quiz    = $quiz;
         $this->cm      = $cm;
         $this->course  = $course;
@@ -47,7 +50,8 @@ class quiz_export_helper {
 
     // ── public export methods (unchanged signatures) ──────────────────────
 
-    public function export_grades($templatePath = null): void {
+    public function export_grades($templatePath = null): void
+    {
         require_capability('mod/quiz:viewreports', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
@@ -62,11 +66,13 @@ class quiz_export_helper {
         }
     }
 
-    public function export_grades_excel($templatePath): void {
+    public function export_grades_excel($templatePath): void
+    {
         $this->export_grades($templatePath);
     }
 
-    public function export_grades_docx($templatePath = null): void {
+    public function export_grades_docx($templatePath = null): void
+    {
         require_capability('mod/quiz:viewreports', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
@@ -99,7 +105,8 @@ class quiz_export_helper {
      * @return array  Keyed by userid; each value is a \stdClass attempt row
      *                augmented with a `computed_grade` float|null field.
      */
-    protected function get_best_attempt_per_student(): array {
+    protected function get_best_attempt_per_student(): array
+    {
         global $DB;
 
         // ── 1. All finished attempts for this quiz ────────────────────────
@@ -208,7 +215,8 @@ class quiz_export_helper {
      * Rescale raw sumgrades to the quiz's configured grade scale.
      * Returns null if sumgrades is null or quiz.grade is 0.
      */
-    protected function rescale(?float $sumgrades): ?float {
+    protected function rescale(?float $sumgrades): ?float
+    {
         if ($sumgrades === null || (float) $this->quiz->grade === 0.0) {
             return null;
         }
@@ -221,13 +229,17 @@ class quiz_export_helper {
      *
      * @return \stdClass[]  Keyed by userid
      */
-    protected function get_enrolled_student_stubs(): array {
+    protected function get_enrolled_student_stubs(): array
+    {
         global $DB;
 
         $context        = $this->context;
         $courseContext  = \context_course::instance($this->course->id);
         $studentRoleIds = $DB->get_fieldset_select(
-            'role', 'id', 'archetype = :arch', ['arch' => 'student']
+            'role',
+            'id',
+            'archetype = :arch',
+            ['arch' => 'student']
         );
 
         if (empty($studentRoleIds)) {
@@ -235,7 +247,9 @@ class quiz_export_helper {
         }
 
         list($rolesql, $roleparams) = $DB->get_in_or_equal(
-            $studentRoleIds, SQL_PARAMS_NAMED, 'rid'
+            $studentRoleIds,
+            SQL_PARAMS_NAMED,
+            'rid'
         );
 
         $sql = "
@@ -289,7 +303,8 @@ class quiz_export_helper {
 
     // ── data preparation (one row per student) ────────────────────────────
 
-    protected function prepare_export_data(): array {
+    protected function prepare_export_data(): array
+    {
         $headers = [
             'TT',
             'Họ',
@@ -382,7 +397,8 @@ class quiz_export_helper {
      *
      * @return int[]  keyed by userid
      */
-    protected function count_attempts_per_student(): array {
+    protected function count_attempts_per_student(): array
+    {
         global $DB;
 
         $sql = "
@@ -402,9 +418,12 @@ class quiz_export_helper {
 
     // ── template / streaming helpers (unchanged) ──────────────────────────
 
-    protected function export_with_excel_template(array $data, string $templatePath): void {
+    protected function export_with_excel_template(array $data, string $templatePath): void
+    {
+        $category = \core_course_category::get($this->course->category);
         $variables = [
             'coursename'   => $this->course->fullname,
+            'classname'    => $category->idnumber,
             'activityname' => $this->quiz->name,
             'exportdate'   => userdate(time(), '%d/%m/%Y'),
             'exporttime'   => userdate(time(), '%H:%M:%S'),
@@ -413,7 +432,10 @@ class quiz_export_helper {
             $this->course->shortname . '_' . $this->quiz->name . '_grades.xlsx'
         );
         excel_template_processor::export_from_template(
-            $templatePath, $variables, $data, $filename
+            $templatePath,
+            $variables,
+            $data,
+            $filename
         );
     }
 
@@ -422,16 +444,19 @@ class quiz_export_helper {
         string $templatePath,
         string $filename
     ): void {
+        $category = \core_course_category::get($this->course->category);
         $variables = [
             'coursename'   => $this->course->fullname,
+            'classname'    => $category->idnumber,
             'activityname' => $this->quiz->name,
-            'exportdate'   => date('d-m-Y'),
-            'exporttime'   => date('H:i:s'),
+            'exportdate'   => userdate(time(), '%d/%m/%Y'),
+            'exporttime'   => userdate(time(), '%H:%M:%S'),
         ];
         docx_exporter::export_from_template($templatePath, $variables, $data, $filename);
     }
 
-    protected function get_state_display(string $state): string {
+    protected function get_state_display(string $state): string
+    {
         $map = [
             'inprogress' => 'Đang làm',
             'overdue'    => 'Quá hạn',
@@ -441,7 +466,8 @@ class quiz_export_helper {
         return $map[$state] ?? $state;
     }
 
-    protected function send_excel_download(array $data): void {
+    protected function send_excel_download(array $data): void
+    {
         $filename  = clean_filename(
             $this->course->shortname . '_' . $this->quiz->name . '_grades.xls'
         );

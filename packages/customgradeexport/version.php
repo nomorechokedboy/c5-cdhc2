@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin version
  *
@@ -10,7 +11,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_customgradeexport';
-$plugin->version   = 2026040200;   // Added webservice API for SMS integration
+$plugin->version   = 2026040202;   // S3 migration via scheduled task + status field
 $plugin->requires  = 2024042200;   // Moodle 5.0+
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.1.0';
+$plugin->release   = '1.2.0';

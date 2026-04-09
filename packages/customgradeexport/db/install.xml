@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/customgradeexport/db" VERSION="20241213" COMMENT="XMLDB file for Custom Grade Export plugin"
+<XMLDB PATH="local/customgradeexport/db" VERSION="20260402" COMMENT="XMLDB file for Custom Grade Export plugin"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="local_customgradeexport_tpl" COMMENT="Template metadata for multiple templates">
+    <TABLE NAME="local_customgradeexport_tpl" COMMENT="Template metadata — files stored locally or in S3">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Template type: quiz, assign, or course"/>
-        <FIELD NAME="templateid" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Unique template identifier"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="User-friendly template name"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="id"                TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="true"/>
+        <FIELD NAME="type"              TYPE="char" LENGTH="20"  NOTNULL="true"  SEQUENCE="false" COMMENT="Template type: quiz | assign | course"/>
+        <FIELD NAME="templateid"        TYPE="char" LENGTH="100" NOTNULL="true"  SEQUENCE="false" COMMENT="Unique slug"/>
+        <FIELD NAME="name"              TYPE="char" LENGTH="255" NOTNULL="true"  SEQUENCE="false" COMMENT="Human-readable display name"/>
+        <FIELD NAME="s3key"             TYPE="char" LENGTH="500" NOTNULL="true"  DEFAULT=""       COMMENT="S3 object key — populated once upload succeeds"/>
+        <FIELD NAME="ext"               TYPE="char" LENGTH="10"  NOTNULL="true"  DEFAULT=""       COMMENT="File extension: docx | xlsx | xls"/>
+        <FIELD NAME="filesize"          TYPE="int"  LENGTH="10"  NOTNULL="true"  DEFAULT="0"      COMMENT="File size in bytes"/>
+        <FIELD NAME="status"            TYPE="char" LENGTH="20"  NOTNULL="true"  DEFAULT="local"  COMMENT="local | migrating | migration_failed | migrated | s3"/>
+        <FIELD NAME="migration_started" TYPE="int"  LENGTH="10"  NOTNULL="false"                  COMMENT="Unix timestamp when status was last set to migrating"/>
+        <FIELD NAME="timecreated"       TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false"/>
+        <FIELD NAME="timemodified"      TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="type_templateid" UNIQUE="true" FIELDS="type, templateid"/>
+        <INDEX NAME="type_templateid" UNIQUE="true"  FIELDS="type, templateid"/>
+        <INDEX NAME="status"          UNIQUE="false" FIELDS="status"/>
       </INDEXES>
     </TABLE>
   </TABLES>
