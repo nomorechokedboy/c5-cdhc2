@@ -85,3 +85,62 @@ $string['downloadexampletemplate'] = 'Tải xuống mẫu ví dụ để bắt �
 $string['downloadexample'] = 'Tải mẫu ví dụ';
 $string['managetemplates'] = 'Quản lý mẫu';
 $string['selecttemplate'] = 'Chọn mẫu';
+
+$string['migration_status']        = 'Trạng thái di chuyển lên S3';
+$string['migrate_all']             = 'Xếp hàng {$a} mẫu để di chuyển';
+$string['migration_queued']        = 'Đã xếp hàng {$a} mẫu. Tác vụ nền sẽ xử lý trong vòng một phút.';
+$string['migration_retried']       = 'Đã xếp lại hàng {$a} mẫu để thử lại.';
+$string['migration_retry_queued']  = 'Mẫu đã được xếp lại hàng để thử lại.';
+$string['migration_retry_failed']  = 'Không thể xếp lại hàng mẫu.';
+$string['migration_problems']      = 'Lỗi di chuyển';
+$string['retry_all_failed']        = 'Thử lại tất cả mẫu lỗi';
+$string['retry']                   = 'Thử lại';
+$string['cleanup_local']           = 'Xoá bản sao cục bộ của {$a} mẫu đã di chuyển';
+$string['cleanup_result']          = 'Dọn dẹp hoàn tất: {$a->ok} đã xoá, {$a->failed} thất bại (không thể xoá tệp cục bộ).';
+
+$string['status']                  = 'Trạng thái';
+$string['status_local']            = 'Cục bộ';
+$string['status_migrating']        = 'Đang di chuyển';
+$string['status_migration_failed'] = 'Thất bại';
+$string['status_migrated']         = 'Đã di chuyển';
+$string['status_s3']               = 'S3';
+$string['status_stuck']            = 'Bị kẹt';
+
+$string['problem']                 = 'Vấn đề';
+$string['problem_failed']          = 'Tải lên S3 thất bại';
+$string['problem_stuck']           = 'Bị kẹt ở trạng thái đang di chuyển';
+
+$string['s3_heading']              = 'Lưu trữ S3 / MinIO';
+$string['s3_heading_desc']         = 'Mẫu được lưu trong kho S3. Cấu hình kết nối bên dưới.';
+$string['s3_endpoint']             = 'URL Endpoint';
+$string['s3_endpoint_desc']        = 'URL đầy đủ bao gồm giao thức và cổng, ví dụ: <code>http://minio-service:9000</code>';
+$string['s3_bucket']               = 'Tên bucket';
+$string['s3_bucket_desc']          = 'Bucket phải tồn tại và có quyền ghi với access key.';
+$string['s3_region']               = 'Region';
+$string['s3_region_desc']          = 'Region AWS, hoặc <code>us-east-1</code> cho MinIO.';
+$string['s3_access_key']           = 'Access key ID';
+$string['s3_secret_key']           = 'Secret access key';
+$string['s3_path_style']           = 'Sử dụng path-style access';
+$string['s3_path_style_desc']      = 'Bắt buộc với MinIO và hầu hết các endpoint tự triển khai.';
+$string['s3notconfigured']         = 'Chưa cấu hình S3. Mẫu sẽ lưu trên ổ đĩa cục bộ cho đến khi cấu hình S3 và chạy di chuyển.';
+$string['s3notconfigured_warn']    = 'Cấu hình S3 chưa đầy đủ. <a href="{$a}">Cấu hình tại đây</a>. Mẫu hiện đang lưu cục bộ.';
+
+$string['templateupdated']         = 'Cập nhật mẫu thành công.';
+$string['templateupdatefailed']    = 'Cập nhật mẫu thất bại.';
+$string['replacefile']             = 'Thay thế tệp (tuỳ chọn)';
+$string['replacefilehelp']         = 'Để trống nếu chỉ muốn cập nhật tên.';
+$string['download']                = 'Tải xuống';
+$string['templatenotavailable']    = 'Mẫu đang được di chuyển, vui lòng thử lại sau.';
+
+$string['task_migrate_templates']  = 'Di chuyển mẫu lên S3';
+$string['type']                    = 'Loại';
+
+$string['s3test_heading']          = 'Kiểm tra kết nối';
+$string['s3test_button']           = 'Kiểm tra kết nối S3';
+$string['s3test_testing']          = 'Đang kiểm tra…';
+$string['s3test_not_configured']   = 'Thông tin xác thực S3 chưa đầy đủ. Vui lòng điền tất cả các trường và lưu trước khi kiểm tra.';
+$string['s3test_put_failed']       = 'PUT thất bại — kiểm tra URL endpoint, tên bucket và quyền của access key.';
+$string['s3test_get_failed']       = 'GET thất bại — đối tượng đã được tải lên nhưng không đọc lại được. Kiểm tra chính sách bucket.';
+$string['s3test_content_mismatch'] = 'Nội dung không khớp — đối tượng đã lưu và lấy lại nhưng nội dung không trùng. Có thể proxy đang thay đổi phản hồi.';
+$string['s3test_delete_warning']   = 'Kết nối OK, nhưng không xoá được đối tượng thử nghiệm. Kiểm tra quyền s3:DeleteObject của access key.';
+$string['s3test_ok']               = 'Kết nối thành công — PUT, GET và DELETE đều hoạt động.';
