@@ -124,11 +124,13 @@ class assign_export_helper
     protected function export_with_excel_template($data, $templatePath)
     {
         // Prepare variables for template
+        $category = \core_course_category::get($this->course->category);
         $variables = [
-            'coursename' => $this->course->fullname,
+            'coursename'   => $this->course->fullname,
+            'classname'    => $category->idnumber,
             'activityname' => $this->assignment->name,
-            'exportdate' => userdate(time(), '%d/%m/%Y'),
-            'exporttime' => userdate(time(), '%H:%M:%S'),
+            'exportdate'   => userdate(time(), '%d/%m/%Y'),
+            'exporttime'   => userdate(time(), '%H:%M:%S'),
         ];
 
         $filename = clean_filename($this->course->shortname . '_' .
@@ -148,11 +150,13 @@ class assign_export_helper
     protected function export_with_template($data, $templatePath, $filename)
     {
         // Prepare variables for template
+        $category = \core_course_category::get($this->course->category);
         $variables = [
-            'coursename' => $this->course->fullname,
+            'coursename'   => $this->course->fullname,
+            'classname'    => $category->idnumber,
             'activityname' => $this->assignment->name,
-            'exportdate' => date('d-m-Y'),
-            'exporttime' => date('H:i:s'),
+            'exportdate'   => userdate(time(), '%d/%m/%Y'),
+            'exporttime'   => userdate(time(), '%H:%M:%S'),
         ];
 
         // Export
