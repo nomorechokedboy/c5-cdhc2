@@ -1,0 +1,4 @@
+Câu 1 (3 điểm): So sánh mô hình OSI và TCP/IP (số tầng, vai trò).
+Câu 2 (3 điểm): IP và MAC address khác nhau ở đâu? ARP dùng để làm gì?
+Câu 3 (2 điểm): TCP đảm bảo tin cậy bằng những cơ chế nào?
+Câu 4 (2 điểm): Phân biệt switch lớp 2 và router.
