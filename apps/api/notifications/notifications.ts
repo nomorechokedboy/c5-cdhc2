@@ -1,4 +1,5 @@
 import { api } from 'encore.dev/api'
+import { getAuthData } from '~encore/auth'
 import notificationController from './controller'
 import log from 'encore.dev/log'
 import { Subscription } from 'encore.dev/pubsub'
@@ -26,7 +27,11 @@ interface NotificationResponse {
 	createdAt: string
 	readAt: string
 
-	notificationType: 'birthday' | 'officialCpv'
+	notificationType:
+		| 'birthday'
+		| 'officialCpv'
+		| 'assetProposal'
+		| 'examWorkflow'
 	title: string
 	message: string
 
@@ -42,16 +47,20 @@ interface GetNotificationsResponse {
 }
 
 export const GetNotifications = api(
-	{ expose: true, method: 'GET', path: '/notifications' },
+	{ auth: true, expose: true, method: 'GET', path: '/notifications' },
 	async (q: GetNotificationsQuery): Promise<GetNotificationsResponse> => {
-		const resp = await notificationController.find(q).then((data) =>
-			data.map(
-				(n) =>
-					({
-						...n
-					}) as NotificationResponse
+		const auth = getAuthData()
+		const recipientId = auth?.userID ? Number(auth.userID) : undefined
+		const resp = await notificationController
+			.find({ ...q, recipientId })
+			.then((data) =>
+				data.map(
+					(n) =>
+						({
+							...n
+						}) as NotificationResponse
+				)
 			)
-		)
 
 		return { data: resp }
 	}
@@ -62,9 +71,30 @@ interface MarkAsReadRequest {
 }
 
 export const MarkAsRead = api(
-	{ expose: true, method: 'PATCH', path: '/notifications/mark-as-read' },
+	{
+		auth: true,
+		expose: true,
+		method: 'PATCH',
+		path: '/notifications/mark-as-read'
+	},
 	async ({ ids }: MarkAsReadRequest) => {
 		await notificationController.markAsRead(ids)
+
+		return {}
+	}
+)
+
+export const MarkAllAsRead = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'PATCH',
+		path: '/notifications/mark-all-as-read'
+	},
+	async () => {
+		const auth = getAuthData()
+		const recipientId = auth?.userID ? Number(auth.userID) : undefined
+		await notificationController.markAllAsRead(recipientId)
 
 		return {}
 	}
@@ -75,9 +105,11 @@ interface GetUnreadCountResponse {
 }
 
 export const GetUnreadCount = api(
-	{ expose: true, method: 'GET', path: '/notifications/unread' },
+	{ auth: true, expose: true, method: 'GET', path: '/notifications/unread' },
 	async (): Promise<GetUnreadCountResponse> => {
-		const count = await notificationController.getUnreadCount()
+		const auth = getAuthData()
+		const recipientId = auth?.userID ? Number(auth.userID) : undefined
+		const count = await notificationController.getUnreadCount(recipientId)
 
 		return { data: { count } }
 	}

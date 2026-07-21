@@ -33,12 +33,12 @@ function RouteComponent() {
 							className='w-35 h-35 drop-shadow-md animate-fadeInUp'
 						/>
 						<h1 className='text-4xl font-extrabold text-gray-800 animate-fadeInUp delay-100'>
-							Hệ thống Quản lý Học viên
+							Hệ thống quản lý đào tạo
 						</h1>
 						<p className='text-gray-600 max-w-2xl animate-fadeInUp delay-200'>
-							Nền tảng giúp quản lý thông tin học viên nhanh
-							chóng, dễ dàng và chính xác. Bạn có thể thêm mới,
-							chỉnh sửa, tìm kiếm và xuất báo cáo học viên.
+							Nền tảng quản lý đào tạo Trường Cao đẳng Hậu cần 2 —
+							danh mục, đề thi, phân công giảng dạy, học viên và
+							vật tư.
 						</p>
 						<div className='flex gap-4 animate-fadeInUp delay-300'>
 							<Button

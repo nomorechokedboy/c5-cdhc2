@@ -14,7 +14,13 @@ class sqliteRepo implements Repository {
 			.insert(actions)
 			.values(params)
 			.returning()
-			.then((resp) => resp[0])
+			.then((resp) => {
+				if (!resp[0]) {
+					throw new Error('Failed to create action')
+				}
+
+				return resp[0]
+			})
 			.catch(handleDatabaseErr)
 	}
 
@@ -22,7 +28,7 @@ class sqliteRepo implements Repository {
 		return this.db.query.actions.findMany().catch(handleDatabaseErr)
 	}
 
-	findOne(id: number): Promise<Action> {
+	findOne(id: number): Promise<Action | undefined> {
 		return this.db.query.actions
 			.findFirst({ where: eq(actions.id, id) })
 			.catch(handleDatabaseErr)

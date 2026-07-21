@@ -15,48 +15,56 @@ import type { UpdateUserBody, User, UserUpdate } from '@/types'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
 import useUnitsData from '@/hooks/useUnitsData'
-import { userRankOptions, userPositionOptions } from '@/data/ethnics'
+import { userRankOptions, positionSkipsUnit } from '@/data/ethnics'
 
-const schema = z.object({
-	id: z.number().optional(),
-	displayName: z.string().min(1, 'Họ và tên không được bỏ trống'),
-	password: z.string().optional(),
-	confirmPassword: z.string().optional(),
-	unitId: z.preprocess(
-		(val) => {
+const schema = z
+	.object({
+		id: z.number().optional(),
+		displayName: z.string().min(1, 'Họ và tên không được bỏ trống'),
+		password: z.string().optional(),
+		confirmPassword: z.string().optional(),
+		unitId: z.preprocess((val) => {
+			if (val === '' || val === null || val === undefined)
+				return undefined
 			if (typeof val === 'string') {
-				return Number.parseInt(val)
+				const n = Number.parseInt(val, 10)
+				return Number.isFinite(n) ? n : undefined
 			}
 			return val
+		}, z.number().optional()),
+		isSuperUser: z.preprocess((val) => {
+			if (val === 'true' || val === true) return true
+			if (val === 'false' || val === false) return false
+			return val
+		}, z.boolean()),
+		rank: z.string().optional(),
+		/** URL / data-URL ảnh chữ ký số (BGH) */
+		signatureUrl: z.string().optional()
+	})
+	.refine(
+		(data) => {
+			if (data.password && data.password.length > 0) {
+				return data.password === data.confirmPassword
+			}
+			return true
 		},
-		z.number().min(1, 'Đơn vị không được bỏ trống')
-	),
-	isSuperUser: z.preprocess((val) => {
-		if (val === 'true' || val === true) return true
-		if (val === 'false' || val === false) return false
-		return val
-	}, z.boolean()),
-	rank: z.string().optional(),
-	position: z.string().optional()
-}).refine((data) => {
-	// If password provided, must match confirmPassword
-	if (data.password && data.password.length > 0) {
-		return data.password === data.confirmPassword
-	}
-	return true
-}, {
-	message: 'Mật khẩu xác nhận không khớp',
-	path: ['confirmPassword']
-}).refine((data) => {
-	// If password provided, minimum length
-	if (data.password && data.password.length > 0) {
-		return data.password.length >= 6
-	}
-	return true
-}, {
-	message: 'Mật khẩu phải có ít nhất 6 ký tự',
-	path: ['password']
-})
+		{
+			message: 'Mật khẩu xác nhận không khớp',
+			path: ['confirmPassword']
+		}
+	)
+	.refine(
+		(data) => {
+			if (data.password && data.password.length > 0) {
+				return data.password.length >= 4
+			}
+			return true
+		},
+		{
+			message: 'Mật khẩu phải có ít nhất 4 ký tự',
+			path: ['password']
+		}
+	)
 
 export interface UserFormProps {
 	onSuccess: (
@@ -77,15 +85,14 @@ export default function UserEditForm({
 	onClose,
 	editingUser
 }: UserFormProps) {
-	const { data: unitsData, isLoading, isError } = useUnitsData()
-	console.log('Render UserForm')
-	console.log('unitdata', unitsData)
+	const { data: unitsData } = useUnitsData()
+	const skipUnit = positionSkipsUnit(editingUser?.position)
 
 	const { mutateAsync } = useMutation({
 		mutationFn: UpdateUser,
 		onSuccess,
 		onError: (error) => {
-			console.error('Failed to create class:', error)
+			console.error('Failed to update user:', error)
 		}
 	})
 
@@ -98,25 +105,36 @@ export default function UserEditForm({
 			unitId: '1',
 			isSuperUser: 'false',
 			rank: '',
-			position: ''
+			signatureUrl: ''
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			try {
 				const parsed = schema.parse(value)
 
-				// Remove password if empty, remove confirmPassword always
 				const payload: any = { ...parsed }
 				if (!payload.password || payload.password.length === 0) {
 					delete payload.password
 				}
 				delete payload.confirmPassword
+				if (!payload.signatureUrl) {
+					delete payload.signatureUrl
+				}
+
+				// Chức vụ gắn loại TK — không gửi đổi
+				delete payload.position
+				// Đơn vị không áp dụng theo chức vụ
+				if (skipUnit) {
+					delete payload.unitId
+				}
 
 				await mutateAsync(payload)
 				toast.success('Sửa người dùng thành công')
 				formApi.reset()
 			} catch (err) {
 				console.error(err)
-				toast.error('Sửa người dùng thất bại')
+				toast.error('Sửa người dùng thất bại', {
+					description: (err as Error).message
+				})
 			} finally {
 				setOpen(false)
 			}
@@ -137,24 +155,21 @@ export default function UserEditForm({
 				displayName: editingUser.displayName,
 				password: '',
 				confirmPassword: '',
-				unitId: editingUser.unitId?.toString() || '1',
+				unitId: editingUser.unitId?.toString() || '',
 				isSuperUser: editingUser.isSuperUser ? 'true' : 'false',
 				rank: editingUser.rank || '',
-				position: editingUser.position || ''
+				signatureUrl: editingUser.signatureUrl || ''
 			})
 		}
 	}, [open, editingUser])
-	// Hàm flatten mảng unit
+
 	function flattenUnits(units: any[]): any[] {
 		const result: any[] = []
-
 		units.forEach((unit) => {
 			result.push({ label: unit.name, value: unit.id.toString() })
 		})
-
 		return result
 	}
-	console.log('flatttenUnit data', flattenUnits(unitsData || []))
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -203,10 +218,10 @@ export default function UserEditForm({
 							</form.AppField>
 						</div>
 
-						<div className='space-y-2'>
-							<form.AppField name='unitId'>
-								{(field: any) => (
-									<>
+						{!skipUnit ? (
+							<div className='space-y-2'>
+								<form.AppField name='unitId'>
+									{(field: any) => (
 										<field.Select
 											label='Chọn đơn vị'
 											placeholder='Chọn đơn vị'
@@ -215,10 +230,17 @@ export default function UserEditForm({
 											)}
 											value={field.state.value?.toString()}
 										/>
-									</>
-								)}
-							</form.AppField>
-						</div>
+									)}
+								</form.AppField>
+							</div>
+						) : (
+							<div className='space-y-1 rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground'>
+								Đơn vị:{' '}
+								<span className='font-medium text-foreground'>
+									Không áp dụng
+								</span>
+							</div>
+						)}
 
 						<div className='space-y-2'>
 							<form.AppField name='rank'>
@@ -233,20 +255,44 @@ export default function UserEditForm({
 							</form.AppField>
 						</div>
 
-						<div className='space-y-2'>
-							<form.AppField name='position'>
+						{/* Chức vụ gắn loại tài khoản — chỉ xem */}
+						<div className='space-y-1 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm'>
+							<div>
+								<span className='text-muted-foreground'>
+									Chức vụ:{' '}
+								</span>
+								<strong>{editingUser?.position || '—'}</strong>
+							</div>
+							<p className='text-xs text-muted-foreground'>
+								Chức vụ gắn theo loại tài khoản khi tạo — không
+								chỉnh sửa.
+							</p>
+						</div>
+
+						<div className='space-y-2 sm:col-span-2'>
+							<form.AppField name='signatureUrl'>
 								{(field: any) => (
-									<field.Select 
-									label='Chức vụ'
-									placeholder='Chọn chức vụ'
-									values={userPositionOptions}
-									value={field.state.value}
-									/>
+									<>
+										<field.TextField
+											label='Chữ ký số (URL ảnh)'
+											placeholder='https://… hoặc data:image/… (BGH dùng khi phê duyệt đề)'
+										/>
+										{field.state.value ? (
+											<img
+												src={String(field.state.value)}
+												alt='Chữ ký'
+												className='mt-2 h-16 max-w-[200px] object-contain border rounded bg-white p-1'
+											/>
+										) : null}
+										<p className='text-muted-foreground text-xs'>
+											Hiệu trưởng / Phó HT: dán URL ảnh
+											chữ ký. Khi phê duyệt đề, chữ ký +
+											cấp bậc + họ tên sẽ in trên bộ đề.
+										</p>
+									</>
 								)}
 							</form.AppField>
 						</div>
-
-						<div></div>
 
 						<div className='space-y-2'>
 							<form.AppField name='isSuperUser'>

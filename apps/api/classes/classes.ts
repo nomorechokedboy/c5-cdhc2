@@ -156,3 +156,104 @@ export const GetClassById = api(
 		return { data }
 	}
 )
+
+/** Khóa Moodle (course) — học chung khóa, import thành lớp local */
+export interface MoodleCourseItem {
+	id: number
+	fullname: string
+	shortname: string
+	/** Đã có lớp local (cùng unit) map từ course này */
+	alreadyImported: boolean
+}
+
+interface ListMoodleCoursesRequest {
+	/** Đại đội sẽ gán lớp khi import — để đánh dấu đã import */
+	unitId?: number
+}
+
+interface ListMoodleCoursesResponse {
+	data: MoodleCourseItem[]
+	/** false nếu không kết nối / tắt sync */
+	connected: boolean
+	message?: string
+}
+
+export const ListMoodleCourses = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'GET',
+		// tránh xung đột với /classes/:id
+		path: '/moodle/courses'
+	},
+	async ({
+		unitId
+	}: ListMoodleCoursesRequest): Promise<ListMoodleCoursesResponse> => {
+		return classController.listMoodleCourses(unitId)
+	}
+)
+
+/** Kiểm tra kết nối MariaDB/Moodle (không lộ password) */
+export const MoodleDbStatus = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'GET',
+		path: '/moodle/status'
+	},
+	async (): Promise<{
+		ok: boolean
+		host: string
+		port: number
+		user: string
+		database: string
+		version?: string
+		courseCount?: number
+		error?: string
+		syncEnabled: boolean
+		passwordSet: boolean
+	}> => {
+		const { testMariaMoodleConnection, getMariaConfigPublic } =
+			await import('../maria-data.js')
+		const status = await testMariaMoodleConnection()
+		const pub = getMariaConfigPublic()
+		return { ...status, passwordSet: pub.passwordSet }
+	}
+)
+
+interface ImportMoodleClassesBody {
+	unitId: number
+	/** id course Moodle */
+	courseIds: number[]
+}
+
+interface ImportMoodleClassesResponse {
+	data: ClassResponse[]
+	imported: number
+	skipped: number
+}
+
+export const ImportMoodleClasses = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'POST',
+		path: '/moodle/import-classes'
+	},
+	async (
+		body: ImportMoodleClassesBody
+	): Promise<ImportMoodleClassesResponse> => {
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+		const result = await classController.importMoodleClasses(
+			body.unitId,
+			body.courseIds,
+			validUnitIds
+		)
+		return {
+			data: result.created.map((c) => ({ ...c }) as ClassResponse),
+			imported: result.created.length,
+			skipped: result.skipped
+		}
+	}
+)

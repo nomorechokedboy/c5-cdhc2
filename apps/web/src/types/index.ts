@@ -88,10 +88,12 @@ export interface UserBody {
 	username: string
 	password: string
 	displayName: string
-	unitId: number
+	unitId?: number | null
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
+	/** Chữ ký số (data URL PNG trong suốt / URL) — dùng khi duyệt / in form */
+	signatureUrl?: string | null
 }
 export interface UpdateUserBody {
 	id?: number
@@ -101,6 +103,9 @@ export interface UpdateUserBody {
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
+	alias?: string
+	/** Ảnh chữ ký số (URL) — BGH dùng khi phê duyệt đề */
+	signatureUrl?: string | null
 }
 export interface UserUpdate {
 	id: number
@@ -109,11 +114,24 @@ export interface UserUpdate {
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
+	alias?: string
+	signatureUrl?: string | null
 }
 
-export interface Student extends Base, StudentBody { }
+export interface Student extends Base, StudentBody {}
 export interface User extends Base, UserBody {
 	unitName?: string
+	/** Quan hệ đơn vị từ API GetUsers */
+	unit?: { id: number; alias?: string; name: string } | null
+	status?: string | null
+	/** Ngành được gán (user ngành) */
+	nganhCodes?: string[]
+	/** Tên ngành đầy đủ (API GetUsers) */
+	nganhLabels?: Array<{ code: string; name: string }>
+	/** Tên roles */
+	roles?: string[]
+	/** true = chỉ menu danh mục ngành (+ nhật ký / cap-nhat) */
+	isNganhScoped?: boolean
 }
 
 export type ClassResponse = { data: Class[] }
@@ -231,7 +249,11 @@ export interface AppNotificationItem extends Base {
 	relatedData: Student | Class
 }
 
-export type AppNotificationType = 'birthday' | 'officialCpv'
+export type AppNotificationType =
+	| 'birthday'
+	| 'officialCpv'
+	| 'assetProposal'
+	| 'examWorkflow'
 
 export interface AppNotification {
 	id: string
@@ -388,7 +410,6 @@ export type InitAdminRequest = {
 	password: string
 	displayName: string
 }
-
 
 export interface AssignRoleRequest {
 	userId: number

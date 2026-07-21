@@ -6,6 +6,7 @@ import log from 'encore.dev/log'
 import { migrate } from 'drizzle-orm/libsql/migrator'
 import { appConfig } from './configs'
 import path from 'path'
+import { mkdirSync } from 'fs'
 
 class AppDBLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
@@ -13,12 +14,15 @@ class AppDBLogger implements Logger {
 	}
 }
 
-const dbPwd = appConfig.DATABASE_URI.startsWith('file:')
-	? appConfig.DATABASE_URI
-	: `file:${path.resolve(appConfig.DATABASE_URI)}`
+const isFileUri = appConfig.DATABASE_URI.startsWith('file:')
+const dbPath = isFileUri
+	? appConfig.DATABASE_URI.replace(/^file:/, '')
+	: path.resolve(appConfig.DATABASE_URI)
+
+mkdirSync(path.dirname(dbPath), { recursive: true })
 
 const client = createClient({
-	url: `file:${dbPwd}`
+	url: isFileUri ? appConfig.DATABASE_URI : `file:${dbPath}`
 })
 
 const orm = drizzle({ schema, client, logger: new AppDBLogger() })

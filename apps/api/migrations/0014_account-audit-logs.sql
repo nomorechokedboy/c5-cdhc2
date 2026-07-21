@@ -1,0 +1,20 @@
+CREATE TABLE `account_audit_logs` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updatedAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`action` text NOT NULL,
+	`actor_user_id` integer,
+	`actor_username` text,
+	`actor_display_name` text,
+	`actor_is_admin` integer DEFAULT 0 NOT NULL,
+	`room_id` integer,
+	`room_code` text,
+	`room_name` text,
+	`address` text,
+	`floor_name` text,
+	`building_code` text,
+	`building_name` text,
+	`account_label` text,
+	`summary` text NOT NULL,
+	`details` text
+);

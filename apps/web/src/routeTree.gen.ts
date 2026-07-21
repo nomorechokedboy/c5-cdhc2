@@ -13,6 +13,7 @@ import { Route as VaiTroRouteImport } from './routes/vai-tro'
 import { Route as ThongKeChinhTriRouteImport } from './routes/thong-ke-chinh-tri'
 import { Route as ReligionRouteImport } from './routes/religion'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PhongDayRouteImport } from './routes/phong-day'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListUserRouteImport } from './routes/list-user'
 import { Route as KhoiTaoQtvRouteImport } from './routes/khoi-tao-qtv'
@@ -25,9 +26,24 @@ import { Route as ChuyenDangChinhThucRouteImport } from './routes/chuyen-dang-ch
 import { Route as CacQuyenRouteImport } from './routes/cac-quyen'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VatTuIndexRouteImport } from './routes/vat-tu/index'
+import { Route as VatTuTimKiemRouteImport } from './routes/vat-tu/tim-kiem'
+import { Route as VatTuThanhLyRouteImport } from './routes/vat-tu/thanh-ly'
+import { Route as VatTuPhanCongRouteImport } from './routes/vat-tu/phan-cong'
+import { Route as VatTuNhatKyRouteImport } from './routes/vat-tu/nhat-ky'
+import { Route as VatTuNganhCuaToiRouteImport } from './routes/vat-tu/nganh-cua-toi'
+import { Route as VatTuMauBaoCaoRouteImport } from './routes/vat-tu/mau-bao-cao'
+import { Route as VatTuKhoRouteImport } from './routes/vat-tu/kho'
+import { Route as VatTuDieuDongRouteImport } from './routes/vat-tu/dieu-dong'
+import { Route as VatTuDeXuatRouteImport } from './routes/vat-tu/de-xuat'
+import { Route as VatTuDanhMucNganhRouteImport } from './routes/vat-tu/danh-muc-nganh'
+import { Route as VatTuCapNhatRouteImport } from './routes/vat-tu/cap-nhat'
+import { Route as VatTuBaoCaoRouteImport } from './routes/vat-tu/bao-cao'
 import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
+import { Route as VatTuToaNhaBuildingIdRouteImport } from './routes/vat-tu/toa-nha.$buildingId'
+import { Route as VatTuPhongRoomIdRouteImport } from './routes/vat-tu/phong.$roomId'
 
 const VaiTroRoute = VaiTroRouteImport.update({
   id: '/vai-tro',
@@ -47,6 +63,11 @@ const ReligionRoute = ReligionRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhongDayRoute = PhongDayRouteImport.update({
+  id: '/phong-day',
+  path: '/phong-day',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -109,6 +130,71 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VatTuIndexRoute = VatTuIndexRouteImport.update({
+  id: '/vat-tu/',
+  path: '/vat-tu/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuTimKiemRoute = VatTuTimKiemRouteImport.update({
+  id: '/vat-tu/tim-kiem',
+  path: '/vat-tu/tim-kiem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuThanhLyRoute = VatTuThanhLyRouteImport.update({
+  id: '/vat-tu/thanh-ly',
+  path: '/vat-tu/thanh-ly',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuPhanCongRoute = VatTuPhanCongRouteImport.update({
+  id: '/vat-tu/phan-cong',
+  path: '/vat-tu/phan-cong',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuNhatKyRoute = VatTuNhatKyRouteImport.update({
+  id: '/vat-tu/nhat-ky',
+  path: '/vat-tu/nhat-ky',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuNganhCuaToiRoute = VatTuNganhCuaToiRouteImport.update({
+  id: '/vat-tu/nganh-cua-toi',
+  path: '/vat-tu/nganh-cua-toi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuMauBaoCaoRoute = VatTuMauBaoCaoRouteImport.update({
+  id: '/vat-tu/mau-bao-cao',
+  path: '/vat-tu/mau-bao-cao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuKhoRoute = VatTuKhoRouteImport.update({
+  id: '/vat-tu/kho',
+  path: '/vat-tu/kho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuDieuDongRoute = VatTuDieuDongRouteImport.update({
+  id: '/vat-tu/dieu-dong',
+  path: '/vat-tu/dieu-dong',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuDeXuatRoute = VatTuDeXuatRouteImport.update({
+  id: '/vat-tu/de-xuat',
+  path: '/vat-tu/de-xuat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuDanhMucNganhRoute = VatTuDanhMucNganhRouteImport.update({
+  id: '/vat-tu/danh-muc-nganh',
+  path: '/vat-tu/danh-muc-nganh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuCapNhatRoute = VatTuCapNhatRouteImport.update({
+  id: '/vat-tu/cap-nhat',
+  path: '/vat-tu/cap-nhat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuBaoCaoRoute = VatTuBaoCaoRouteImport.update({
+  id: '/vat-tu/bao-cao',
+  path: '/vat-tu/bao-cao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
   id: '/tieu-doan/$alias',
   path: '/tieu-doan/$alias',
@@ -122,6 +208,16 @@ const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
 const ClassesClassIdRoute = ClassesClassIdRouteImport.update({
   id: '/classes/$classId',
   path: '/classes/$classId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuToaNhaBuildingIdRoute = VatTuToaNhaBuildingIdRouteImport.update({
+  id: '/vat-tu/toa-nha/$buildingId',
+  path: '/vat-tu/toa-nha/$buildingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VatTuPhongRoomIdRoute = VatTuPhongRoomIdRouteImport.update({
+  id: '/vat-tu/phong/$roomId',
+  path: '/vat-tu/phong/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -138,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
   '/login': typeof LoginRoute
+  '/phong-day': typeof PhongDayRoute
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
@@ -145,6 +242,21 @@ export interface FileRoutesByFullPath {
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+  '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
+  '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
+  '/vat-tu/danh-muc-nganh': typeof VatTuDanhMucNganhRoute
+  '/vat-tu/de-xuat': typeof VatTuDeXuatRoute
+  '/vat-tu/dieu-dong': typeof VatTuDieuDongRoute
+  '/vat-tu/kho': typeof VatTuKhoRoute
+  '/vat-tu/mau-bao-cao': typeof VatTuMauBaoCaoRoute
+  '/vat-tu/nganh-cua-toi': typeof VatTuNganhCuaToiRoute
+  '/vat-tu/nhat-ky': typeof VatTuNhatKyRoute
+  '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
+  '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
+  '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/vat-tu': typeof VatTuIndexRoute
+  '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
+  '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +271,7 @@ export interface FileRoutesByTo {
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
   '/login': typeof LoginRoute
+  '/phong-day': typeof PhongDayRoute
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
@@ -166,6 +279,21 @@ export interface FileRoutesByTo {
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+  '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
+  '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
+  '/vat-tu/danh-muc-nganh': typeof VatTuDanhMucNganhRoute
+  '/vat-tu/de-xuat': typeof VatTuDeXuatRoute
+  '/vat-tu/dieu-dong': typeof VatTuDieuDongRoute
+  '/vat-tu/kho': typeof VatTuKhoRoute
+  '/vat-tu/mau-bao-cao': typeof VatTuMauBaoCaoRoute
+  '/vat-tu/nganh-cua-toi': typeof VatTuNganhCuaToiRoute
+  '/vat-tu/nhat-ky': typeof VatTuNhatKyRoute
+  '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
+  '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
+  '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/vat-tu': typeof VatTuIndexRoute
+  '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
+  '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,6 +309,7 @@ export interface FileRoutesById {
   '/khoi-tao-qtv': typeof KhoiTaoQtvRoute
   '/list-user': typeof ListUserRoute
   '/login': typeof LoginRoute
+  '/phong-day': typeof PhongDayRoute
   '/profile': typeof ProfileRoute
   '/religion': typeof ReligionRoute
   '/thong-ke-chinh-tri': typeof ThongKeChinhTriRoute
@@ -188,6 +317,21 @@ export interface FileRoutesById {
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
+  '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
+  '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
+  '/vat-tu/danh-muc-nganh': typeof VatTuDanhMucNganhRoute
+  '/vat-tu/de-xuat': typeof VatTuDeXuatRoute
+  '/vat-tu/dieu-dong': typeof VatTuDieuDongRoute
+  '/vat-tu/kho': typeof VatTuKhoRoute
+  '/vat-tu/mau-bao-cao': typeof VatTuMauBaoCaoRoute
+  '/vat-tu/nganh-cua-toi': typeof VatTuNganhCuaToiRoute
+  '/vat-tu/nhat-ky': typeof VatTuNhatKyRoute
+  '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
+  '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
+  '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/vat-tu/': typeof VatTuIndexRoute
+  '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
+  '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -204,6 +348,7 @@ export interface FileRouteTypes {
     | '/khoi-tao-qtv'
     | '/list-user'
     | '/login'
+    | '/phong-day'
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
@@ -211,6 +356,21 @@ export interface FileRouteTypes {
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
+    | '/vat-tu/bao-cao'
+    | '/vat-tu/cap-nhat'
+    | '/vat-tu/danh-muc-nganh'
+    | '/vat-tu/de-xuat'
+    | '/vat-tu/dieu-dong'
+    | '/vat-tu/kho'
+    | '/vat-tu/mau-bao-cao'
+    | '/vat-tu/nganh-cua-toi'
+    | '/vat-tu/nhat-ky'
+    | '/vat-tu/phan-cong'
+    | '/vat-tu/thanh-ly'
+    | '/vat-tu/tim-kiem'
+    | '/vat-tu'
+    | '/vat-tu/phong/$roomId'
+    | '/vat-tu/toa-nha/$buildingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -225,6 +385,7 @@ export interface FileRouteTypes {
     | '/khoi-tao-qtv'
     | '/list-user'
     | '/login'
+    | '/phong-day'
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
@@ -232,6 +393,21 @@ export interface FileRouteTypes {
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
+    | '/vat-tu/bao-cao'
+    | '/vat-tu/cap-nhat'
+    | '/vat-tu/danh-muc-nganh'
+    | '/vat-tu/de-xuat'
+    | '/vat-tu/dieu-dong'
+    | '/vat-tu/kho'
+    | '/vat-tu/mau-bao-cao'
+    | '/vat-tu/nganh-cua-toi'
+    | '/vat-tu/nhat-ky'
+    | '/vat-tu/phan-cong'
+    | '/vat-tu/thanh-ly'
+    | '/vat-tu/tim-kiem'
+    | '/vat-tu'
+    | '/vat-tu/phong/$roomId'
+    | '/vat-tu/toa-nha/$buildingId'
   id:
     | '__root__'
     | '/'
@@ -246,6 +422,7 @@ export interface FileRouteTypes {
     | '/khoi-tao-qtv'
     | '/list-user'
     | '/login'
+    | '/phong-day'
     | '/profile'
     | '/religion'
     | '/thong-ke-chinh-tri'
@@ -253,6 +430,21 @@ export interface FileRouteTypes {
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
     | '/tieu-doan/$alias'
+    | '/vat-tu/bao-cao'
+    | '/vat-tu/cap-nhat'
+    | '/vat-tu/danh-muc-nganh'
+    | '/vat-tu/de-xuat'
+    | '/vat-tu/dieu-dong'
+    | '/vat-tu/kho'
+    | '/vat-tu/mau-bao-cao'
+    | '/vat-tu/nganh-cua-toi'
+    | '/vat-tu/nhat-ky'
+    | '/vat-tu/phan-cong'
+    | '/vat-tu/thanh-ly'
+    | '/vat-tu/tim-kiem'
+    | '/vat-tu/'
+    | '/vat-tu/phong/$roomId'
+    | '/vat-tu/toa-nha/$buildingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -268,6 +460,7 @@ export interface RootRouteChildren {
   KhoiTaoQtvRoute: typeof KhoiTaoQtvRoute
   ListUserRoute: typeof ListUserRoute
   LoginRoute: typeof LoginRoute
+  PhongDayRoute: typeof PhongDayRoute
   ProfileRoute: typeof ProfileRoute
   ReligionRoute: typeof ReligionRoute
   ThongKeChinhTriRoute: typeof ThongKeChinhTriRoute
@@ -275,6 +468,21 @@ export interface RootRouteChildren {
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
+  VatTuBaoCaoRoute: typeof VatTuBaoCaoRoute
+  VatTuCapNhatRoute: typeof VatTuCapNhatRoute
+  VatTuDanhMucNganhRoute: typeof VatTuDanhMucNganhRoute
+  VatTuDeXuatRoute: typeof VatTuDeXuatRoute
+  VatTuDieuDongRoute: typeof VatTuDieuDongRoute
+  VatTuKhoRoute: typeof VatTuKhoRoute
+  VatTuMauBaoCaoRoute: typeof VatTuMauBaoCaoRoute
+  VatTuNganhCuaToiRoute: typeof VatTuNganhCuaToiRoute
+  VatTuNhatKyRoute: typeof VatTuNhatKyRoute
+  VatTuPhanCongRoute: typeof VatTuPhanCongRoute
+  VatTuThanhLyRoute: typeof VatTuThanhLyRoute
+  VatTuTimKiemRoute: typeof VatTuTimKiemRoute
+  VatTuIndexRoute: typeof VatTuIndexRoute
+  VatTuPhongRoomIdRoute: typeof VatTuPhongRoomIdRoute
+  VatTuToaNhaBuildingIdRoute: typeof VatTuToaNhaBuildingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -305,6 +513,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phong-day': {
+      id: '/phong-day'
+      path: '/phong-day'
+      fullPath: '/phong-day'
+      preLoaderRoute: typeof PhongDayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -391,6 +606,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vat-tu/': {
+      id: '/vat-tu/'
+      path: '/vat-tu'
+      fullPath: '/vat-tu'
+      preLoaderRoute: typeof VatTuIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/tim-kiem': {
+      id: '/vat-tu/tim-kiem'
+      path: '/vat-tu/tim-kiem'
+      fullPath: '/vat-tu/tim-kiem'
+      preLoaderRoute: typeof VatTuTimKiemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/thanh-ly': {
+      id: '/vat-tu/thanh-ly'
+      path: '/vat-tu/thanh-ly'
+      fullPath: '/vat-tu/thanh-ly'
+      preLoaderRoute: typeof VatTuThanhLyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/phan-cong': {
+      id: '/vat-tu/phan-cong'
+      path: '/vat-tu/phan-cong'
+      fullPath: '/vat-tu/phan-cong'
+      preLoaderRoute: typeof VatTuPhanCongRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/nhat-ky': {
+      id: '/vat-tu/nhat-ky'
+      path: '/vat-tu/nhat-ky'
+      fullPath: '/vat-tu/nhat-ky'
+      preLoaderRoute: typeof VatTuNhatKyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/nganh-cua-toi': {
+      id: '/vat-tu/nganh-cua-toi'
+      path: '/vat-tu/nganh-cua-toi'
+      fullPath: '/vat-tu/nganh-cua-toi'
+      preLoaderRoute: typeof VatTuNganhCuaToiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/mau-bao-cao': {
+      id: '/vat-tu/mau-bao-cao'
+      path: '/vat-tu/mau-bao-cao'
+      fullPath: '/vat-tu/mau-bao-cao'
+      preLoaderRoute: typeof VatTuMauBaoCaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/kho': {
+      id: '/vat-tu/kho'
+      path: '/vat-tu/kho'
+      fullPath: '/vat-tu/kho'
+      preLoaderRoute: typeof VatTuKhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/dieu-dong': {
+      id: '/vat-tu/dieu-dong'
+      path: '/vat-tu/dieu-dong'
+      fullPath: '/vat-tu/dieu-dong'
+      preLoaderRoute: typeof VatTuDieuDongRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/de-xuat': {
+      id: '/vat-tu/de-xuat'
+      path: '/vat-tu/de-xuat'
+      fullPath: '/vat-tu/de-xuat'
+      preLoaderRoute: typeof VatTuDeXuatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/danh-muc-nganh': {
+      id: '/vat-tu/danh-muc-nganh'
+      path: '/vat-tu/danh-muc-nganh'
+      fullPath: '/vat-tu/danh-muc-nganh'
+      preLoaderRoute: typeof VatTuDanhMucNganhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/cap-nhat': {
+      id: '/vat-tu/cap-nhat'
+      path: '/vat-tu/cap-nhat'
+      fullPath: '/vat-tu/cap-nhat'
+      preLoaderRoute: typeof VatTuCapNhatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/bao-cao': {
+      id: '/vat-tu/bao-cao'
+      path: '/vat-tu/bao-cao'
+      fullPath: '/vat-tu/bao-cao'
+      preLoaderRoute: typeof VatTuBaoCaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tieu-doan/$alias': {
       id: '/tieu-doan/$alias'
       path: '/tieu-doan/$alias'
@@ -412,6 +718,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesClassIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vat-tu/toa-nha/$buildingId': {
+      id: '/vat-tu/toa-nha/$buildingId'
+      path: '/vat-tu/toa-nha/$buildingId'
+      fullPath: '/vat-tu/toa-nha/$buildingId'
+      preLoaderRoute: typeof VatTuToaNhaBuildingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vat-tu/phong/$roomId': {
+      id: '/vat-tu/phong/$roomId'
+      path: '/vat-tu/phong/$roomId'
+      fullPath: '/vat-tu/phong/$roomId'
+      preLoaderRoute: typeof VatTuPhongRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -428,6 +748,7 @@ const rootRouteChildren: RootRouteChildren = {
   KhoiTaoQtvRoute: KhoiTaoQtvRoute,
   ListUserRoute: ListUserRoute,
   LoginRoute: LoginRoute,
+  PhongDayRoute: PhongDayRoute,
   ProfileRoute: ProfileRoute,
   ReligionRoute: ReligionRoute,
   ThongKeChinhTriRoute: ThongKeChinhTriRoute,
@@ -435,6 +756,21 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
+  VatTuBaoCaoRoute: VatTuBaoCaoRoute,
+  VatTuCapNhatRoute: VatTuCapNhatRoute,
+  VatTuDanhMucNganhRoute: VatTuDanhMucNganhRoute,
+  VatTuDeXuatRoute: VatTuDeXuatRoute,
+  VatTuDieuDongRoute: VatTuDieuDongRoute,
+  VatTuKhoRoute: VatTuKhoRoute,
+  VatTuMauBaoCaoRoute: VatTuMauBaoCaoRoute,
+  VatTuNganhCuaToiRoute: VatTuNganhCuaToiRoute,
+  VatTuNhatKyRoute: VatTuNhatKyRoute,
+  VatTuPhanCongRoute: VatTuPhanCongRoute,
+  VatTuThanhLyRoute: VatTuThanhLyRoute,
+  VatTuTimKiemRoute: VatTuTimKiemRoute,
+  VatTuIndexRoute: VatTuIndexRoute,
+  VatTuPhongRoomIdRoute: VatTuPhongRoomIdRoute,
+  VatTuToaNhaBuildingIdRoute: VatTuToaNhaBuildingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

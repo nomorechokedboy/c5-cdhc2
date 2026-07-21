@@ -24,7 +24,7 @@ export class Controller {
 	) {}
 
 	private convertToEntityQuery(
-		query: GetNotificationsQuery
+		query: GetNotificationsQuery & { recipientId?: number }
 	): NotificationQuery {
 		let page: number = query.page ?? 0
 		let pageSize = query.pageSize ?? 10
@@ -39,7 +39,11 @@ export class Controller {
 			pageSize = 100
 		}
 
-		return { pageSize, page }
+		return {
+			pageSize,
+			page,
+			recipientId: query.recipientId
+		}
 	}
 
 	create(params: CreateNotificationParams[]) {
@@ -50,7 +54,9 @@ export class Controller {
 		return this.repo.createBatch(data).catch(AppError.handleAppErr)
 	}
 
-	async find(query: GetNotificationsQuery): Promise<Notification[]> {
+	async find(
+		query: GetNotificationsQuery & { recipientId?: number }
+	): Promise<Notification[]> {
 		const q: NotificationQuery = this.convertToEntityQuery(query)
 		return await this.repo.find(q).catch(AppError.handleAppErr)
 		/* const notifications = await this.repo
@@ -179,8 +185,12 @@ export class Controller {
 		})
 	}
 
-	getUnreadCount(): Promise<number> {
-		return this.repo.unreadCount()
+	getUnreadCount(recipientId?: number): Promise<number> {
+		return this.repo.unreadCount(recipientId)
+	}
+
+	markAllAsRead(recipientId?: number): Promise<void> {
+		return this.repo.markAllAsRead(recipientId).catch(AppError.handleAppErr)
 	}
 }
 

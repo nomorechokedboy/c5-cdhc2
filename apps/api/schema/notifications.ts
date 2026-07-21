@@ -13,9 +13,16 @@ export const NotificationTypeEnum = customType<{
 		return 'text'
 	},
 	toDriver(val: string) {
-		if (!['birthday', 'officialCpv'].includes(val)) {
+		if (
+			![
+				'birthday',
+				'officialCpv',
+				'assetProposal',
+				'examWorkflow'
+			].includes(val)
+		) {
 			throw AppError.invalidArgument(
-				'notification type can only be birthday or officialCpv'
+				'notification type can only be birthday, officialCpv, assetProposal or examWorkflow'
 			)
 		}
 		return val
@@ -30,7 +37,9 @@ export const notifications = sqlite.sqliteTable(
 		readAt: sqlite.text(),
 
 		notificationType: NotificationTypeEnum('notificationType')
-			.$type<'birthday' | 'officialCpv'>()
+			.$type<
+				'birthday' | 'officialCpv' | 'assetProposal' | 'examWorkflow'
+			>()
 			.default('birthday')
 			.notNull(),
 		title: sqlite.text().notNull(),
@@ -62,6 +71,8 @@ export type NotificationDB = InferSelectModel<typeof notifications>
 export type NotificationQuery = {
 	page: number
 	pageSize: number
+	/** Chỉ lấy thông báo gửi cho user này (bắt buộc khi list/unread) */
+	recipientId?: number
 }
 
 export type Notification = NotificationDB & { items: NotificationItem[] }

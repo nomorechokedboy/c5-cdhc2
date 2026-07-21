@@ -122,6 +122,9 @@ const PERMISSION_MAP: Record<string, string[]> = {
 	'GET:/classes/:id': ['classes:read'],
 	'PATCH:/classes': ['classes:update'],
 	'DELETE:/classes': ['classes:delete'],
+	'GET:/moodle/courses': ['classes:read'],
+	'GET:/moodle/status': ['classes:read'],
+	'POST:/moodle/import-classes': ['classes:create'],
 
 	'POST:/students': ['students:create'],
 	'GET:/students': ['students:read'],
@@ -138,7 +141,11 @@ const PERMISSION_MAP: Record<string, string[]> = {
 	'POST:/users': ['users:create'],
 	'GET:/users': ['users:read'],
 	'GET:/users/:id': ['users:read'],
+	'GET:/users/pending-permissions': ['users:read'],
+	'GET:/users/pending-room-accounts': ['users:read'],
+	'POST:/users/sync-accounts': ['users:update'],
 	'PATCH:/users': ['users:update'],
+	'PUT:/users': ['users:update'],
 	'DELETE:/users': ['users:delete'],
 
 	'GET:/resources': ['resources:read'],
@@ -147,7 +154,146 @@ const PERMISSION_MAP: Record<string, string[]> = {
 	'GET:/roles': ['roles:read'],
 	'GET:/roles/:id': ['roles:read'],
 	'PUT:/roles/:id': ['roles:update'],
-	'DELETE:/roles': ['roles:delete']
+	'DELETE:/roles': ['roles:delete'],
+
+	// Asset management — buildings / floors / rooms
+	'POST:/buildings': ['buildings:create'],
+	'GET:/buildings': ['buildings:read'],
+	'GET:/buildings/tree': ['buildings:read'],
+	'GET:/buildings/:id': ['buildings:read'],
+	'PATCH:/buildings/:id': ['buildings:update'],
+	'DELETE:/buildings': ['buildings:delete'],
+
+	'POST:/floors': ['floors:create'],
+	'GET:/floors': ['floors:read'],
+	'GET:/floors/:id': ['floors:read'],
+	'PATCH:/floors/:id': ['floors:update'],
+	'DELETE:/floors': ['floors:delete'],
+
+	'POST:/rooms': ['rooms:create'],
+	'GET:/rooms': ['rooms:read'],
+	'GET:/rooms/:id': ['rooms:read'],
+	'GET:/rooms/:id/profile': ['rooms:read'],
+	'PATCH:/rooms/:id': ['rooms:update'],
+	'DELETE:/rooms': ['rooms:delete'],
+
+	// Room assets / images / logs
+	'POST:/room-assets': ['room-assets:create'],
+	'GET:/room-assets': ['room-assets:read'],
+	'GET:/room-assets/:id': ['room-assets:read'],
+	'PATCH:/room-assets/:id': ['room-assets:update'],
+	'DELETE:/room-assets': ['room-assets:delete'],
+
+	'POST:/room-images': ['room-images:create'],
+	'GET:/room-images': ['room-images:read'],
+	'GET:/room-images/:id': ['room-images:read'],
+	'PATCH:/room-images/:id': ['room-images:update'],
+	'DELETE:/room-images': ['room-images:delete'],
+
+	'POST:/repair-logs': ['repair-logs:create'],
+	'GET:/repair-logs': ['repair-logs:read'],
+	'GET:/repair-logs/:id': ['repair-logs:read'],
+	'PATCH:/repair-logs/:id': ['repair-logs:update'],
+	'DELETE:/repair-logs': ['repair-logs:delete'],
+
+	'POST:/inventory-logs': ['inventory-logs:create'],
+	'GET:/inventory-logs': ['inventory-logs:read'],
+	'GET:/inventory-logs/:id': ['inventory-logs:read'],
+	'PATCH:/inventory-logs/:id': ['inventory-logs:update'],
+	'DELETE:/inventory-logs': ['inventory-logs:delete'],
+
+	'POST:/replacement-logs': ['replacement-logs:create'],
+	'GET:/replacement-logs': ['replacement-logs:read'],
+	'GET:/replacement-logs/:id': ['replacement-logs:read'],
+	'PATCH:/replacement-logs/:id': ['replacement-logs:update'],
+	'DELETE:/replacement-logs': ['replacement-logs:delete'],
+
+	// Asset reports (BGH có asset-reports:read + room-assets:read → stats/kho)
+	'GET:/asset-reports/stats': ['asset-reports:read', 'room-assets:read'],
+	'GET:/asset-reports/broken': ['asset-reports:read', 'room-assets:read'],
+	'GET:/asset-reports/expiring': ['asset-reports:read', 'room-assets:read'],
+	// Lịch sử SC / nhật ký — cần repair-logs hoặc asset-movements (BGH không có)
+	'GET:/asset-reports/repairs': ['repair-logs:read'],
+	'GET:/asset-reports/movements': ['asset-movements:read'],
+	'GET:/asset-movement-logs': ['asset-movements:read'],
+	// Nhật ký VT hỏng — BGH không có repair-requests/repair-logs
+	'GET:/asset-broken-logs': ['repair-requests:read', 'repair-logs:read'],
+
+	// Phiếu báo hỏng / phân công
+	'POST:/repair-requests': ['repair-requests:create'],
+	'GET:/repair-requests': ['repair-requests:read'],
+	'GET:/repair-requests/:id': ['repair-requests:read'],
+	'PATCH:/repair-requests/:id/assign': ['repair-requests:update'],
+	'PATCH:/repair-requests/:id/complete': ['repair-requests:update'],
+	'PATCH:/repair-requests/:id/cancel': ['repair-requests:update'],
+
+	// Danh mục ngành / chuyên ngành / VT
+	'GET:/asset-catalog': ['asset-catalog:read', 'room-assets:read'],
+	'GET:/asset-catalog/counts': ['asset-catalog:read', 'room-assets:read'],
+	'GET:/asset-catalog/next-code': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'GET:/asset-catalog/next-nganh-code': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'GET:/asset-catalog/next-chuyen-nganh-code': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'POST:/asset-catalog/materials': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'POST:/asset-catalog/nganh': ['asset-catalog:create', 'room-assets:create'],
+	'POST:/asset-catalog/chuyen-nganh': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'PATCH:/asset-catalog/categories/:id': [
+		'asset-catalog:update',
+		'room-assets:update'
+	],
+	// User ngành + log tăng/giảm danh mục
+	'GET:/asset-catalog/my-nganh': [
+		'catalog-stock:read',
+		'asset-catalog:read',
+		'room-assets:read'
+	],
+	'GET:/asset-catalog/user-nganh': ['asset-catalog:read', 'room-assets:read'],
+	'POST:/asset-catalog/user-nganh': [
+		'asset-catalog:create',
+		'room-assets:create'
+	],
+	'POST:/asset-catalog/stock-movements': [
+		'catalog-stock:create',
+		'room-assets:create'
+	],
+	'GET:/asset-catalog/stock-logs': ['catalog-stock:read', 'room-assets:read'],
+	// Đề xuất sửa chữa / thu hồi / thanh lý
+	'GET:/asset-proposals/pending-count': [
+		'asset-proposals:read',
+		'room-assets:read'
+	],
+	'GET:/asset-proposals/liquidations': [
+		'asset-proposals:read',
+		'room-assets:read'
+	],
+	'GET:/asset-proposals': ['asset-proposals:read', 'room-assets:read'],
+	'GET:/asset-proposals/:id': ['asset-proposals:read', 'room-assets:read'],
+	'POST:/asset-proposals': ['asset-proposals:create', 'room-assets:create'],
+	// BGH (admin) có asset-proposals:update nhưng không cần room-assets:update
+	'POST:/asset-proposals/:id/decide': [
+		'asset-proposals:update',
+		'asset-proposals:read',
+		'room-assets:update'
+	],
+	'GET:/asset-proposal-logs': [
+		'asset-proposals:read',
+		'room-assets:read',
+		'asset-proposals:update'
+	]
 }
 
 function getPermissionsForRequest(method: string, path: string): string[] {
@@ -184,7 +330,9 @@ export const permissionMiddleware = middleware(
 
 		if (!authData) {
 			log.warn('permissionMiddleware: No auth data available')
-			throw AppError.unauthenticated('Authentication required')
+			throw AppError.handleAppErr(
+				AppError.unauthenticated('Authentication required')
+			)
 		}
 
 		// Super admins bypass all permission checks
@@ -208,8 +356,8 @@ export const permissionMiddleware = middleware(
 
 		const userPermissions = authData.permissions || []
 
-		// Check if user has required permissions
-		const hasPermission = requiredPermissions.every((required) =>
+		// OR: đủ 1 trong danh sách quyền là được (hỗ trợ quyền mới + quyền legacy)
+		const hasPermission = requiredPermissions.some((required) =>
 			userPermissions.includes(required)
 		)
 
@@ -222,8 +370,11 @@ export const permissionMiddleware = middleware(
 				has: userPermissions
 			})
 
-			throw AppError.permissionDenied(
-				`Missing required permission(s): ${requiredPermissions.join(', ')}`
+			// Phải map sang APIError — throw AppError thuần → client thấy "internal error"
+			throw AppError.handleAppErr(
+				AppError.permissionDenied(
+					`Thiếu quyền: ${requiredPermissions.join(' hoặc ')}`
+				)
 			)
 		}
 

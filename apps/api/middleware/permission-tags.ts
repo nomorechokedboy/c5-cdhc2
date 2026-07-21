@@ -57,7 +57,70 @@ export const PermissionTag = {
 	ACTIONS_READ: 'perm:actions:read',
 	ACTIONS_UPDATE: 'perm:actions:update',
 	ACTIONS_DELETE: 'perm:actions:delete',
-	ACTIONS_MANAGE: 'perm:actions:manage'
+	ACTIONS_MANAGE: 'perm:actions:manage',
+
+	// Buildings permissions
+	BUILDINGS_CREATE: 'perm:buildings:create',
+	BUILDINGS_READ: 'perm:buildings:read',
+	BUILDINGS_UPDATE: 'perm:buildings:update',
+	BUILDINGS_DELETE: 'perm:buildings:delete',
+	BUILDINGS_MANAGE: 'perm:buildings:manage',
+
+	// Floors permissions
+	FLOORS_CREATE: 'perm:floors:create',
+	FLOORS_READ: 'perm:floors:read',
+	FLOORS_UPDATE: 'perm:floors:update',
+	FLOORS_DELETE: 'perm:floors:delete',
+	FLOORS_MANAGE: 'perm:floors:manage',
+
+	// Rooms permissions
+	ROOMS_CREATE: 'perm:rooms:create',
+	ROOMS_READ: 'perm:rooms:read',
+	ROOMS_UPDATE: 'perm:rooms:update',
+	ROOMS_DELETE: 'perm:rooms:delete',
+	ROOMS_MANAGE: 'perm:rooms:manage',
+
+	// Room assets permissions
+	ROOM_ASSETS_CREATE: 'perm:room-assets:create',
+	ROOM_ASSETS_READ: 'perm:room-assets:read',
+	ROOM_ASSETS_UPDATE: 'perm:room-assets:update',
+	ROOM_ASSETS_DELETE: 'perm:room-assets:delete',
+	ROOM_ASSETS_MANAGE: 'perm:room-assets:manage',
+
+	// Room images permissions
+	ROOM_IMAGES_CREATE: 'perm:room-images:create',
+	ROOM_IMAGES_READ: 'perm:room-images:read',
+	ROOM_IMAGES_UPDATE: 'perm:room-images:update',
+	ROOM_IMAGES_DELETE: 'perm:room-images:delete',
+	ROOM_IMAGES_MANAGE: 'perm:room-images:manage',
+
+	// Repair logs permissions
+	REPAIR_LOGS_CREATE: 'perm:repair-logs:create',
+	REPAIR_LOGS_READ: 'perm:repair-logs:read',
+	REPAIR_LOGS_UPDATE: 'perm:repair-logs:update',
+	REPAIR_LOGS_DELETE: 'perm:repair-logs:delete',
+	REPAIR_LOGS_MANAGE: 'perm:repair-logs:manage',
+
+	// Inventory logs permissions
+	INVENTORY_LOGS_CREATE: 'perm:inventory-logs:create',
+	INVENTORY_LOGS_READ: 'perm:inventory-logs:read',
+	INVENTORY_LOGS_UPDATE: 'perm:inventory-logs:update',
+	INVENTORY_LOGS_DELETE: 'perm:inventory-logs:delete',
+	INVENTORY_LOGS_MANAGE: 'perm:inventory-logs:manage',
+
+	// Replacement logs permissions
+	REPLACEMENT_LOGS_CREATE: 'perm:replacement-logs:create',
+	REPLACEMENT_LOGS_READ: 'perm:replacement-logs:read',
+	REPLACEMENT_LOGS_UPDATE: 'perm:replacement-logs:update',
+	REPLACEMENT_LOGS_DELETE: 'perm:replacement-logs:delete',
+	REPLACEMENT_LOGS_MANAGE: 'perm:replacement-logs:manage',
+
+	// Repair request tickets (báo hỏng phòng → phân công)
+	REPAIR_REQUESTS_CREATE: 'perm:repair-requests:create',
+	REPAIR_REQUESTS_READ: 'perm:repair-requests:read',
+	REPAIR_REQUESTS_UPDATE: 'perm:repair-requests:update',
+	REPAIR_REQUESTS_DELETE: 'perm:repair-requests:delete',
+	REPAIR_REQUESTS_MANAGE: 'perm:repair-requests:manage'
 } as const
 
 /**

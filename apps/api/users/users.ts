@@ -12,6 +12,8 @@ interface CreateUserRequest {
 	status?: string
 	rank?: string
 	position?: string
+	alias?: string
+	signatureUrl?: string
 }
 
 interface UpdateUserRequest {
@@ -22,6 +24,8 @@ interface UpdateUserRequest {
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
+	alias?: string
+	signatureUrl?: string | null
 }
 
 interface GetUserRequest {
@@ -105,7 +109,9 @@ export const CreateUser = api(
 			isSuperUser,
 			status,
 			rank,
-			position
+			position,
+			alias,
+			signatureUrl
 		} = req
 
 		const data = await userController
@@ -117,7 +123,9 @@ export const CreateUser = api(
 				isSuperUser,
 				status,
 				rank,
-				position
+				position,
+				alias,
+				signatureUrl
 			})
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
@@ -125,9 +133,41 @@ export const CreateUser = api(
 	}
 )
 
+/** Chức vụ gắn loại TK (CNK/GV/BGH/ngành/đv) — không cho đổi qua UpdateUser */
+const ACCOUNT_BOUND_POSITIONS = new Set([
+	'Chủ nhiệm khoa',
+	'Giáo viên',
+	'Ban Giám Hiệu',
+	'User ngành',
+	'Đơn vị sử dụng'
+])
+
 export const UpdateUser = api(
 	{ expose: true, auth: true, method: 'PUT', path: '/users' },
 	async (req: UpdateUserRequest): Promise<UpdateUserResponse> => {
+		const auth = getAuthData()!
+		// Chỉ admin / super admin được đổi mật khẩu người khác
+		if (req.password && !auth.isSuperAdmin) {
+			const selfId = Number(auth.userID)
+			if (Number(req.id) !== selfId) {
+				throw AppError.handleAppErr(
+					AppError.permissionDenied(
+						'Chỉ admin được đặt lại mật khẩu user khác'
+					)
+				)
+			}
+		}
+		// BGH / chính chủ được upload chữ ký số của mình
+		if (req.signatureUrl !== undefined && !auth.isSuperAdmin) {
+			const selfId = Number(auth.userID)
+			if (Number(req.id) !== selfId) {
+				throw AppError.handleAppErr(
+					AppError.permissionDenied(
+						'Chỉ được cập nhật chữ ký số của chính mình (hoặc admin)'
+					)
+				)
+			}
+		}
 		const {
 			id,
 			displayName,
@@ -135,17 +175,45 @@ export const UpdateUser = api(
 			isSuperUser,
 			password,
 			rank,
-			position
+			position,
+			alias,
+			signatureUrl
 		} = req
+
+		// Chức vụ luôn gắn loại tài khoản khi tạo — không cho sửa
+		let safeUnitId = unitId
+		const existing = await userController
+			.findOne({ id } as any)
+			.catch(() => null)
+		const curPos = (existing?.position || '').trim()
+
+		if (position !== undefined && (position || '').trim() !== curPos) {
+			throw AppError.handleAppErr(
+				AppError.invalidArgument(
+					'Chức vụ gắn theo loại tài khoản — không được chỉnh sửa'
+				)
+			)
+		}
+
+		// CNK / GV / BGH / ngành: không gán đơn vị
+		if (
+			ACCOUNT_BOUND_POSITIONS.has(curPos) &&
+			curPos !== 'Đơn vị sử dụng'
+		) {
+			safeUnitId = undefined
+		}
+
 		const data = await userController
 			.update({
 				id,
 				displayName,
-				unitId,
+				unitId: safeUnitId,
 				isSuperUser,
 				password,
 				rank,
-				position
+				// Không ghi đè position — giữ nguyên từ lúc tạo TK
+				alias,
+				signatureUrl
 			})
 			.then(({ password: _, ...user }) => ({ ...(user as UserDB) }))
 
@@ -166,12 +234,10 @@ export const DeleteUsers = api(
 		console.log('users.DeleteStudents body', { body })
 		const users = body.ids
 		const validUnitIds = getAuthData()!.validUnitIds
-		const userId = Number(getAuthData()!.userID);
-		if(body.ids.includes(userId)){
+		const userId = Number(getAuthData()!.userID)
+		if (body.ids.includes(userId)) {
 			throw AppError.handleAppErr(
-				AppError.invalidArgument(
-					"Bạn không thể xóa chính mình!"
-				)
+				AppError.invalidArgument('Bạn không thể xóa chính mình!')
 			)
 		}
 		await userController.delete(users, validUnitIds)
@@ -190,6 +256,34 @@ export const IsInitAdmin = api(
 		const result = await userController.isInitAdmin()
 
 		return { data: result }
+	}
+)
+
+/**
+ * User chưa có vai trò (hoặc status pending) — cần admin cấp quyền.
+ * Badge đỏ +N trên Danh sách người dùng.
+ */
+export const GetPendingPermissionUsers = api(
+	{
+		expose: true,
+		auth: true,
+		method: 'GET',
+		path: '/users/pending-permissions'
+	},
+	async (): Promise<{
+		data: {
+			count: number
+			items: Array<{
+				userId: number
+				username: string
+				displayName: string
+				status: string | null
+				createdAt: string
+			}>
+		}
+	}> => {
+		const data = await userController.listPendingPermissions()
+		return { data }
 	}
 )
 

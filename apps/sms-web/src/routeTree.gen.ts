@@ -13,6 +13,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssetManagementIndexRouteImport } from './routes/asset-management/index'
 import { Route as Oauth2CallbackRouteImport } from './routes/oauth2/callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo.table'
@@ -24,295 +25,315 @@ import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
 import { Route as KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport } from './routes/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
 
 const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
+	id: '/profile',
+	path: '/profile',
+	getParentRoute: () => rootRouteImport
 } as any)
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
+	id: '/login',
+	path: '/login',
+	getParentRoute: () => rootRouteImport
 } as any)
 const AuditRoute = AuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => rootRouteImport,
+	id: '/audit',
+	path: '/audit',
+	getParentRoute: () => rootRouteImport
 } as any)
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
+	id: '/',
+	path: '/',
+	getParentRoute: () => rootRouteImport
+} as any)
+const AssetManagementIndexRoute = AssetManagementIndexRouteImport.update({
+	id: '/asset-management/',
+	path: '/asset-management/',
+	getParentRoute: () => rootRouteImport
 } as any)
 const Oauth2CallbackRoute = Oauth2CallbackRouteImport.update({
-  id: '/oauth2/callback',
-  path: '/oauth2/callback',
-  getParentRoute: () => rootRouteImport,
+	id: '/oauth2/callback',
+	path: '/oauth2/callback',
+	getParentRoute: () => rootRouteImport
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
+	id: '/demo/tanstack-query',
+	path: '/demo/tanstack-query',
+	getParentRoute: () => rootRouteImport
 } as any)
 const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
-  getParentRoute: () => rootRouteImport,
+	id: '/demo/table',
+	path: '/demo/table',
+	getParentRoute: () => rootRouteImport
 } as any)
 const AdminLangpackRoute = AdminLangpackRouteImport.update({
-  id: '/admin/langpack',
-  path: '/admin/langpack',
-  getParentRoute: () => rootRouteImport,
+	id: '/admin/langpack',
+	path: '/admin/langpack',
+	getParentRoute: () => rootRouteImport
 } as any)
 const AdminExportTemplatesRoute = AdminExportTemplatesRouteImport.update({
-  id: '/admin/export-templates',
-  path: '/admin/export-templates',
-  getParentRoute: () => rootRouteImport,
+	id: '/admin/export-templates',
+	path: '/admin/export-templates',
+	getParentRoute: () => rootRouteImport
 } as any)
 const KhoaHocCategoryIdnumberIndexRoute =
-  KhoaHocCategoryIdnumberIndexRouteImport.update({
-    id: '/khoa-hoc/$categoryIdnumber/',
-    path: '/khoa-hoc/$categoryIdnumber/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+	KhoaHocCategoryIdnumberIndexRouteImport.update({
+		id: '/khoa-hoc/$categoryIdnumber/',
+		path: '/khoa-hoc/$categoryIdnumber/',
+		getParentRoute: () => rootRouteImport
+	} as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
-  getParentRoute: () => rootRouteImport,
+	id: '/demo/form/simple',
+	path: '/demo/form/simple',
+	getParentRoute: () => rootRouteImport
 } as any)
 const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
-  id: '/demo/form/address',
-  path: '/demo/form/address',
-  getParentRoute: () => rootRouteImport,
+	id: '/demo/form/address',
+	path: '/demo/form/address',
+	getParentRoute: () => rootRouteImport
 } as any)
 const KhoaHocCategoryIdnumberMonHocCourseShortnameRoute =
-  KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport.update({
-    id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
-    path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+	KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport.update({
+		id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
+		path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname',
+		getParentRoute: () => rootRouteImport
+	} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/audit': typeof AuditRoute
-  '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/admin/export-templates': typeof AdminExportTemplatesRoute
-  '/admin/langpack': typeof AdminLangpackRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/oauth2/callback': typeof Oauth2CallbackRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
-  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
+	'/': typeof IndexRoute
+	'/audit': typeof AuditRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/admin/export-templates': typeof AdminExportTemplatesRoute
+	'/admin/langpack': typeof AdminLangpackRoute
+	'/demo/table': typeof DemoTableRoute
+	'/demo/tanstack-query': typeof DemoTanstackQueryRoute
+	'/oauth2/callback': typeof Oauth2CallbackRoute
+	'/asset-management': typeof AssetManagementIndexRoute
+	'/demo/form/address': typeof DemoFormAddressRoute
+	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
+	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/audit': typeof AuditRoute
-  '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/admin/export-templates': typeof AdminExportTemplatesRoute
-  '/admin/langpack': typeof AdminLangpackRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/oauth2/callback': typeof Oauth2CallbackRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
-  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
+	'/': typeof IndexRoute
+	'/audit': typeof AuditRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/admin/export-templates': typeof AdminExportTemplatesRoute
+	'/admin/langpack': typeof AdminLangpackRoute
+	'/demo/table': typeof DemoTableRoute
+	'/demo/tanstack-query': typeof DemoTanstackQueryRoute
+	'/oauth2/callback': typeof Oauth2CallbackRoute
+	'/asset-management': typeof AssetManagementIndexRoute
+	'/demo/form/address': typeof DemoFormAddressRoute
+	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
+	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/audit': typeof AuditRoute
-  '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
-  '/admin/export-templates': typeof AdminExportTemplatesRoute
-  '/admin/langpack': typeof AdminLangpackRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/oauth2/callback': typeof Oauth2CallbackRoute
-  '/demo/form/address': typeof DemoFormAddressRoute
-  '/demo/form/simple': typeof DemoFormSimpleRoute
-  '/khoa-hoc/$categoryIdnumber/': typeof KhoaHocCategoryIdnumberIndexRoute
-  '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
+	__root__: typeof rootRouteImport
+	'/': typeof IndexRoute
+	'/audit': typeof AuditRoute
+	'/login': typeof LoginRoute
+	'/profile': typeof ProfileRoute
+	'/admin/export-templates': typeof AdminExportTemplatesRoute
+	'/admin/langpack': typeof AdminLangpackRoute
+	'/demo/table': typeof DemoTableRoute
+	'/demo/tanstack-query': typeof DemoTanstackQueryRoute
+	'/oauth2/callback': typeof Oauth2CallbackRoute
+	'/asset-management/': typeof AssetManagementIndexRoute
+	'/demo/form/address': typeof DemoFormAddressRoute
+	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber/': typeof KhoaHocCategoryIdnumberIndexRoute
+	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/audit'
-    | '/login'
-    | '/profile'
-    | '/admin/export-templates'
-    | '/admin/langpack'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/oauth2/callback'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/khoa-hoc/$categoryIdnumber'
-    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/audit'
-    | '/login'
-    | '/profile'
-    | '/admin/export-templates'
-    | '/admin/langpack'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/oauth2/callback'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/khoa-hoc/$categoryIdnumber'
-    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-  id:
-    | '__root__'
-    | '/'
-    | '/audit'
-    | '/login'
-    | '/profile'
-    | '/admin/export-templates'
-    | '/admin/langpack'
-    | '/demo/table'
-    | '/demo/tanstack-query'
-    | '/oauth2/callback'
-    | '/demo/form/address'
-    | '/demo/form/simple'
-    | '/khoa-hoc/$categoryIdnumber/'
-    | '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-  fileRoutesById: FileRoutesById
+	fileRoutesByFullPath: FileRoutesByFullPath
+	fullPaths:
+		| '/'
+		| '/audit'
+		| '/login'
+		| '/profile'
+		| '/admin/export-templates'
+		| '/admin/langpack'
+		| '/demo/table'
+		| '/demo/tanstack-query'
+		| '/oauth2/callback'
+		| '/asset-management'
+		| '/demo/form/address'
+		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber'
+		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+	fileRoutesByTo: FileRoutesByTo
+	to:
+		| '/'
+		| '/audit'
+		| '/login'
+		| '/profile'
+		| '/admin/export-templates'
+		| '/admin/langpack'
+		| '/demo/table'
+		| '/demo/tanstack-query'
+		| '/oauth2/callback'
+		| '/asset-management'
+		| '/demo/form/address'
+		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber'
+		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+	id:
+		| '__root__'
+		| '/'
+		| '/audit'
+		| '/login'
+		| '/profile'
+		| '/admin/export-templates'
+		| '/admin/langpack'
+		| '/demo/table'
+		| '/demo/tanstack-query'
+		| '/oauth2/callback'
+		| '/asset-management/'
+		| '/demo/form/address'
+		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber/'
+		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+	fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuditRoute: typeof AuditRoute
-  LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRoute
-  AdminExportTemplatesRoute: typeof AdminExportTemplatesRoute
-  AdminLangpackRoute: typeof AdminLangpackRoute
-  DemoTableRoute: typeof DemoTableRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  Oauth2CallbackRoute: typeof Oauth2CallbackRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
-  KhoaHocCategoryIdnumberIndexRoute: typeof KhoaHocCategoryIdnumberIndexRoute
-  KhoaHocCategoryIdnumberMonHocCourseShortnameRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
+	IndexRoute: typeof IndexRoute
+	AuditRoute: typeof AuditRoute
+	LoginRoute: typeof LoginRoute
+	ProfileRoute: typeof ProfileRoute
+	AdminExportTemplatesRoute: typeof AdminExportTemplatesRoute
+	AdminLangpackRoute: typeof AdminLangpackRoute
+	DemoTableRoute: typeof DemoTableRoute
+	DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+	Oauth2CallbackRoute: typeof Oauth2CallbackRoute
+	AssetManagementIndexRoute: typeof AssetManagementIndexRoute
+	DemoFormAddressRoute: typeof DemoFormAddressRoute
+	DemoFormSimpleRoute: typeof DemoFormSimpleRoute
+	KhoaHocCategoryIdnumberIndexRoute: typeof KhoaHocCategoryIdnumberIndexRoute
+	KhoaHocCategoryIdnumberMonHocCourseShortnameRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/audit': {
-      id: '/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/oauth2/callback': {
-      id: '/oauth2/callback'
-      path: '/oauth2/callback'
-      fullPath: '/oauth2/callback'
-      preLoaderRoute: typeof Oauth2CallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/langpack': {
-      id: '/admin/langpack'
-      path: '/admin/langpack'
-      fullPath: '/admin/langpack'
-      preLoaderRoute: typeof AdminLangpackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/export-templates': {
-      id: '/admin/export-templates'
-      path: '/admin/export-templates'
-      fullPath: '/admin/export-templates'
-      preLoaderRoute: typeof AdminExportTemplatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/khoa-hoc/$categoryIdnumber/': {
-      id: '/khoa-hoc/$categoryIdnumber/'
-      path: '/khoa-hoc/$categoryIdnumber'
-      fullPath: '/khoa-hoc/$categoryIdnumber'
-      preLoaderRoute: typeof KhoaHocCategoryIdnumberIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/simple': {
-      id: '/demo/form/simple'
-      path: '/demo/form/simple'
-      fullPath: '/demo/form/simple'
-      preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/form/address': {
-      id: '/demo/form/address'
-      path: '/demo/form/address'
-      fullPath: '/demo/form/address'
-      preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': {
-      id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-      path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-      fullPath: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-      preLoaderRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
+	interface FileRoutesByPath {
+		'/profile': {
+			id: '/profile'
+			path: '/profile'
+			fullPath: '/profile'
+			preLoaderRoute: typeof ProfileRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/login': {
+			id: '/login'
+			path: '/login'
+			fullPath: '/login'
+			preLoaderRoute: typeof LoginRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/audit': {
+			id: '/audit'
+			path: '/audit'
+			fullPath: '/audit'
+			preLoaderRoute: typeof AuditRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/': {
+			id: '/'
+			path: '/'
+			fullPath: '/'
+			preLoaderRoute: typeof IndexRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/asset-management/': {
+			id: '/asset-management/'
+			path: '/asset-management'
+			fullPath: '/asset-management'
+			preLoaderRoute: typeof AssetManagementIndexRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/oauth2/callback': {
+			id: '/oauth2/callback'
+			path: '/oauth2/callback'
+			fullPath: '/oauth2/callback'
+			preLoaderRoute: typeof Oauth2CallbackRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/demo/tanstack-query': {
+			id: '/demo/tanstack-query'
+			path: '/demo/tanstack-query'
+			fullPath: '/demo/tanstack-query'
+			preLoaderRoute: typeof DemoTanstackQueryRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/demo/table': {
+			id: '/demo/table'
+			path: '/demo/table'
+			fullPath: '/demo/table'
+			preLoaderRoute: typeof DemoTableRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/admin/langpack': {
+			id: '/admin/langpack'
+			path: '/admin/langpack'
+			fullPath: '/admin/langpack'
+			preLoaderRoute: typeof AdminLangpackRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/admin/export-templates': {
+			id: '/admin/export-templates'
+			path: '/admin/export-templates'
+			fullPath: '/admin/export-templates'
+			preLoaderRoute: typeof AdminExportTemplatesRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/khoa-hoc/$categoryIdnumber/': {
+			id: '/khoa-hoc/$categoryIdnumber/'
+			path: '/khoa-hoc/$categoryIdnumber'
+			fullPath: '/khoa-hoc/$categoryIdnumber'
+			preLoaderRoute: typeof KhoaHocCategoryIdnumberIndexRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/demo/form/simple': {
+			id: '/demo/form/simple'
+			path: '/demo/form/simple'
+			fullPath: '/demo/form/simple'
+			preLoaderRoute: typeof DemoFormSimpleRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/demo/form/address': {
+			id: '/demo/form/address'
+			path: '/demo/form/address'
+			fullPath: '/demo/form/address'
+			preLoaderRoute: typeof DemoFormAddressRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': {
+			id: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+			path: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+			fullPath: '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+			preLoaderRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+	}
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuditRoute: AuditRoute,
-  LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRoute,
-  AdminExportTemplatesRoute: AdminExportTemplatesRoute,
-  AdminLangpackRoute: AdminLangpackRoute,
-  DemoTableRoute: DemoTableRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  Oauth2CallbackRoute: Oauth2CallbackRoute,
-  DemoFormAddressRoute: DemoFormAddressRoute,
-  DemoFormSimpleRoute: DemoFormSimpleRoute,
-  KhoaHocCategoryIdnumberIndexRoute: KhoaHocCategoryIdnumberIndexRoute,
-  KhoaHocCategoryIdnumberMonHocCourseShortnameRoute:
-    KhoaHocCategoryIdnumberMonHocCourseShortnameRoute,
+	IndexRoute: IndexRoute,
+	AuditRoute: AuditRoute,
+	LoginRoute: LoginRoute,
+	ProfileRoute: ProfileRoute,
+	AdminExportTemplatesRoute: AdminExportTemplatesRoute,
+	AdminLangpackRoute: AdminLangpackRoute,
+	DemoTableRoute: DemoTableRoute,
+	DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+	Oauth2CallbackRoute: Oauth2CallbackRoute,
+	AssetManagementIndexRoute: AssetManagementIndexRoute,
+	DemoFormAddressRoute: DemoFormAddressRoute,
+	DemoFormSimpleRoute: DemoFormSimpleRoute,
+	KhoaHocCategoryIdnumberIndexRoute: KhoaHocCategoryIdnumberIndexRoute,
+	KhoaHocCategoryIdnumberMonHocCourseShortnameRoute:
+		KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
 export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+	._addFileChildren(rootRouteChildren)
+	._addFileTypes<FileRouteTypes>()

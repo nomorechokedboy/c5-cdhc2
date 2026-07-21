@@ -1,5 +1,6 @@
 import { SidebarFooter, useSidebar } from '@/components/ui/sidebar'
 import * as React from 'react'
+import { filterStudentUnitTree } from '@/lib/student-units'
 import {
 	UserPlus,
 	Calendar,
@@ -17,7 +18,27 @@ import {
 	List,
 	HouseHeart,
 	UserRoundCog,
-	ShieldUser
+	ShieldUser,
+	Warehouse,
+	Package,
+	Wrench,
+	RefreshCw,
+	DoorOpen,
+	ArrowLeftRight,
+	Layers,
+	BookUser,
+	Boxes,
+	Tags,
+	FileText,
+	ClipboardList,
+	Gavel,
+	FileSearch,
+	FileType,
+	BookOpenCheck,
+	FileStack,
+	Shuffle,
+	ClipboardCheck,
+	GraduationCap
 } from 'lucide-react'
 import {
 	Sidebar,
@@ -36,6 +57,10 @@ import {
 } from '@/components/ui/sidebar'
 import { Link } from '@tanstack/react-router'
 import StudentForm from '@/components/student-form'
+import usePendingRoomAccounts from '@/hooks/usePendingRoomAccounts'
+import usePendingProposals from '@/hooks/usePendingProposals'
+import usePendingPermissions from '@/hooks/usePendingPermissions'
+import { Badge } from '@/components/ui/badge'
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -47,7 +72,21 @@ import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
 import useAuth from '@/hooks/useAuth'
 import type { GetUnitQuery } from '@/types'
-import { isSuperAdmin } from '@/lib/utils'
+import {
+	isBghOnlyUser,
+	isDonViUser,
+	isRoomTeacherUser,
+	isSuperAdmin
+} from '@/lib/utils'
+import useIsNganhUser from '@/hooks/useIsNganhUser'
+import { useQuery } from '@tanstack/react-query'
+import { GetPendingExamCount } from '@/api/exam'
+import {
+	examNavAllowed,
+	isExamOffice,
+	isExamBgh,
+	isPureExamLecturer
+} from '@/lib/exam-roles'
 // Updated data structure to support unlimited nesting and icons
 const data = {
 	versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
@@ -58,6 +97,11 @@ const data = {
 			superAdminOnly: false,
 			items: [
 				{ title: 'Trang chủ', url: '/', icon: Home },
+				{
+					title: 'Phòng dạy của tôi',
+					url: '/phong-day',
+					icon: DoorOpen
+				},
 				{
 					title: 'Chất lượng chính trị',
 					url: '/thong-ke-chinh-tri',
@@ -131,6 +175,186 @@ const data = {
 			]
 		},
 		{
+			title: 'Quản lý vật tư',
+			url: '#',
+			superAdminOnly: false,
+			icon: Warehouse,
+			items: [
+				{
+					title: 'Danh mục tòa nhà',
+					url: '/vat-tu',
+					icon: Building2,
+					items: [
+						{
+							title: 'Tòa nhà',
+							url: '/vat-tu',
+							search: { view: 'toa' },
+							icon: Building2
+						},
+						{
+							title: 'Tài khoản',
+							url: '/vat-tu',
+							search: { view: 'tai-khoan' },
+							icon: BookUser
+						},
+						{
+							title: 'Phòng',
+							url: '/vat-tu',
+							search: { view: 'phong' },
+							icon: DoorOpen
+						},
+						{
+							title: 'Đơn vị sử dụng',
+							url: '/vat-tu',
+							search: { view: 'don-vi' },
+							icon: UsersRound
+						}
+					]
+				},
+				{
+					title: 'Danh mục ngành',
+					url: '/vat-tu/danh-muc-nganh',
+					icon: Layers,
+					items: [
+						{
+							title: 'Ngành',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'nganh' },
+							icon: Layers
+						},
+						{
+							title: 'Loại vật',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'loai-vat' },
+							icon: Tags
+						},
+						{
+							title: 'Vật tư',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'vat-tu' },
+							icon: Boxes
+						},
+						{
+							title: 'Nhật ký',
+							url: '/vat-tu/nhat-ky',
+							icon: ClipboardList
+						}
+					]
+				},
+				{
+					title: 'Cập nhật vật tư',
+					url: '/vat-tu/cap-nhat',
+					icon: RefreshCw
+				},
+				{
+					title: 'Đề xuất',
+					url: '/vat-tu/de-xuat',
+					icon: FileText,
+					/** Badge +n pending — set runtime */
+					badgeCount: 0
+				},
+				{
+					title: 'Thanh lý',
+					url: '/vat-tu/thanh-ly',
+					icon: Gavel
+				},
+				{
+					title: 'Phân công sửa chữa',
+					url: '/vat-tu/phan-cong',
+					icon: Wrench
+				},
+				{
+					title: 'Điều động & thu hồi',
+					url: '/vat-tu/dieu-dong',
+					icon: ArrowLeftRight
+				},
+				{
+					title: 'Kho vật tư',
+					url: '/vat-tu/kho',
+					icon: Warehouse
+				},
+				{
+					title: 'Tìm kiếm',
+					url: '/vat-tu/tim-kiem',
+					icon: FileSearch
+				},
+				{
+					title: 'Báo cáo vật tư',
+					url: '/vat-tu/bao-cao',
+					icon: Package
+				},
+				{
+					title: 'Mẫu báo cáo Word',
+					url: '/vat-tu/mau-bao-cao',
+					icon: FileType
+				}
+			]
+		},
+		{
+			title: 'Đề thi tự luận',
+			url: '#',
+			superAdminOnly: false,
+			icon: BookOpenCheck,
+			/** filter theo examNavAllowed khi render */
+			items: [
+				{
+					title: 'Tổng quan',
+					url: '/de-thi',
+					icon: BookOpenCheck,
+					examKey: 'overview' as const
+				},
+				{
+					title: 'Danh mục đào tạo',
+					url: '/de-thi/danh-muc',
+					icon: Layers,
+					examKey: 'catalog' as const
+				},
+				{
+					title: 'Danh mục lớp',
+					url: '/de-thi/lop',
+					icon: GraduationCap,
+					examKey: 'classes' as const
+				},
+				{
+					title: 'Danh mục giáo viên',
+					url: '/de-thi/giao-vien',
+					icon: UsersRound,
+					examKey: 'teachers' as const
+				},
+				{
+					title: 'Phân công môn học',
+					url: '/de-thi/phan-cong',
+					icon: ClipboardCheck,
+					examKey: 'assign' as const
+				},
+				{
+					title: 'Đề của tôi (GV/CNK soạn)',
+					url: '/de-thi/cua-toi',
+					icon: FileText,
+					examKey: 'mine' as const
+				},
+				{
+					title: 'Duyệt đề',
+					url: '/de-thi/duyet',
+					icon: ClipboardCheck,
+					badgeCount: 0,
+					examKey: 'approve' as const
+				},
+				{
+					title: 'Ngân hàng đề',
+					url: '/de-thi/ngan-hang',
+					icon: FileStack,
+					examKey: 'bank' as const
+				},
+				{
+					title: 'Rút đề (Ban KT)',
+					url: '/de-thi/rut-de',
+					icon: Shuffle,
+					examKey: 'draw' as const
+				}
+			]
+		},
+		{
 			title: 'Quản lý người dùng',
 			url: '#',
 			superAdminOnly: true,
@@ -139,7 +363,9 @@ const data = {
 				{
 					title: 'Danh sách người dùng',
 					url: '/list-user',
-					icon: List
+					icon: List,
+					/** Badge +n — set runtime trong AppSidebar */
+					badgeCount: 0
 				},
 				{
 					title: 'Danh sách vai trò',
@@ -160,6 +386,19 @@ interface NavItem {
 	items?: NavItem[]
 	search?: { [k: string]: string }
 	icon?: React.ElementType
+	/** Hiện badge +n (vd. tài khoản phòng chờ phân quyền) */
+	badgeCount?: number
+	/** Lọc menu đề thi theo quyền đặc tả */
+	examKey?:
+		| 'overview'
+		| 'catalog'
+		| 'classes'
+		| 'teachers'
+		| 'assign'
+		| 'mine'
+		| 'approve'
+		| 'bank'
+		| 'draw'
 }
 
 // Recursive component to render nested menu items
@@ -279,10 +518,26 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 				>
 					<Link
 						to={item.url}
+						search={item.search}
 						className='flex items-center gap-3 w-full'
 					>
 						{Icon && <Icon className='w-5 h-5  ' />}
-						{!isCollapsed && <span>{item.title}</span>}
+						{!isCollapsed && (
+							<span className='flex-1'>{item.title}</span>
+						)}
+						{!isCollapsed &&
+							item.badgeCount != null &&
+							item.badgeCount > 0 && (
+								<Badge
+									className={
+										item.url === '/list-user'
+											? 'ml-auto bg-red-600 hover:bg-red-600 text-white text-xs font-bold px-1.5 min-w-[1.5rem] justify-center'
+											: 'ml-auto bg-amber-500 hover:bg-amber-500 text-white text-xs font-bold px-1.5 min-w-[1.5rem] justify-center'
+									}
+								>
+									+{item.badgeCount}
+								</Badge>
+							)}
 					</Link>
 				</SidebarMenuSubButton>
 			)}
@@ -303,42 +558,619 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			: undefined
 	const { data: units, isLoading: isLoadingUnits } =
 		useUnitsData(getUnitsQuery)
+	const pendingRoomAccounts = usePendingRoomAccounts()
+	const pendingPerm = usePendingPermissions()
+	/** Ưu tiên user chờ cấp quyền; fallback tài khoản phòng */
+	const pendingCount =
+		pendingPerm.data?.count ?? pendingRoomAccounts.data?.count ?? 0
+	const pendingProposals = usePendingProposals()
+	const proposalCount = pendingProposals.data ?? 0
+	const pendingExams = useQuery({
+		queryKey: ['exam-pending-count'],
+		queryFn: GetPendingExamCount,
+		refetchInterval: 60_000,
+		retry: false
+	})
+	const examPendingCount = pendingExams.data ?? 0
+	const roomTeacher = isRoomTeacherUser()
+	const nganhUser = useIsNganhUser()
+	const donViUser = isDonViUser()
+	/** BGH thuần: không super — menu xem + đề xuất */
+	const bghOnly = isBghOnlyUser()
+
 	if (isLoadingUnits) {
 		return <AppSidebarSkeleton />
 	}
 
-	const unitsNavbar = units?.map(
-		(unit) =>
-			({
-				title: unit.name,
-				url: '#',
-				items: [
-					{
-						title: `Học viên ${unit.name}`,
-						url: `/${unit.level === 'battalion' ? 'tieu-doan/' : 'dai-doi/'}${unit.alias}`,
-						search: { name: unit.name, level: unit.level },
-						icon: UsersRound
-					},
-					...unit.children.map((child) => ({
-						title: child.name,
-						url: `/dai-doi/${child.alias}`,
-						icon: Building2
-					}))
-				],
-				icon: Building
-			}) as NavItem
-	)
+	/** Chỉ TD1 (D1–D3) + TD2 (D4–D5) — xem student-units.ts */
+	const studentUnits = filterStudentUnitTree(units ?? [])
+	const unitsNavbar = studentUnits.map((unit) => {
+		return {
+			title: unit.name,
+			url: '#',
+			items: [
+				{
+					title: `Học viên ${unit.name}`,
+					url: `/${unit.level === 'battalion' ? 'tieu-doan/' : 'dai-doi/'}${unit.alias}`,
+					search: { name: unit.name, level: unit.level },
+					icon: UsersRound
+				},
+				...(unit.children || []).map((child) => ({
+					title: child.name,
+					url: `/dai-doi/${child.alias}`,
+					icon: Building2
+				}))
+			],
+			icon: Building
+		} as NavItem
+	})
+
+	// User phòng dạy: chỉ Trang chủ + Phòng dạy của tôi
+	const roomTeacherNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [
+				{ title: 'Trang chủ', url: '/', icon: Home },
+				{
+					title: 'Phòng dạy của tôi',
+					url: '/phong-day',
+					icon: DoorOpen
+				}
+			]
+		}
+	]
+
+	/**
+	 * GV soạn đề thuần (exam_lecturer, vd. gv.cntt):
+	 * Không quản lý vật tư / học viên — chỉ đề thi của mình.
+	 */
+	const examLecturerNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Đề thi tự luận',
+			url: '#',
+			superAdminOnly: false,
+			icon: BookOpenCheck,
+			items: [
+				{
+					title: 'Tổng quan',
+					url: '/de-thi',
+					icon: BookOpenCheck,
+					examKey: 'overview' as const
+				},
+				{
+					title: 'Đề của tôi',
+					url: '/de-thi/cua-toi',
+					icon: FileText,
+					examKey: 'mine' as const
+				}
+			]
+		}
+	]
+
+	// Ban Giám Hiệu (role admin, không super): chỉ xem + đề xuất phê duyệt
+	const bghUserNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Quản lý vật tư',
+			url: '#',
+			superAdminOnly: false,
+			icon: Warehouse,
+			items: [
+				{
+					title: 'Danh mục tòa nhà',
+					url: '/vat-tu',
+					icon: Building2,
+					items: [
+						{
+							title: 'Tòa nhà',
+							url: '/vat-tu',
+							search: { view: 'toa' },
+							icon: Building2
+						},
+						{
+							title: 'Phòng',
+							url: '/vat-tu',
+							search: { view: 'phong' },
+							icon: DoorOpen
+						}
+					]
+				},
+				{
+					title: 'Danh mục ngành',
+					url: '/vat-tu/danh-muc-nganh',
+					icon: Layers,
+					items: [
+						{
+							title: 'Ngành',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'nganh' },
+							icon: Layers
+						},
+						{
+							title: 'Loại vật',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'loai-vat' },
+							icon: Tags
+						},
+						{
+							title: 'Vật tư',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'vat-tu' },
+							icon: Boxes
+						}
+					]
+				},
+				{
+					title: 'Đề xuất',
+					url: '/vat-tu/de-xuat',
+					icon: FileText,
+					badgeCount: 0
+				},
+				{
+					title: 'Báo cáo vật tư',
+					url: '/vat-tu/bao-cao',
+					icon: Package
+				}
+			]
+		},
+		{
+			title: 'Đề thi tự luận',
+			url: '#',
+			superAdminOnly: false,
+			icon: BookOpenCheck,
+			items: [
+				{
+					title: 'Tổng quan',
+					url: '/de-thi',
+					icon: BookOpenCheck,
+					examKey: 'overview' as const
+				},
+				{
+					title: 'Danh mục giáo viên',
+					url: '/de-thi/giao-vien',
+					icon: UsersRound,
+					examKey: 'teachers' as const
+				},
+				{
+					title: 'Phân công môn học',
+					url: '/de-thi/phan-cong',
+					icon: ClipboardCheck,
+					examKey: 'assign' as const
+				},
+				{
+					title: 'Duyệt đề (BGH — cấp cuối)',
+					url: '/de-thi/duyet',
+					icon: ClipboardCheck,
+					badgeCount: 0,
+					examKey: 'approve' as const
+				},
+				{
+					title: 'Ngân hàng đề',
+					url: '/de-thi/ngan-hang',
+					icon: FileStack,
+					examKey: 'bank' as const
+				}
+			]
+		}
+	]
+
+	// User đơn vị sử dụng: tòa (xem) + danh mục ngành (xem) + đề xuất
+	const donViUserNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Quản lý vật tư',
+			url: '#',
+			superAdminOnly: false,
+			icon: Warehouse,
+			items: [
+				{
+					title: 'Danh mục tòa nhà',
+					url: '/vat-tu',
+					icon: Building2,
+					items: [
+						{
+							title: 'Tòa nhà',
+							url: '/vat-tu',
+							search: { view: 'toa' },
+							icon: Building2
+						},
+						{
+							title: 'Phòng',
+							url: '/vat-tu',
+							search: { view: 'phong' },
+							icon: DoorOpen
+						}
+					]
+				},
+				{
+					title: 'Danh mục ngành',
+					url: '/vat-tu/danh-muc-nganh',
+					icon: Layers,
+					items: [
+						{
+							title: 'Ngành',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'nganh' },
+							icon: Layers
+						},
+						{
+							title: 'Loại vật',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'loai-vat' },
+							icon: Tags
+						},
+						{
+							title: 'Vật tư',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'vat-tu' },
+							icon: Boxes
+						}
+					]
+				},
+				{
+					title: 'Đề xuất',
+					url: '/vat-tu/de-xuat',
+					icon: FileText
+				}
+			]
+		}
+	]
+
+	// User ngành: Danh mục tòa (tòa/phòng/đv — không TK) + danh mục ngành + cập nhật + đề xuất
+	// (không nhật ký, tài khoản, thanh lý admin, phân công, điều động, báo cáo…)
+	const nganhUserNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Quản lý vật tư',
+			url: '#',
+			superAdminOnly: false,
+			icon: Warehouse,
+			items: [
+				{
+					title: 'Danh mục tòa nhà',
+					url: '/vat-tu',
+					icon: Building2,
+					items: [
+						{
+							title: 'Tòa nhà',
+							url: '/vat-tu',
+							search: { view: 'toa' },
+							icon: Building2
+						},
+						{
+							title: 'Phòng',
+							url: '/vat-tu',
+							search: { view: 'phong' },
+							icon: DoorOpen
+						},
+						{
+							title: 'Đơn vị sử dụng',
+							url: '/vat-tu',
+							search: { view: 'don-vi' },
+							icon: UsersRound
+						}
+					]
+				},
+				{
+					title: 'Danh mục ngành',
+					url: '/vat-tu/danh-muc-nganh',
+					icon: Layers,
+					items: [
+						{
+							title: 'Ngành',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'nganh' },
+							icon: Layers
+						},
+						{
+							title: 'Loại vật',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'loai-vat' },
+							icon: Tags
+						},
+						{
+							title: 'Vật tư',
+							url: '/vat-tu/danh-muc-nganh',
+							search: { view: 'vat-tu' },
+							icon: Boxes
+						}
+					]
+				},
+				{
+					title: 'Cập nhật vật tư',
+					url: '/vat-tu/cap-nhat',
+					icon: RefreshCw
+				},
+				{
+					title: 'Đề xuất',
+					url: '/vat-tu/de-xuat',
+					icon: FileText
+				}
+			]
+		},
+		// CNK = user ngành (đặc tả): duyệt bước 1, soạn, xem ngân hàng — không rút đề
+		{
+			title: 'Đề thi tự luận',
+			url: '#',
+			superAdminOnly: false,
+			icon: BookOpenCheck,
+			items: [
+				{
+					title: 'Tổng quan',
+					url: '/de-thi',
+					icon: BookOpenCheck,
+					examKey: 'overview'
+				},
+				{
+					title: 'Danh mục đào tạo',
+					url: '/de-thi/danh-muc',
+					icon: Layers,
+					examKey: 'catalog'
+				},
+				{
+					title: 'Danh mục lớp',
+					url: '/de-thi/lop',
+					icon: GraduationCap,
+					examKey: 'classes'
+				},
+				{
+					title: 'Danh mục giáo viên',
+					url: '/de-thi/giao-vien',
+					icon: UsersRound,
+					examKey: 'teachers'
+				},
+				{
+					title: 'Phân công môn học',
+					url: '/de-thi/phan-cong',
+					icon: ClipboardCheck,
+					examKey: 'assign'
+				},
+				{
+					title: 'Đề của tôi',
+					url: '/de-thi/cua-toi',
+					icon: FileText,
+					examKey: 'mine'
+				},
+				{
+					title: 'Duyệt đề (CNK)',
+					url: '/de-thi/duyet',
+					icon: ClipboardCheck,
+					badgeCount: 0,
+					examKey: 'approve'
+				},
+				{
+					title: 'Ngân hàng đề',
+					url: '/de-thi/ngan-hang',
+					icon: FileStack,
+					examKey: 'bank'
+				}
+			]
+		}
+	]
+
+	// Ban Khảo thí (TP Đào tạo): thẩm định + rút đề
+	const examOfficeNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Đề thi tự luận',
+			url: '#',
+			superAdminOnly: false,
+			icon: BookOpenCheck,
+			items: [
+				{
+					title: 'Tổng quan',
+					url: '/de-thi',
+					icon: BookOpenCheck,
+					examKey: 'overview'
+				},
+				{
+					title: 'Duyệt / thẩm định (Ban KT)',
+					url: '/de-thi/duyet',
+					icon: ClipboardCheck,
+					badgeCount: 0,
+					examKey: 'approve'
+				},
+				{
+					title: 'Ngân hàng đề',
+					url: '/de-thi/ngan-hang',
+					icon: FileStack,
+					examKey: 'bank'
+				},
+				{
+					title: 'Rút đề',
+					url: '/de-thi/rut-de',
+					icon: Shuffle,
+					examKey: 'draw'
+				}
+			]
+		}
+	]
 
 	const [firstNavItem, ...navMain] = data.navMain
-	const allNavItems = [
-		firstNavItem,
-		{ title: 'Đơn vị', url: '#', items: unitsNavbar },
-		...navMain
-	]
+	// Badge +n: danh sách user (tài khoản phòng) + đề xuất chờ duyệt
+	const navWithBadge = navMain.map((item) => {
+		if (item.title === 'Quản lý người dùng' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/list-user'
+						? { ...sub, badgeCount: pendingCount }
+						: sub
+				)
+			}
+		}
+		if (item.title === 'Quản lý vật tư' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/vat-tu/de-xuat'
+						? {
+								...sub,
+								badgeCount:
+									isSuperAdmin() || nganhUser || bghOnly
+										? proposalCount
+										: 0
+							}
+						: sub
+				)
+			}
+		}
+		if (item.title === 'Đề thi tự luận' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/de-thi/duyet'
+						? { ...sub, badgeCount: examPendingCount }
+						: sub
+				)
+			}
+		}
+		return item
+	})
+	const nganhNavWithBadge = nganhUserNav.map((item) => {
+		if (item.title === 'Quản lý vật tư' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/vat-tu/de-xuat'
+						? { ...sub, badgeCount: proposalCount }
+						: sub
+				)
+			}
+		}
+		if (item.title === 'Đề thi tự luận' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/de-thi/duyet'
+						? { ...sub, badgeCount: examPendingCount }
+						: sub
+				)
+			}
+		}
+		return item
+	})
+	const bghNavWithBadge = bghUserNav.map((item) => {
+		if (item.title === 'Quản lý vật tư' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/vat-tu/de-xuat'
+						? { ...sub, badgeCount: proposalCount }
+						: sub
+				)
+			}
+		}
+		if (item.title === 'Đề thi tự luận' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/de-thi/duyet'
+						? { ...sub, badgeCount: examPendingCount }
+						: sub
+				)
+			}
+		}
+		return item
+	})
+
+	/** Lọc mục con Đề thi theo quyền đặc tả */
+	function filterExamItems(items?: NavItem[]): NavItem[] | undefined {
+		if (!items) return items
+		return items.filter((sub) => {
+			if (!sub.examKey) return true
+			return examNavAllowed(sub.examKey)
+		})
+	}
+
+	function withExamFilter(nav: typeof data.navMain) {
+		return nav
+			.map((item) => {
+				if (item.title !== 'Đề thi tự luận') return item
+				const items = filterExamItems(item.items) || []
+				if (!items.length) return null
+				return { ...item, items }
+			})
+			.filter(Boolean) as typeof data.navMain
+	}
+
+	const examOfficeNavWithBadge = examOfficeNav.map((item) => {
+		if (item.title === 'Đề thi tự luận' && item.items) {
+			return {
+				...item,
+				items: item.items.map((sub) =>
+					sub.url === '/de-thi/duyet'
+						? { ...sub, badgeCount: examPendingCount }
+						: sub
+				)
+			}
+		}
+		return item
+	})
+
+	const examOfficeUser = isExamOffice() && !isSuperAdmin() && !nganhUser
+	/** GV soạn đề (gv.cntt…) — không super / ngành / BGH / Ban KT / phòng dạy */
+	const pureExamLecturer =
+		isPureExamLecturer() &&
+		!roomTeacher &&
+		!donViUser &&
+		!examOfficeUser &&
+		!nganhUser &&
+		!bghOnly
+
+	const allNavItems = roomTeacher
+		? roomTeacherNav
+		: pureExamLecturer
+			? examLecturerNav
+			: donViUser
+				? donViUserNav
+				: examOfficeUser
+					? examOfficeNavWithBadge
+					: nganhUser
+						? nganhNavWithBadge
+						: bghOnly
+							? bghNavWithBadge
+							: [
+									firstNavItem,
+									{
+										title: 'Đơn vị',
+										url: '#',
+										items: unitsNavbar
+									},
+									...navWithBadge
+								]
 	const newData = {
 		version: data.versions,
-		navMain: allNavItems.filter(
-			(item) => !item.superAdminOnly || isSuperAdmin()
+		navMain: withExamFilter(
+			allNavItems.filter((item) => !item.superAdminOnly || isSuperAdmin())
 		)
 	}
 
@@ -356,7 +1188,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					{!isCollapsed && (
 						<div className='flex flex-col'>
 							<span className='text-sm font-semibold'>
-								Hệ thống quản lý học viên
+								Hệ thống quản lý đào tạo
 							</span>
 							<span className='text-xs text-muted-foreground'>
 								Trường Cao đẳng hậu cần 2
@@ -367,14 +1199,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 
 			<SidebarContent>
-				{!isCollapsed && (
-					<div className='p-4 w-full'>
-						<StudentForm
-							buttonProps={{ className: 'w-full' }}
-							onSuccess={() => {}}
-						/>
-					</div>
-				)}
+				{!isCollapsed &&
+					!roomTeacher &&
+					!pureExamLecturer &&
+					!nganhUser &&
+					!donViUser &&
+					!bghOnly && (
+						<div className='p-4 w-full'>
+							<StudentForm
+								buttonProps={{ className: 'w-full' }}
+								onSuccess={() => {}}
+							/>
+						</div>
+					)}
 
 				{newData.navMain.map((item) => (
 					<Collapsible

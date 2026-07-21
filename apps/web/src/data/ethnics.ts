@@ -142,13 +142,43 @@ export const userRankOptions = [
 
 // User position options
 export const userPositionOptions = [
+	{ label: 'Chủ nhiệm khoa', value: 'Chủ nhiệm khoa' },
+	{ label: 'Giáo viên', value: 'Giáo viên' },
+	{ label: 'Hiệu trưởng', value: 'Hiệu trưởng' },
+	{ label: 'Phó hiệu trưởng', value: 'Phó hiệu trưởng' },
 	{ label: 'Đại đội trưởng', value: 'Đại đội trưởng' },
 	{ label: 'Phó Đại đội trưởng', value: 'Phó Đại đội trưởng' },
 	{ label: 'Chính trị viên Đại đội', value: 'Chính trị viên Đại đội' },
 	{ label: 'Tiểu đoàn trưởng', value: 'Tiểu đoàn trưởng' },
 	{ label: 'Phó tiểu đoàn trưởng', value: 'Phó tiểu đoàn trưởng' },
 	{ label: 'Chính trị viên tiểu đoàn', value: 'Chính trị viên tiểu đoàn' },
-	{ label: 'Chính trị phó viên tiểu đoàn', value: 'Chính trị phó viên tiểu đoàn' },
-	{ label: 'Hiệu trưởng', value: 'Hiệu trưởng' },
-	{ label: 'Phó hiệu trưởng', value: 'Phó hiệu trưởng' }
+	{
+		label: 'Chính trị phó viên tiểu đoàn',
+		value: 'Chính trị phó viên tiểu đoàn'
+	},
+	{ label: 'Ban Giám Hiệu', value: 'Ban Giám Hiệu' },
+	{ label: 'Đơn vị sử dụng', value: 'Đơn vị sử dụng' },
+	{ label: 'User ngành', value: 'User ngành' }
 ]
+
+/** Chức vụ gắn role đào tạo — không cho đổi lung tung khi sửa TK */
+export const LOCKED_TRAINING_POSITIONS = [
+	'Chủ nhiệm khoa',
+	'Giáo viên'
+] as const
+
+export function isLockedTrainingPosition(position?: string | null): boolean {
+	const p = (position || '').trim()
+	return (LOCKED_TRAINING_POSITIONS as readonly string[]).includes(p)
+}
+
+/** GV / CNK không bắt buộc đơn vị */
+export function positionSkipsUnit(position?: string | null): boolean {
+	const p = (position || '').trim()
+	return (
+		p === 'Giáo viên' ||
+		p === 'Chủ nhiệm khoa' ||
+		p === 'Ban Giám Hiệu' ||
+		p === 'User ngành'
+	)
+}

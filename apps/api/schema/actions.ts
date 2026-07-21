@@ -18,11 +18,11 @@ export const actionsRelations = relations(actions, ({ many }) => ({
 export interface Action extends Base {
 	name: string
 	displayName: string
-	description?: string
+	description?: string | null
 }
 
 export interface CreateActionRequest {
 	name: string
 	displayName: string
-	description?: string
+	description?: string | null
 }

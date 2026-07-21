@@ -13,5 +13,6 @@ export interface Repository {
 	delete(params: NotificationDB[]): Promise<NotificationDB[]>
 	find(q: NotificationQuery): Promise<Notification[]>
 	update(params: UpdateNotificationMap): Promise<NotificationDB[]>
-	unreadCount(): Promise<number>
+	unreadCount(recipientId?: number): Promise<number>
+	markAllAsRead(recipientId?: number): Promise<void>
 }

@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { Repository } from '.'
 import orm, { DrizzleDatabase } from '../database'
-import { AssignRoleRequest, userRoles } from '../schema'
+import { AssignRoleRequest, userRoles, users } from '../schema'
 import log from 'encore.dev/log'
 
 class sqliteRepo implements Repository {
-	constructor(private readonly db: DrizzleDatabase) { }
+	constructor(private readonly db: DrizzleDatabase) {}
 
 	assignRolesToUser(params: AssignRoleRequest): Promise<void> {
 		log.info('UserRolesRepo.assignRolesToUser params', { params })
@@ -23,6 +23,17 @@ class sqliteRepo implements Repository {
 					roleId
 				}))
 				await tx.insert(userRoles).values(userRoleData)
+				// Đã cấp quyền → hết pending (badge −1)
+				await tx
+					.update(users)
+					.set({ status: 'approved' })
+					.where(eq(users.id, params.userId))
+			} else {
+				// Gỡ hết role → pending lại
+				await tx
+					.update(users)
+					.set({ status: 'pending' })
+					.where(eq(users.id, params.userId))
 			}
 		})
 	}
