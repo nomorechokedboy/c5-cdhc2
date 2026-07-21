@@ -134,6 +134,41 @@
 			"when": 1765800000000,
 			"tag": "0021_nganh-proposal-permissions",
 			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "6",
+			"when": 1765900000000,
+			"tag": "0027_exam-bank",
+			"breakpoints": true
+		},
+		{
+			"idx": 20,
+			"version": "6",
+			"when": 1765901000000,
+			"tag": "0028_seed-exam-authz",
+			"breakpoints": true
+		},
+		{
+			"idx": 21,
+			"version": "6",
+			"when": 1765902000000,
+			"tag": "0029_exam-nganh-permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 22,
+			"version": "6",
+			"when": 1766000000000,
+			"tag": "0040_exam-assignment-class",
+			"breakpoints": true
+		},
+		{
+			"idx": 23,
+			"version": "6",
+			"when": 1766100000000,
+			"tag": "0041_exam-assignment-teaching-period",
+			"breakpoints": true
 		}
 	]
 }

@@ -120,7 +120,19 @@ export const PermissionTag = {
 	REPAIR_REQUESTS_READ: 'perm:repair-requests:read',
 	REPAIR_REQUESTS_UPDATE: 'perm:repair-requests:update',
 	REPAIR_REQUESTS_DELETE: 'perm:repair-requests:delete',
-	REPAIR_REQUESTS_MANAGE: 'perm:repair-requests:manage'
+	REPAIR_REQUESTS_MANAGE: 'perm:repair-requests:manage',
+
+	// Đề thi tự luận
+	EXAMS_CREATE: 'perm:exams:create',
+	EXAMS_READ: 'perm:exams:read',
+	EXAMS_UPDATE: 'perm:exams:update',
+	EXAMS_DELETE: 'perm:exams:delete',
+	EXAMS_MANAGE: 'perm:exams:manage',
+	EXAM_BANK_READ: 'perm:exam-bank:read',
+	EXAM_BANK_MANAGE: 'perm:exam-bank:manage',
+	EXAM_DRAW_CREATE: 'perm:exam-draw:create',
+	EXAM_DRAW_READ: 'perm:exam-draw:read',
+	EXAM_DRAW_MANAGE: 'perm:exam-draw:manage'
 } as const
 
 /**

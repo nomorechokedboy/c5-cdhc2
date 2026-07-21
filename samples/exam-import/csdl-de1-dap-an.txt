@@ -1,0 +1,4 @@
+Đáp án câu 1: PK định danh duy nhất một dòng; FK tham chiếu PK/unique của bảng khác để đảm bảo toàn vẹn tham chiếu.
+Đáp án câu 2: SELECT s.name, c.name FROM students s JOIN classes c ON s.class_id = c.id;
+Đáp án câu 3: 3NF: đã 2NF và không phụ thuộc bắc cầu (non-prime → non-prime).
+Đáp án câu 4: Atomicity, Consistency, Isolation, Durability.

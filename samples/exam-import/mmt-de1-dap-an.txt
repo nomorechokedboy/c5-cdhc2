@@ -1,0 +1,4 @@
+Đáp án câu 1: OSI 7 tầng (lý thuyết); TCP/IP 4 tầng (thực tế: Link, Internet, Transport, Application).
+Đáp án câu 2: IP logic/tầng mạng, MAC vật lý/tầng data link. ARP map IP → MAC trong LAN.
+Đáp án câu 3: Sequence number, ACK, retransmission, flow control, congestion control.
+Đáp án câu 4: Switch L2 chuyển theo MAC trong LAN; router định tuyến theo IP giữa các mạng.

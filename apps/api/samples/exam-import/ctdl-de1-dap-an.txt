@@ -1,0 +1,4 @@
+Đáp án câu 1: Stack LIFO (ngăn xếp), Queue FIFO (hàng đợi). Stack: undo, call stack. Queue: hàng đợi in, BFS.
+Đáp án câu 2: Trung bình O(log n), xấu nhất O(log n) nếu mảng đã sắp; không tìm thấy cũng O(log n).
+Đáp án câu 3: Duyệt trái → nút gốc → phải (đệ quy hoặc stack).
+Đáp án câu 4: Chèn/xóa O(1) nếu đã có con trỏ tới nút; mảng phải dời phần tử O(n).

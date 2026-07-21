@@ -48,3 +48,6 @@ export * from './warehouse-items'
 // Thông báo
 export * from './notification-items'
 export * from './notifications'
+
+// Đề thi tự luận
+export * from './exam-bank'
