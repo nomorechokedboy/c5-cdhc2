@@ -14,6 +14,11 @@ import { rooms } from '../schema/rooms'
 import { userRoles } from '../schema/user-roles'
 import { units } from '../schema/units'
 import type { RoomDB } from '../schema/rooms'
+import {
+	examFacultyHeads,
+	examTeachers,
+	examTeachingAssignments
+} from '../schema/exam-bank'
 import argon2 from 'argon2'
 import { appConfig } from '../configs'
 
@@ -393,8 +398,78 @@ export async function syncExamAccountDenormFromUsers(): Promise<{
 	facultyHeadsUpdated: number
 	assignmentsUpdated: number
 }> {
-	// Full sync lives in feature/de-tu-luan (exam tables).
-	return { teachersUpdated: 0, facultyHeadsUpdated: 0, assignmentsUpdated: 0 }
+	const allUsers = await orm
+		.select({
+			id: users.id,
+			username: users.username,
+			displayName: users.displayName
+		})
+		.from(users)
+	const byId = new Map(allUsers.map((u) => [u.id, u]))
+
+	let teachersUpdated = 0
+	const teachers = await orm.select().from(examTeachers)
+	for (const t of teachers) {
+		const u = byId.get(t.userId)
+		if (!u) continue
+		const nextUser = u.username || t.username
+		const nextName = u.displayName || t.displayName
+		if (nextUser === t.username && nextName === t.displayName) continue
+		await orm
+			.update(examTeachers)
+			.set({
+				username: nextUser,
+				displayName: nextName,
+				updatedAt: sql`(datetime('now'))`
+			})
+			.where(eq(examTeachers.id, t.id))
+		teachersUpdated++
+	}
+
+	let facultyHeadsUpdated = 0
+	const heads = await orm.select().from(examFacultyHeads)
+	for (const h of heads) {
+		const u = byId.get(h.userId)
+		if (!u) continue
+		const nextUser = u.username || h.username
+		const nextName = u.displayName || h.displayName
+		if (nextUser === h.username && nextName === h.displayName) continue
+		await orm
+			.update(examFacultyHeads)
+			.set({
+				username: nextUser,
+				displayName: nextName,
+				updatedAt: sql`(datetime('now'))`
+			})
+			.where(eq(examFacultyHeads.id, h.id))
+		facultyHeadsUpdated++
+	}
+
+	let assignmentsUpdated = 0
+	const assigns = await orm.select().from(examTeachingAssignments)
+	for (const a of assigns) {
+		const u = byId.get(a.userId)
+		if (!u) continue
+		const nextUser = u.username || a.username
+		const nextName = u.displayName || a.displayName
+		if (nextUser === a.username && nextName === a.displayName) continue
+		await orm
+			.update(examTeachingAssignments)
+			.set({
+				username: nextUser,
+				displayName: nextName,
+				updatedAt: sql`(datetime('now'))`
+			})
+			.where(eq(examTeachingAssignments.id, a.id))
+		assignmentsUpdated++
+	}
+
+	log.info('syncExamAccountDenormFromUsers', {
+		teachersUpdated,
+		facultyHeadsUpdated,
+		assignmentsUpdated
+	})
+	return { teachersUpdated, facultyHeadsUpdated, assignmentsUpdated }
 }
 
 /**

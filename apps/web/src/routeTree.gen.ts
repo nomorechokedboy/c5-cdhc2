@@ -27,6 +27,7 @@ import { Route as CacQuyenRouteImport } from './routes/cac-quyen'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VatTuIndexRouteImport } from './routes/vat-tu/index'
+import { Route as DeThiIndexRouteImport } from './routes/de-thi/index'
 import { Route as VatTuTimKiemRouteImport } from './routes/vat-tu/tim-kiem'
 import { Route as VatTuThanhLyRouteImport } from './routes/vat-tu/thanh-ly'
 import { Route as VatTuPhanCongRouteImport } from './routes/vat-tu/phan-cong'
@@ -40,10 +41,21 @@ import { Route as VatTuDanhMucNganhRouteImport } from './routes/vat-tu/danh-muc-
 import { Route as VatTuCapNhatRouteImport } from './routes/vat-tu/cap-nhat'
 import { Route as VatTuBaoCaoRouteImport } from './routes/vat-tu/bao-cao'
 import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
+import { Route as DeThiRutDeRouteImport } from './routes/de-thi/rut-de'
+import { Route as DeThiQrRouteImport } from './routes/de-thi/qr'
+import { Route as DeThiPhanCongRouteImport } from './routes/de-thi/phan-cong'
+import { Route as DeThiNganHangRouteImport } from './routes/de-thi/ngan-hang'
+import { Route as DeThiLopRouteImport } from './routes/de-thi/lop'
+import { Route as DeThiGiaoVienRouteImport } from './routes/de-thi/giao-vien'
+import { Route as DeThiDuyetRouteImport } from './routes/de-thi/duyet'
+import { Route as DeThiDanhMucRouteImport } from './routes/de-thi/danh-muc'
+import { Route as DeThiCuaToiRouteImport } from './routes/de-thi/cua-toi'
 import { Route as DaiDoiCompanyAliasRouteImport } from './routes/dai-doi/$companyAlias'
 import { Route as ClassesClassIdRouteImport } from './routes/classes/$classId'
 import { Route as VatTuToaNhaBuildingIdRouteImport } from './routes/vat-tu/toa-nha.$buildingId'
 import { Route as VatTuPhongRoomIdRouteImport } from './routes/vat-tu/phong.$roomId'
+import { Route as DeThiSoanIdRouteImport } from './routes/de-thi/soan.$id'
+import { Route as DeThiChiTietIdRouteImport } from './routes/de-thi/chi-tiet.$id'
 
 const VaiTroRoute = VaiTroRouteImport.update({
   id: '/vai-tro',
@@ -135,6 +147,11 @@ const VatTuIndexRoute = VatTuIndexRouteImport.update({
   path: '/vat-tu/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeThiIndexRoute = DeThiIndexRouteImport.update({
+  id: '/de-thi/',
+  path: '/de-thi/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VatTuTimKiemRoute = VatTuTimKiemRouteImport.update({
   id: '/vat-tu/tim-kiem',
   path: '/vat-tu/tim-kiem',
@@ -200,6 +217,51 @@ const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
   path: '/tieu-doan/$alias',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeThiRutDeRoute = DeThiRutDeRouteImport.update({
+  id: '/de-thi/rut-de',
+  path: '/de-thi/rut-de',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiQrRoute = DeThiQrRouteImport.update({
+  id: '/de-thi/qr',
+  path: '/de-thi/qr',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiPhanCongRoute = DeThiPhanCongRouteImport.update({
+  id: '/de-thi/phan-cong',
+  path: '/de-thi/phan-cong',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiNganHangRoute = DeThiNganHangRouteImport.update({
+  id: '/de-thi/ngan-hang',
+  path: '/de-thi/ngan-hang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiLopRoute = DeThiLopRouteImport.update({
+  id: '/de-thi/lop',
+  path: '/de-thi/lop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiGiaoVienRoute = DeThiGiaoVienRouteImport.update({
+  id: '/de-thi/giao-vien',
+  path: '/de-thi/giao-vien',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiDuyetRoute = DeThiDuyetRouteImport.update({
+  id: '/de-thi/duyet',
+  path: '/de-thi/duyet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiDanhMucRoute = DeThiDanhMucRouteImport.update({
+  id: '/de-thi/danh-muc',
+  path: '/de-thi/danh-muc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiCuaToiRoute = DeThiCuaToiRouteImport.update({
+  id: '/de-thi/cua-toi',
+  path: '/de-thi/cua-toi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DaiDoiCompanyAliasRoute = DaiDoiCompanyAliasRouteImport.update({
   id: '/dai-doi/$companyAlias',
   path: '/dai-doi/$companyAlias',
@@ -218,6 +280,16 @@ const VatTuToaNhaBuildingIdRoute = VatTuToaNhaBuildingIdRouteImport.update({
 const VatTuPhongRoomIdRoute = VatTuPhongRoomIdRouteImport.update({
   id: '/vat-tu/phong/$roomId',
   path: '/vat-tu/phong/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiSoanIdRoute = DeThiSoanIdRouteImport.update({
+  id: '/de-thi/soan/$id',
+  path: '/de-thi/soan/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeThiChiTietIdRoute = DeThiChiTietIdRouteImport.update({
+  id: '/de-thi/chi-tiet/$id',
+  path: '/de-thi/chi-tiet/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -241,6 +313,15 @@ export interface FileRoutesByFullPath {
   '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/de-thi/cua-toi': typeof DeThiCuaToiRoute
+  '/de-thi/danh-muc': typeof DeThiDanhMucRoute
+  '/de-thi/duyet': typeof DeThiDuyetRoute
+  '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/lop': typeof DeThiLopRoute
+  '/de-thi/ngan-hang': typeof DeThiNganHangRoute
+  '/de-thi/phan-cong': typeof DeThiPhanCongRoute
+  '/de-thi/qr': typeof DeThiQrRoute
+  '/de-thi/rut-de': typeof DeThiRutDeRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -254,7 +335,10 @@ export interface FileRoutesByFullPath {
   '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/de-thi': typeof DeThiIndexRoute
   '/vat-tu': typeof VatTuIndexRoute
+  '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
+  '/de-thi/soan/$id': typeof DeThiSoanIdRoute
   '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
   '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
@@ -278,6 +362,15 @@ export interface FileRoutesByTo {
   '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/de-thi/cua-toi': typeof DeThiCuaToiRoute
+  '/de-thi/danh-muc': typeof DeThiDanhMucRoute
+  '/de-thi/duyet': typeof DeThiDuyetRoute
+  '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/lop': typeof DeThiLopRoute
+  '/de-thi/ngan-hang': typeof DeThiNganHangRoute
+  '/de-thi/phan-cong': typeof DeThiPhanCongRoute
+  '/de-thi/qr': typeof DeThiQrRoute
+  '/de-thi/rut-de': typeof DeThiRutDeRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -291,7 +384,10 @@ export interface FileRoutesByTo {
   '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/de-thi': typeof DeThiIndexRoute
   '/vat-tu': typeof VatTuIndexRoute
+  '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
+  '/de-thi/soan/$id': typeof DeThiSoanIdRoute
   '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
   '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
@@ -316,6 +412,15 @@ export interface FileRoutesById {
   '/vai-tro': typeof VaiTroRoute
   '/classes/$classId': typeof ClassesClassIdRoute
   '/dai-doi/$companyAlias': typeof DaiDoiCompanyAliasRoute
+  '/de-thi/cua-toi': typeof DeThiCuaToiRoute
+  '/de-thi/danh-muc': typeof DeThiDanhMucRoute
+  '/de-thi/duyet': typeof DeThiDuyetRoute
+  '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/lop': typeof DeThiLopRoute
+  '/de-thi/ngan-hang': typeof DeThiNganHangRoute
+  '/de-thi/phan-cong': typeof DeThiPhanCongRoute
+  '/de-thi/qr': typeof DeThiQrRoute
+  '/de-thi/rut-de': typeof DeThiRutDeRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -329,7 +434,10 @@ export interface FileRoutesById {
   '/vat-tu/phan-cong': typeof VatTuPhanCongRoute
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
+  '/de-thi/': typeof DeThiIndexRoute
   '/vat-tu/': typeof VatTuIndexRoute
+  '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
+  '/de-thi/soan/$id': typeof DeThiSoanIdRoute
   '/vat-tu/phong/$roomId': typeof VatTuPhongRoomIdRoute
   '/vat-tu/toa-nha/$buildingId': typeof VatTuToaNhaBuildingIdRoute
 }
@@ -355,6 +463,15 @@ export interface FileRouteTypes {
     | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/de-thi/cua-toi'
+    | '/de-thi/danh-muc'
+    | '/de-thi/duyet'
+    | '/de-thi/giao-vien'
+    | '/de-thi/lop'
+    | '/de-thi/ngan-hang'
+    | '/de-thi/phan-cong'
+    | '/de-thi/qr'
+    | '/de-thi/rut-de'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -368,7 +485,10 @@ export interface FileRouteTypes {
     | '/vat-tu/phan-cong'
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
+    | '/de-thi'
     | '/vat-tu'
+    | '/de-thi/chi-tiet/$id'
+    | '/de-thi/soan/$id'
     | '/vat-tu/phong/$roomId'
     | '/vat-tu/toa-nha/$buildingId'
   fileRoutesByTo: FileRoutesByTo
@@ -392,6 +512,15 @@ export interface FileRouteTypes {
     | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/de-thi/cua-toi'
+    | '/de-thi/danh-muc'
+    | '/de-thi/duyet'
+    | '/de-thi/giao-vien'
+    | '/de-thi/lop'
+    | '/de-thi/ngan-hang'
+    | '/de-thi/phan-cong'
+    | '/de-thi/qr'
+    | '/de-thi/rut-de'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -405,7 +534,10 @@ export interface FileRouteTypes {
     | '/vat-tu/phan-cong'
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
+    | '/de-thi'
     | '/vat-tu'
+    | '/de-thi/chi-tiet/$id'
+    | '/de-thi/soan/$id'
     | '/vat-tu/phong/$roomId'
     | '/vat-tu/toa-nha/$buildingId'
   id:
@@ -429,6 +561,15 @@ export interface FileRouteTypes {
     | '/vai-tro'
     | '/classes/$classId'
     | '/dai-doi/$companyAlias'
+    | '/de-thi/cua-toi'
+    | '/de-thi/danh-muc'
+    | '/de-thi/duyet'
+    | '/de-thi/giao-vien'
+    | '/de-thi/lop'
+    | '/de-thi/ngan-hang'
+    | '/de-thi/phan-cong'
+    | '/de-thi/qr'
+    | '/de-thi/rut-de'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -442,7 +583,10 @@ export interface FileRouteTypes {
     | '/vat-tu/phan-cong'
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
+    | '/de-thi/'
     | '/vat-tu/'
+    | '/de-thi/chi-tiet/$id'
+    | '/de-thi/soan/$id'
     | '/vat-tu/phong/$roomId'
     | '/vat-tu/toa-nha/$buildingId'
   fileRoutesById: FileRoutesById
@@ -467,6 +611,15 @@ export interface RootRouteChildren {
   VaiTroRoute: typeof VaiTroRoute
   ClassesClassIdRoute: typeof ClassesClassIdRoute
   DaiDoiCompanyAliasRoute: typeof DaiDoiCompanyAliasRoute
+  DeThiCuaToiRoute: typeof DeThiCuaToiRoute
+  DeThiDanhMucRoute: typeof DeThiDanhMucRoute
+  DeThiDuyetRoute: typeof DeThiDuyetRoute
+  DeThiGiaoVienRoute: typeof DeThiGiaoVienRoute
+  DeThiLopRoute: typeof DeThiLopRoute
+  DeThiNganHangRoute: typeof DeThiNganHangRoute
+  DeThiPhanCongRoute: typeof DeThiPhanCongRoute
+  DeThiQrRoute: typeof DeThiQrRoute
+  DeThiRutDeRoute: typeof DeThiRutDeRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
   VatTuBaoCaoRoute: typeof VatTuBaoCaoRoute
   VatTuCapNhatRoute: typeof VatTuCapNhatRoute
@@ -480,7 +633,10 @@ export interface RootRouteChildren {
   VatTuPhanCongRoute: typeof VatTuPhanCongRoute
   VatTuThanhLyRoute: typeof VatTuThanhLyRoute
   VatTuTimKiemRoute: typeof VatTuTimKiemRoute
+  DeThiIndexRoute: typeof DeThiIndexRoute
   VatTuIndexRoute: typeof VatTuIndexRoute
+  DeThiChiTietIdRoute: typeof DeThiChiTietIdRoute
+  DeThiSoanIdRoute: typeof DeThiSoanIdRoute
   VatTuPhongRoomIdRoute: typeof VatTuPhongRoomIdRoute
   VatTuToaNhaBuildingIdRoute: typeof VatTuToaNhaBuildingIdRoute
 }
@@ -613,6 +769,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VatTuIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/de-thi/': {
+      id: '/de-thi/'
+      path: '/de-thi'
+      fullPath: '/de-thi'
+      preLoaderRoute: typeof DeThiIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vat-tu/tim-kiem': {
       id: '/vat-tu/tim-kiem'
       path: '/vat-tu/tim-kiem'
@@ -704,6 +867,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TieuDoanAliasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/de-thi/rut-de': {
+      id: '/de-thi/rut-de'
+      path: '/de-thi/rut-de'
+      fullPath: '/de-thi/rut-de'
+      preLoaderRoute: typeof DeThiRutDeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/qr': {
+      id: '/de-thi/qr'
+      path: '/de-thi/qr'
+      fullPath: '/de-thi/qr'
+      preLoaderRoute: typeof DeThiQrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/phan-cong': {
+      id: '/de-thi/phan-cong'
+      path: '/de-thi/phan-cong'
+      fullPath: '/de-thi/phan-cong'
+      preLoaderRoute: typeof DeThiPhanCongRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/ngan-hang': {
+      id: '/de-thi/ngan-hang'
+      path: '/de-thi/ngan-hang'
+      fullPath: '/de-thi/ngan-hang'
+      preLoaderRoute: typeof DeThiNganHangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/lop': {
+      id: '/de-thi/lop'
+      path: '/de-thi/lop'
+      fullPath: '/de-thi/lop'
+      preLoaderRoute: typeof DeThiLopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/giao-vien': {
+      id: '/de-thi/giao-vien'
+      path: '/de-thi/giao-vien'
+      fullPath: '/de-thi/giao-vien'
+      preLoaderRoute: typeof DeThiGiaoVienRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/duyet': {
+      id: '/de-thi/duyet'
+      path: '/de-thi/duyet'
+      fullPath: '/de-thi/duyet'
+      preLoaderRoute: typeof DeThiDuyetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/danh-muc': {
+      id: '/de-thi/danh-muc'
+      path: '/de-thi/danh-muc'
+      fullPath: '/de-thi/danh-muc'
+      preLoaderRoute: typeof DeThiDanhMucRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/cua-toi': {
+      id: '/de-thi/cua-toi'
+      path: '/de-thi/cua-toi'
+      fullPath: '/de-thi/cua-toi'
+      preLoaderRoute: typeof DeThiCuaToiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dai-doi/$companyAlias': {
       id: '/dai-doi/$companyAlias'
       path: '/dai-doi/$companyAlias'
@@ -732,6 +958,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VatTuPhongRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/de-thi/soan/$id': {
+      id: '/de-thi/soan/$id'
+      path: '/de-thi/soan/$id'
+      fullPath: '/de-thi/soan/$id'
+      preLoaderRoute: typeof DeThiSoanIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/de-thi/chi-tiet/$id': {
+      id: '/de-thi/chi-tiet/$id'
+      path: '/de-thi/chi-tiet/$id'
+      fullPath: '/de-thi/chi-tiet/$id'
+      preLoaderRoute: typeof DeThiChiTietIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -755,6 +995,15 @@ const rootRouteChildren: RootRouteChildren = {
   VaiTroRoute: VaiTroRoute,
   ClassesClassIdRoute: ClassesClassIdRoute,
   DaiDoiCompanyAliasRoute: DaiDoiCompanyAliasRoute,
+  DeThiCuaToiRoute: DeThiCuaToiRoute,
+  DeThiDanhMucRoute: DeThiDanhMucRoute,
+  DeThiDuyetRoute: DeThiDuyetRoute,
+  DeThiGiaoVienRoute: DeThiGiaoVienRoute,
+  DeThiLopRoute: DeThiLopRoute,
+  DeThiNganHangRoute: DeThiNganHangRoute,
+  DeThiPhanCongRoute: DeThiPhanCongRoute,
+  DeThiQrRoute: DeThiQrRoute,
+  DeThiRutDeRoute: DeThiRutDeRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
   VatTuBaoCaoRoute: VatTuBaoCaoRoute,
   VatTuCapNhatRoute: VatTuCapNhatRoute,
@@ -768,7 +1017,10 @@ const rootRouteChildren: RootRouteChildren = {
   VatTuPhanCongRoute: VatTuPhanCongRoute,
   VatTuThanhLyRoute: VatTuThanhLyRoute,
   VatTuTimKiemRoute: VatTuTimKiemRoute,
+  DeThiIndexRoute: DeThiIndexRoute,
   VatTuIndexRoute: VatTuIndexRoute,
+  DeThiChiTietIdRoute: DeThiChiTietIdRoute,
+  DeThiSoanIdRoute: DeThiSoanIdRoute,
   VatTuPhongRoomIdRoute: VatTuPhongRoomIdRoute,
   VatTuToaNhaBuildingIdRoute: VatTuToaNhaBuildingIdRoute,
 }

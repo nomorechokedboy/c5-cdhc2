@@ -1,0 +1,4 @@
+Câu 1 (3 điểm): Stack và Queue khác nhau thế nào? Nêu 2 ứng dụng thực tế của mỗi cấu trúc.
+Câu 2 (3 điểm): Độ phức tạp thời gian trung bình và xấu nhất của tìm kiếm nhị phân trên mảng đã sắp xếp?
+Câu 3 (2 điểm): Mô tả thuật toán duyệt cây nhị phân theo thứ tự trung tố (in-order).
+Câu 4 (2 điểm): Linked list đơn có ưu điểm gì so với mảng khi chèn/xóa phần tử ở giữa?

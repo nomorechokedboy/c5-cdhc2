@@ -1,0 +1,4 @@
+Câu 1 (3 điểm): Khóa chính (PRIMARY KEY) và khóa ngoại (FOREIGN KEY) khác nhau như thế nào?
+Câu 2 (3 điểm): Viết câu SQL liệt kê tên sinh viên và tên lớp (JOIN bảng students, classes).
+Câu 3 (2 điểm): Dạng chuẩn 3NF yêu cầu gì so với 2NF?
+Câu 4 (2 điểm): Transaction ACID — giải thích ngắn gọn từng chữ cái.
