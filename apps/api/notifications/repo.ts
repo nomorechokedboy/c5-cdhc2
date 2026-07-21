@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { AppError } from '../errors/index'
 import orm, { DrizzleDatabase } from '../database'
 import {
@@ -12,7 +13,7 @@ import {
 } from '../schema/notifications'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
-import { desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm'
 import log from 'encore.dev/log'
 import { v4 as uuidv4 } from 'uuid'
 import { notificationItems } from '../schema/notification-items'
@@ -81,21 +82,22 @@ class NotificationSqliteRepo implements Repository {
 	async find(q: NotificationQuery): Promise<Notification[]> {
 		log.info('notifications.find query: ', { q })
 
-		/* return this.db.query.notifications
-            .findMany({
-                with: {
-                    items: true
-                },
-                limit: q.pageSize,
-                offset: q.page * q.pageSize,
-                orderBy: (notifications, { desc }) => [
-                    desc(notifications.createdAt)
-                ]
-            })
-            .catch(handleDatabaseErr) */
+		/**
+		 * Lọc theo người nhận:
+		 * - recipientId = user hiện tại → thông báo cá nhân (đề xuất, KQ sửa…)
+		 * - recipientId IS NULL → broadcast cũ (sinh nhật / CPV) vẫn hiện cho mọi user
+		 */
+		const recipientFilter =
+			q.recipientId != null
+				? or(
+						eq(notifications.recipientId, q.recipientId),
+						isNull(notifications.recipientId)
+					)
+				: undefined
 
 		const notis = await this.db.query.notifications
 			.findMany({
+				where: recipientFilter,
 				with: {
 					items: true
 				},
@@ -220,8 +222,41 @@ class NotificationSqliteRepo implements Repository {
 		}))
 	}
 
-	unreadCount(): Promise<number> {
-		return this.db.$count(notifications, isNull(notifications.readAt))
+	unreadCount(recipientId?: number): Promise<number> {
+		// Chỉ đếm chưa đọc của user (hoặc broadcast recipientId null)
+		const cond =
+			recipientId != null
+				? and(
+						isNull(notifications.readAt),
+						or(
+							eq(notifications.recipientId, recipientId),
+							isNull(notifications.recipientId)
+						)
+					)
+				: isNull(notifications.readAt)
+		return this.db.$count(notifications, cond!)
+	}
+
+	async markAllAsRead(recipientId?: number): Promise<void> {
+		const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
+		const cond =
+			recipientId != null
+				? and(
+						isNull(notifications.readAt),
+						or(
+							eq(notifications.recipientId, recipientId),
+							isNull(notifications.recipientId)
+						)
+					)
+				: isNull(notifications.readAt)
+
+		log.info('notifications.markAllAsRead', { recipientId })
+
+		await this.db
+			.update(notifications)
+			.set({ readAt: now })
+			.where(cond!)
+			.catch(handleDatabaseErr)
 	}
 }
 

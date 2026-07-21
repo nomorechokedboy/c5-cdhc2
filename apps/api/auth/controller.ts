@@ -8,6 +8,11 @@ import { appConfig } from '../configs'
 import jwt from 'jsonwebtoken'
 import authzController from '../authz/controller'
 import type { StringValue } from 'ms'
+import orm from '../database'
+import { userNganh } from '../schema/user-nganh'
+import { userRoles } from '../schema/user-roles'
+import { roles } from '../schema/roles'
+import { eq } from 'drizzle-orm'
 
 type LoginRequest = {
 	username: string
@@ -19,9 +24,44 @@ type TokenPayload = {
 	isSuperUser: boolean
 	status?: string
 	permissions: string[]
+	/** Ngành được gán (user ngành) — frontend ẩn menu admin vật tư */
+	nganhCodes?: string[]
+	/** Tên role (vd. user_nganh, Khoa Ngành) */
+	roles?: string[]
+	/** true = chỉ danh mục ngành (+ nhật ký / cap-nhat scoped) */
+	isNganhScoped?: boolean
 	type: 'access' | 'refresh'
 	iat?: number
 	exp?: number
+}
+
+function computeIsNganhScoped(opts: {
+	isSuperUser: boolean
+	roleNames: string[]
+	nganhCodes: string[]
+	permissions: string[]
+}): boolean {
+	if (opts.isSuperUser) return false
+	const roleHit = opts.roleNames.some((n) => {
+		const s = n.toLowerCase()
+		return (
+			s === 'user_nganh' ||
+			s === 'exam_dept_head' ||
+			s.includes('ngành') ||
+			s.includes('nganh') ||
+			s.includes('chu_nhiem') ||
+			s.includes('cnk') ||
+			s === 'khoa ngành'
+		)
+	})
+	if (roleHit) return true
+	// Fallback: có gán ngành + không quyền quản tòa
+	const p = new Set(opts.permissions)
+	const hasBuilding =
+		p.has('buildings:read') ||
+		p.has('buildings:create') ||
+		p.has('buildings:update')
+	return opts.nganhCodes.length > 0 && !hasBuilding
 }
 
 type TokenResponse = {
@@ -52,11 +92,44 @@ class controller {
 				user.id
 			)
 
+			// Ngành gán + roles — đưa vào JWT để UI lock menu/filter
+			let nganhCodes: string[] = []
+			let roleNames: string[] = []
+			try {
+				const rows = await orm
+					.select({ code: userNganh.nganhCode })
+					.from(userNganh)
+					.where(eq(userNganh.userId, user.id))
+				nganhCodes = rows.map((r) => r.code.toUpperCase())
+			} catch (e) {
+				log.warn('genTokens: load user_nganh failed', { e })
+			}
+			try {
+				const rrows = await orm
+					.select({ name: roles.name })
+					.from(userRoles)
+					.innerJoin(roles, eq(userRoles.roleId, roles.id))
+					.where(eq(userRoles.userId, user.id))
+				roleNames = rrows.map((r) => r.name)
+			} catch (e) {
+				log.warn('genTokens: load roles failed', { e })
+			}
+
+			const isNganhScoped = computeIsNganhScoped({
+				isSuperUser: !!user.isSuperUser,
+				roleNames,
+				nganhCodes,
+				permissions
+			})
+
 			const accessPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
 				userId: user.id,
 				isSuperUser: user.isSuperUser,
 				status: user.status,
 				permissions,
+				nganhCodes,
+				roles: roleNames,
+				isNganhScoped,
 				type: 'access'
 				// Removed validClassIds and validUnitIds - computed dynamically in middleware
 			}

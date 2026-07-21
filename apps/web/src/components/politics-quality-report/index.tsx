@@ -28,6 +28,10 @@ import {
 	CollapsibleTrigger
 } from '../ui/collapsible'
 import useAuth from '@/hooks/useAuth'
+import {
+	countStudentCompanies,
+	filterStudentUnitTree
+} from '@/lib/student-units'
 
 // Recursive renderer for children + classes
 function UnitBlock({
@@ -140,16 +144,41 @@ function UnitBlock({
 
 export function PoliticalQualityDashboard() {
 	const { user } = useAuth()
-	const { data: units = [] } = useUnitsData(
+	const { data: unitsRaw = [] } = useUnitsData(
 		user?.isSuperUser === true ? { level: 'battalion' } : undefined
 	)
-	const unitIds = units?.map((u) => u.id)
+	// Chỉ TD1 + TD2 (D1–D3 / D4–D5)
+	const units = filterStudentUnitTree(unitsRaw)
+	const unitIds = units.flatMap((u) => [
+		u.id,
+		...(u.children || []).map((c) => c.id)
+	])
 	const { data: politicsQualityData } = useQuery({
 		enabled: unitIds.length !== 0,
-		queryKey: ['politics-quality-report'],
+		queryKey: ['politics-quality-report', unitIds.join(',')],
 		queryFn: () => GetPoliticsQualityReport(unitIds)
 	})
-	const transformData = transformPoliticsQualityData(politicsQualityData)
+	// Ép tree trong response cũng chỉ còn TD1/TD2
+	const politicsFiltered = politicsQualityData
+		? {
+				...politicsQualityData,
+				units: filterStudentUnitTree(
+					politicsQualityData.units as Array<{
+						alias: string
+						name: string
+						children?: Array<{
+							alias: string
+							name: string
+							classes?: { length: number }[]
+						}>
+						classes?: { length: number }[]
+					}>
+				)
+			}
+		: undefined
+	const transformData = transformPoliticsQualityData(
+		politicsFiltered as typeof politicsQualityData
+	)
 
 	const [activeTab, setActiveTab] = useState<
 		'overview' | 'detailed' | 'charts'
@@ -158,24 +187,29 @@ export function PoliticalQualityDashboard() {
 	const totalPersonnel = transformData
 		.map((unit) => unit.politicsQualityReport?.total ?? 0)
 		.reduce((accum, curr) => accum + curr, 0)
-	const totalCompanyUnits =
-		politicsQualityData?.units
-			.map((unit) => unit.children.length ?? 0)
-			.reduce((accum, curr) => accum + curr, 0) ?? 0
-	const totalBattalionUnits = politicsQualityData?.units.length ?? 0
+	const studentTree = filterStudentUnitTree(
+		(politicsFiltered?.units || units) as Array<{
+			alias: string
+			children?: unknown[]
+		}>
+	)
+	const totalCompanyUnits = countStudentCompanies(studentTree)
+	const totalBattalionUnits = studentTree.length
 	const totalUnit = totalBattalionUnits + totalCompanyUnits
 
 	const totalChildrenClasses =
-		politicsQualityData?.units
+		studentTree
 			.map((unit) =>
-				unit?.children
-					?.map((u) => u.classes.length ?? 0)
+				(unit as { children?: Array<{ classes?: unknown[] }> }).children
+					?.map((u) => u.classes?.length ?? 0)
 					.reduce((accum, curr) => accum + curr, 0)
 			)
-			.reduce((accum, curr) => accum + curr, 0) ?? 0
+			.reduce((accum: number, curr) => accum + (curr ?? 0), 0) ?? 0
 	const totalUnitClasses =
-		politicsQualityData?.units
-			.map((unit) => unit?.classes?.length)
+		studentTree
+			.map(
+				(unit) => (unit as { classes?: unknown[] }).classes?.length ?? 0
+			)
 			.reduce((accum, curr) => accum + curr, 0) ?? 0
 
 	return (

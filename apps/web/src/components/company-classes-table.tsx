@@ -1,9 +1,9 @@
 import ClassForm from '@/components/class-form'
 import ClassCard from '@/components/class-table/class-card'
 import { columns } from '@/components/class-table/columns'
+import ImportMoodleClassesDialog from '@/components/import-moodle-classes-dialog'
 import { DataTable } from '@/components/data-table'
 import useDataTableToolbarConfig from '@/hooks/useDataTableToolbarConfig'
-import type { FacetedFilterConfig } from '@/types'
 import { Button } from './ui/button'
 import { RefreshCw } from 'lucide-react'
 import useUnitData from '@/hooks/useUnitData'
@@ -49,10 +49,14 @@ export default function CompanyClassesTable({
 					<h2 className='text-2xl font-bold tracking-tight'>
 						Danh sách lớp của {company?.name}
 					</h2>
+					<p className='text-sm text-muted-foreground mt-1'>
+						Học chung khóa: thêm lớp tay hoặc import từ Moodle ·
+						hiển thị bảng ngang
+					</p>
 				</div>
 			</div>
 			<DataTable
-				placeholder='Đại đội chưa có lớp nào'
+				placeholder='Đại đội chưa có lớp nào — dùng «Thêm lớp» hoặc «Thêm từ Moodle»'
 				columns={columns}
 				cardComponent={({ data }) => (
 					<ClassCard
@@ -63,17 +67,27 @@ export default function CompanyClassesTable({
 				)}
 				cardClassName='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
 				data={classes ?? []}
-				defaultViewMode='card'
+				defaultViewMode='table'
 				defaultColumnFilters={[{ id: 'status', value: ['ongoing'] }]}
 				toolbarProps={{
 					rightSection: (
 						<>
+							<ImportMoodleClassesDialog
+								unitId={company?.id}
+								onSuccess={handleFormSuccess}
+							/>
 							<ClassForm
 								onSuccess={handleFormSuccess}
 								unitId={company?.id}
 							/>
-							<Button onClick={() => refetchUnits()}>
-								<RefreshCw />
+							<Button
+								variant='outline'
+								onClick={() => {
+									refetchUnits()
+									refetchClasses()
+								}}
+							>
+								<RefreshCw className='w-4 h-4' />
 							</Button>
 						</>
 					),

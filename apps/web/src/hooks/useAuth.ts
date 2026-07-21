@@ -36,10 +36,21 @@ export default function useAuth() {
 
 			// Update auth query cache
 			queryClient.setQueryData(['auth', 'user'], user)
-			// Navigate to dashboard or intended page
-			navigate({
-				to: '/'
-			})
+			// room_teacher → phòng dạy; user ngành → danh mục ngành
+			const { isRoomTeacherUser, isNganhUser } = await import(
+				'@/lib/utils'
+			)
+			if (isRoomTeacherUser()) {
+				navigate({ to: '/phong-day' })
+			} else if (isNganhUser()) {
+				// Danh mục ngành — filter ngành cố định (auto gán sau khi load catalog)
+				navigate({
+					to: '/vat-tu/danh-muc-nganh',
+					search: { view: 'nganh' }
+				})
+			} else {
+				navigate({ to: '/' })
+			}
 		},
 		onError: (error) => {
 			console.error('Login failed:', error)

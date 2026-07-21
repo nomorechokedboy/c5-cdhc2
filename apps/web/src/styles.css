@@ -16,14 +16,124 @@
 	}
 }
 
+/**
+ * Đồng bộ PC / laptop:
+ * - Cỡ chữ fluid theo chiều rộng (clamp) — không cố định 19px + zoom 1.06
+ *   (zoom cố định khiến laptop phải kéo nhiều hơn màn lớn).
+ * - Cùng tỷ lệ tương đối trên 1280–1920px; màn thấp (≤900px) hơi thu để bớt scroll dọc.
+ */
+html {
+	/* ~15px laptop hẹp → ~17.5px desktop rộng */
+	font-size: clamp(15px, 0.55vw + 12px, 17.5px);
+	height: 100%;
+	/* Tránh nhảy layout khi thanh cuộn hiện/ẩn */
+	scrollbar-gutter: stable;
+}
+
 body {
-	@apply m-0;
+	@apply m-0 text-base;
 	font-family:
 		-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
 		'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
 		sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	height: 100%;
+	min-height: 100dvh;
+	overflow: hidden; /* cuộn trong khung app — PC/laptop giống nhau */
+}
+
+/* Laptop / màn thấp: hơi gọn hơn để bớt phải kéo dọc */
+@media (max-height: 820px) {
+	html {
+		font-size: clamp(14px, 0.5vw + 11px, 16px);
+	}
+}
+
+/* Màn rộng + cao (desktop): giữ dễ đọc, không phóng quá tay */
+@media (min-width: 1536px) and (min-height: 900px) {
+	html {
+		font-size: clamp(16px, 0.45vw + 11px, 17.5px);
+	}
+}
+
+/**
+ * Zoom UI (mặc định 100%). Không scale cố định — tránh lệch PC/laptop.
+ * Có thể set --app-ui-zoom: 1.05 trong DevTools nếu cần phóng tạm.
+ */
+:root {
+	--app-ui-zoom: 1;
+	--app-header-height: 4rem;
+}
+
+/* Ô chọn ngày / thời gian — to, dễ bấm */
+input[type='date'],
+input[type='datetime-local'],
+input[type='month'],
+input[type='week'],
+input[type='time'] {
+	min-height: 2.5rem;
+	font-size: 1rem;
+	line-height: 1.5;
+	padding-inline: 0.75rem;
+	padding-block: 0.45rem;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='month']::-webkit-calendar-picker-indicator,
+input[type='week']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+	width: 1.15rem;
+	height: 1.15rem;
+	cursor: pointer;
+	opacity: 0.85;
+}
+
+#app {
+	height: 100%;
+	min-height: 100dvh;
+	max-height: 100dvh;
+	overflow: hidden;
+	zoom: var(--app-ui-zoom);
+}
+
+@supports not (zoom: 1) {
+	#app {
+		/* Firefox fallback — chỉ khi zoom CSS không có */
+		transform: none;
+		width: 100%;
+		min-height: 100dvh;
+	}
+}
+
+/* Khung nội dung app: header cố định, body cuộn — đồng bộ mọi màn */
+.app-shell {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+	min-height: 0;
+	max-height: 100dvh;
+	overflow: hidden;
+}
+
+.app-shell-main {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	overflow: auto;
+	/* cuộn mượt; thanh cuộn ổn định */
+	overscroll-behavior: contain;
+}
+
+/* Bảng rộng: luôn cho kéo ngang trong khung, không phá layout */
+.app-table-scroll {
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
 }
 
 code {

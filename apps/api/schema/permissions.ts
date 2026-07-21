@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { Base, baseSchema } from './base'
-import { Resource, resources } from './resources'
+import { Resource, ResourceDB, resources } from './resources'
 import { Action, actions } from './actions'
 import { rolePermissions } from './role-permissions'
 import { relations } from 'drizzle-orm'
@@ -36,13 +36,12 @@ export const permissionsRelations = relations(permissions, ({ one, many }) => ({
 export interface PermissionDB extends Base {
 	name: string
 	displayName: string
-	description?: string
+	description?: string | null
 }
 
 export interface Permission extends PermissionDB {
 	resource: Resource
 	action: Action
-	roles: Role[]
 }
 
 export interface PermissionCheck {
@@ -59,8 +58,7 @@ export interface PermissionResult {
 export interface CreatePermissionRequest {
 	name: string
 	displayName: string
-	description?: string
-
+	description?: string | null
 	actionId: number
 	resourceId: number
 }

@@ -49,11 +49,11 @@ export const classesRelations = relations(classes, ({ one, many }) => ({
 
 export type ClassDB = InferSelectModel<typeof classes>
 
-export type Class = ClassDB & { studentCount: number; unit: Unit }
+export type Class = ClassDB & { studentCount: number; unit: Unit | null }
 
 export type ClassParam = {
 	name: string
-	description?: string
+	description?: string | null
 	graduatedAt?: string
 	unitId: number
 }

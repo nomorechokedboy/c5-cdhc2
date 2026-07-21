@@ -28,7 +28,7 @@ interface CreateUnitResponse {
 }
 
 export const CreateUnit = api(
-	{ expose: false, method: 'POST', path: '/units' },
+	{ auth: true, expose: true, method: 'POST', path: '/units' },
 	async (body: CreateUnitRequest): Promise<CreateUnitResponse> => {
 		const unitParams: Array<UnitParams> = body.data.map((u) => ({
 			...u
@@ -63,6 +63,43 @@ export const GetUnits = api(
 	async (q: GetUnitsQuery): Promise<GetUnitsResponse> => {
 		const callMeta = currentRequest() as APICallMeta
 		const unitIds = callMeta.middlewareData?.validUnitIds || []
+		const auth = getAuthData()
+		const perms = auth?.permissions || []
+
+		/**
+		 * Form «Đơn vị quản lý» (user ngành / cập nhật VT):
+		 * - có units:read + asset-catalog (ngành) nhưng không quản tòa
+		 * - hoặc không có unit scope → trả full danh mục đơn vị (admin data)
+		 */
+		const needFullUnitCatalog =
+			!auth?.isSuperAdmin &&
+			perms.includes('units:read') &&
+			(perms.includes('asset-catalog:read') ||
+				perms.includes('catalog-stock:read') ||
+				perms.includes('room-assets:create')) &&
+			!perms.includes('buildings:create') &&
+			!perms.includes('buildings:update')
+
+		if (!unitIds.length || needFullUnitCatalog) {
+			const all = await unitController.findAll()
+			let list = all
+			if (q.level !== undefined) {
+				// level trên Unit có thể là number (0/1) hoặc string sau map
+				list = all.filter((u) => {
+					const lv = u.level as unknown
+					if (lv === q.level) return true
+					if (
+						q.level === 'battalion' &&
+						(lv === 0 || lv === 'battalion')
+					)
+						return true
+					if (q.level === 'company' && (lv === 1 || lv === 'company'))
+						return true
+					return false
+				})
+			}
+			return { data: list.map((u) => ({ ...u }) as Unit) }
+		}
 
 		const resp = await unitController.find(q, unitIds)
 		const data = resp.map((u) => ({ ...u }) as Unit)

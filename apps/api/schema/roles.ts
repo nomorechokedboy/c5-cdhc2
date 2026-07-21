@@ -20,7 +20,7 @@ export const rolesRelations = relations(roles, ({ many }) => ({
 
 export interface RoleDB extends Base {
 	name: string
-	description?: string
+	description?: string | null
 }
 
 export interface Role extends RoleDB {
@@ -30,13 +30,13 @@ export interface Role extends RoleDB {
 
 export interface CreateRoleRequest {
 	name: string
-	description?: string
+	description?: string | null
 	permissionIds?: number[]
 }
 
 export interface UpdateRoleRequest {
 	id: number
 	name?: string
-	description?: string
+	description?: string | null
 	permissionIds?: number[]
 }

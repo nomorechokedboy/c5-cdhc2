@@ -3,30 +3,65 @@ import useUnreadNotificationCount from '@/hooks/useUnreadNotificationCount'
 import { formatTimestamp } from '@/lib/utils'
 import type { AppNotification, AppNotificationType } from '@/types'
 import { useMutation } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { Cake, UserRoundCheck } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { BookOpenCheck, Cake, UserRoundCheck, Wrench } from 'lucide-react'
 
 export type NotificationProps = {
 	notification: AppNotification
 	onClick?: () => void
 }
 
-const getNotificationIcon = (type: AppNotificationType) => {
+const getNotificationIcon = (type: AppNotificationType | string) => {
 	switch (type) {
 		case 'officialCpv':
 			return <UserRoundCheck size={16} />
 		case 'birthday':
 			return <Cake size={16} />
+		case 'assetProposal':
+			return <Wrench size={16} />
+		case 'examWorkflow':
+			return <BookOpenCheck size={16} />
 		default:
 			return '🔔'
 	}
+}
+
+/** Đích khi bấm thông báo */
+function resolveNotificationPath(n: AppNotification): string {
+	const t = String(n.notificationType || '')
+	const text = `${n.title || ''} ${n.message || ''}`
+
+	// Đề thi: [exam:123] → chi tiết; không có id → hàng đợi duyệt
+	const examMatch = text.match(/\[exam:(\d+)\]/i)
+	if (
+		t === 'examWorkflow' ||
+		/đề thi|ngân hàng đề|mã qr đề|chờ bgh|chờ cnk|ban khảo thí/i.test(text)
+	) {
+		if (examMatch) return `/de-thi/chi-tiet/${examMatch[1]}`
+		return '/de-thi/duyet'
+	}
+
+	if (
+		t === 'assetProposal' ||
+		t === 'asset_proposal' ||
+		/đề xuất|sua chua|sửa chữa|thanh lý|thu hồi|kết quả sửa/i.test(text)
+	) {
+		return '/vat-tu/de-xuat'
+	}
+	if (t === 'birthday' || /sinh nhật/i.test(text)) {
+		return '/birthday'
+	}
+	if (t === 'officialCpv' || /chuyển đảng|đảng chính thức/i.test(text)) {
+		return '/chuyen-dang-chinh-thuc'
+	}
+	return '/'
 }
 
 export default function Notification({
 	notification,
 	onClick
 }: NotificationProps) {
-	const isBirthdayNoti = notification.notificationType === 'birthday'
+	const navigate = useNavigate()
 	const { refetch: refetchUnreadNotification } = useUnreadNotificationCount()
 	const { mutate } = useMutation({
 		mutationFn: MarkAsRead,
@@ -38,58 +73,81 @@ export default function Notification({
 		}
 	})
 
-	function handleReadNotification() {
-		if (notification.readAt !== null) {
-			onClick?.()
-			return
-		}
+	function handleClick(e: React.MouseEvent) {
+		e.preventDefault()
+		e.stopPropagation()
 
-		if (notification.id === undefined) {
-			console.log(
-				'Notification.handleReadNotification: Notification id is undefined'
-			)
-		} else {
+		if (notification.readAt == null && notification.id) {
 			mutate({ ids: [notification.id] })
 		}
 
+		const path = resolveNotificationPath(notification)
 		onClick?.()
+		if (path.startsWith('/de-thi/chi-tiet/')) {
+			const id = path.split('/').pop() || ''
+			void navigate({
+				to: '/de-thi/chi-tiet/$id',
+				params: { id }
+			})
+		} else if (path === '/de-thi/duyet') {
+			void navigate({ to: '/de-thi/duyet' })
+		} else if (path === '/vat-tu/de-xuat') {
+			void navigate({ to: '/vat-tu/de-xuat' })
+		} else if (path === '/birthday') {
+			void navigate({ to: '/birthday' })
+		} else if (path === '/chuyen-dang-chinh-thuc') {
+			void navigate({ to: '/chuyen-dang-chinh-thuc' })
+		} else {
+			void navigate({ to: '/' })
+		}
 	}
 
-	const to = isBirthdayNoti ? '/birthday' : '/chuyen-dang-chinh-thuc'
+	const path = resolveNotificationPath(notification)
 
 	return (
-		<Link to={to} onClick={handleReadNotification}>
+		<button
+			type='button'
+			className='w-full text-left'
+			onClick={handleClick}
+		>
 			<div
-				className={`p-4 hover:bg-gray-50 transition-colors ${
-					!notification.readAt === null ? 'bg-blue-50' : ''
+				className={`p-4 hover:bg-gray-50 dark:hover:bg-muted/40 transition-colors ${
+					notification.readAt == null
+						? 'bg-blue-50 dark:bg-blue-950/30'
+						: ''
 				}`}
 			>
-				<div className='flex flex-col gap-2 space-x-3'>
-					<div className='flex gap-2'>
-						<div className='bg-white rounded-full p-1'>
-							<span className='text-xs'>
-								{getNotificationIcon(
-									notification.notificationType
-								)}
-							</span>
-						</div>
-						{notification.title}
+				<div className='flex gap-3 items-start'>
+					<div className='bg-white dark:bg-background rounded-full p-1.5 shrink-0 border'>
+						{getNotificationIcon(notification.notificationType)}
 					</div>
-					<div className='flex-1 min-w-0'>
-						<p className='text-sm'>
-							<span className='font-medium'>
-								{notification.message}
-							</span>
+					<div className='min-w-0 flex-1'>
+						<div className='font-medium text-sm leading-snug'>
+							{notification.title}
+						</div>
+						<p className='text-sm text-muted-foreground mt-1 leading-snug'>
+							{(notification.message || '')
+								.replace(/\s*\[exam:\d+\]\s*/gi, ' ')
+								.trim()}
 						</p>
 						<p className='text-xs text-gray-500 mt-1'>
 							{formatTimestamp(notification.createdAt)}
+							{path === '/vat-tu/de-xuat' ? (
+								<span className='ml-2 text-primary'>
+									→ Đề xuất / sửa chữa
+								</span>
+							) : path.startsWith('/de-thi') ? (
+								<span className='ml-2 text-primary'>
+									→ Đề thi
+								</span>
+							) : null}
 						</p>
 					</div>
-					{!notification.readAt && (
-						<div className='w-2 h-2 bg-blue-500 rounded-full mt-2' />
+					{notification.readAt == null && (
+						<div className='w-2 h-2 bg-blue-500 rounded-full mt-2 shrink-0' />
 					)}
 				</div>
 			</div>
-		</Link>
+		</button>
 	)
 }

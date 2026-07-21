@@ -32,7 +32,10 @@ class sqliteRepo implements Repository {
 	findOne(id: number): Promise<Resource | undefined> {
 		return this.db.query.resources
 			.findFirst({
-				where: eq(resources.id, id)
+				where: eq(resources.id, id),
+				with: {
+					permissions: true
+				}
 			})
 			.catch(handleDatabaseErr)
 	}

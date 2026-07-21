@@ -4,8 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import UserEditForm from './user-edit-form'
 import type { User } from '@/types'
-import { getMediaUri, isSuperAdmin } from '@/lib/utils'
-import { UserPen, Shield, User as UserIcon, Building2, Award, Briefcase } from 'lucide-react'
+import { canSeeUsernames, getMediaUri, isSuperAdmin } from '@/lib/utils'
+import {
+	UserPen,
+	Shield,
+	User as UserIcon,
+	Building2,
+	Award,
+	Briefcase
+} from 'lucide-react'
 import useUserData from '@/hooks/useUsers'
 
 interface StudentInfoTabsProps {
@@ -16,7 +23,15 @@ export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
 	const [open, setOpen] = useState(false)
 	const { refetch: refetchStudents } = useUserData()
 	console.log('Render UserInfoTabs for user:', user)
-	const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string }) => {
+	const InfoItem = ({
+		icon: Icon,
+		label,
+		value
+	}: {
+		icon: React.ElementType
+		label: string
+		value?: string
+	}) => {
 		if (!value) return null
 		return (
 			<div className='flex items-center gap-2 text-sm'>
@@ -52,7 +67,10 @@ export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
 									{user?.displayName}
 								</CardTitle>
 								{user?.isSuperUser && (
-									<Badge variant='default' className='bg-blue-600'>
+									<Badge
+										variant='default'
+										className='bg-blue-600'
+									>
 										<Shield className='w-3 h-3 mr-1' />
 										Quản trị viên
 									</Badge>
@@ -66,13 +84,15 @@ export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
 								</p>
 							)}
 
-							{/* Info Grid */}
+							{/* Info Grid — username chỉ admin.cdhc2 */}
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-2 pt-2'>
-								<InfoItem
-									icon={UserIcon}
-									label='Tên tài khoản'
-									value={user?.username}
-								/>
+								{canSeeUsernames() && (
+									<InfoItem
+										icon={UserIcon}
+										label='Tên tài khoản'
+										value={user?.username}
+									/>
+								)}
 								<InfoItem
 									icon={Building2}
 									label='Đơn vị'
@@ -95,7 +115,10 @@ export default function StudentInfoTabs({ user }: StudentInfoTabsProps) {
 								<div className='flex items-center gap-2 text-sm pt-2'>
 									<UserIcon className='w-4 h-4 text-gray-500' />
 									<span className='text-gray-600'>
-										<span className='font-medium'>Loại tài khoản:</span> Người dùng
+										<span className='font-medium'>
+											Loại tài khoản:
+										</span>{' '}
+										Người dùng
 									</span>
 								</div>
 							)}

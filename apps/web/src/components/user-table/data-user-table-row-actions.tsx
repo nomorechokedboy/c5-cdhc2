@@ -17,13 +17,17 @@ import {
 	DialogContent
 } from '@/components/ui/dialog'
 import UserInfoTabs from './user-info-tabs'
-import { useState, type MouseEvent } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { useDeleteUsers } from './useDeleteUsers'
 import { isSuperAdmin } from '@/lib/utils'
 import AssignRoleDialog from './assign-role-dialog'
+import AssignNganhDialog from './assign-nganh-dialog'
+import ResetPasswordDialog from './reset-password-dialog'
+import DeleteUsersConfirmDialog from './delete-users-confirm-dialog'
 import useUserData from '@/hooks/useUsers'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -35,37 +39,41 @@ export function DataTableRowActions<TData>({
 	onDeleteRows
 }: DataTableRowActionsProps<TData>) {
 	const user = row.original as unknown as User
-	// Thêm log để debug
-	console.log('Row original:', row.original)
-	console.log('Student cast:', user)
 	const [dialogOpen, setDialogOpen] = useState(false)
-	const { refetch: refetchStudents } = useUserData()
+	const [deleteOpen, setDeleteOpen] = useState(false)
+	const qc = useQueryClient()
+	const { refetch: refetchUsers } = useUserData()
 
-	const { mutateAsync: deleteUserMutate, isPending: isDeletingStudent } =
+	const { mutateAsync: deleteUserMutate, isPending: isDeleting } =
 		useDeleteUsers()
 
 	const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false)
+	const [assignNganhOpen, setAssignNganhOpen] = useState(false)
+	const [resetPwOpen, setResetPwOpen] = useState(false)
 
 	function handleOpenDialog() {
 		setDialogOpen(true)
 	}
 
-	async function handleDeleteRow(_: MouseEvent<HTMLDivElement>) {
+	async function confirmDelete() {
 		try {
-			if (
-				!confirm(
-					'Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác.'
-				)
-			) {
+			if (user.isSuperUser) {
+				toast.error('Không thể xóa tài khoản admin')
 				return
 			}
-			await deleteUserMutate([user.id]).then(() =>
-				onDeleteRows?.([user.id])
-			)
-			toast.success('Xóa dữ liệu thành công!')
-			refetchStudents()
+			await deleteUserMutate([user.id])
+			onDeleteRows?.([user.id])
+			await Promise.all([
+				refetchUsers(),
+				qc.invalidateQueries({ queryKey: ['users'] }),
+				qc.invalidateQueries({ queryKey: ['pending-permissions'] }),
+				qc.refetchQueries({ queryKey: ['users'], type: 'all' })
+			])
+			toast.success(`Đã xóa «${user.displayName || user.username}»`)
+			setDeleteOpen(false)
 		} catch (err) {
-			toast.error(err.message ?? 'Lỗi xóa dữ liệu!')
+			const msg = err instanceof Error ? err.message : 'Lỗi xóa dữ liệu!'
+			toast.error(msg)
 			if (err instanceof AxiosError) {
 				console.error('Http error: ', err.response?.data)
 			}
@@ -79,27 +87,38 @@ export function DataTableRowActions<TData>({
 					<Button
 						variant='ghost'
 						className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
-						disabled={isDeletingStudent}
+						disabled={isDeleting}
 					>
 						<MoreHorizontal />
 						<span className='sr-only'>Open menu</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align='end' className='w-[160px]'>
+				<DropdownMenuContent align='end' className='w-[180px]'>
 					<DropdownMenuItem onClick={handleOpenDialog}>
 						Chi tiết
 					</DropdownMenuItem>
 					{isSuperAdmin() && (
 						<>
 							<DropdownMenuItem
+								onClick={() => setResetPwOpen(true)}
+							>
+								Đặt lại mật khẩu
+							</DropdownMenuItem>
+							<DropdownMenuItem
 								onClick={() => setAssignRoleDialogOpen(true)}
 							>
 								Phân quyền
 							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => setAssignNganhOpen(true)}
+							>
+								Gán ngành
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
-								disabled={isDeletingStudent}
-								onClick={handleDeleteRow}
+								disabled={isDeleting || !!user.isSuperUser}
+								className='text-destructive focus:text-destructive'
+								onClick={() => setDeleteOpen(true)}
 							>
 								Xóa
 								<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
@@ -108,15 +127,23 @@ export function DataTableRowActions<TData>({
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
+
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 				<DialogContent className='max-w-7xl h-[90vh] overflow-y-auto p-6'>
 					<DialogHeader className='flex items-center justify-between'>
 						<DialogTitle>Thông tin người dùng</DialogTitle>
 					</DialogHeader>
-
 					<UserInfoTabs user={user} />
 				</DialogContent>
 			</Dialog>
+
+			<DeleteUsersConfirmDialog
+				open={deleteOpen}
+				onOpenChange={setDeleteOpen}
+				users={[user]}
+				pending={isDeleting}
+				onConfirm={confirmDelete}
+			/>
 
 			{assignRoleDialogOpen && (
 				<AssignRoleDialog
@@ -124,6 +151,21 @@ export function DataTableRowActions<TData>({
 					onOpenChange={setAssignRoleDialogOpen}
 					userId={user.id}
 					userName={user.displayName}
+				/>
+			)}
+			{assignNganhOpen && (
+				<AssignNganhDialog
+					open={assignNganhOpen}
+					onOpenChange={setAssignNganhOpen}
+					user={user}
+				/>
+			)}
+			{resetPwOpen && (
+				<ResetPasswordDialog
+					open={resetPwOpen}
+					onOpenChange={setResetPwOpen}
+					user={user}
+					onSuccess={() => refetchUsers()}
 				/>
 			)}
 		</>

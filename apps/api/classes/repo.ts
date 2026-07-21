@@ -13,7 +13,7 @@ import { students } from '../schema/student.js'
 import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index.js'
 import { units } from '../schema/units.js'
-import { table } from 'console'
+import { getMariaCourseData } from '../maria-data.js'
 
 class SqliteRepo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -47,7 +47,7 @@ class SqliteRepo implements Repository {
 		return query.all().catch(handleDatabaseErr)
 	}
 
-	find(q: ClassQuery): Promise<Class[]> {
+	async find(q: ClassQuery): Promise<Class[]> {
 		const baseQuery = this.db
 			.select({
 				...getTableColumns(classes),
@@ -86,7 +86,25 @@ class SqliteRepo implements Repository {
 			baseQuery.where(and(...whereConds))
 		}
 
-		return baseQuery.all().catch(handleDatabaseErr)
+		const rows = await baseQuery.all().catch(handleDatabaseErr)
+
+		// Không map course Moodle thành «lớp ảo».
+		// Giữ kết nối MariaDB: nếu local trống mà remote có course → chỉ log.
+		if (rows.length === 0) {
+			try {
+				const remote = await getMariaCourseData(10)
+				if (remote.length > 0) {
+					log.info(
+						'MariaDB has remote courses but local classes empty — skip phantom classes',
+						{ remoteCount: remote.length }
+					)
+				}
+			} catch {
+				// ignored — connection optional
+			}
+		}
+
+		return rows
 	}
 
 	findOne(c: ClassDB): Promise<Class | undefined> {

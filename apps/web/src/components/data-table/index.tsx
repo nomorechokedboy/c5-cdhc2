@@ -256,9 +256,11 @@ export function DataTable<TData, TValue>({
 
 	const renderTableView = () => {
 		return (
-			<div className={`rounded-md border ${tableClassName}`}>
-				<Table>
-					<TableHeader>
+			<div
+				className={`rounded-md border overflow-x-auto overflow-y-auto max-h-[min(70vh,720px)] ${tableClassName}`}
+			>
+				<Table className='min-w-[1100px] w-full'>
+					<TableHeader className='sticky top-0 z-10 bg-background'>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
@@ -266,6 +268,7 @@ export function DataTable<TData, TValue>({
 										<TableHead
 											key={header.id}
 											colSpan={header.colSpan}
+											className='whitespace-nowrap'
 										>
 											{header.isPlaceholder
 												? null

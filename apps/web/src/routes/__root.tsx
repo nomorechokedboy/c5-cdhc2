@@ -10,6 +10,7 @@ import Header from '../components/Header'
 import TanStackQueryLayout from '../integrations/tanstack-query/layout'
 import { type QueryClient } from '@tanstack/react-query'
 import { AppSidebar } from '@/components/app-sidebar'
+import NganhUserAccessGuard from '@/components/NganhUserAccessGuard'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import type { notifications, StreamIn } from '@/api/client'
@@ -120,12 +121,20 @@ function RootLayout() {
 
 	return (
 		<>
-			<SidebarProvider>
+			<SidebarProvider className='h-full max-h-dvh overflow-hidden'>
 				{isAuthenticated && <AppSidebar collapsible='icon' />}
+				{isAuthenticated && <NganhUserAccessGuard />}
 				<Toaster richColors position='top-center' />
-				<div className='flex flex-col w-full'>
+				{/*
+				 * Khung đồng bộ PC / laptop:
+				 * - Header cố định (không cuộn theo)
+				 * - Nội dung cuộn trong .app-shell-main — cùng hành vi mọi độ phân giải
+				 */}
+				<div className='app-shell'>
 					{isAuthenticated && <Header />}
-					<Outlet />
+					<main className='app-shell-main'>
+						<Outlet />
+					</main>
 				</div>
 			</SidebarProvider>
 			<TanStackRouterDevtools />

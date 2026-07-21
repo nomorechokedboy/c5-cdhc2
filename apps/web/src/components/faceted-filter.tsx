@@ -74,7 +74,7 @@ export default function FacetedFilter({
 				)}
 				<span>{option.label}</span>
 				{facets?.get(option.value) && (
-					<span className='ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs'>
+					<span className='ml-auto flex h-5 w-5 items-center justify-center font-mono text-sm'>
 						{facets.get(option.value)}
 					</span>
 				)}
@@ -92,7 +92,7 @@ export default function FacetedFilter({
 				<Button
 					variant='outline'
 					size='sm'
-					className='h-8 border-dashed'
+					className='h-10 text-base border-dashed'
 				>
 					<PlusCircle />
 					{title}

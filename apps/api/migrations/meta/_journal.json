@@ -29,6 +29,111 @@
 			"when": 1764818984550,
 			"tag": "0003_nasty_mandrill",
 			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1765272000000,
+			"tag": "0004_asset-management-tables",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "6",
+			"when": 1765272100000,
+			"tag": "0005_seed-asset-authz",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "6",
+			"when": 1765278000000,
+			"tag": "0006_room-asset-repair-fields",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "6",
+			"when": 1765280000000,
+			"tag": "0007_repair-requests",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1765281000000,
+			"tag": "0008_asset-codes-grade-movements",
+			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "6",
+			"when": 1765282000000,
+			"tag": "0009_holding-unit-and-extra-units",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "6",
+			"when": 1765286000000,
+			"tag": "0013_preserve-movement-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "6",
+			"when": 1765290000000,
+			"tag": "0014_account-audit-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "6",
+			"when": 1765291000000,
+			"tag": "0015_catalog-audit-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "6",
+			"when": 1765292000000,
+			"tag": "0016_room-account-password",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "6",
+			"when": 1765400000000,
+			"tag": "0017_user-nganh-catalog-stock",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "6",
+			"when": 1765500000000,
+			"tag": "0018_asset-proposals",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "6",
+			"when": 1765600000000,
+			"tag": "0019_seed-missing-asset-permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "6",
+			"when": 1765700000000,
+			"tag": "0020_proposal-location-fields",
+			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "6",
+			"when": 1765800000000,
+			"tag": "0021_nganh-proposal-permissions",
+			"breakpoints": true
 		}
 	]
 }

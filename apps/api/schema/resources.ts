@@ -18,7 +18,7 @@ export const resourcesRelations = relations(resources, ({ many }) => ({
 export interface ResourceDB extends Base {
 	name: string
 	displayName: string
-	description?: string
+	description?: string | null
 }
 
 export interface Resource extends ResourceDB {
@@ -28,5 +28,5 @@ export interface Resource extends ResourceDB {
 export interface CreateResourceRequest {
 	name: string
 	displayName: string
-	description?: string
+	description?: string | null
 }

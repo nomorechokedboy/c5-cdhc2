@@ -34,7 +34,9 @@ export const users = p.sqliteTable('users', {
 		.default('pending'),
 	rank: p.text(),
 	position: p.text(),
-	alias: p.text()
+	alias: p.text(),
+	/** Ảnh chữ ký số (URL / data URL) — BGH dùng khi phê duyệt đề */
+	signatureUrl: p.text('signature_url')
 })
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -49,11 +51,13 @@ export interface UserDB extends Base {
 	username: string
 	password: string
 	displayName: string
-	unitId: number
+	unitId: number | null
+	status: 'pending' | 'approved' | null
 	isSuperUser: boolean
-	rank?: string
-	position?: string
-	alias?: string
+	rank?: string | null
+	position?: string | null
+	alias?: string | null
+	signatureUrl?: string | null
 }
 
 export interface User extends UserDB {
@@ -64,13 +68,15 @@ export interface User extends UserDB {
 export interface CreateUserRequest {
 	username: string
 	password: string
-	roleIds?: number[]
 	displayName: string
 	unitId: number
+	status?: 'pending' | 'approved' | null
+	roleIds?: number[]
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
 	alias?: string
+	signatureUrl?: string
 }
 
 export interface UpdateUserRequest {
@@ -79,10 +85,12 @@ export interface UpdateUserRequest {
 	roleIds?: number[]
 	displayName?: string
 	unitId?: number
+	status?: 'pending' | 'approved' | null
 	isSuperUser?: boolean
 	rank?: string
 	position?: string
 	alias?: string
+	signatureUrl?: string | null
 }
 
 export interface AssignRoleRequest {

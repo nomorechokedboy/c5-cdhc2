@@ -17,6 +17,7 @@ import { handleDatabaseErr } from '../utils/index'
 import { Repository } from './index'
 import dayjs from 'dayjs'
 import { SQLiteColumn, unionAll } from 'drizzle-orm/sqlite-core'
+import { getMariaUserData } from '../maria-data.js'
 
 type DateField = 'dob' | 'cpvOfficialAt'
 
@@ -237,7 +238,7 @@ class StudentSqliteRepo implements Repository {
 		const whereCondition =
 			whereConds.length === 0 ? undefined : and(...whereConds)
 
-		return this.db.query.students
+		const rows = await this.db.query.students
 			.findMany({
 				where: whereCondition,
 				with: {
@@ -246,7 +247,28 @@ class StudentSqliteRepo implements Repository {
 					}
 				}
 			})
-			.catch(handleDatabaseErr) as unknown as Array<Student>
+			.catch(handleDatabaseErr)
+
+		// Luôn trả dữ liệu local. MariaDB/Moodle chỉ là nguồn tùy chọn:
+		// - Có HV trong SQLite → dùng local (đã cập nhật khi thêm/sửa).
+		// - Local trống + Moodle có user → log (chưa auto-upsert vì cần lớp/đơn vị);
+		//   không bịa bản ghi «Moodle user».
+		// - Moodle trống / lỗi kết nối → không đụng local.
+		if (rows.length === 0) {
+			try {
+				const remote = await getMariaUserData(10)
+				if (remote.length > 0) {
+					log.info(
+						'MariaDB has remote users but local students empty — skip phantom map; import/sync when ready',
+						{ remoteCount: remote.length }
+					)
+				}
+			} catch {
+				// getMariaUserData đã nuốt lỗi; phòng hờ
+			}
+		}
+
+		return rows as unknown as Array<Student>
 	}
 
 	findOne(s: StudentDB): Promise<Student> {
