@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `exam_majors` (
 	`code` text NOT NULL UNIQUE,
 	`name` text NOT NULL,
 	`description` text
-);
+);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_subjects` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS `exam_subjects` (
 	`lesson_hours` integer DEFAULT 0,
 	`major_id` integer NOT NULL,
 	`description` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exam_subjects_major_idx` ON `exam_subjects` (`major_id`);
+CREATE INDEX IF NOT EXISTS `exam_subjects_major_idx` ON `exam_subjects` (`major_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_teaching_assignments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -32,10 +32,10 @@ CREATE TABLE IF NOT EXISTS `exam_teaching_assignments` (
 	`username` text,
 	`display_name` text,
 	`note` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exam_assign_subject_idx` ON `exam_teaching_assignments` (`subject_id`);
-CREATE INDEX IF NOT EXISTS `exam_assign_user_idx` ON `exam_teaching_assignments` (`user_id`);
+CREATE INDEX IF NOT EXISTS `exam_assign_subject_idx` ON `exam_teaching_assignments` (`subject_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `exam_assign_user_idx` ON `exam_teaching_assignments` (`user_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exams` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -60,11 +60,11 @@ CREATE TABLE IF NOT EXISTS `exams` (
 	`answer_file_name` text,
 	`note` text,
 	`return_note` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exams_subject_idx` ON `exams` (`subject_id`);
-CREATE INDEX IF NOT EXISTS `exams_status_idx` ON `exams` (`status`);
-CREATE INDEX IF NOT EXISTS `exams_created_by_idx` ON `exams` (`created_by_user_id`);
+CREATE INDEX IF NOT EXISTS `exams_subject_idx` ON `exams` (`subject_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `exams_status_idx` ON `exams` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `exams_created_by_idx` ON `exams` (`created_by_user_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_questions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -75,9 +75,9 @@ CREATE TABLE IF NOT EXISTS `exam_questions` (
 	`content` text NOT NULL,
 	`answer` text,
 	`points` integer NOT NULL DEFAULT 1
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exam_questions_exam_idx` ON `exam_questions` (`exam_id`);
+CREATE INDEX IF NOT EXISTS `exam_questions_exam_idx` ON `exam_questions` (`exam_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_workflow_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -91,9 +91,9 @@ CREATE TABLE IF NOT EXISTS `exam_workflow_logs` (
 	`actor_user_id` integer,
 	`actor_username` text,
 	`actor_display_name` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exam_workflow_exam_idx` ON `exam_workflow_logs` (`exam_id`);
+CREATE INDEX IF NOT EXISTS `exam_workflow_exam_idx` ON `exam_workflow_logs` (`exam_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_draws` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -115,11 +115,11 @@ CREATE TABLE IF NOT EXISTS `exam_draws` (
 	`exam_time` text,
 	`location` text,
 	`note` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `exam_draws_exam_idx` ON `exam_draws` (`exam_id`);
-CREATE INDEX IF NOT EXISTS `exam_draws_subject_idx` ON `exam_draws` (`subject_id`);
-CREATE INDEX IF NOT EXISTS `exam_draws_drawn_at_idx` ON `exam_draws` (`drawn_at`);
+CREATE INDEX IF NOT EXISTS `exam_draws_exam_idx` ON `exam_draws` (`exam_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `exam_draws_subject_idx` ON `exam_draws` (`subject_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `exam_draws_drawn_at_idx` ON `exam_draws` (`drawn_at`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `exam_draw_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -132,6 +132,6 @@ CREATE TABLE IF NOT EXISTS `exam_draw_logs` (
 	`actor_user_id` integer,
 	`actor_username` text,
 	`actor_display_name` text
-);
+);--> statement-breakpoint
 
 CREATE INDEX IF NOT EXISTS `exam_draw_logs_draw_idx` ON `exam_draw_logs` (`draw_id`);

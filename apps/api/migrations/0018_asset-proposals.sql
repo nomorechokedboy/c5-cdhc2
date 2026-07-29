@@ -24,12 +24,12 @@ CREATE TABLE IF NOT EXISTS `asset_proposals` (
 	`decided_by_username` text,
 	`decided_by_display_name` text,
 	`completed_at` text
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `asset_proposals_status_idx` ON `asset_proposals` (`status`);
-CREATE INDEX IF NOT EXISTS `asset_proposals_type_idx` ON `asset_proposals` (`proposal_type`);
-CREATE INDEX IF NOT EXISTS `asset_proposals_proposed_by_idx` ON `asset_proposals` (`proposed_by_user_id`);
-CREATE INDEX IF NOT EXISTS `asset_proposals_created_idx` ON `asset_proposals` (`createdAt`);
+CREATE INDEX IF NOT EXISTS `asset_proposals_status_idx` ON `asset_proposals` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_proposals_type_idx` ON `asset_proposals` (`proposal_type`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_proposals_proposed_by_idx` ON `asset_proposals` (`proposed_by_user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `asset_proposals_created_idx` ON `asset_proposals` (`createdAt`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `asset_proposal_items` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -47,9 +47,9 @@ CREATE TABLE IF NOT EXISTS `asset_proposal_items` (
 	`chuyen_nganh_code` text,
 	`note` text,
 	FOREIGN KEY (`proposal_id`) REFERENCES `asset_proposals`(`id`) ON DELETE CASCADE
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `asset_proposal_items_proposal_idx` ON `asset_proposal_items` (`proposal_id`);
+CREATE INDEX IF NOT EXISTS `asset_proposal_items_proposal_idx` ON `asset_proposal_items` (`proposal_id`);--> statement-breakpoint
 
 CREATE TABLE IF NOT EXISTS `asset_proposal_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `asset_proposal_logs` (
 	`actor_username` text,
 	`actor_display_name` text,
 	`actor_is_admin` integer NOT NULL DEFAULT 0
-);
+);--> statement-breakpoint
 
-CREATE INDEX IF NOT EXISTS `asset_proposal_logs_proposal_idx` ON `asset_proposal_logs` (`proposal_id`);
+CREATE INDEX IF NOT EXISTS `asset_proposal_logs_proposal_idx` ON `asset_proposal_logs` (`proposal_id`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `asset_proposal_logs_created_idx` ON `asset_proposal_logs` (`createdAt`);

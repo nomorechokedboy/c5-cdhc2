@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS `exam_teachers` (
 	`created_by_user_id` integer,
 	`created_by_username` text,
 	`created_by_display_name` text
-);
-CREATE UNIQUE INDEX IF NOT EXISTS `exam_teachers_user_uq` ON `exam_teachers` (`user_id`);
+);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `exam_teachers_user_uq` ON `exam_teachers` (`user_id`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `exam_teachers_faculty_idx` ON `exam_teachers` (`faculty_code`);

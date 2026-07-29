@@ -10,7 +10,7 @@ FROM (
 	UNION ALL SELECT 'asset-reports', 'Báo cáo vật tư', 'Báo cáo thống kê / thực lực / hỏng / hết hạn'
 	UNION ALL SELECT 'catalog-stock', 'Tồn danh mục', 'Tăng giảm SL danh mục ngành + log'
 ) AS v
-WHERE NOT EXISTS (SELECT 1 FROM resources r WHERE r.name = v.name);
+WHERE NOT EXISTS (SELECT 1 FROM resources r WHERE r.name = v.name);--> statement-breakpoint
 
 -- Permissions (create/read/update/delete) cho resources mới
 INSERT INTO permissions (resource_id, action_id, name, display_name, description)
@@ -32,12 +32,12 @@ WHERE r.name IN (
 )
 AND NOT EXISTS (
 	SELECT 1 FROM permissions p WHERE p.name = r.name || ':' || a.name
-);
+);--> statement-breakpoint
 
 -- Đảm bảo repair-requests đã có (idempotent)
 INSERT INTO resources (name, display_name, description)
 SELECT 'repair-requests', 'Phiếu sửa chữa', 'Báo hỏng / phân công sửa chữa'
-WHERE NOT EXISTS (SELECT 1 FROM resources WHERE name = 'repair-requests');
+WHERE NOT EXISTS (SELECT 1 FROM resources WHERE name = 'repair-requests');--> statement-breakpoint
 
 INSERT INTO permissions (resource_id, action_id, name, display_name, description)
 SELECT
@@ -51,7 +51,7 @@ CROSS JOIN actions a
 WHERE r.name = 'repair-requests'
 AND NOT EXISTS (
 	SELECT 1 FROM permissions p WHERE p.name = r.name || ':' || a.name
-);
+);--> statement-breakpoint
 
 -- super_admin + admin: full
 INSERT INTO role_permissions (role_id, permission_id)
@@ -79,7 +79,7 @@ AND r.name IN (
 AND NOT EXISTS (
 	SELECT 1 FROM role_permissions rp
 	WHERE rp.role_id = roles.id AND rp.permission_id = p.id
-);
+);--> statement-breakpoint
 
 -- battalion / company commander: full asset ops
 INSERT INTO role_permissions (role_id, permission_id)
@@ -109,12 +109,12 @@ AND a.name IN ('create', 'read', 'update', 'delete')
 AND NOT EXISTS (
 	SELECT 1 FROM role_permissions rp
 	WHERE rp.role_id = roles.id AND rp.permission_id = p.id
-);
+);--> statement-breakpoint
 
 -- Vai trò Khoa Ngành (user ngành): xem danh mục + tăng/giảm + đề xuất
 INSERT INTO roles (name, description)
 SELECT 'user_nganh', 'User ngành — danh mục ngành, tăng/giảm VT, đề xuất'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'user_nganh');
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'user_nganh');--> statement-breakpoint
 
 -- Gán quyền cho user_nganh + role «Khoa Ngành» nếu có
 INSERT INTO role_permissions (role_id, permission_id)
@@ -135,7 +135,7 @@ AND (
 AND NOT EXISTS (
 	SELECT 1 FROM role_permissions rp
 	WHERE rp.role_id = roles.id AND rp.permission_id = p.id
-);
+);--> statement-breakpoint
 
 -- Viewer: chỉ đọc báo cáo + danh mục
 INSERT INTO role_permissions (role_id, permission_id)
