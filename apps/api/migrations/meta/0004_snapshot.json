@@ -1,8 +1,8 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "f9f633c3-dd56-4af5-ac53-20919335367b",
-	"prevId": "e7a673d9-8747-4037-b446-94a7b5a93ff1",
+	"id": "ae6fe0a4-3ba3-478d-aac0-7ebc90e79939",
+	"prevId": "f9f633c3-dd56-4af5-ac53-20919335367b",
 	"tables": {
 		"actions": {
 			"name": "actions",

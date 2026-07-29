@@ -1,5 +1,5 @@
 -- Đơn vị giữ vật tư trên room_assets
-ALTER TABLE `room_assets` ADD `holding_unit_id` integer REFERENCES units(id) ON DELETE SET NULL;
+ALTER TABLE `room_assets` ADD `holding_unit_id` integer REFERENCES units(id) ON DELETE SET NULL;--> statement-breakpoint
 
 -- Thêm đơn vị (idempotent-ish: bỏ qua nếu alias trùng — dùng INSERT OR IGNORE)
 INSERT OR IGNORE INTO units (alias, level, name, parentId) VALUES

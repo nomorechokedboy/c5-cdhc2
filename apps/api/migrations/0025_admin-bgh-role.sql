@@ -3,7 +3,7 @@
 
 INSERT INTO roles (name, description)
 SELECT 'admin', 'Ban Giám Hiệu — xem VT, phê duyệt/từ chối đề xuất (không thêm/sửa danh mục)'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'admin');
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'admin');--> statement-breakpoint
 
 UPDATE roles
 SET description = 'Ban Giám Hiệu — xem VT, phê duyệt/từ chối đề xuất (không thêm/sửa danh mục)'

@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS `exam_major_heads` (
 	`username` text,
 	`display_name` text,
 	`note` text
-);
+);--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS `exam_major_heads_user_major_uq`
-	ON `exam_major_heads` (`user_id`, `major_id`);
+	ON `exam_major_heads` (`user_id`, `major_id`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `exam_major_heads_user_idx`
-	ON `exam_major_heads` (`user_id`);
+	ON `exam_major_heads` (`user_id`);--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `exam_major_heads_major_idx`
 	ON `exam_major_heads` (`major_id`);

@@ -4,7 +4,7 @@
 
 -- Xóa toàn bộ quyền cũ của admin
 DELETE FROM role_permissions
-WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');
+WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');--> statement-breakpoint
 
 -- Gán lại quyền BGH chuẩn
 INSERT INTO role_permissions (role_id, permission_id)
@@ -28,7 +28,7 @@ AND (
 	OR (r.name = 'asset-reports' AND a.name = 'read')
 	-- Không cấp asset-movements / repair-logs → không xem nhật ký
 	OR (r.name = 'catalog-stock' AND a.name = 'read')
-);
+);--> statement-breakpoint
 
 UPDATE roles
 SET description = 'Ban Giám Hiệu — xem VT, phê duyệt/từ chối đề xuất (không thêm/sửa danh mục)'
