@@ -2,47 +2,306 @@
 	"version": "7",
 	"dialect": "sqlite",
 	"entries": [
-		{ "idx": 0, "version": "6", "when": 1764660928424, "tag": "0000_reflective_mindworm", "breakpoints": true },
-		{ "idx": 1, "version": "6", "when": 1764679699341, "tag": "0001_seed-units", "breakpoints": true },
-		{ "idx": 2, "version": "6", "when": 1764679761689, "tag": "0002_seed-authz", "breakpoints": true },
-		{ "idx": 3, "version": "6", "when": 1764818984550, "tag": "0003_nasty_mandrill", "breakpoints": true },
-		{ "idx": 4, "version": "6", "when": 1765272000000, "tag": "0004_asset-management-tables", "breakpoints": true },
-		{ "idx": 5, "version": "6", "when": 1765272100000, "tag": "0005_seed-asset-authz", "breakpoints": true },
-		{ "idx": 6, "version": "6", "when": 1765278000000, "tag": "0006_room-asset-repair-fields", "breakpoints": true },
-		{ "idx": 7, "version": "6", "when": 1765280000000, "tag": "0007_repair-requests", "breakpoints": true },
-		{ "idx": 8, "version": "6", "when": 1765281000000, "tag": "0008_asset-codes-grade-movements", "breakpoints": true },
-		{ "idx": 9, "version": "6", "when": 1765282000000, "tag": "0009_holding-unit-and-extra-units", "breakpoints": true },
-		{ "idx": 10, "version": "6", "when": 1765283000000, "tag": "0010_room-class-link", "breakpoints": true },
-		{ "idx": 11, "version": "6", "when": 1765284000000, "tag": "0011_repair-request-quantity", "breakpoints": true },
-		{ "idx": 12, "version": "6", "when": 1765285000000, "tag": "0012_asset-broken-quantity", "breakpoints": true },
-		{ "idx": 13, "version": "6", "when": 1765286000000, "tag": "0013_preserve-movement-logs", "breakpoints": true },
-		{ "idx": 14, "version": "6", "when": 1765290000000, "tag": "0014_account-audit-logs", "breakpoints": true },
-		{ "idx": 15, "version": "6", "when": 1765291000000, "tag": "0015_catalog-audit-logs", "breakpoints": true },
-		{ "idx": 16, "version": "6", "when": 1765292000000, "tag": "0016_room-account-password", "breakpoints": true },
-		{ "idx": 17, "version": "6", "when": 1765400000000, "tag": "0017_user-nganh-catalog-stock", "breakpoints": true },
-		{ "idx": 18, "version": "6", "when": 1765500000000, "tag": "0018_asset-proposals", "breakpoints": true },
-		{ "idx": 19, "version": "6", "when": 1765600000000, "tag": "0019_seed-missing-asset-permissions", "breakpoints": true },
-		{ "idx": 20, "version": "6", "when": 1765700000000, "tag": "0020_proposal-location-fields", "breakpoints": true },
-		{ "idx": 21, "version": "6", "when": 1765800000000, "tag": "0021_nganh-proposal-permissions", "breakpoints": true },
-		{ "idx": 22, "version": "6", "when": 1765810000000, "tag": "0022_user-don-vi-role", "breakpoints": true },
-		{ "idx": 23, "version": "6", "when": 1765820000000, "tag": "0023_proposal-repair-grade", "breakpoints": true },
-		{ "idx": 24, "version": "6", "when": 1765830000000, "tag": "0024_asset-broken-logs", "breakpoints": true },
-		{ "idx": 25, "version": "6", "when": 1765840000000, "tag": "0025_admin-bgh-role", "breakpoints": true },
-		{ "idx": 26, "version": "6", "when": 1765850000000, "tag": "0026_bgh-admin-readonly-except-approve", "breakpoints": true },
-		{ "idx": 27, "version": "6", "when": 1765900000000, "tag": "0027_exam-bank", "breakpoints": true },
-		{ "idx": 28, "version": "6", "when": 1765901000000, "tag": "0028_seed-exam-authz", "breakpoints": true },
-		{ "idx": 29, "version": "6", "when": 1765902000000, "tag": "0029_exam-nganh-permissions", "breakpoints": true },
-		{ "idx": 30, "version": "6", "when": 1765910000000, "tag": "0030_exam-catalog-faculty-class", "breakpoints": true },
-		{ "idx": 31, "version": "6", "when": 1765920000000, "tag": "0031_exam-paper-number-printed", "breakpoints": true },
-		{ "idx": 32, "version": "6", "when": 1765930000000, "tag": "0032_exam-major-heads", "breakpoints": true },
-		{ "idx": 33, "version": "6", "when": 1765940000000, "tag": "0033_exam-catalog-hierarchy", "breakpoints": true },
-		{ "idx": 34, "version": "6", "when": 1765950000000, "tag": "0034_exam-teaching-assignment-logs", "breakpoints": true },
-		{ "idx": 35, "version": "6", "when": 1765960000000, "tag": "0035_units-khoa-from-exam-catalog", "breakpoints": true },
-		{ "idx": 36, "version": "6", "when": 1765970000000, "tag": "0036_exam-teachers-catalog", "breakpoints": true },
-		{ "idx": 37, "version": "6", "when": 1765980000000, "tag": "0037_exam-class-signature-print", "breakpoints": true },
-		{ "idx": 38, "version": "6", "when": 1765990000000, "tag": "0038_exam-dept-head-signature", "breakpoints": true },
-		{ "idx": 39, "version": "6", "when": 1765991000000, "tag": "0039_exam-faculty-heads", "breakpoints": true },
-		{ "idx": 40, "version": "6", "when": 1766000000000, "tag": "0040_exam-assignment-class", "breakpoints": true },
-		{ "idx": 41, "version": "6", "when": 1766100000000, "tag": "0041_exam-assignment-teaching-period", "breakpoints": true }
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1764660928424,
+			"tag": "0000_reflective_mindworm",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1764679699341,
+			"tag": "0001_seed-units",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1764679761689,
+			"tag": "0002_seed-authz",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "6",
+			"when": 1764818984550,
+			"tag": "0003_nasty_mandrill",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1765272000000,
+			"tag": "0004_asset-management-tables",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "6",
+			"when": 1765272100000,
+			"tag": "0005_seed-asset-authz",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "6",
+			"when": 1765278000000,
+			"tag": "0006_room-asset-repair-fields",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "6",
+			"when": 1765280000000,
+			"tag": "0007_repair-requests",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1765281000000,
+			"tag": "0008_asset-codes-grade-movements",
+			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "6",
+			"when": 1765282000000,
+			"tag": "0009_holding-unit-and-extra-units",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "6",
+			"when": 1765283000000,
+			"tag": "0010_room-class-link",
+			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "6",
+			"when": 1765284000000,
+			"tag": "0011_repair-request-quantity",
+			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "6",
+			"when": 1765285000000,
+			"tag": "0012_asset-broken-quantity",
+			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "6",
+			"when": 1765286000000,
+			"tag": "0013_preserve-movement-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "6",
+			"when": 1765290000000,
+			"tag": "0014_account-audit-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "6",
+			"when": 1765291000000,
+			"tag": "0015_catalog-audit-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "6",
+			"when": 1765292000000,
+			"tag": "0016_room-account-password",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "6",
+			"when": 1765400000000,
+			"tag": "0017_user-nganh-catalog-stock",
+			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "6",
+			"when": 1765500000000,
+			"tag": "0018_asset-proposals",
+			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "6",
+			"when": 1765600000000,
+			"tag": "0019_seed-missing-asset-permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 20,
+			"version": "6",
+			"when": 1765700000000,
+			"tag": "0020_proposal-location-fields",
+			"breakpoints": true
+		},
+		{
+			"idx": 21,
+			"version": "6",
+			"when": 1765800000000,
+			"tag": "0021_nganh-proposal-permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 22,
+			"version": "6",
+			"when": 1765810000000,
+			"tag": "0022_user-don-vi-role",
+			"breakpoints": true
+		},
+		{
+			"idx": 23,
+			"version": "6",
+			"when": 1765820000000,
+			"tag": "0023_proposal-repair-grade",
+			"breakpoints": true
+		},
+		{
+			"idx": 24,
+			"version": "6",
+			"when": 1765830000000,
+			"tag": "0024_asset-broken-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 25,
+			"version": "6",
+			"when": 1765840000000,
+			"tag": "0025_admin-bgh-role",
+			"breakpoints": true
+		},
+		{
+			"idx": 26,
+			"version": "6",
+			"when": 1765850000000,
+			"tag": "0026_bgh-admin-readonly-except-approve",
+			"breakpoints": true
+		},
+		{
+			"idx": 27,
+			"version": "6",
+			"when": 1765900000000,
+			"tag": "0027_exam-bank",
+			"breakpoints": true
+		},
+		{
+			"idx": 28,
+			"version": "6",
+			"when": 1765901000000,
+			"tag": "0028_seed-exam-authz",
+			"breakpoints": true
+		},
+		{
+			"idx": 29,
+			"version": "6",
+			"when": 1765902000000,
+			"tag": "0029_exam-nganh-permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 30,
+			"version": "6",
+			"when": 1765910000000,
+			"tag": "0030_exam-catalog-faculty-class",
+			"breakpoints": true
+		},
+		{
+			"idx": 31,
+			"version": "6",
+			"when": 1765920000000,
+			"tag": "0031_exam-paper-number-printed",
+			"breakpoints": true
+		},
+		{
+			"idx": 32,
+			"version": "6",
+			"when": 1765930000000,
+			"tag": "0032_exam-major-heads",
+			"breakpoints": true
+		},
+		{
+			"idx": 33,
+			"version": "6",
+			"when": 1765940000000,
+			"tag": "0033_exam-catalog-hierarchy",
+			"breakpoints": true
+		},
+		{
+			"idx": 34,
+			"version": "6",
+			"when": 1765950000000,
+			"tag": "0034_exam-teaching-assignment-logs",
+			"breakpoints": true
+		},
+		{
+			"idx": 35,
+			"version": "6",
+			"when": 1765960000000,
+			"tag": "0035_units-khoa-from-exam-catalog",
+			"breakpoints": true
+		},
+		{
+			"idx": 36,
+			"version": "6",
+			"when": 1765970000000,
+			"tag": "0036_exam-teachers-catalog",
+			"breakpoints": true
+		},
+		{
+			"idx": 37,
+			"version": "6",
+			"when": 1765980000000,
+			"tag": "0037_exam-class-signature-print",
+			"breakpoints": true
+		},
+		{
+			"idx": 38,
+			"version": "6",
+			"when": 1765990000000,
+			"tag": "0038_exam-dept-head-signature",
+			"breakpoints": true
+		},
+		{
+			"idx": 39,
+			"version": "6",
+			"when": 1765991000000,
+			"tag": "0039_exam-faculty-heads",
+			"breakpoints": true
+		},
+		{
+			"idx": 40,
+			"version": "6",
+			"when": 1766000000000,
+			"tag": "0040_exam-assignment-class",
+			"breakpoints": true
+		},
+		{
+			"idx": 41,
+			"version": "6",
+			"when": 1766100000000,
+			"tag": "0041_exam-assignment-teaching-period",
+			"breakpoints": true
+		},
+		{
+			"idx": 42,
+			"version": "6",
+			"when": 1785394800000,
+			"tag": "0042_fix-exam-systems-schema",
+			"breakpoints": true
+		}
 	]
 }

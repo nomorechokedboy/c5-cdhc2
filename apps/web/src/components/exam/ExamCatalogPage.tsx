@@ -32,6 +32,7 @@ import {
 	UpdateExamFaculty,
 	UpdateExamMajor,
 	UpdateExamSubject,
+	UpdateExamSystem,
 	type ExamFaculty,
 	type ExamMajor,
 	type ExamSubject,
@@ -79,6 +80,7 @@ export default function ExamCatalogPage() {
 	const [majorOpen, setMajorOpen] = useState(false)
 	const [facultyOpen, setFacultyOpen] = useState(false)
 	const [subjectOpen, setSubjectOpen] = useState(false)
+	const [editSystemId, setEditSystemId] = useState<number | null>(null)
 	const [editMajorId, setEditMajorId] = useState<number | null>(null)
 	const [editFacultyId, setEditFacultyId] = useState<number | null>(null)
 	const [editSubjectId, setEditSubjectId] = useState<number | null>(null)
@@ -228,16 +230,23 @@ export default function ExamCatalogPage() {
 		return `${maj}_${base}`
 	}, [subjectForm])
 
-	const createSystem = useMutation({
-		mutationFn: () =>
-			CreateExamSystem({
+	const saveSystem = useMutation({
+		mutationFn: () => {
+			const body = {
 				code: systemForm.code,
 				name: systemForm.name,
 				letter: systemForm.letter
-			}),
+			}
+			return editSystemId == null
+				? CreateExamSystem(body)
+				: UpdateExamSystem(editSystemId, body)
+		},
 		onSuccess: (s) => {
-			toast.success('Đã thêm hệ')
+			toast.success(
+				editSystemId == null ? 'Đã thêm hệ' : 'Đã cập nhật hệ'
+			)
 			setSystemOpen(false)
+			setEditSystemId(null)
 			void qc.invalidateQueries({ queryKey: ['exam-systems'] })
 			setOpenSystems((p) => new Set(p).add(s.id))
 		},
@@ -530,6 +539,7 @@ export default function ExamCatalogPage() {
 							<Button
 								size='sm'
 								onClick={() => {
+									setEditSystemId(null)
 									setSystemForm({
 										code: 'QS',
 										name: 'Hệ quân sự',
@@ -612,6 +622,25 @@ export default function ExamCatalogPage() {
 													>
 														<Plus className='mr-1 h-3.5 w-3.5' />
 														Ngành
+													</Button>
+													<Button
+														size='icon'
+														variant='ghost'
+														className='h-8 w-8'
+														title='Sửa hệ'
+														onClick={() => {
+															setEditSystemId(
+																sys.id
+															)
+															setSystemForm({
+																code: sys.code,
+																name: sys.name,
+																letter: sys.letter
+															})
+															setSystemOpen(true)
+														}}
+													>
+														<Pencil className='h-3.5 w-3.5' />
 													</Button>
 													<Button
 														size='icon'
@@ -976,10 +1005,20 @@ export default function ExamCatalogPage() {
 			</Card>
 
 			{/* Dialogs */}
-			<Dialog open={systemOpen} onOpenChange={setSystemOpen}>
+			<Dialog
+				open={systemOpen}
+				onOpenChange={(open) => {
+					setSystemOpen(open)
+					if (!open) setEditSystemId(null)
+				}}
+			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Thêm hệ</DialogTitle>
+						<DialogTitle>
+							{editSystemId == null
+								? 'Thêm hệ'
+								: 'Sửa hệ đào tạo'}
+						</DialogTitle>
 					</DialogHeader>
 					<p className='text-muted-foreground text-xs'>
 						Chỉ 2 hệ trên đầu sheet: <strong>Hệ quân sự (A)</strong>{' '}
@@ -1047,10 +1086,15 @@ export default function ExamCatalogPage() {
 							Hủy
 						</Button>
 						<Button
-							disabled={createSystem.isPending}
-							onClick={() => createSystem.mutate()}
+							disabled={
+								saveSystem.isPending ||
+								!systemForm.code.trim() ||
+								!systemForm.name.trim() ||
+								!systemForm.letter.trim()
+							}
+							onClick={() => saveSystem.mutate()}
 						>
-							{createSystem.isPending && (
+							{saveSystem.isPending && (
 								<Loader2 className='mr-2 h-4 w-4 animate-spin' />
 							)}
 							Lưu

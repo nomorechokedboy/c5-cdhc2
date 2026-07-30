@@ -339,6 +339,22 @@ export async function CreateExamSystem(body: {
 	return resp.data
 }
 
+export async function UpdateExamSystem(
+	id: number,
+	body: {
+		code?: string
+		name?: string
+		letter?: string
+		description?: string | null
+	}
+) {
+	const resp = await jsonFetch<{ data: ExamSystem }>(`/exam/systems/${id}`, {
+		method: 'PUT',
+		body: JSON.stringify(body)
+	})
+	return resp.data
+}
+
 export async function DeleteExamSystem(id: number) {
 	return jsonFetch<{ ok: boolean }>(`/exam/systems/${id}`, {
 		method: 'DELETE'

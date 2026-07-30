@@ -209,6 +209,16 @@ export const CreateExamSystem = api(
 		if (!code || !name || !letter) {
 			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
 		}
+		const [duplicate] = await orm
+			.select({ id: examSystems.id })
+			.from(examSystems)
+			.where(
+				or(eq(examSystems.code, code), eq(examSystems.letter, letter))
+			)
+			.limit(1)
+		if (duplicate) {
+			throw APIError.alreadyExists('Mã hoặc letter của hệ đã tồn tại')
+		}
 		const [row] = await orm
 			.insert(examSystems)
 			.values({
@@ -232,11 +242,79 @@ export const CreateExamSystem = api(
 	}
 )
 
+export const UpdateExamSystem = api(
+	{ auth: true, expose: true, method: 'PUT', path: '/exam/systems/:id' },
+	async (params: {
+		id: number
+		code?: string
+		name?: string
+		letter?: string
+		description?: string | null
+	}): Promise<{ data: SystemResponse }> => {
+		const actor = await getActor()
+		if (!canManageCatalog(actor)) {
+			throw APIError.permissionDenied('Không có quyền sửa hệ đào tạo')
+		}
+		const [existing] = await orm
+			.select()
+			.from(examSystems)
+			.where(eq(examSystems.id, params.id))
+			.limit(1)
+		if (!existing) throw APIError.notFound('Hệ đào tạo không tồn tại')
+
+		const code =
+			params.code !== undefined
+				? params.code.trim().toUpperCase()
+				: existing.code
+		const name =
+			params.name !== undefined ? params.name.trim() : existing.name
+		const letter =
+			params.letter !== undefined
+				? params.letter.trim().toUpperCase()
+				: existing.letter
+		if (!code || !name || !letter) {
+			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
+		}
+
+		const [duplicate] = await orm
+			.select({ id: examSystems.id })
+			.from(examSystems)
+			.where(
+				and(
+					or(
+						eq(examSystems.code, code),
+						eq(examSystems.letter, letter)
+					),
+					sql`${examSystems.id} != ${params.id}`
+				)
+			)
+			.limit(1)
+		if (duplicate) {
+			throw APIError.alreadyExists('Mã hoặc letter của hệ đã tồn tại')
+		}
+
+		const [row] = await orm
+			.update(examSystems)
+			.set({
+				code,
+				name,
+				letter,
+				description:
+					params.description !== undefined
+						? params.description
+						: existing.description
+			})
+			.where(eq(examSystems.id, params.id))
+			.returning()
+		return { data: row! }
+	}
+)
+
 export const DeleteExamSystem = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/exam/systems/:id' },
 	async (params: { id: number }): Promise<{ ok: boolean }> => {
 		const actor = await getActor()
-		if (!actor.isSuperAdmin && !isExamOffice(actor) && !isBgh(actor)) {
+		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền xóa')
 		}
 		const [m] = await orm
@@ -416,7 +494,7 @@ export const DeleteExamMajor = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/exam/majors/:id' },
 	async (params: { id: number }): Promise<{ ok: boolean }> => {
 		const actor = await getActor()
-		if (!actor.isSuperAdmin && !isExamOffice(actor) && !isBgh(actor)) {
+		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền xóa ngành')
 		}
 		const [fac] = await orm
@@ -637,7 +715,7 @@ export const DeleteExamFaculty = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/exam/faculties/:id' },
 	async (params: { id: number }): Promise<{ ok: boolean }> => {
 		const actor = await getActor()
-		if (!actor.isSuperAdmin && !isExamOffice(actor) && !isBgh(actor)) {
+		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền xóa khoa')
 		}
 		const [subj] = await orm
