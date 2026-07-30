@@ -10,7 +10,7 @@
 		"generate": "drizzle-kit generate",
 		"migrate": "drizzle-kit migrate",
 		"push": "drizzle-kit push",
-		"prestart": "drizzle-kit push",
+		"prestart": "drizzle-kit migrate",
 		"start": "encore run",
 		"gen": "encore gen client --output=../web/src/api/client.ts --env=local",
 		"mariadb:test": "tsx scripts/test-mariadb.ts",
