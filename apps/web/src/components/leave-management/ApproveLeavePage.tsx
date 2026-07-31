@@ -22,6 +22,7 @@ import {
 	ListLeaveMailLog,
 	ListLeaveRequests,
 	MarkLeaveAlertsRead,
+	SaveLeaveMailConfig,
 	TestLeaveMail,
 	type LeaveRequest
 } from '@/api/leave'
@@ -712,6 +713,7 @@ function MailConfigAndLog({
 				mode: string
 				host: string | null
 				port: number | null
+				user: string | null
 				from: string | null
 				hint: string
 				lastPreviewUrl: string | null
@@ -725,6 +727,25 @@ function MailConfigAndLog({
 		mutate: () => void
 	}
 }) {
+	const qc = useQueryClient()
+	const [smtpUser, setSmtpUser] = useState(mailStatus?.user || '')
+	const [smtpPass, setSmtpPass] = useState('')
+	const saveMailMut = useMutation({
+		mutationFn: () =>
+			SaveLeaveMailConfig({
+				user: smtpUser.trim(),
+				pass: smtpPass,
+				host: 'smtp.gmail.com',
+				port: 587,
+				from: `Quản lý phép <${smtpUser.trim()}>`
+			}),
+		onSuccess: (result) => {
+			toast.success(result.message)
+			setSmtpPass('')
+			qc.invalidateQueries({ queryKey: ['leave-mail-status'] })
+		},
+		onError: (error: Error) => toast.error(error.message)
+	})
 	const { data: logs = [] } = useQuery({
 		queryKey: ['leave-mail-log'],
 		queryFn: () => ListLeaveMailLog(20),
@@ -793,6 +814,51 @@ function MailConfigAndLog({
 									</a>
 								</p>
 							)}
+						</div>
+						<div className='grid gap-3 md:grid-cols-2'>
+							<div>
+								<Label>SMTP user</Label>
+								<Input
+									type='email'
+									autoComplete='username'
+									value={smtpUser}
+									onChange={(e) =>
+										setSmtpUser(e.target.value)
+									}
+									placeholder='your-account@gmail.com'
+								/>
+							</div>
+							<div>
+								<Label>SMTP password</Label>
+								<Input
+									type='password'
+									autoComplete='new-password'
+									value={smtpPass}
+									onChange={(e) =>
+										setSmtpPass(e.target.value)
+									}
+									placeholder='Gmail App Password'
+								/>
+								<p className='mt-1 text-xs text-muted-foreground'>
+									Mật khẩu ứng dụng Gmail; hệ thống không hiển
+									thị lại sau khi lưu.
+								</p>
+							</div>
+							<div className='md:col-span-2'>
+								<Button
+									disabled={
+										saveMailMut.isPending ||
+										!smtpUser.trim() ||
+										!smtpPass.trim()
+									}
+									onClick={() => saveMailMut.mutate()}
+								>
+									{saveMailMut.isPending && (
+										<Loader2 className='mr-1 h-4 w-4 animate-spin' />
+									)}
+									Lưu cấu hình SMTP
+								</Button>
+							</div>
 						</div>
 						<div className='flex flex-wrap items-end gap-2'>
 							<div className='min-w-[220px] flex-1'>
