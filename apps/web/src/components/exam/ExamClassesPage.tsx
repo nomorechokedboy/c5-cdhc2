@@ -2,9 +2,16 @@
  * Danh mục lớp thi — mỗi lớp thuộc Hệ đào tạo + Ngành đào tạo.
  * Dùng khi GV import đề / rút đề (chọn lớp).
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GraduationCap, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import {
+	CalendarDays,
+	GraduationCap,
+	Loader2,
+	Pencil,
+	Plus,
+	Trash2
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
 	CreateExamClass,
@@ -50,6 +57,20 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 
+function openMonthPicker(input: HTMLInputElement | null) {
+	if (!input) return
+	input.focus()
+	if (typeof input.showPicker === 'function') {
+		try {
+			input.showPicker()
+			return
+		} catch {
+			// Browser có API nhưng chặn picker: dùng hành vi native làm fallback.
+		}
+	}
+	input.click()
+}
+
 function suggestCode(name: string): string {
 	const slug = name
 		.normalize('NFD')
@@ -70,6 +91,8 @@ export default function ExamClassesPage() {
 	const [keyword, setKeyword] = useState('')
 	const [open, setOpen] = useState(false)
 	const [editId, setEditId] = useState<number | null>(null)
+	const cohortStartRef = useRef<HTMLInputElement>(null)
+	const cohortEndRef = useRef<HTMLInputElement>(null)
 	const [form, setForm] = useState({
 		systemId: '',
 		majorId: '',
@@ -587,33 +610,65 @@ export default function ExamClassesPage() {
 									<p className='text-muted-foreground mb-1 text-xs'>
 										Bắt đầu (tháng/năm)
 									</p>
-									<Input
-										type='month'
-										value={form.cohortStart}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												cohortStart: e.target.value
-											}))
-										}
-										required
-									/>
+									<div className='relative'>
+										<Input
+											ref={cohortStartRef}
+											type='month'
+											value={form.cohortStart}
+											className='pr-11'
+											onChange={(e) =>
+												setForm((f) => ({
+													...f,
+													cohortStart: e.target.value
+												}))
+											}
+											required
+										/>
+										<button
+											type='button'
+											aria-label='Chọn tháng bắt đầu'
+											className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-11 items-center justify-center'
+											onClick={() =>
+												openMonthPicker(
+													cohortStartRef.current
+												)
+											}
+										>
+											<CalendarDays className='size-5' />
+										</button>
+									</div>
 								</div>
 								<div>
 									<p className='text-muted-foreground mb-1 text-xs'>
 										Kết thúc (tháng/năm)
 									</p>
-									<Input
-										type='month'
-										value={form.cohortEnd}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												cohortEnd: e.target.value
-											}))
-										}
-										required
-									/>
+									<div className='relative'>
+										<Input
+											ref={cohortEndRef}
+											type='month'
+											value={form.cohortEnd}
+											className='pr-11'
+											onChange={(e) =>
+												setForm((f) => ({
+													...f,
+													cohortEnd: e.target.value
+												}))
+											}
+											required
+										/>
+										<button
+											type='button'
+											aria-label='Chọn tháng kết thúc'
+											className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-11 items-center justify-center'
+											onClick={() =>
+												openMonthPicker(
+													cohortEndRef.current
+												)
+											}
+										>
+											<CalendarDays className='size-5' />
+										</button>
+									</div>
 								</div>
 							</div>
 							<p className='text-muted-foreground mt-1 text-xs'>
