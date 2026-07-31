@@ -9,7 +9,7 @@
  */
 import { api, APIError, Query } from 'encore.dev/api'
 import { and, eq, inArray, like, or, sql } from 'drizzle-orm'
-import orm from '../database'
+import orm, { client, databaseReady } from '../database'
 import {
 	examClasses,
 	examFaculties,
@@ -31,6 +31,7 @@ import {
 	isScopedDeptHead,
 	type ExamClassLifecycleStatus
 } from './helpers'
+import { insertLegacyExamSystem } from './exam-systems-compat'
 
 export interface SystemResponse {
 	id: number
@@ -203,6 +204,7 @@ export const CreateExamSystem = api(
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền quản lý danh mục')
 		}
+		await databaseReady
 		const code = body.code.trim().toUpperCase()
 		const name = body.name.trim()
 		const letter = body.letter.trim().toUpperCase()
@@ -219,15 +221,16 @@ export const CreateExamSystem = api(
 		if (duplicate) {
 			throw APIError.alreadyExists('Mã hoặc letter của hệ đã tồn tại')
 		}
-		const [row] = await orm
-			.insert(examSystems)
-			.values({
-				code,
-				name,
-				letter,
-				description: body.description || null
-			})
-			.returning()
+		const values = {
+			code,
+			name,
+			letter,
+			description: body.description || null
+		}
+		const legacyRow = await insertLegacyExamSystem(client, values)
+		if (legacyRow) return { data: legacyRow }
+
+		const [row] = await orm.insert(examSystems).values(values).returning()
 		return {
 			data: {
 				id: row!.id,
