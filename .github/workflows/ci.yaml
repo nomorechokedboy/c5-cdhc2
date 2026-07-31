@@ -97,7 +97,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-api
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quan-ly-phep-api
                   tags: |
                       type=raw,value=latest
                       type=sha,prefix={{branch}}-
@@ -143,7 +143,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-web
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quan-ly-phep-web
                   tags: |
                       type=raw,value=latest
                       type=sha,prefix={{branch}}-
@@ -186,7 +186,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-api
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quan-ly-phep-sms-api
                   tags: |
                       type=raw,value=latest
                       type=sha,prefix={{branch}}-
@@ -229,7 +229,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-web
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/quan-ly-phep-sms-web
                   tags: |
                       type=raw,value=${{ matrix.env }}-latest
                       type=sha,prefix=${{ matrix.env }}-
