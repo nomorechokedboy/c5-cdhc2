@@ -233,9 +233,12 @@ export default function ExamCatalogPage() {
 	const saveSystem = useMutation({
 		mutationFn: () => {
 			const body = {
-				code: systemForm.code,
-				name: systemForm.name,
-				letter: systemForm.letter
+				code: systemForm.code.trim(),
+				name: systemForm.name.trim(),
+				letter: systemForm.letter.trim(),
+				// DB hiện tại bắt buộc training_type_id; danh mục này dùng
+				// loại đào tạo mặc định 1 cho hai hệ QS/DS.
+				trainingTypeId: 1
 			}
 			return editSystemId == null
 				? CreateExamSystem(body)
