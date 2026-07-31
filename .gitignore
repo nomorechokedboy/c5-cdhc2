@@ -6,6 +6,7 @@ dist
 dist-ssr
 *.local
 .env
+.leave-mail-config.enc
 .cache
 server/dist
 public/dist
