@@ -330,6 +330,7 @@ export async function CreateExamSystem(body: {
 	code: string
 	name: string
 	letter: string
+	trainingTypeId: number
 	description?: string
 }) {
 	const resp = await jsonFetch<{ data: ExamSystem }>('/exam/systems', {
@@ -345,6 +346,7 @@ export async function UpdateExamSystem(
 		code?: string
 		name?: string
 		letter?: string
+		trainingTypeId?: number
 		description?: string | null
 	}
 ) {

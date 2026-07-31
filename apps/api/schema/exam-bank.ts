@@ -39,6 +39,8 @@ export const examSystems = sqliteTable('exam_systems', {
 	name: text('name').notNull(),
 	/** A | B — prefix mã ngành */
 	letter: text('letter').notNull().unique(),
+	/** Tương thích DB hiện tại: exam_systems.training_type_id là NOT NULL */
+	trainingTypeId: int('training_type_id').notNull(),
 	description: text('description')
 })
 

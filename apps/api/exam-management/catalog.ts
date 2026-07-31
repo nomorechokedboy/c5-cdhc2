@@ -197,17 +197,32 @@ export const CreateExamSystem = api(
 		code: string
 		name: string
 		letter: string
+		trainingTypeId: number
 		description?: string
 	}): Promise<{ data: SystemResponse }> => {
 		const actor = await getActor()
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền quản lý danh mục')
 		}
+		if (
+			typeof body.code !== 'string' ||
+			typeof body.name !== 'string' ||
+			typeof body.letter !== 'string' ||
+			body.trainingTypeId == null
+		) {
+			throw APIError.invalidArgument(
+				'Mã, tên, letter và loại đào tạo là bắt buộc'
+			)
+		}
 		const code = body.code.trim().toUpperCase()
 		const name = body.name.trim()
 		const letter = body.letter.trim().toUpperCase()
+		const trainingTypeId = Number(body.trainingTypeId)
 		if (!code || !name || !letter) {
 			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
+		}
+		if (!Number.isInteger(trainingTypeId) || trainingTypeId <= 0) {
+			throw APIError.invalidArgument('Loại đào tạo không hợp lệ')
 		}
 		const [duplicate] = await orm
 			.select({ id: examSystems.id })
@@ -225,6 +240,7 @@ export const CreateExamSystem = api(
 				code,
 				name,
 				letter,
+				trainingTypeId,
 				description: body.description || null
 			})
 			.returning()
@@ -249,6 +265,7 @@ export const UpdateExamSystem = api(
 		code?: string
 		name?: string
 		letter?: string
+		trainingTypeId?: number
 		description?: string | null
 	}): Promise<{ data: SystemResponse }> => {
 		const actor = await getActor()
@@ -262,18 +279,36 @@ export const UpdateExamSystem = api(
 			.limit(1)
 		if (!existing) throw APIError.notFound('Hệ đào tạo không tồn tại')
 
+		if (
+			(params.code !== undefined && typeof params.code !== 'string') ||
+			(params.name !== undefined && typeof params.name !== 'string') ||
+			(params.letter !== undefined &&
+				typeof params.letter !== 'string') ||
+			params.trainingTypeId === null
+		) {
+			throw APIError.invalidArgument(
+				'Mã, tên, letter và loại đào tạo không được là null'
+			)
+		}
 		const code =
-			params.code !== undefined
+			typeof params.code === 'string'
 				? params.code.trim().toUpperCase()
 				: existing.code
 		const name =
-			params.name !== undefined ? params.name.trim() : existing.name
+			typeof params.name === 'string' ? params.name.trim() : existing.name
 		const letter =
-			params.letter !== undefined
+			typeof params.letter === 'string'
 				? params.letter.trim().toUpperCase()
 				: existing.letter
+		const trainingTypeId =
+			params.trainingTypeId !== undefined
+				? Number(params.trainingTypeId)
+				: existing.trainingTypeId
 		if (!code || !name || !letter) {
 			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
+		}
+		if (!Number.isInteger(trainingTypeId) || trainingTypeId <= 0) {
+			throw APIError.invalidArgument('Loại đào tạo không hợp lệ')
 		}
 
 		const [duplicate] = await orm
@@ -299,6 +334,7 @@ export const UpdateExamSystem = api(
 				code,
 				name,
 				letter,
+				trainingTypeId,
 				description:
 					params.description !== undefined
 						? params.description
