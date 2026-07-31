@@ -96,7 +96,7 @@ export interface LeaveRegulation {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	objectType: LeaveObjectType | null
@@ -114,7 +114,7 @@ export interface LeaveRequest {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	status: LeaveRequestStatus
@@ -215,7 +215,7 @@ export interface LeaveRecord {
 	decidedByUsername: string | null
 	decidedAt: string | null
 	archivedAt: string
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	memberCount: number
@@ -430,7 +430,7 @@ export function ListLeaveRequests(params?: {
 
 export function CreateLeaveRequest(body: {
 	leaveType?: string
-	requestScope?: 'INDIVIDUAL' | 'CLASS'
+	requestScope?: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId?: number | null
 	className?: string | null
 	manualDays?: number

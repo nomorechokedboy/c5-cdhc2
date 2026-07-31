@@ -52,7 +52,7 @@ export interface LeaveRecordResponse {
 	decidedByUsername: string | null
 	decidedAt: string | null
 	archivedAt: string
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	memberCount: number
