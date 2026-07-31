@@ -197,7 +197,7 @@ export const CreateExamSystem = api(
 		code: string
 		name: string
 		letter: string
-		trainingTypeId: number
+		trainingTypeId?: number
 		description?: string
 	}): Promise<{ data: SystemResponse }> => {
 		const actor = await getActor()
@@ -208,7 +208,7 @@ export const CreateExamSystem = api(
 			typeof body.code !== 'string' ||
 			typeof body.name !== 'string' ||
 			typeof body.letter !== 'string' ||
-			body.trainingTypeId == null
+			body.trainingTypeId === null
 		) {
 			throw APIError.invalidArgument(
 				'Mã, tên, letter và loại đào tạo là bắt buộc'
@@ -217,7 +217,9 @@ export const CreateExamSystem = api(
 		const code = body.code.trim().toUpperCase()
 		const name = body.name.trim()
 		const letter = body.letter.trim().toUpperCase()
-		const trainingTypeId = Number(body.trainingTypeId)
+		// Giữ tương thích với bundle FE cũ còn cache trong lúc rollout.
+		// Mọi insert xuống DB vẫn luôn có training_type_id hợp lệ, không gửi null.
+		const trainingTypeId = Number(body.trainingTypeId ?? 1)
 		if (!code || !name || !letter) {
 			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
 		}
