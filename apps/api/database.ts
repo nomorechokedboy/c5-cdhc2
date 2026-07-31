@@ -21,7 +21,7 @@ const dbPath = isFileUri
 
 mkdirSync(path.dirname(dbPath), { recursive: true })
 
-export const client = createClient({
+const client = createClient({
 	url: isFileUri ? appConfig.DATABASE_URI : `file:${dbPath}`
 })
 
@@ -37,12 +37,7 @@ async function autoMigrate() {
 	}
 }
 
-/**
- * Endpoints that depend on a newly migrated schema can await this promise.
- * Previously migration ran in the background, so the first requests could race
- * with schema changes during a deployment.
- */
-export const databaseReady = autoMigrate()
+autoMigrate()
 
 export type DrizzleDatabase = typeof orm
 
