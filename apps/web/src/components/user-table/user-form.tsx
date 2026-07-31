@@ -38,6 +38,11 @@ import useUnitsData from '@/hooks/useUnitsData'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Loader2 } from 'lucide-react'
 import { nganhLabel } from '@/lib/nganh'
+import {
+	AssignLeaveAccount,
+	ListLeavePersonnel,
+	ListLeaveUnits
+} from '@/api/leave'
 
 export interface UserFormProps {
 	onSuccess: (data: User[], variables: UserBody, context: unknown) => unknown
@@ -45,7 +50,15 @@ export interface UserFormProps {
 	setOpen: (open: boolean) => void
 }
 
-type AccountKind = 'bgh' | 'nganh' | 'don_vi' | 'cnk' | 'giang_vien'
+type AccountKind =
+	| 'bgh'
+	| 'nganh'
+	| 'don_vi'
+	| 'cnk'
+	| 'giang_vien'
+	| 'leave_personnel'
+	| 'leave_commander'
+	| 'leave_management'
 
 export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 	const qc = useQueryClient()
@@ -61,6 +74,16 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 		queryFn: () => ListExamFacultyOptions(),
 		enabled: open
 	})
+	const leavePersonnelQ = useQuery({
+		queryKey: ['leave-personnel', 'user-form'],
+		queryFn: () => ListLeavePersonnel(),
+		enabled: open
+	})
+	const leaveUnitsQ = useQuery({
+		queryKey: ['leave-units', 'user-form'],
+		queryFn: () => ListLeaveUnits({ activeOnly: true }),
+		enabled: open
+	})
 
 	const [accountKind, setAccountKind] = useState<AccountKind | ''>('')
 	const [username, setUsername] = useState('')
@@ -73,6 +96,11 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 	const [facultyCode, setFacultyCode] = useState('')
 	/** Role / phân quyền chọn từ danh sách hiện có */
 	const [roleId, setRoleId] = useState('')
+	const [personnelId, setPersonnelId] = useState('')
+	const [leaveUnitId, setLeaveUnitId] = useState('')
+	const [managementArea, setManagementArea] = useState<
+		'cán_bộ' | 'quân_lực' | ''
+	>('')
 	const [pending, setPending] = useState(false)
 
 	const unitOptions = useMemo(() => {
@@ -116,6 +144,26 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			keywords: `${f.code} ${f.name}`
 		}))
 	}, [facultyQ.data])
+	const personnelOptions = useMemo(
+		() =>
+			(leavePersonnelQ.data || [])
+				.filter((p) => !p.userId)
+				.map((p) => ({
+					value: String(p.id),
+					label: `${p.code} — ${p.fullName}${p.unitName ? ` · ${p.unitName}` : ''}`,
+					keywords: `${p.code} ${p.fullName} ${p.unitName || ''}`
+				})),
+		[leavePersonnelQ.data]
+	)
+	const leaveUnitOptions = useMemo(
+		() =>
+			(leaveUnitsQ.data || []).map((u) => ({
+				value: String(u.id),
+				label: `${u.code ? `${u.code} — ` : ''}${u.name}`,
+				keywords: `${u.code || ''} ${u.name} ${u.level || ''}`
+			})),
+		[leaveUnitsQ.data]
+	)
 
 	/** Roles gợi ý theo loại TK (ẩn super_admin) */
 	const roleOptions = useMemo(() => {
@@ -176,6 +224,22 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 				roles.find((r) => r.name.toLowerCase().includes('giang_vien'))
 			if (hit) setRoleId(String(hit.id))
 			else setRoleId('')
+		} else if (
+			accountKind === 'leave_personnel' ||
+			accountKind === 'leave_commander' ||
+			accountKind === 'leave_management'
+		) {
+			const preferred =
+				accountKind === 'leave_management'
+					? ['leave_agency']
+					: accountKind === 'leave_commander'
+						? ['leave_commander']
+						: ['leave_personnel']
+			const hit = preferred
+				.map((name) => roles.find((r) => r.name === name))
+				.find(Boolean)
+			if (hit) setRoleId(String(hit.id))
+			else setRoleId('')
 		}
 	}, [accountKind, rolesQ.data])
 
@@ -188,6 +252,9 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 		setNganhCode('')
 		setFacultyCode('')
 		setRoleId('')
+		setPersonnelId('')
+		setLeaveUnitId('')
+		setManagementArea('')
 	}
 
 	const mut = useMutation({
@@ -221,6 +288,18 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			toast.error('Chọn khoa (K1…K8)')
 			return
 		}
+		if (accountKind === 'leave_personnel' && !personnelId) {
+			toast.error('Chọn quân nhân gắn với tài khoản')
+			return
+		}
+		if (accountKind === 'leave_commander' && !leaveUnitId) {
+			toast.error('Chọn cơ quan do chỉ huy phụ trách')
+			return
+		}
+		if (accountKind === 'leave_management' && !managementArea) {
+			toast.error('Chọn Cơ quan hoặc Quân lực')
+			return
+		}
 		if (!roleId) {
 			toast.error(
 				roleLocked
@@ -239,7 +318,13 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 						? 'Chủ nhiệm khoa'
 						: accountKind === 'giang_vien'
 							? 'Giáo viên'
-							: 'User ngành'
+							: accountKind === 'leave_personnel'
+								? 'Quân nhân'
+								: accountKind === 'leave_commander'
+									? 'Chỉ huy cơ quan'
+									: accountKind === 'leave_management'
+										? 'Cơ quan quản lý'
+										: 'User ngành'
 
 		setPending(true)
 		try {
@@ -258,6 +343,26 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 				userId: created.id,
 				roleIds: [Number(roleId)]
 			})
+
+			if (accountKind === 'leave_personnel') {
+				await AssignLeaveAccount({
+					userId: created.id,
+					kind: 'personnel',
+					personnelId: Number(personnelId)
+				})
+			} else if (accountKind === 'leave_commander') {
+				await AssignLeaveAccount({
+					userId: created.id,
+					kind: 'commander',
+					unitId: Number(leaveUnitId)
+				})
+			} else if (accountKind === 'leave_management') {
+				await AssignLeaveAccount({
+					userId: created.id,
+					kind: 'management',
+					managementArea
+				})
+			}
 
 			// TK ngành: gán đúng 1 ngành
 			if (accountKind === 'nganh') {
@@ -362,6 +467,9 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 								setUnitId('')
 								setNganhCode('')
 								setFacultyCode('')
+								setPersonnelId('')
+								setLeaveUnitId('')
+								setManagementArea('')
 							}}
 						>
 							<SelectTrigger className='h-11 text-base'>
@@ -382,6 +490,15 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 								</SelectItem>
 								<SelectItem value='giang_vien'>
 									Giáo viên (soạn đề theo khoa)
+								</SelectItem>
+								<SelectItem value='leave_personnel'>
+									Tài khoản quân nhân
+								</SelectItem>
+								<SelectItem value='leave_commander'>
+									Tài khoản chỉ huy cơ quan
+								</SelectItem>
+								<SelectItem value='leave_management'>
+									Tài khoản cơ quan quản lý
 								</SelectItem>
 							</SelectContent>
 						</Select>
@@ -539,6 +656,81 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 									</>
 								)}
 							</p>
+						</div>
+					)}
+
+					{accountKind === 'leave_personnel' && (
+						<div className='space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-4'>
+							<Label className='text-base'>
+								Quân nhân{' '}
+								<span className='text-destructive'>*</span>
+							</Label>
+							<SearchableSelect
+								value={personnelId}
+								onValueChange={setPersonnelId}
+								options={personnelOptions}
+								placeholder={
+									leavePersonnelQ.isLoading
+										? 'Đang tải…'
+										: 'Chọn quân nhân…'
+								}
+								searchPlaceholder='Tìm theo mã hoặc họ tên…'
+								emptyText='Không còn quân nhân chưa có tài khoản'
+								disabled={leavePersonnelQ.isLoading}
+								className='h-11 text-base'
+							/>
+						</div>
+					)}
+
+					{accountKind === 'leave_commander' && (
+						<div className='space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-4'>
+							<Label className='text-base'>
+								Cơ quan chỉ huy{' '}
+								<span className='text-destructive'>*</span>
+							</Label>
+							<SearchableSelect
+								value={leaveUnitId}
+								onValueChange={setLeaveUnitId}
+								options={leaveUnitOptions}
+								placeholder={
+									leaveUnitsQ.isLoading
+										? 'Đang tải…'
+										: 'Chọn cơ quan…'
+								}
+								searchPlaceholder='Tìm mã hoặc tên cơ quan…'
+								emptyText='Không có cơ quan'
+								disabled={leaveUnitsQ.isLoading}
+								className='h-11 text-base'
+							/>
+						</div>
+					)}
+
+					{accountKind === 'leave_management' && (
+						<div className='space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-4'>
+							<Label className='text-base'>
+								Phạm vi quản lý{' '}
+								<span className='text-destructive'>*</span>
+							</Label>
+							<Select
+								value={managementArea}
+								onValueChange={(v) =>
+									setManagementArea(
+										v as 'cán_bộ' | 'quân_lực'
+									)
+								}
+							>
+								<SelectTrigger className='h-11 text-base'>
+									<SelectValue placeholder='Chọn Cơ quan hoặc Quân lực…' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='cán_bộ'>
+										Cơ quan
+									</SelectItem>
+									<SelectItem value='quân_lực'>
+										Quân lực
+									</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
 					)}
 

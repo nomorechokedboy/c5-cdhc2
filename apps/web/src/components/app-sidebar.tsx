@@ -81,6 +81,7 @@ import {
 import useIsNganhUser from '@/hooks/useIsNganhUser'
 import { useQuery } from '@tanstack/react-query'
 import { GetPendingExamCount } from '@/api/exam'
+import { GetLeaveMyAccess } from '@/api/leave'
 import {
 	examNavAllowed,
 	isExamOffice,
@@ -171,6 +172,69 @@ const data = {
 					title: 'Import học viên',
 					url: '/import-students',
 					icon: UserPlus
+				}
+			]
+		},
+		{
+			title: 'Quản lý phép',
+			url: '#',
+			superAdminOnly: false,
+			icon: Calendar,
+			items: [
+				{
+					title: 'Đề xuất nghỉ phép',
+					url: '/quan-ly-phep/de-xuat',
+					icon: FileText
+				},
+				{
+					title: 'Duyệt đề xuất phép',
+					url: '/quan-ly-phep/duyet',
+					icon: ClipboardCheck
+				},
+				{
+					title: 'Danh sách phép',
+					url: '/quan-ly-phep/danh-sach',
+					icon: List
+				},
+				{
+					title: 'Danh sách quân nhân',
+					url: '/quan-ly-phep/quan-nhan',
+					icon: UsersRound
+				},
+				{
+					title: 'Danh mục đơn vị',
+					url: '/quan-ly-phep/don-vi',
+					icon: Building
+				},
+				{
+					title: 'Danh mục chức vụ',
+					url: '/quan-ly-phep/chuc-vu',
+					icon: UserRoundCog
+				},
+				{
+					title: 'Danh mục địa phương',
+					url: '/quan-ly-phep/dia-phuong',
+					icon: Building2
+				},
+				{
+					title: 'Quy định phép',
+					url: '/quan-ly-phep/quy-dinh',
+					icon: FileText
+				},
+				{
+					title: 'Lưu trữ nghỉ phép',
+					url: '/quan-ly-phep/luu-tru',
+					icon: FileStack
+				},
+				{
+					title: 'Quản lý đợt nghỉ phép',
+					url: '/quan-ly-phep/dot-nghi',
+					icon: Calendar
+				},
+				{
+					title: 'Báo cáo nghỉ phép',
+					url: '/quan-ly-phep/bao-cao',
+					icon: PieChart
 				}
 			]
 		},
@@ -549,6 +613,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { state } = useSidebar()
 	const isCollapsed = state === 'collapsed'
 	const { user } = useAuth()
+	const { data: leaveAccess } = useQuery({
+		queryKey: ['leave-my-access'],
+		queryFn: GetLeaveMyAccess,
+		enabled: Boolean(user),
+		retry: false
+	})
 
 	const getUnitsQuery: GetUnitQuery | undefined =
 		user?.isSuperUser === true
@@ -1137,6 +1207,86 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	})
 
 	const examOfficeUser = isExamOffice() && !isSuperAdmin() && !nganhUser
+	const leaveOperator =
+		!isSuperAdmin() &&
+		Boolean(
+			leaveAccess?.isCommander ||
+				leaveAccess?.isAgency ||
+				leaveAccess?.isPersonnel
+		)
+	const leavePersonnelOnly =
+		Boolean(leaveAccess?.isPersonnel) &&
+		!leaveAccess?.isCommander &&
+		!leaveAccess?.isAgency
+	const leaveRoleNav: typeof data.navMain = [
+		{
+			title: 'Chung',
+			url: '#',
+			superAdminOnly: false,
+			items: [{ title: 'Trang chủ', url: '/', icon: Home }]
+		},
+		{
+			title: 'Quản lý phép',
+			url: '#',
+			superAdminOnly: false,
+			icon: Calendar,
+			items: [
+				...(leaveAccess?.canPropose
+					? [
+							{
+								title: 'Đề xuất nghỉ phép',
+								url: '/quan-ly-phep/de-xuat',
+								icon: FileText
+							}
+						]
+					: []),
+				{
+					title: 'Quy định phép',
+					url: '/quan-ly-phep/quy-dinh',
+					icon: FileText
+				},
+				...(!leavePersonnelOnly
+					? [
+							{
+								title: 'Duyệt đề xuất phép',
+								url: '/quan-ly-phep/duyet',
+								icon: ClipboardCheck
+							},
+							{
+								title: 'Danh sách quân nhân',
+								url: '/quan-ly-phep/quan-nhan',
+								icon: UsersRound
+							},
+							{
+								title: 'Đơn vị của tôi',
+								url: '/quan-ly-phep/don-vi',
+								icon: Building
+							},
+							{
+								title: 'Danh mục chức vụ',
+								url: '/quan-ly-phep/chuc-vu',
+								icon: UserRoundCog
+							},
+							{
+								title: 'Danh mục địa phương',
+								url: '/quan-ly-phep/dia-phuong',
+								icon: Building2
+							},
+							{
+								title: 'Quản lý đợt nghỉ phép',
+								url: '/quan-ly-phep/dot-nghi',
+								icon: Calendar
+							},
+							{
+								title: 'Lưu trữ nghỉ phép',
+								url: '/quan-ly-phep/luu-tru',
+								icon: FileStack
+							}
+						]
+					: [])
+			]
+		}
+	]
 	/** GV soạn đề (gv.cntt…) — không super / ngành / BGH / Ban KT / phòng dạy */
 	const pureExamLecturer =
 		isPureExamLecturer() &&
@@ -1146,27 +1296,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 		!nganhUser &&
 		!bghOnly
 
-	const allNavItems = roomTeacher
-		? roomTeacherNav
-		: pureExamLecturer
-			? examLecturerNav
-			: donViUser
-				? donViUserNav
-				: examOfficeUser
-					? examOfficeNavWithBadge
-					: nganhUser
-						? nganhNavWithBadge
-						: bghOnly
-							? bghNavWithBadge
-							: [
-									firstNavItem,
-									{
-										title: 'Đơn vị',
-										url: '#',
-										items: unitsNavbar
-									},
-									...navWithBadge
-								]
+	const allNavItems = leaveOperator
+		? leaveRoleNav
+		: roomTeacher
+			? roomTeacherNav
+			: pureExamLecturer
+				? examLecturerNav
+				: donViUser
+					? donViUserNav
+					: examOfficeUser
+						? examOfficeNavWithBadge
+						: nganhUser
+							? nganhNavWithBadge
+							: bghOnly
+								? bghNavWithBadge
+								: [
+										firstNavItem,
+										{
+											title: 'Đơn vị',
+											url: '#',
+											items: unitsNavbar
+										},
+										...navWithBadge
+									]
 	const newData = {
 		version: data.versions,
 		navMain: withExamFilter(

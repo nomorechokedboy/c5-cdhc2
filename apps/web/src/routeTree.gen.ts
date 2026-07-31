@@ -27,6 +27,7 @@ import { Route as CacQuyenRouteImport } from './routes/cac-quyen'
 import { Route as BirthdayRouteImport } from './routes/birthday'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VatTuIndexRouteImport } from './routes/vat-tu/index'
+import { Route as QuanLyPhepIndexRouteImport } from './routes/quan-ly-phep/index'
 import { Route as DeThiIndexRouteImport } from './routes/de-thi/index'
 import { Route as VatTuTimKiemRouteImport } from './routes/vat-tu/tim-kiem'
 import { Route as VatTuThanhLyRouteImport } from './routes/vat-tu/thanh-ly'
@@ -41,6 +42,17 @@ import { Route as VatTuDanhMucNganhRouteImport } from './routes/vat-tu/danh-muc-
 import { Route as VatTuCapNhatRouteImport } from './routes/vat-tu/cap-nhat'
 import { Route as VatTuBaoCaoRouteImport } from './routes/vat-tu/bao-cao'
 import { Route as TieuDoanAliasRouteImport } from './routes/tieu-doan/$alias'
+import { Route as QuanLyPhepQuyDinhRouteImport } from './routes/quan-ly-phep/quy-dinh'
+import { Route as QuanLyPhepQuanNhanRouteImport } from './routes/quan-ly-phep/quan-nhan'
+import { Route as QuanLyPhepLuuTruRouteImport } from './routes/quan-ly-phep/luu-tru'
+import { Route as QuanLyPhepDuyetRouteImport } from './routes/quan-ly-phep/duyet'
+import { Route as QuanLyPhepDotNghiRouteImport } from './routes/quan-ly-phep/dot-nghi'
+import { Route as QuanLyPhepDonViRouteImport } from './routes/quan-ly-phep/don-vi'
+import { Route as QuanLyPhepDiaPhuongRouteImport } from './routes/quan-ly-phep/dia-phuong'
+import { Route as QuanLyPhepDeXuatRouteImport } from './routes/quan-ly-phep/de-xuat'
+import { Route as QuanLyPhepDanhSachRouteImport } from './routes/quan-ly-phep/danh-sach'
+import { Route as QuanLyPhepChucVuRouteImport } from './routes/quan-ly-phep/chuc-vu'
+import { Route as QuanLyPhepBaoCaoRouteImport } from './routes/quan-ly-phep/bao-cao'
 import { Route as DeThiRutDeRouteImport } from './routes/de-thi/rut-de'
 import { Route as DeThiQrRouteImport } from './routes/de-thi/qr'
 import { Route as DeThiPhanCongRouteImport } from './routes/de-thi/phan-cong'
@@ -147,6 +159,11 @@ const VatTuIndexRoute = VatTuIndexRouteImport.update({
   path: '/vat-tu/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuanLyPhepIndexRoute = QuanLyPhepIndexRouteImport.update({
+  id: '/quan-ly-phep/',
+  path: '/quan-ly-phep/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeThiIndexRoute = DeThiIndexRouteImport.update({
   id: '/de-thi/',
   path: '/de-thi/',
@@ -215,6 +232,61 @@ const VatTuBaoCaoRoute = VatTuBaoCaoRouteImport.update({
 const TieuDoanAliasRoute = TieuDoanAliasRouteImport.update({
   id: '/tieu-doan/$alias',
   path: '/tieu-doan/$alias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepQuyDinhRoute = QuanLyPhepQuyDinhRouteImport.update({
+  id: '/quan-ly-phep/quy-dinh',
+  path: '/quan-ly-phep/quy-dinh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepQuanNhanRoute = QuanLyPhepQuanNhanRouteImport.update({
+  id: '/quan-ly-phep/quan-nhan',
+  path: '/quan-ly-phep/quan-nhan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepLuuTruRoute = QuanLyPhepLuuTruRouteImport.update({
+  id: '/quan-ly-phep/luu-tru',
+  path: '/quan-ly-phep/luu-tru',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDuyetRoute = QuanLyPhepDuyetRouteImport.update({
+  id: '/quan-ly-phep/duyet',
+  path: '/quan-ly-phep/duyet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDotNghiRoute = QuanLyPhepDotNghiRouteImport.update({
+  id: '/quan-ly-phep/dot-nghi',
+  path: '/quan-ly-phep/dot-nghi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDonViRoute = QuanLyPhepDonViRouteImport.update({
+  id: '/quan-ly-phep/don-vi',
+  path: '/quan-ly-phep/don-vi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDiaPhuongRoute = QuanLyPhepDiaPhuongRouteImport.update({
+  id: '/quan-ly-phep/dia-phuong',
+  path: '/quan-ly-phep/dia-phuong',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDeXuatRoute = QuanLyPhepDeXuatRouteImport.update({
+  id: '/quan-ly-phep/de-xuat',
+  path: '/quan-ly-phep/de-xuat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepDanhSachRoute = QuanLyPhepDanhSachRouteImport.update({
+  id: '/quan-ly-phep/danh-sach',
+  path: '/quan-ly-phep/danh-sach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepChucVuRoute = QuanLyPhepChucVuRouteImport.update({
+  id: '/quan-ly-phep/chuc-vu',
+  path: '/quan-ly-phep/chuc-vu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuanLyPhepBaoCaoRoute = QuanLyPhepBaoCaoRouteImport.update({
+  id: '/quan-ly-phep/bao-cao',
+  path: '/quan-ly-phep/bao-cao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeThiRutDeRoute = DeThiRutDeRouteImport.update({
@@ -322,6 +394,17 @@ export interface FileRoutesByFullPath {
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
   '/de-thi/qr': typeof DeThiQrRoute
   '/de-thi/rut-de': typeof DeThiRutDeRoute
+  '/quan-ly-phep/bao-cao': typeof QuanLyPhepBaoCaoRoute
+  '/quan-ly-phep/chuc-vu': typeof QuanLyPhepChucVuRoute
+  '/quan-ly-phep/danh-sach': typeof QuanLyPhepDanhSachRoute
+  '/quan-ly-phep/de-xuat': typeof QuanLyPhepDeXuatRoute
+  '/quan-ly-phep/dia-phuong': typeof QuanLyPhepDiaPhuongRoute
+  '/quan-ly-phep/don-vi': typeof QuanLyPhepDonViRoute
+  '/quan-ly-phep/dot-nghi': typeof QuanLyPhepDotNghiRoute
+  '/quan-ly-phep/duyet': typeof QuanLyPhepDuyetRoute
+  '/quan-ly-phep/luu-tru': typeof QuanLyPhepLuuTruRoute
+  '/quan-ly-phep/quan-nhan': typeof QuanLyPhepQuanNhanRoute
+  '/quan-ly-phep/quy-dinh': typeof QuanLyPhepQuyDinhRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -336,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
   '/de-thi': typeof DeThiIndexRoute
+  '/quan-ly-phep': typeof QuanLyPhepIndexRoute
   '/vat-tu': typeof VatTuIndexRoute
   '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
   '/de-thi/soan/$id': typeof DeThiSoanIdRoute
@@ -371,6 +455,17 @@ export interface FileRoutesByTo {
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
   '/de-thi/qr': typeof DeThiQrRoute
   '/de-thi/rut-de': typeof DeThiRutDeRoute
+  '/quan-ly-phep/bao-cao': typeof QuanLyPhepBaoCaoRoute
+  '/quan-ly-phep/chuc-vu': typeof QuanLyPhepChucVuRoute
+  '/quan-ly-phep/danh-sach': typeof QuanLyPhepDanhSachRoute
+  '/quan-ly-phep/de-xuat': typeof QuanLyPhepDeXuatRoute
+  '/quan-ly-phep/dia-phuong': typeof QuanLyPhepDiaPhuongRoute
+  '/quan-ly-phep/don-vi': typeof QuanLyPhepDonViRoute
+  '/quan-ly-phep/dot-nghi': typeof QuanLyPhepDotNghiRoute
+  '/quan-ly-phep/duyet': typeof QuanLyPhepDuyetRoute
+  '/quan-ly-phep/luu-tru': typeof QuanLyPhepLuuTruRoute
+  '/quan-ly-phep/quan-nhan': typeof QuanLyPhepQuanNhanRoute
+  '/quan-ly-phep/quy-dinh': typeof QuanLyPhepQuyDinhRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -385,6 +480,7 @@ export interface FileRoutesByTo {
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
   '/de-thi': typeof DeThiIndexRoute
+  '/quan-ly-phep': typeof QuanLyPhepIndexRoute
   '/vat-tu': typeof VatTuIndexRoute
   '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
   '/de-thi/soan/$id': typeof DeThiSoanIdRoute
@@ -421,6 +517,17 @@ export interface FileRoutesById {
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
   '/de-thi/qr': typeof DeThiQrRoute
   '/de-thi/rut-de': typeof DeThiRutDeRoute
+  '/quan-ly-phep/bao-cao': typeof QuanLyPhepBaoCaoRoute
+  '/quan-ly-phep/chuc-vu': typeof QuanLyPhepChucVuRoute
+  '/quan-ly-phep/danh-sach': typeof QuanLyPhepDanhSachRoute
+  '/quan-ly-phep/de-xuat': typeof QuanLyPhepDeXuatRoute
+  '/quan-ly-phep/dia-phuong': typeof QuanLyPhepDiaPhuongRoute
+  '/quan-ly-phep/don-vi': typeof QuanLyPhepDonViRoute
+  '/quan-ly-phep/dot-nghi': typeof QuanLyPhepDotNghiRoute
+  '/quan-ly-phep/duyet': typeof QuanLyPhepDuyetRoute
+  '/quan-ly-phep/luu-tru': typeof QuanLyPhepLuuTruRoute
+  '/quan-ly-phep/quan-nhan': typeof QuanLyPhepQuanNhanRoute
+  '/quan-ly-phep/quy-dinh': typeof QuanLyPhepQuyDinhRoute
   '/tieu-doan/$alias': typeof TieuDoanAliasRoute
   '/vat-tu/bao-cao': typeof VatTuBaoCaoRoute
   '/vat-tu/cap-nhat': typeof VatTuCapNhatRoute
@@ -435,6 +542,7 @@ export interface FileRoutesById {
   '/vat-tu/thanh-ly': typeof VatTuThanhLyRoute
   '/vat-tu/tim-kiem': typeof VatTuTimKiemRoute
   '/de-thi/': typeof DeThiIndexRoute
+  '/quan-ly-phep/': typeof QuanLyPhepIndexRoute
   '/vat-tu/': typeof VatTuIndexRoute
   '/de-thi/chi-tiet/$id': typeof DeThiChiTietIdRoute
   '/de-thi/soan/$id': typeof DeThiSoanIdRoute
@@ -472,6 +580,17 @@ export interface FileRouteTypes {
     | '/de-thi/phan-cong'
     | '/de-thi/qr'
     | '/de-thi/rut-de'
+    | '/quan-ly-phep/bao-cao'
+    | '/quan-ly-phep/chuc-vu'
+    | '/quan-ly-phep/danh-sach'
+    | '/quan-ly-phep/de-xuat'
+    | '/quan-ly-phep/dia-phuong'
+    | '/quan-ly-phep/don-vi'
+    | '/quan-ly-phep/dot-nghi'
+    | '/quan-ly-phep/duyet'
+    | '/quan-ly-phep/luu-tru'
+    | '/quan-ly-phep/quan-nhan'
+    | '/quan-ly-phep/quy-dinh'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -486,6 +605,7 @@ export interface FileRouteTypes {
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
     | '/de-thi'
+    | '/quan-ly-phep'
     | '/vat-tu'
     | '/de-thi/chi-tiet/$id'
     | '/de-thi/soan/$id'
@@ -521,6 +641,17 @@ export interface FileRouteTypes {
     | '/de-thi/phan-cong'
     | '/de-thi/qr'
     | '/de-thi/rut-de'
+    | '/quan-ly-phep/bao-cao'
+    | '/quan-ly-phep/chuc-vu'
+    | '/quan-ly-phep/danh-sach'
+    | '/quan-ly-phep/de-xuat'
+    | '/quan-ly-phep/dia-phuong'
+    | '/quan-ly-phep/don-vi'
+    | '/quan-ly-phep/dot-nghi'
+    | '/quan-ly-phep/duyet'
+    | '/quan-ly-phep/luu-tru'
+    | '/quan-ly-phep/quan-nhan'
+    | '/quan-ly-phep/quy-dinh'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -535,6 +666,7 @@ export interface FileRouteTypes {
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
     | '/de-thi'
+    | '/quan-ly-phep'
     | '/vat-tu'
     | '/de-thi/chi-tiet/$id'
     | '/de-thi/soan/$id'
@@ -570,6 +702,17 @@ export interface FileRouteTypes {
     | '/de-thi/phan-cong'
     | '/de-thi/qr'
     | '/de-thi/rut-de'
+    | '/quan-ly-phep/bao-cao'
+    | '/quan-ly-phep/chuc-vu'
+    | '/quan-ly-phep/danh-sach'
+    | '/quan-ly-phep/de-xuat'
+    | '/quan-ly-phep/dia-phuong'
+    | '/quan-ly-phep/don-vi'
+    | '/quan-ly-phep/dot-nghi'
+    | '/quan-ly-phep/duyet'
+    | '/quan-ly-phep/luu-tru'
+    | '/quan-ly-phep/quan-nhan'
+    | '/quan-ly-phep/quy-dinh'
     | '/tieu-doan/$alias'
     | '/vat-tu/bao-cao'
     | '/vat-tu/cap-nhat'
@@ -584,6 +727,7 @@ export interface FileRouteTypes {
     | '/vat-tu/thanh-ly'
     | '/vat-tu/tim-kiem'
     | '/de-thi/'
+    | '/quan-ly-phep/'
     | '/vat-tu/'
     | '/de-thi/chi-tiet/$id'
     | '/de-thi/soan/$id'
@@ -620,6 +764,17 @@ export interface RootRouteChildren {
   DeThiPhanCongRoute: typeof DeThiPhanCongRoute
   DeThiQrRoute: typeof DeThiQrRoute
   DeThiRutDeRoute: typeof DeThiRutDeRoute
+  QuanLyPhepBaoCaoRoute: typeof QuanLyPhepBaoCaoRoute
+  QuanLyPhepChucVuRoute: typeof QuanLyPhepChucVuRoute
+  QuanLyPhepDanhSachRoute: typeof QuanLyPhepDanhSachRoute
+  QuanLyPhepDeXuatRoute: typeof QuanLyPhepDeXuatRoute
+  QuanLyPhepDiaPhuongRoute: typeof QuanLyPhepDiaPhuongRoute
+  QuanLyPhepDonViRoute: typeof QuanLyPhepDonViRoute
+  QuanLyPhepDotNghiRoute: typeof QuanLyPhepDotNghiRoute
+  QuanLyPhepDuyetRoute: typeof QuanLyPhepDuyetRoute
+  QuanLyPhepLuuTruRoute: typeof QuanLyPhepLuuTruRoute
+  QuanLyPhepQuanNhanRoute: typeof QuanLyPhepQuanNhanRoute
+  QuanLyPhepQuyDinhRoute: typeof QuanLyPhepQuyDinhRoute
   TieuDoanAliasRoute: typeof TieuDoanAliasRoute
   VatTuBaoCaoRoute: typeof VatTuBaoCaoRoute
   VatTuCapNhatRoute: typeof VatTuCapNhatRoute
@@ -634,6 +789,7 @@ export interface RootRouteChildren {
   VatTuThanhLyRoute: typeof VatTuThanhLyRoute
   VatTuTimKiemRoute: typeof VatTuTimKiemRoute
   DeThiIndexRoute: typeof DeThiIndexRoute
+  QuanLyPhepIndexRoute: typeof QuanLyPhepIndexRoute
   VatTuIndexRoute: typeof VatTuIndexRoute
   DeThiChiTietIdRoute: typeof DeThiChiTietIdRoute
   DeThiSoanIdRoute: typeof DeThiSoanIdRoute
@@ -769,6 +925,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VatTuIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quan-ly-phep/': {
+      id: '/quan-ly-phep/'
+      path: '/quan-ly-phep'
+      fullPath: '/quan-ly-phep'
+      preLoaderRoute: typeof QuanLyPhepIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/de-thi/': {
       id: '/de-thi/'
       path: '/de-thi'
@@ -865,6 +1028,83 @@ declare module '@tanstack/react-router' {
       path: '/tieu-doan/$alias'
       fullPath: '/tieu-doan/$alias'
       preLoaderRoute: typeof TieuDoanAliasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/quy-dinh': {
+      id: '/quan-ly-phep/quy-dinh'
+      path: '/quan-ly-phep/quy-dinh'
+      fullPath: '/quan-ly-phep/quy-dinh'
+      preLoaderRoute: typeof QuanLyPhepQuyDinhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/quan-nhan': {
+      id: '/quan-ly-phep/quan-nhan'
+      path: '/quan-ly-phep/quan-nhan'
+      fullPath: '/quan-ly-phep/quan-nhan'
+      preLoaderRoute: typeof QuanLyPhepQuanNhanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/luu-tru': {
+      id: '/quan-ly-phep/luu-tru'
+      path: '/quan-ly-phep/luu-tru'
+      fullPath: '/quan-ly-phep/luu-tru'
+      preLoaderRoute: typeof QuanLyPhepLuuTruRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/duyet': {
+      id: '/quan-ly-phep/duyet'
+      path: '/quan-ly-phep/duyet'
+      fullPath: '/quan-ly-phep/duyet'
+      preLoaderRoute: typeof QuanLyPhepDuyetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/dot-nghi': {
+      id: '/quan-ly-phep/dot-nghi'
+      path: '/quan-ly-phep/dot-nghi'
+      fullPath: '/quan-ly-phep/dot-nghi'
+      preLoaderRoute: typeof QuanLyPhepDotNghiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/don-vi': {
+      id: '/quan-ly-phep/don-vi'
+      path: '/quan-ly-phep/don-vi'
+      fullPath: '/quan-ly-phep/don-vi'
+      preLoaderRoute: typeof QuanLyPhepDonViRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/dia-phuong': {
+      id: '/quan-ly-phep/dia-phuong'
+      path: '/quan-ly-phep/dia-phuong'
+      fullPath: '/quan-ly-phep/dia-phuong'
+      preLoaderRoute: typeof QuanLyPhepDiaPhuongRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/de-xuat': {
+      id: '/quan-ly-phep/de-xuat'
+      path: '/quan-ly-phep/de-xuat'
+      fullPath: '/quan-ly-phep/de-xuat'
+      preLoaderRoute: typeof QuanLyPhepDeXuatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/danh-sach': {
+      id: '/quan-ly-phep/danh-sach'
+      path: '/quan-ly-phep/danh-sach'
+      fullPath: '/quan-ly-phep/danh-sach'
+      preLoaderRoute: typeof QuanLyPhepDanhSachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/chuc-vu': {
+      id: '/quan-ly-phep/chuc-vu'
+      path: '/quan-ly-phep/chuc-vu'
+      fullPath: '/quan-ly-phep/chuc-vu'
+      preLoaderRoute: typeof QuanLyPhepChucVuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quan-ly-phep/bao-cao': {
+      id: '/quan-ly-phep/bao-cao'
+      path: '/quan-ly-phep/bao-cao'
+      fullPath: '/quan-ly-phep/bao-cao'
+      preLoaderRoute: typeof QuanLyPhepBaoCaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/de-thi/rut-de': {
@@ -1004,6 +1244,17 @@ const rootRouteChildren: RootRouteChildren = {
   DeThiPhanCongRoute: DeThiPhanCongRoute,
   DeThiQrRoute: DeThiQrRoute,
   DeThiRutDeRoute: DeThiRutDeRoute,
+  QuanLyPhepBaoCaoRoute: QuanLyPhepBaoCaoRoute,
+  QuanLyPhepChucVuRoute: QuanLyPhepChucVuRoute,
+  QuanLyPhepDanhSachRoute: QuanLyPhepDanhSachRoute,
+  QuanLyPhepDeXuatRoute: QuanLyPhepDeXuatRoute,
+  QuanLyPhepDiaPhuongRoute: QuanLyPhepDiaPhuongRoute,
+  QuanLyPhepDonViRoute: QuanLyPhepDonViRoute,
+  QuanLyPhepDotNghiRoute: QuanLyPhepDotNghiRoute,
+  QuanLyPhepDuyetRoute: QuanLyPhepDuyetRoute,
+  QuanLyPhepLuuTruRoute: QuanLyPhepLuuTruRoute,
+  QuanLyPhepQuanNhanRoute: QuanLyPhepQuanNhanRoute,
+  QuanLyPhepQuyDinhRoute: QuanLyPhepQuyDinhRoute,
   TieuDoanAliasRoute: TieuDoanAliasRoute,
   VatTuBaoCaoRoute: VatTuBaoCaoRoute,
   VatTuCapNhatRoute: VatTuCapNhatRoute,
@@ -1018,6 +1269,7 @@ const rootRouteChildren: RootRouteChildren = {
   VatTuThanhLyRoute: VatTuThanhLyRoute,
   VatTuTimKiemRoute: VatTuTimKiemRoute,
   DeThiIndexRoute: DeThiIndexRoute,
+  QuanLyPhepIndexRoute: QuanLyPhepIndexRoute,
   VatTuIndexRoute: VatTuIndexRoute,
   DeThiChiTietIdRoute: DeThiChiTietIdRoute,
   DeThiSoanIdRoute: DeThiSoanIdRoute,
