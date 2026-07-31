@@ -2,16 +2,9 @@
  * Danh mục lớp thi — mỗi lớp thuộc Hệ đào tạo + Ngành đào tạo.
  * Dùng khi GV import đề / rút đề (chọn lớp).
  */
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-	CalendarDays,
-	GraduationCap,
-	Loader2,
-	Pencil,
-	Plus,
-	Trash2
-} from 'lucide-react'
+import { GraduationCap, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
 	CreateExamClass,
@@ -57,18 +50,74 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 
-function openMonthPicker(input: HTMLInputElement | null) {
-	if (!input) return
-	input.focus()
-	if (typeof input.showPicker === 'function') {
-		try {
-			input.showPicker()
-			return
-		} catch {
-			// Browser có API nhưng chặn picker: dùng hành vi native làm fallback.
-		}
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+	const value = String(index + 1).padStart(2, '0')
+	return { value, label: `Tháng ${index + 1}` }
+})
+const currentYear = new Date().getFullYear()
+const YEAR_OPTIONS = Array.from(
+	{ length: currentYear - 1949 + 30 },
+	(_, index) => String(currentYear + 30 - index)
+)
+
+function MonthYearPicker({
+	value,
+	onChange,
+	label
+}: {
+	value: string
+	onChange: (_value: string) => void
+	label: string
+}) {
+	const match = /^(\d{4})-(\d{2})$/.exec(value)
+	const selectedYear = match?.[1] ?? ''
+	const selectedMonth = match?.[2] ?? ''
+	const updateValue = (month: string, year: string) => {
+		onChange(
+			`${year || currentYear}-${month || String(new Date().getMonth() + 1).padStart(2, '0')}`
+		)
 	}
-	input.click()
+
+	return (
+		<div className='grid grid-cols-2 gap-1.5'>
+			<Select
+				value={selectedMonth || undefined}
+				onValueChange={(month) => updateValue(month, selectedYear)}
+			>
+				<SelectTrigger
+					className='h-12 min-w-0'
+					aria-label={`${label}: tháng`}
+				>
+					<SelectValue placeholder='Tháng' />
+				</SelectTrigger>
+				<SelectContent>
+					{MONTH_OPTIONS.map((month) => (
+						<SelectItem key={month.value} value={month.value}>
+							{month.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			<Select
+				value={selectedYear || undefined}
+				onValueChange={(year) => updateValue(selectedMonth, year)}
+			>
+				<SelectTrigger
+					className='h-12 min-w-0'
+					aria-label={`${label}: năm`}
+				>
+					<SelectValue placeholder='Năm' />
+				</SelectTrigger>
+				<SelectContent>
+					{YEAR_OPTIONS.map((year) => (
+						<SelectItem key={year} value={year}>
+							{year}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	)
 }
 
 function suggestCode(name: string): string {
@@ -91,8 +140,6 @@ export default function ExamClassesPage() {
 	const [keyword, setKeyword] = useState('')
 	const [open, setOpen] = useState(false)
 	const [editId, setEditId] = useState<number | null>(null)
-	const cohortStartRef = useRef<HTMLInputElement>(null)
-	const cohortEndRef = useRef<HTMLInputElement>(null)
 	const [form, setForm] = useState({
 		systemId: '',
 		majorId: '',
@@ -610,65 +657,31 @@ export default function ExamClassesPage() {
 									<p className='text-muted-foreground mb-1 text-xs'>
 										Bắt đầu (tháng/năm)
 									</p>
-									<div className='relative'>
-										<Input
-											ref={cohortStartRef}
-											type='month'
-											value={form.cohortStart}
-											className='pr-11'
-											onChange={(e) =>
-												setForm((f) => ({
-													...f,
-													cohortStart: e.target.value
-												}))
-											}
-											required
-										/>
-										<button
-											type='button'
-											aria-label='Chọn tháng bắt đầu'
-											className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-11 items-center justify-center'
-											onClick={() =>
-												openMonthPicker(
-													cohortStartRef.current
-												)
-											}
-										>
-											<CalendarDays className='size-5' />
-										</button>
-									</div>
+									<MonthYearPicker
+										label='Bắt đầu'
+										value={form.cohortStart}
+										onChange={(cohortStart) =>
+											setForm((f) => ({
+												...f,
+												cohortStart
+											}))
+										}
+									/>
 								</div>
 								<div>
 									<p className='text-muted-foreground mb-1 text-xs'>
 										Kết thúc (tháng/năm)
 									</p>
-									<div className='relative'>
-										<Input
-											ref={cohortEndRef}
-											type='month'
-											value={form.cohortEnd}
-											className='pr-11'
-											onChange={(e) =>
-												setForm((f) => ({
-													...f,
-													cohortEnd: e.target.value
-												}))
-											}
-											required
-										/>
-										<button
-											type='button'
-											aria-label='Chọn tháng kết thúc'
-											className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-11 items-center justify-center'
-											onClick={() =>
-												openMonthPicker(
-													cohortEndRef.current
-												)
-											}
-										>
-											<CalendarDays className='size-5' />
-										</button>
-									</div>
+									<MonthYearPicker
+										label='Kết thúc'
+										value={form.cohortEnd}
+										onChange={(cohortEnd) =>
+											setForm((f) => ({
+												...f,
+												cohortEnd
+											}))
+										}
+									/>
 								</div>
 							</div>
 							<p className='text-muted-foreground mt-1 text-xs'>
