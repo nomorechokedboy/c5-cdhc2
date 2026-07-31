@@ -50,6 +50,7 @@
 		"jsonwebtoken": "^9.0.2",
 		"mysql2": "^3.12.0",
 		"node": "link:@libsql/client/node",
+		"nodemailer": "^9.0.3",
 		"uuid": "^11.1.0",
 		"valibot": "^1.1.0",
 		"xlsx-template": "^1.4.4"
