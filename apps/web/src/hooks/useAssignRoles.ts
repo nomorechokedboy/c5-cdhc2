@@ -1,7 +1,7 @@
 import { AssignRolesToUser } from '@/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AssignRoleRequest } from '@/types'
+import type { AssignRoleRequest } from '@/types'
 
 export default function useAssignRoles() {
 	const queryClient = useQueryClient()
