@@ -162,6 +162,42 @@ export function buildSubjectCode(majorCode: string, baseCode: string): string {
 	return `${maj}_${base}`
 }
 
+type LegacySystemRow = {
+	id: number
+	createdAt: string
+	updatedAt: string
+	code: string
+	name: string
+	letter: string
+	description: string | null
+	trainingTypeId?: number | null
+}
+
+async function hasTrainingTypeColumn(): Promise<boolean> {
+	const columns = await orm.all(
+		sql`PRAGMA table_info(exam_systems)`
+	)
+	return columns.some((column) => column.name === 'training_type_id')
+}
+
+async function listSystems(kw?: string): Promise<LegacySystemRow[]> {
+	const hasTrainingType = await hasTrainingTypeColumn()
+	const pattern = kw ? `%${kw}%` : null
+	const rows = await orm.all(
+		sql`SELECT id, createdAt, updatedAt, code, name, letter,
+			description${hasTrainingType ? sql`, training_type_id AS trainingTypeId` : sql``}
+		FROM exam_systems
+		${pattern ? sql`WHERE code LIKE ${pattern} OR name LIKE ${pattern} OR letter LIKE ${pattern}` : sql``}
+		ORDER BY letter`
+	)
+	return rows as LegacySystemRow[]
+}
+
+async function getSystem(id: number): Promise<LegacySystemRow | null> {
+	const rows = await listSystems()
+	return rows.find((row) => row.id === id) ?? null
+}
+
 // ── Hệ (chỉ 2: QS/DS) ─────────────────────────────────────────
 
 export const ListExamSystems = api(
@@ -169,19 +205,7 @@ export const ListExamSystems = api(
 	async (q: { q?: Query<string> }): Promise<{ data: SystemResponse[] }> => {
 		await getActor()
 		const kw = (q.q || '').trim()
-		const rows = kw
-			? await orm
-					.select()
-					.from(examSystems)
-					.where(
-						or(
-							like(examSystems.code, `%${kw}%`),
-							like(examSystems.name, `%${kw}%`),
-							like(examSystems.letter, `%${kw}%`)
-						)!
-					)
-					.orderBy(examSystems.letter)
-			: await orm.select().from(examSystems).orderBy(examSystems.letter)
+		const rows = await listSystems(kw)
 		return {
 			data: rows.map((r) => ({
 				id: r.id,
@@ -241,16 +265,15 @@ export const CreateExamSystem = api(
 		if (duplicate) {
 			throw APIError.alreadyExists('Mã hoặc letter của hệ đã tồn tại')
 		}
-		const [row] = await orm
-			.insert(examSystems)
-			.values({
-				code,
-				name,
-				letter,
-				trainingTypeId,
-				description: body.description || null
-			})
-			.returning()
+		const hasTrainingType = await hasTrainingTypeColumn()
+		let row: LegacySystemRow | undefined
+		if (hasTrainingType) {
+			const [inserted] = await orm.insert(examSystems).values({ code, name, letter, trainingTypeId, description: body.description || null }).returning()
+			row = inserted
+		} else {
+			await orm.run(sql`INSERT INTO exam_systems (code, name, letter, description) VALUES (${code}, ${name}, ${letter}, ${body.description || null})`)
+			row = await listSystems().then((rows) => rows.find((item) => item.code === code))
+		}
 		return {
 			data: {
 				id: row!.id,
@@ -279,11 +302,7 @@ export const UpdateExamSystem = api(
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền sửa hệ đào tạo')
 		}
-		const [existing] = await orm
-			.select()
-			.from(examSystems)
-			.where(eq(examSystems.id, params.id))
-			.limit(1)
+		const existing = await getSystem(params.id)
 		if (!existing) throw APIError.notFound('Hệ đào tạo không tồn tại')
 
 		if (
@@ -310,7 +329,7 @@ export const UpdateExamSystem = api(
 		const trainingTypeId =
 			params.trainingTypeId !== undefined
 				? Number(params.trainingTypeId)
-				: existing.trainingTypeId
+				: Number(existing.trainingTypeId ?? 1)
 		if (!code || !name || !letter) {
 			throw APIError.invalidArgument('Mã, tên và letter (A/B) bắt buộc')
 		}
@@ -335,9 +354,10 @@ export const UpdateExamSystem = api(
 			throw APIError.alreadyExists('Mã hoặc letter của hệ đã tồn tại')
 		}
 
-		const [row] = await orm
-			.update(examSystems)
-			.set({
+		const hasTrainingType = await hasTrainingTypeColumn()
+		let row: LegacySystemRow | undefined
+		if (hasTrainingType) {
+			const [updated] = await orm.update(examSystems).set({
 				code,
 				name,
 				letter,
@@ -346,9 +366,12 @@ export const UpdateExamSystem = api(
 					params.description !== undefined
 						? params.description
 						: existing.description
-			})
-			.where(eq(examSystems.id, params.id))
-			.returning()
+			}).where(eq(examSystems.id, params.id)).returning()
+			row = updated
+		} else {
+			await orm.run(sql`UPDATE exam_systems SET code = ${code}, name = ${name}, letter = ${letter}, description = ${params.description !== undefined ? params.description : existing.description} WHERE id = ${params.id}`)
+			row = await getSystem(params.id) ?? undefined
+		}
 		return { data: row! }
 	}
 )
@@ -377,11 +400,7 @@ export const DeleteExamSystem = api(
 async function mapMajor(
 	r: typeof examMajors.$inferSelect
 ): Promise<MajorResponse> {
-	const [sys] = await orm
-		.select()
-		.from(examSystems)
-		.where(eq(examSystems.id, r.systemId))
-		.limit(1)
+	const sys = await getSystem(r.systemId)
 	return {
 		id: r.id,
 		createdAt: r.createdAt,
@@ -464,11 +483,7 @@ export const CreateExamMajor = api(
 		if (!name || !body.systemId) {
 			throw APIError.invalidArgument('Tên ngành và hệ bắt buộc')
 		}
-		const [sys] = await orm
-			.select()
-			.from(examSystems)
-			.where(eq(examSystems.id, body.systemId))
-			.limit(1)
+		const sys = await getSystem(body.systemId)
 		if (!sys) throw APIError.notFound('Hệ không tồn tại')
 
 		const nationalMajorCode = body.nationalMajorCode?.trim() || null
