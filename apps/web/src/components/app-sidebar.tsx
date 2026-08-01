@@ -316,6 +316,12 @@ const data = {
 					examKey: 'classes' as const
 				},
 				{
+					title: 'Danh mục khoa',
+					url: '/de-thi/khoa',
+					icon: Layers,
+					examKey: 'faculties' as const
+				},
+				{
 					title: 'Danh mục giáo viên',
 					url: '/de-thi/giao-vien',
 					icon: UsersRound,
@@ -739,6 +745,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					examKey: 'overview' as const
 				},
 				{
+					title: 'Danh mục khoa',
+					url: '/de-thi/khoa',
+					icon: Layers
+				},
+				{
 					title: 'Danh mục giáo viên',
 					url: '/de-thi/giao-vien',
 					icon: UsersRound,
@@ -935,6 +946,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					url: '/de-thi/lop',
 					icon: GraduationCap,
 					examKey: 'classes'
+				},
+				{
+					title: 'Danh mục khoa',
+					url: '/de-thi/khoa',
+					icon: Layers
 				},
 				{
 					title: 'Danh mục giáo viên',

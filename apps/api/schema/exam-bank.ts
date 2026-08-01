@@ -47,7 +47,7 @@ export const examSystems = sqliteTable('exam_systems', {
 /**
  * Ngành đào tạo thuộc một hệ (cột trên sheet tổng hợp).
  * Tên vd «Y sĩ đa khoa (trung cấp)»; trình độ gắn trong ngành (levelCode).
- * Mã: {letter}_{LEVEL}{MAJOR_ABBR} — vd B_CDDD (chỉnh tay được).
+ * Mã dùng chính mã số danh mục — vd B.6720301.
  */
 export const examMajors = sqliteTable('exam_majors', {
 	...baseSchema,
@@ -58,6 +58,13 @@ export const examMajors = sqliteTable('exam_majors', {
 	levelCode: text('level_code'),
 	/** Viết tắt ngành (DD, YSDK, DUOC…) */
 	shortCode: text('short_code'),
+	/** Mã số chương trình hiển thị, vd A.6720101 */
+	catalogNumber: text('catalog_number'),
+	/** Mã ngành theo danh mục Bộ GDĐT, vd 6720101 */
+	nationalMajorCode: text('national_major_code'),
+	qualification: text('qualification'),
+	trainingDuration: text('training_duration'),
+	trainingForm: text('training_form'),
 	description: text('description')
 })
 
@@ -94,7 +101,7 @@ export const examClasses = sqliteTable('exam_classes', {
 
 /**
  * Môn học thuộc khoa.
- * code = full (B_CDDD_M009K2), baseCode = mã gốc file (M009K2)
+ * code = full (B.6720301_M009K2), baseCode = mã gốc file (M009K2)
  * majorId denormalized từ faculty để join đề thi / CNK.
  */
 export const examSubjects = sqliteTable('exam_subjects', {
@@ -175,6 +182,8 @@ export const examTeachers = sqliteTable(
 		/** Mã khoa trong DMĐT: K1…K8 (không dùng faculty_id vì lặp theo ngành) */
 		facultyCode: text('faculty_code').notNull(),
 		facultyName: text('faculty_name'),
+		/** Chức danh giảng dạy, tham chiếu exam_academic_titles */
+		academicTitleId: int('academic_title_id'),
 		note: text('note'),
 		createdByUserId: int('created_by_user_id'),
 		createdByUsername: text('created_by_username'),
@@ -183,6 +192,18 @@ export const examTeachers = sqliteTable(
 	(t) => ({
 		uqUser: uniqueIndex('exam_teachers_user_uq').on(t.userId)
 	})
+)
+
+/** Danh mục chức danh giảng dạy và định mức quy đổi (%). */
+export const examAcademicTitles = sqliteTable(
+	'exam_academic_titles',
+	{
+		...baseSchema,
+		name: text('name').notNull(),
+		percentage: int('percentage').notNull(),
+		sortOrder: int('sort_order').notNull().default(0)
+	},
+	(t) => ({ uqName: uniqueIndex('exam_academic_titles_name_uq').on(t.name) })
 )
 
 /**

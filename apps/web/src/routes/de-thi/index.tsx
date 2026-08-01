@@ -30,6 +30,13 @@ function RouteComponent() {
 			show: examNavAllowed('catalog')
 		},
 		{
+			title: 'Danh mục khoa',
+			desc: 'Môn học · Giáo viên · Chủ nhiệm khoa',
+			to: '/de-thi/khoa' as const,
+			icon: Layers,
+			show: examNavAllowed('catalog')
+		},
+		{
 			title: 'Danh mục lớp',
 			desc: 'Lớp thuộc hệ + ngành đào tạo',
 			to: '/de-thi/lop' as const,

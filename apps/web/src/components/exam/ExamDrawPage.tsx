@@ -198,7 +198,7 @@ export default function ExamDrawPage() {
 			toast.success(
 				`Đã bốc — mã đề ${d.examCode || '—'} · mã bốc ${d.drawCode}` +
 					(d.printBlocked
-						? ' — không in (quá 3 ngày).'
+						? ' — không in (cách ngày thi quá 3 ngày).'
 						: ' — đang mở in đề (#1).') +
 					(classId ? ` Tiếp: rút phiếu «${other}» cho lớp.` : '')
 			)
@@ -716,8 +716,7 @@ export default function ExamDrawPage() {
 									}
 								/>
 								<p className='text-muted-foreground mt-1 text-[11px]'>
-									|Ngày thi − ngày rút| ≤ 3 ngày. Ngày rút =
-									ngày hệ thống khi bấm rút.
+									|Ngày thi − ngày hiện tại| ≤ 3 ngày.
 								</p>
 							</div>
 							<div>
@@ -1192,7 +1191,8 @@ export default function ExamDrawPage() {
 					<CardDescription>
 						Chỉ hiện <strong>mã đề</strong> và{' '}
 						<strong>mã bốc</strong> (không hiện chẵn/lẻ — xem kho đã
-						in). Phiếu quá 3 ngày kể từ ngày rút → không cho in.
+						in). Chỉ cho in khi ngày thi và ngày hiện tại chênh
+						không quá 3 ngày.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -1235,7 +1235,7 @@ export default function ExamDrawPage() {
 													variant='destructive'
 													className='ml-1'
 												>
-													Quá 3 ngày
+													Ngoài 3 ngày
 												</Badge>
 											) : null}
 										</TableCell>
@@ -1308,11 +1308,11 @@ export default function ExamDrawPage() {
 				</CardContent>
 			</Card>
 
-			{/* Đề đã rút quá 3 ngày — không cho in */}
+			{/* Phiếu ngoài khoảng 3 ngày so với ngày thi — không cho in */}
 			<Card className='border-destructive/40'>
 				<CardHeader>
 					<CardTitle className='text-destructive'>
-						Đề đã rút quá 3 ngày
+						Ngoài khoảng in 3 ngày so với ngày thi
 					</CardTitle>
 					<CardDescription>
 						Không cho in. Cần rút lại hoặc xử lý theo quy chế.
@@ -1331,7 +1331,9 @@ export default function ExamDrawPage() {
 									<TableHead>Mã bốc</TableHead>
 									<TableHead>Lớp</TableHead>
 									<TableHead>Ngày rút</TableHead>
-									<TableHead>Số ngày</TableHead>
+									<TableHead>
+										Chênh ngày thi/hiện tại
+									</TableHead>
 									<TableHead>Lý do</TableHead>
 								</TableRow>
 							</TableHeader>

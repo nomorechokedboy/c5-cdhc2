@@ -8,18 +8,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Plus, Trash2, Pencil, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+	CreateExamAcademicTitle,
 	CreateExamTeacherCatalog,
+	DeleteExamAcademicTitle,
 	DeleteExamTeacherCatalog,
+	ListExamAcademicTitles,
 	ListExamFacultyOptions,
 	ListExamTeacherCandidates,
 	ListExamTeacherCatalog,
+	UpdateExamAcademicTitle,
 	UpdateExamTeacherCatalog
 } from '@/api/exam'
 import {
 	canManageTeachingAssignments,
 	canViewTeachingAssignments
 } from '@/lib/exam-roles'
-import { canSeeUsernames } from '@/lib/utils'
+import { canSeeUsernames, isSuperAdmin } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -81,6 +85,9 @@ export default function ExamTeachersPage() {
 	const [filterFac, setFilterFac] = useState<string>('all')
 	const [keyword, setKeyword] = useState('')
 	const [open, setOpen] = useState(false)
+	const [titlesOpen, setTitlesOpen] = useState(false)
+	const [titleEditId, setTitleEditId] = useState<number | null>(null)
+	const [titleForm, setTitleForm] = useState({ name: '', percentage: '100' })
 	const [editId, setEditId] = useState<number | null>(null)
 	/** new_account | existing */
 	const [mode, setMode] = useState<'new_account' | 'existing'>('new_account')
@@ -90,7 +97,8 @@ export default function ExamTeachersPage() {
 		username: '',
 		password: 'User@123',
 		userId: '',
-		note: ''
+		note: '',
+		academicTitleId: ''
 	})
 
 	const facultiesQ = useQuery({
@@ -112,10 +120,16 @@ export default function ExamTeachersPage() {
 		queryFn: () => ListExamTeacherCandidates(),
 		enabled: canView && canManage && open && mode === 'existing'
 	})
+	const titlesQ = useQuery({
+		queryKey: ['exam-academic-titles'],
+		queryFn: ListExamAcademicTitles,
+		enabled: canView
+	})
 
 	const faculties = facultiesQ.data || []
 	const teachers = catalogQ.data || []
 	const candidates = candidatesQ.data || []
+	const titles = titlesQ.data || []
 
 	const byFaculty = useMemo(() => {
 		const map = new Map<string, number>()
@@ -132,7 +146,8 @@ export default function ExamTeachersPage() {
 			username: '',
 			password: 'User@123',
 			userId: '',
-			note: ''
+			note: '',
+			academicTitleId: ''
 		})
 		setMode('new_account')
 		setEditId(null)
@@ -141,6 +156,7 @@ export default function ExamTeachersPage() {
 	const createMut = useMutation({
 		mutationFn: () => {
 			if (!form.facultyCode) throw new Error('Chọn khoa')
+			if (!form.academicTitleId) throw new Error('Chọn chức danh')
 			if (mode === 'new_account') {
 				const name = form.displayName.trim()
 				if (!name) throw new Error('Nhập họ tên giáo viên')
@@ -154,6 +170,7 @@ export default function ExamTeachersPage() {
 					password: form.password,
 					displayName: name.startsWith('GV') ? name : `GV — ${name}`,
 					facultyCode: form.facultyCode,
+					academicTitleId: Number(form.academicTitleId),
 					note: form.note || undefined
 				})
 			}
@@ -162,6 +179,7 @@ export default function ExamTeachersPage() {
 				userId: Number(form.userId),
 				displayName: form.displayName.trim() || undefined,
 				facultyCode: form.facultyCode,
+				academicTitleId: Number(form.academicTitleId),
 				note: form.note || undefined
 			})
 		},
@@ -186,8 +204,10 @@ export default function ExamTeachersPage() {
 			const name = form.displayName.trim()
 			if (!name) throw new Error('Nhập họ tên')
 			if (!form.facultyCode) throw new Error('Chọn khoa')
+			if (!form.academicTitleId) throw new Error('Chọn chức danh')
 			return UpdateExamTeacherCatalog(editId, {
 				facultyCode: form.facultyCode,
+				academicTitleId: Number(form.academicTitleId),
 				displayName: name.startsWith('GV') ? name : `GV — ${name}`,
 				note: form.note || null
 			})
@@ -198,6 +218,44 @@ export default function ExamTeachersPage() {
 			resetForm()
 			void qc.invalidateQueries({ queryKey: ['exam-teacher-catalog'] })
 			void qc.invalidateQueries({ queryKey: ['exam-teachers'] })
+		},
+		onError: (e: Error) => toast.error(e.message)
+	})
+
+	const saveTitleMut = useMutation({
+		mutationFn: () => {
+			const name = titleForm.name.trim()
+			const percentage = Number(titleForm.percentage)
+			if (!name) throw new Error('Nhập tên chức danh')
+			if (
+				!Number.isFinite(percentage) ||
+				percentage < 0 ||
+				percentage > 100
+			)
+				throw new Error('Tỷ lệ phải từ 0 đến 100%')
+			return titleEditId == null
+				? CreateExamAcademicTitle({
+						name,
+						percentage,
+						sortOrder: titles.length * 10 + 10
+					})
+				: UpdateExamAcademicTitle(titleEditId, { name, percentage })
+		},
+		onSuccess: () => {
+			toast.success(
+				titleEditId == null ? 'Đã thêm chức danh' : 'Đã sửa chức danh'
+			)
+			setTitleEditId(null)
+			setTitleForm({ name: '', percentage: '100' })
+			void qc.invalidateQueries({ queryKey: ['exam-academic-titles'] })
+		},
+		onError: (e: Error) => toast.error(e.message)
+	})
+	const deleteTitleMut = useMutation({
+		mutationFn: DeleteExamAcademicTitle,
+		onSuccess: () => {
+			toast.success('Đã xóa chức danh')
+			void qc.invalidateQueries({ queryKey: ['exam-academic-titles'] })
 		},
 		onError: (e: Error) => toast.error(e.message)
 	})
@@ -237,19 +295,29 @@ export default function ExamTeachersPage() {
 						khi phân công môn giảng dạy.
 					</p>
 				</div>
-				{canManage ? (
-					<Button
-						onClick={() => {
-							resetForm()
-							setOpen(true)
-						}}
-					>
-						<Plus className='mr-2 h-4 w-4' />
-						Thêm giáo viên
-					</Button>
-				) : (
-					<Badge variant='secondary'>Chỉ xem</Badge>
-				)}
+				<div className='flex gap-2'>
+					{isSuperAdmin() && (
+						<Button
+							variant='outline'
+							onClick={() => setTitlesOpen(true)}
+						>
+							Danh mục chức danh
+						</Button>
+					)}
+					{canManage ? (
+						<Button
+							onClick={() => {
+								resetForm()
+								setOpen(true)
+							}}
+						>
+							<Plus className='mr-2 h-4 w-4' />
+							Thêm giáo viên
+						</Button>
+					) : (
+						<Badge variant='secondary'>Chỉ xem</Badge>
+					)}
+				</div>
 			</div>
 
 			<div className='flex flex-wrap gap-2'>
@@ -318,6 +386,7 @@ export default function ExamTeachersPage() {
 										<TableHead>Tài khoản</TableHead>
 									)}
 									<TableHead>Khoa</TableHead>
+									<TableHead>Chức danh</TableHead>
 									<TableHead>Ghi chú</TableHead>
 									{canManage && (
 										<TableHead className='w-28' />
@@ -340,6 +409,11 @@ export default function ExamTeachersPage() {
 										)}
 										<TableCell>
 											{t.facultyName || t.facultyCode}
+										</TableCell>
+										<TableCell className='text-xs'>
+											{t.academicTitleName
+												? `${t.academicTitleName} (${t.academicTitlePercentage}%)`
+												: '—'}
 										</TableCell>
 										<TableCell className='text-muted-foreground text-xs'>
 											{t.note || '—'}
@@ -369,7 +443,14 @@ export default function ExamTeachersPage() {
 																	t.userId
 																),
 																note:
-																	t.note || ''
+																	t.note ||
+																	'',
+																academicTitleId:
+																	t.academicTitleId
+																		? String(
+																				t.academicTitleId
+																			)
+																		: ''
 															})
 															setOpen(true)
 														}}
@@ -402,7 +483,7 @@ export default function ExamTeachersPage() {
 									<TableRow>
 										<TableCell
 											colSpan={
-												(canSeeUsernames() ? 4 : 3) +
+												(canSeeUsernames() ? 5 : 4) +
 												(canManage ? 1 : 0)
 											}
 											className='text-muted-foreground text-center'
@@ -472,6 +553,32 @@ export default function ExamTeachersPage() {
 									{faculties.map((f) => (
 										<SelectItem key={f.code} value={f.code}>
 											{f.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div>
+							<Label>Chức danh *</Label>
+							<Select
+								value={form.academicTitleId || undefined}
+								onValueChange={(v) =>
+									setForm((f) => ({
+										...f,
+										academicTitleId: v
+									}))
+								}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder='Chọn chức danh' />
+								</SelectTrigger>
+								<SelectContent>
+									{titles.map((title) => (
+										<SelectItem
+											key={title.id}
+											value={String(title.id)}
+										>
+											{title.name} ({title.percentage}%)
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -618,6 +725,92 @@ export default function ExamTeachersPage() {
 								<Loader2 className='mr-2 h-4 w-4 animate-spin' />
 							)}
 							{editId != null ? 'Lưu' : 'Thêm vào khoa'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={titlesOpen} onOpenChange={setTitlesOpen}>
+				<DialogContent className='max-w-2xl'>
+					<DialogHeader>
+						<DialogTitle>Danh mục chức danh</DialogTitle>
+					</DialogHeader>
+					<div className='grid gap-2 sm:grid-cols-[1fr_8rem_auto]'>
+						<Input
+							placeholder='Tên chức danh'
+							value={titleForm.name}
+							onChange={(e) =>
+								setTitleForm((f) => ({
+									...f,
+									name: e.target.value
+								}))
+							}
+						/>
+						<Input
+							type='number'
+							min={0}
+							max={100}
+							placeholder='Tỷ lệ %'
+							value={titleForm.percentage}
+							onChange={(e) =>
+								setTitleForm((f) => ({
+									...f,
+									percentage: e.target.value
+								}))
+							}
+						/>
+						<Button
+							onClick={() => saveTitleMut.mutate()}
+							disabled={saveTitleMut.isPending}
+						>
+							{titleEditId == null ? 'Thêm' : 'Lưu'}
+						</Button>
+					</div>
+					<div className='max-h-[55vh] overflow-auto rounded-md border'>
+						{titles.map((title) => (
+							<div
+								key={title.id}
+								className='flex items-center gap-2 border-b p-2 last:border-b-0'
+							>
+								<div className='min-w-0 flex-1 text-sm'>
+									{title.name}
+								</div>
+								<Badge variant='outline'>
+									{title.percentage}%
+								</Badge>
+								<Button
+									size='icon'
+									variant='ghost'
+									onClick={() => {
+										setTitleEditId(title.id)
+										setTitleForm({
+											name: title.name,
+											percentage: String(title.percentage)
+										})
+									}}
+								>
+									<Pencil className='h-4 w-4' />
+								</Button>
+								<Button
+									size='icon'
+									variant='ghost'
+									onClick={() =>
+										confirm(
+											`Xóa chức danh «${title.name}»?`
+										) && deleteTitleMut.mutate(title.id)
+									}
+								>
+									<Trash2 className='h-4 w-4 text-destructive' />
+								</Button>
+							</div>
+						))}
+					</div>
+					<DialogFooter>
+						<Button
+							variant='outline'
+							onClick={() => setTitlesOpen(false)}
+						>
+							Đóng
 						</Button>
 					</DialogFooter>
 				</DialogContent>

@@ -42,7 +42,7 @@ export interface ExamSystem {
 	description: string | null
 }
 
-/** Ngành đào tạo (cột chương trình) — mã vd B_CDDD */
+/** Ngành đào tạo (cột chương trình) — mã dùng mã số, vd B.6720301 */
 export interface ExamMajor {
 	id: number
 	createdAt: string
@@ -52,6 +52,11 @@ export interface ExamMajor {
 	systemId: number
 	levelCode: string | null
 	shortCode: string | null
+	catalogNumber: string | null
+	nationalMajorCode: string | null
+	qualification: string | null
+	trainingDuration: string | null
+	trainingForm: string | null
 	systemCode?: string | null
 	systemName?: string | null
 	systemLetter?: string | null
@@ -305,15 +310,39 @@ export interface ExamTeacherCatalog {
 	displayName: string | null
 	facultyCode: string
 	facultyName: string | null
+	academicTitleId: number | null
+	academicTitleName: string | null
+	academicTitlePercentage: number | null
 	note: string | null
 	createdByUserId?: number | null
 	createdByUsername?: string | null
 	createdByDisplayName?: string | null
 }
 
+export interface ExamAcademicTitle {
+	id: number
+	createdAt: string
+	updatedAt: string
+	name: string
+	percentage: number
+	sortOrder: number
+}
+
 export interface ExamFacultyOption {
 	code: string
 	name: string
+}
+
+export interface ExamFacultyHead {
+	id: number
+	createdAt: string
+	updatedAt: string
+	facultyCode: string
+	facultyName: string | null
+	userId: number
+	username: string | null
+	displayName: string | null
+	note: string | null
 }
 
 // ── Hệ → Ngành → Khoa → Môn / Lớp ────────────────────────────
@@ -382,6 +411,11 @@ export async function CreateExamMajor(body: {
 	shortCode?: string | null
 	/** Để trống → tự sinh A/B_CD… */
 	code?: string | null
+	catalogNumber?: string | null
+	nationalMajorCode?: string | null
+	qualification?: string | null
+	trainingDuration?: string | null
+	trainingForm?: string | null
 	description?: string
 }) {
 	const resp = await jsonFetch<{ data: ExamMajor }>('/exam/majors', {
@@ -399,6 +433,11 @@ export async function UpdateExamMajor(
 		levelCode?: string | null
 		shortCode?: string | null
 		systemId?: number
+		catalogNumber?: string | null
+		nationalMajorCode?: string | null
+		qualification?: string | null
+		trainingDuration?: string | null
+		trainingForm?: string | null
 		description?: string | null
 	}
 ) {
@@ -547,6 +586,8 @@ export async function ListExamSubjects(params?: {
 export async function CreateExamSubject(body: {
 	name: string
 	facultyId: number
+	majorId?: number
+	sourceSubjectId?: number
 	baseCode?: string
 	code?: string
 	creditHours?: number
@@ -628,7 +669,10 @@ export async function CreateExamAssignment(body: {
 }) {
 	const resp = await jsonFetch<{ data: ExamAssignment }>(
 		'/exam/assignments',
-		{ method: 'POST', body: JSON.stringify(body) }
+		{
+			method: 'POST',
+			body: JSON.stringify(body)
+		}
 	)
 	return resp.data
 }
@@ -694,6 +738,13 @@ export async function ListExamFacultyOptions() {
 	return resp.data
 }
 
+export async function ListExamFacultyHeads() {
+	const resp = await jsonFetch<{ data: ExamFacultyHead[] }>(
+		'/exam/faculty-heads'
+	)
+	return resp.data
+}
+
 /** Gán Chủ nhiệm khoa theo mã khoa (1 CNK / khoa) — admin */
 export async function UpsertExamFacultyHead(body: {
 	userId: number
@@ -716,6 +767,15 @@ export async function UpsertExamFacultyHead(body: {
 	return resp.data
 }
 
+export async function DeleteExamFacultyHead(facultyCode: string) {
+	return jsonFetch<{ ok: boolean }>(
+		`/exam/faculty-heads/${encodeURIComponent(facultyCode)}`,
+		{
+			method: 'DELETE'
+		}
+	)
+}
+
 export async function ListExamTeacherCatalog(params?: {
 	facultyCode?: string
 	q?: string
@@ -728,6 +788,52 @@ export async function ListExamTeacherCatalog(params?: {
 		`/exam/teacher-catalog${qs}`
 	)
 	return resp.data
+}
+
+export async function ListExamAcademicTitles() {
+	const resp = await jsonFetch<{ data: ExamAcademicTitle[] }>(
+		'/exam/academic-titles'
+	)
+	return resp.data
+}
+
+export async function CreateExamAcademicTitle(body: {
+	name: string
+	percentage: number
+	sortOrder?: number
+}) {
+	const resp = await jsonFetch<{ data: ExamAcademicTitle }>(
+		'/exam/academic-titles',
+		{
+			method: 'POST',
+			body: JSON.stringify(body)
+		}
+	)
+	return resp.data
+}
+
+export async function UpdateExamAcademicTitle(
+	id: number,
+	body: {
+		name: string
+		percentage: number
+		sortOrder?: number
+	}
+) {
+	const resp = await jsonFetch<{ data: ExamAcademicTitle }>(
+		`/exam/academic-titles/${id}`,
+		{
+			method: 'PATCH',
+			body: JSON.stringify(body)
+		}
+	)
+	return resp.data
+}
+
+export async function DeleteExamAcademicTitle(id: number) {
+	return jsonFetch<{ ok: boolean }>(`/exam/academic-titles/${id}`, {
+		method: 'DELETE'
+	})
 }
 
 export async function ListExamTeacherCandidates(q?: string) {
@@ -745,6 +851,7 @@ export async function CreateExamTeacherCatalog(body: {
 	password?: string
 	displayName?: string
 	facultyCode: string
+	academicTitleId: number
 	note?: string
 }) {
 	const resp = await jsonFetch<{ data: ExamTeacherCatalog }>(
@@ -758,6 +865,7 @@ export async function UpdateExamTeacherCatalog(
 	id: number,
 	body: {
 		facultyCode?: string
+		academicTitleId?: number
 		displayName?: string
 		note?: string | null
 	}
@@ -904,7 +1012,10 @@ export async function DeleteExam(id: number) {
 export async function SubmitExam(id: number, note?: string) {
 	const resp = await jsonFetch<{ data: ExamItem }>(
 		`/exam/exams/${id}/submit`,
-		{ method: 'POST', body: JSON.stringify({ note }) }
+		{
+			method: 'POST',
+			body: JSON.stringify({ note })
+		}
 	)
 	return resp.data
 }
@@ -916,7 +1027,10 @@ export async function DecideExam(
 ) {
 	const resp = await jsonFetch<{ data: ExamItem }>(
 		`/exam/exams/${id}/decide`,
-		{ method: 'POST', body: JSON.stringify({ decision, note }) }
+		{
+			method: 'POST',
+			body: JSON.stringify({ decision, note })
+		}
 	)
 	return resp.data
 }
@@ -1275,7 +1389,7 @@ export async function printDrawMinutes(params: {
 	return r
 }
 
-/** Đề đã rút quá 3 ngày — không cho in */
+/** Phiếu có |ngày thi − ngày hiện tại| > 3 — không cho in */
 export async function ListOverdueDraws() {
 	const resp = await jsonFetch<{ data: ExamDraw[] }>('/exam/draws-overdue')
 	return resp.data

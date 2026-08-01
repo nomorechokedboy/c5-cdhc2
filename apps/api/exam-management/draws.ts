@@ -51,7 +51,7 @@ export interface DrawResponse {
 	/** Đã xuất in → vào kho đề đã dùng */
 	printedAt: string | null
 	printedByUsername: string | null
-	/** Quá 3 ngày từ ngày rút → không cho in */
+	/** |Ngày thi − ngày hiện tại| > 3 → không cho in */
 	printBlocked: boolean
 	printBlockedAt: string | null
 	printBlockedReason: string | null
@@ -99,8 +99,8 @@ function mapDraw(
 		majorName?: string | null
 	}
 ): DrawResponse {
-	const daysSince = daysBetweenDates(r.drawnAt, todayVnDate())
-	const overdue = isDrawPrintOverdue(r.drawnAt) || !!r.printBlocked
+	const daysSince = daysBetweenDates(r.examDate, todayVnDate())
+	const overdue = isDrawPrintOverdue(r.examDate)
 	return {
 		id: r.id,
 		createdAt: r.createdAt,
@@ -126,9 +126,10 @@ function mapDraw(
 		printedByUsername: r.printedByUsername ?? null,
 		printBlocked: overdue,
 		printBlockedAt: r.printBlockedAt ?? null,
-		printBlockedReason:
-			r.printBlockedReason ??
-			(overdue ? 'Đã quá 3 ngày kể từ ngày rút — không cho in' : null),
+		printBlockedReason: overdue
+			? r.printBlockedReason ||
+				'Ngày thi và ngày hiện tại chênh quá 3 ngày — không cho in'
+			: null,
 		daysSinceDraw: daysSince,
 		examDate: r.examDate,
 		examTime: r.examTime,
@@ -137,19 +138,21 @@ function mapDraw(
 	}
 }
 
-/** Đánh dấu print_blocked nếu quá 3 ngày (lazy) */
+/** Đồng bộ trạng thái in theo |ngày thi − ngày hiện tại| (lazy). */
 async function ensurePrintBlock(
 	draw: typeof examDraws.$inferSelect
 ): Promise<typeof examDraws.$inferSelect> {
-	if (draw.printBlocked) return draw
-	if (!isDrawPrintOverdue(draw.drawnAt)) return draw
+	const overdue = isDrawPrintOverdue(draw.examDate)
+	if (overdue === draw.printBlocked) return draw
 	const at = nowIso()
-	const reason = `Quá 3 ngày kể từ ngày rút (${String(draw.drawnAt).slice(0, 10)}) — không cho in`
+	const reason = overdue
+		? `Ngày thi (${draw.examDate || '—'}) và ngày hiện tại (${todayVnDate()}) chênh quá 3 ngày — không cho in`
+		: null
 	const [row] = await orm
 		.update(examDraws)
 		.set({
-			printBlocked: true,
-			printBlockedAt: at,
+			printBlocked: overdue,
+			printBlockedAt: overdue ? at : null,
 			printBlockedReason: reason
 		})
 		.where(eq(examDraws.id, draw.id))
@@ -157,8 +160,8 @@ async function ensurePrintBlock(
 	return (
 		row || {
 			...draw,
-			printBlocked: true,
-			printBlockedAt: at,
+			printBlocked: overdue,
+			printBlockedAt: overdue ? at : null,
 			printBlockedReason: reason
 		}
 	)
@@ -291,7 +294,7 @@ export const DrawExam = api(
 		if (isExamDrawDateOverLimit(examDate, drawnAtPreview, 3)) {
 			const gap = daysBetweenDates(examDate, drawnAtPreview)
 			throw APIError.failedPrecondition(
-				`Ngày thi (${examDate}) và ngày rút (${drawnAtPreview.slice(0, 10)}) chênh ${gap} ngày — không được quá 3 ngày.`
+				`Ngày thi (${examDate}) và ngày hiện tại (${drawnAtPreview.slice(0, 10)}) chênh ${gap} ngày — không được quá 3 ngày.`
 			)
 		}
 
@@ -618,7 +621,7 @@ function formatVnDateLong(isoOrYmd: string | null | undefined): string {
 /**
  * Xuất đề / đáp án để in — form chuẩn «ĐỀ THI HẾT HỌC PHẦN».
  * kind: questions | answers
- * Chặn in nếu đã quá 3 ngày kể từ ngày rút.
+ * Chặn in nếu ngày thi và ngày hiện tại chênh quá 3 ngày.
  */
 export const ExportDrawPrint = api(
 	{
@@ -651,10 +654,10 @@ export const ExportDrawPrint = api(
 		if (!draw0) throw APIError.notFound('Phiếu bốc đề không tồn tại')
 
 		const draw = await ensurePrintBlock(draw0)
-		if (draw.printBlocked || isDrawPrintOverdue(draw.drawnAt)) {
+		if (draw.printBlocked || isDrawPrintOverdue(draw.examDate)) {
 			throw APIError.failedPrecondition(
 				draw.printBlockedReason ||
-					'Đề đã rút quá 3 ngày — không được in. Xem bảng «Đề đã rút quá 3 ngày».'
+					'Ngày thi và ngày hiện tại chênh quá 3 ngày — không được in.'
 			)
 		}
 
@@ -984,7 +987,7 @@ export const ExportDrawMinutes = api(
 )
 
 /**
- * Danh sách đề đã rút quá 3 ngày (không cho in).
+ * Danh sách phiếu có ngày thi và ngày hiện tại chênh quá 3 ngày.
  * Đồng thời lazy-mark print_blocked.
  */
 export const ListOverdueDraws = api(
@@ -1017,7 +1020,7 @@ export const ListOverdueDraws = api(
 		const out: DrawResponse[] = []
 		for (const r of rows) {
 			const blocked = await ensurePrintBlock(r.draw)
-			if (blocked.printBlocked || isDrawPrintOverdue(blocked.drawnAt)) {
+			if (blocked.printBlocked || isDrawPrintOverdue(blocked.examDate)) {
 				out.push(
 					mapDraw({
 						...blocked,

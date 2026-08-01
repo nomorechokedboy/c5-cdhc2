@@ -28,6 +28,7 @@ import { AssignRolesToUser, CreateUser, GetRoles, UpdateUser } from '@/api'
 import { AssignUserNganh, GetAssetCatalog } from '@/api/asset'
 import {
 	CreateExamTeacherCatalog,
+	ListExamAcademicTitles,
 	ListExamFacultyOptions,
 	UpsertExamFacultyHead
 } from '@/api/exam'
@@ -61,6 +62,11 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 		queryFn: () => ListExamFacultyOptions(),
 		enabled: open
 	})
+	const titlesQ = useQuery({
+		queryKey: ['exam-academic-titles'],
+		queryFn: ListExamAcademicTitles,
+		enabled: open
+	})
 
 	const [accountKind, setAccountKind] = useState<AccountKind | ''>('')
 	const [username, setUsername] = useState('')
@@ -71,6 +77,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 	const [nganhCode, setNganhCode] = useState('')
 	/** CNK / GV: 1 khoa */
 	const [facultyCode, setFacultyCode] = useState('')
+	const [academicTitleId, setAcademicTitleId] = useState('')
 	/** Role / phân quyền chọn từ danh sách hiện có */
 	const [roleId, setRoleId] = useState('')
 	const [pending, setPending] = useState(false)
@@ -187,6 +194,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 		setUnitId('')
 		setNganhCode('')
 		setFacultyCode('')
+		setAcademicTitleId('')
 		setRoleId('')
 	}
 
@@ -219,6 +227,10 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 			!facultyCode
 		) {
 			toast.error('Chọn khoa (K1…K8)')
+			return
+		}
+		if (accountKind === 'giang_vien' && !academicTitleId) {
+			toast.error('Chọn chức danh cho giáo viên')
 			return
 		}
 		if (!roleId) {
@@ -280,7 +292,8 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 				await CreateExamTeacherCatalog({
 					userId: created.id,
 					displayName: displayName.trim(),
-					facultyCode: facultyCode.toUpperCase()
+					facultyCode: facultyCode.toUpperCase(),
+					academicTitleId: Number(academicTitleId)
 				})
 			}
 
@@ -508,6 +521,37 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 									className='h-11 text-base'
 								/>
 							</div>
+							{accountKind === 'giang_vien' && (
+								<div className='space-y-2'>
+									<Label>
+										Chức danh{' '}
+										<span className='text-destructive'>
+											*
+										</span>
+									</Label>
+									<Select
+										value={academicTitleId || undefined}
+										onValueChange={setAcademicTitleId}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder='Chọn chức danh' />
+										</SelectTrigger>
+										<SelectContent>
+											{(titlesQ.data || []).map(
+												(title) => (
+													<SelectItem
+														key={title.id}
+														value={String(title.id)}
+													>
+														{title.name} (
+														{title.percentage}%)
+													</SelectItem>
+												)
+											)}
+										</SelectContent>
+									</Select>
+								</div>
+							)}
 							<div className='rounded-md border bg-background/60 px-3 py-2 text-sm'>
 								<span className='text-muted-foreground'>
 									Chức vụ (gắn tài khoản, không sửa sau):{' '}

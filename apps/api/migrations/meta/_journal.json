@@ -295,6 +295,48 @@
 			"when": 1766100000000,
 			"tag": "0041_exam-assignment-teaching-period",
 			"breakpoints": true
+		},
+		{
+			"idx": 42,
+			"version": "6",
+			"when": 1785552000000,
+			"tag": "0042_exam_academic_titles",
+			"breakpoints": true
+		},
+		{
+			"idx": 43,
+			"version": "6",
+			"when": 1785552600000,
+			"tag": "0043_restore_exam_classes",
+			"breakpoints": true
+		},
+		{
+			"idx": 44,
+			"version": "6",
+			"when": 1785553200000,
+			"tag": "0044_restore_exam_runtime_tables",
+			"breakpoints": true
+		},
+		{
+			"idx": 45,
+			"version": "6",
+			"when": 1785553800000,
+			"tag": "0045_exam_major_official_catalog",
+			"breakpoints": true
+		},
+		{
+			"idx": 46,
+			"version": "6",
+			"when": 1785554400000,
+			"tag": "0046_use_catalog_number_as_major_code",
+			"breakpoints": true
+		},
+		{
+			"idx": 47,
+			"version": "6",
+			"when": 1785555000000,
+			"tag": "0047_sync_exam_log_major_codes",
+			"breakpoints": true
 		}
 	]
 }

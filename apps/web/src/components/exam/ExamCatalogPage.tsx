@@ -1,12 +1,12 @@
 /**
  * Danh mục đào tạo (khớp sheet Tổng hợp mã môn):
- *   Hệ (Quân sự A / Dân sự B)
- *     → Ngành (Y sĩ TC/CD/LT, Điều dưỡng, Dược…)
- *       → Khoa → Môn
+ *   Hệ → Ngành đào tạo
+ *   Khoa → Môn học do khoa đảm nhận (danh mục dùng chung theo mã khoa)
  */
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+	Building2,
 	ChevronDown,
 	ChevronRight,
 	GraduationCap,
@@ -181,6 +181,46 @@ export default function ExamCatalogPage() {
 		return m
 	}, [subjects])
 
+	/**
+	 * Dữ liệu cũ lưu một bản ghi khoa cho từng ngành. Danh mục khoa dùng chung
+	 * gom các bản ghi đó theo mã để người dùng chỉ thấy một khoa và toàn bộ môn
+	 * mà khoa đảm nhận ở các ngành.
+	 */
+	const facultyDirectory = useMemo(() => {
+		const grouped = new Map<
+			string,
+			{
+				code: string
+				name: string
+				majorNames: Set<string>
+				subjects: ExamSubject[]
+			}
+		>()
+		for (const faculty of faculties) {
+			const code = faculty.code.trim().toUpperCase()
+			const current = grouped.get(code) || {
+				code,
+				name: faculty.name,
+				majorNames: new Set<string>(),
+				subjects: []
+			}
+			if (faculty.majorName) current.majorNames.add(faculty.majorName)
+			current.subjects.push(...(subjectsByFaculty.get(faculty.id) || []))
+			grouped.set(code, current)
+		}
+		return [...grouped.values()]
+			.map((faculty) => ({
+				...faculty,
+				majorNames: [...faculty.majorNames].sort((a, b) =>
+					a.localeCompare(b, 'vi')
+				),
+				subjects: faculty.subjects.sort((a, b) =>
+					a.name.localeCompare(b.name, 'vi')
+				)
+			}))
+			.sort((a, b) => a.code.localeCompare(b.code, 'vi'))
+	}, [faculties, subjectsByFaculty])
+
 	function toggle(
 		setter: (fn: (prev: Set<number>) => Set<number>) => void,
 		id: number
@@ -291,30 +331,56 @@ export default function ExamCatalogPage() {
 	})
 
 	const saveFaculty = useMutation({
-		mutationFn: () => {
+		mutationFn: async () => {
+			if (editFacultyId === -1) {
+				const sameFaculty = faculties.filter(
+					(f) =>
+						f.code.trim().toUpperCase() ===
+						facultyForm.majorLabel.trim().toUpperCase()
+				)
+				return Promise.all(
+					sameFaculty.map((faculty) =>
+						UpdateExamFaculty(faculty.id, {
+							code: facultyForm.code,
+							name: facultyForm.name
+						})
+					)
+				)
+			}
 			if (editFacultyId != null) {
-				return UpdateExamFaculty(editFacultyId, {
+				return [
+					await UpdateExamFaculty(editFacultyId, {
+						code: facultyForm.code,
+						name: facultyForm.name,
+						majorId: facultyForm.majorId
+					})
+				]
+			}
+			return [
+				await CreateExamFaculty({
 					code: facultyForm.code,
 					name: facultyForm.name,
 					majorId: facultyForm.majorId
 				})
-			}
-			return CreateExamFaculty({
-				code: facultyForm.code,
-				name: facultyForm.name,
-				majorId: facultyForm.majorId
-			})
+			]
 		},
-		onSuccess: (f) => {
+		onSuccess: (rows) => {
+			const f = rows[0]
 			toast.success(
-				editFacultyId != null ? 'Đã cập nhật khoa' : 'Đã thêm khoa'
+				editFacultyId === -1
+					? `Đã cập nhật khoa trên ${rows.length} ngành`
+					: editFacultyId != null
+						? 'Đã cập nhật khoa'
+						: 'Đã thêm khoa'
 			)
 			setFacultyOpen(false)
 			setEditFacultyId(null)
 			void qc.invalidateQueries({ queryKey: ['exam-faculties'] })
 			void qc.invalidateQueries({ queryKey: ['exam-subjects'] })
-			setOpenMajors((p) => new Set(p).add(f.majorId))
-			setOpenFaculties((p) => new Set(p).add(f.id))
+			if (f) {
+				setOpenMajors((p) => new Set(p).add(f.majorId))
+				setOpenFaculties((p) => new Set(p).add(f.id))
+			}
 		},
 		onError: (e: Error) => toast.error(e.message)
 	})
@@ -438,6 +504,18 @@ export default function ExamCatalogPage() {
 		setFacultyOpen(true)
 	}
 
+	function openEditFacultyDirectory(code: string, name: string) {
+		setEditFacultyId(-1)
+		setFacultyForm({
+			code,
+			name,
+			majorId: 0,
+			/** Tạm giữ mã gốc để cập nhật mọi bản ghi khoa cùng mã. */
+			majorLabel: code
+		})
+		setFacultyOpen(true)
+	}
+
 	function openAddSubject(f: ExamFaculty, m?: ExamMajor) {
 		const major = m || majors.find((x) => x.id === f.majorId) || null
 		setEditSubjectId(null)
@@ -488,9 +566,8 @@ export default function ExamCatalogPage() {
 					Danh mục đào tạo
 				</h1>
 				<p className='text-muted-foreground text-sm'>
-					Cây: <strong>Hệ</strong> → <strong>Ngành trong hệ</strong> →
-					Khoa → Môn. Ví dụ Hệ quân sự gồm Y sĩ (TC/CD/LT), Điều
-					dưỡng…
+					<strong>Hệ</strong> → <strong>Ngành đào tạo</strong>. Khoa
+					là danh mục dùng chung và phụ trách giảng dạy các môn học.
 				</p>
 			</div>
 
@@ -508,6 +585,119 @@ export default function ExamCatalogPage() {
 					)?.message || 'unknown'}
 				</div>
 			)}
+
+			<Card>
+				<CardHeader className='pb-3'>
+					<CardTitle className='flex items-center gap-2'>
+						<Building2 className='h-5 w-5' />
+						Danh mục khoa
+					</CardTitle>
+					<CardDescription>
+						Mỗi khoa chỉ hiển thị một lần; bên trong là các môn học
+						do khoa đảm nhận ở tất cả ngành đào tạo.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{loading ? (
+						<div className='flex justify-center py-8'>
+							<Loader2 className='h-7 w-7 animate-spin' />
+						</div>
+					) : !facultyDirectory.length ? (
+						<p className='text-muted-foreground py-6 text-center text-sm'>
+							Chưa có khoa trong danh mục.
+						</p>
+					) : (
+						<div className='space-y-2'>
+							{facultyDirectory.map((faculty) => (
+								<details
+									key={faculty.code}
+									className='group overflow-hidden rounded-lg border'
+								>
+									<summary className='bg-muted/40 hover:bg-muted/60 flex cursor-pointer list-none flex-wrap items-center gap-2 px-3 py-2.5'>
+										<ChevronRight className='h-4 w-4 transition-transform group-open:rotate-90' />
+										<Badge
+											variant='outline'
+											className='font-mono'
+										>
+											{faculty.code}
+										</Badge>
+										<span className='font-medium'>
+											{faculty.name}
+										</span>
+										<Badge variant='secondary'>
+											{faculty.subjects.length} môn
+										</Badge>
+										<span className='text-muted-foreground ml-auto text-xs'>
+											Phụ trách{' '}
+											{faculty.majorNames.length} ngành
+										</span>
+										{canManage && (
+											<Button
+												type='button'
+												size='icon'
+												variant='ghost'
+												className='h-7 w-7'
+												title='Sửa khoa dùng chung'
+												onClick={(event) => {
+													event.preventDefault()
+													event.stopPropagation()
+													openEditFacultyDirectory(
+														faculty.code,
+														faculty.name
+													)
+												}}
+											>
+												<Pencil className='h-3.5 w-3.5' />
+											</Button>
+										)}
+									</summary>
+									<div className='border-t p-3'>
+										{!faculty.subjects.length ? (
+											<p className='text-muted-foreground text-sm'>
+												Chưa có môn học thuộc khoa này.
+											</p>
+										) : (
+											<div className='grid gap-2 md:grid-cols-2'>
+												{faculty.subjects.map(
+													(subject) => (
+														<div
+															key={subject.id}
+															className='flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm'
+														>
+															<div className='min-w-0 font-medium'>
+																{subject.name}
+															</div>
+															<div className='text-muted-foreground mt-0.5 flex flex-wrap gap-x-2 text-xs'>
+																<span className='font-mono'>
+																	{
+																		subject.code
+																	}
+																</span>
+																{subject.majorName && (
+																	<span>
+																		{
+																			subject.majorName
+																		}
+																	</span>
+																)}
+																<span>
+																	{subject.creditHours ||
+																		0}{' '}
+																	tín chỉ
+																</span>
+															</div>
+														</div>
+													)
+												)}
+											</div>
+										)}
+									</div>
+								</details>
+							))}
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			<Card>
 				<CardHeader className='flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-3'>
@@ -1380,6 +1570,17 @@ export default function ExamCatalogPage() {
 								/>
 							</div>
 						</div>
+						{canManage && (
+							<Button
+								size='icon'
+								variant='ghost'
+								className='h-7 w-7 shrink-0'
+								title='Sửa môn học'
+								onClick={() => openEditSubject(subject)}
+							>
+								<Pencil className='h-3.5 w-3.5' />
+							</Button>
+						)}
 					</div>
 					<DialogFooter>
 						<Button
