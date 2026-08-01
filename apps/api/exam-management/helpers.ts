@@ -446,7 +446,7 @@ export function canManageTeachingAssignments(actor: Actor) {
 
 /** Danh mục ngành/môn: super + CNK (quản môn ngành) + Ban KT xem/vận hành */
 export function canManageCatalogApi(actor: Actor): boolean {
-	return actor.isSuperAdmin || isNganhOperator(actor) || isExamOffice(actor)
+	return actor.isSuperAdmin || isNganhOperator(actor)
 }
 
 export function statusLabel(s: string): string {
@@ -765,13 +765,13 @@ export function isExamDrawDateOverLimit(
 	return d > maxDays
 }
 
-/** true nếu đã quá maxDays kể từ ngày rút (không cho in) */
+/** true nếu |ngày thi − ngày hiện tại| quá maxDays (không cho in) */
 export function isDrawPrintOverdue(
-	drawnAt: string | null | undefined,
+	examDate: string | null | undefined,
 	now = todayVnDate(),
 	maxDays = 3
 ): boolean {
-	const d = daysBetweenDates(drawnAt, now)
+	const d = daysBetweenDates(examDate, now)
 	if (d == null) return false
 	return d > maxDays
 }

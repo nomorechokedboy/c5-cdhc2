@@ -9,6 +9,7 @@ import { api, APIError, Query } from 'encore.dev/api'
 import { and, asc, desc, eq, inArray, like, ne, or, sql } from 'drizzle-orm'
 import orm from '../database'
 import {
+	examAcademicTitles,
 	examClasses,
 	examFaculties,
 	examFacultyHeads,
@@ -118,6 +119,111 @@ async function ensureDeptHeadRole(userId: number) {
 	if (!has) {
 		await orm.insert(userRoles).values({ userId, roleId: role.id })
 	}
+}
+
+async function releaseDeptHeadRoleIfUnused(userId: number) {
+	const [stillHead] = await orm
+		.select({ id: examFacultyHeads.id })
+		.from(examFacultyHeads)
+		.where(eq(examFacultyHeads.userId, userId))
+		.limit(1)
+	if (stillHead) return
+	const [role] = await orm
+		.select({ id: roles.id })
+		.from(roles)
+		.where(eq(roles.name, 'exam_dept_head'))
+		.limit(1)
+	if (role) {
+		await orm
+			.delete(userRoles)
+			.where(
+				and(eq(userRoles.userId, userId), eq(userRoles.roleId, role.id))
+			)
+	}
+	const [teacher] = await orm
+		.select({ id: examTeachers.id })
+		.from(examTeachers)
+		.where(eq(examTeachers.userId, userId))
+		.limit(1)
+	if (teacher) {
+		await orm
+			.update(users)
+			.set({ position: 'Giáo viên' })
+			.where(eq(users.id, userId))
+	}
+}
+
+function isFacultyHeadTitle(name: string) {
+	return /^Chủ nhiệm khoa(?:,|$)/i.test(name.trim())
+}
+
+/** Đồng bộ phân công CNK từ chức danh của giáo viên. */
+async function assignFacultyHeadFromTeacher(
+	user: typeof users.$inferSelect,
+	facultyCode: string,
+	facultyName: string
+) {
+	await ensureDeptHeadRole(user.id)
+	const displaced = await orm
+		.select({ userId: examFacultyHeads.userId })
+		.from(examFacultyHeads)
+		.where(
+			and(
+				eq(examFacultyHeads.facultyCode, facultyCode),
+				ne(examFacultyHeads.userId, user.id)
+			)
+		)
+	await orm
+		.delete(examFacultyHeads)
+		.where(
+			or(
+				and(
+					eq(examFacultyHeads.facultyCode, facultyCode),
+					ne(examFacultyHeads.userId, user.id)
+				),
+				and(
+					eq(examFacultyHeads.userId, user.id),
+					ne(examFacultyHeads.facultyCode, facultyCode)
+				)
+			)!
+		)
+	const [existing] = await orm
+		.select()
+		.from(examFacultyHeads)
+		.where(
+			and(
+				eq(examFacultyHeads.userId, user.id),
+				eq(examFacultyHeads.facultyCode, facultyCode)
+			)
+		)
+		.limit(1)
+	if (existing) {
+		await orm
+			.update(examFacultyHeads)
+			.set({
+				username: user.username,
+				displayName: user.displayName,
+				facultyName,
+				updatedAt: sql`(datetime('now'))`
+			})
+			.where(eq(examFacultyHeads.id, existing.id))
+	} else {
+		await orm.insert(examFacultyHeads).values({
+			facultyCode,
+			facultyName,
+			userId: user.id,
+			username: user.username,
+			displayName: user.displayName
+		})
+	}
+	for (const old of displaced) await releaseDeptHeadRoleIfUnused(old.userId)
+}
+
+async function removeFacultyHeadAssignment(userId: number) {
+	await orm
+		.delete(examFacultyHeads)
+		.where(eq(examFacultyHeads.userId, userId))
+	await releaseDeptHeadRoleIfUnused(userId)
 }
 
 /** Chức vụ gắn TK đào tạo — khóa đổi lung tung */
@@ -1166,11 +1272,166 @@ export interface TeacherCatalogRow {
 	displayName: string | null
 	facultyCode: string
 	facultyName: string | null
+	academicTitleId: number | null
+	academicTitleName: string | null
+	academicTitlePercentage: number | null
 	note: string | null
 	createdByUserId: number | null
 	createdByUsername: string | null
 	createdByDisplayName: string | null
 }
+
+export interface AcademicTitleRow {
+	id: number
+	createdAt: string
+	updatedAt: string
+	name: string
+	percentage: number
+	sortOrder: number
+}
+
+function academicTitleDto(
+	row: typeof examAcademicTitles.$inferSelect
+): AcademicTitleRow {
+	return {
+		id: row.id,
+		createdAt: row.createdAt,
+		updatedAt: row.updatedAt,
+		name: row.name,
+		percentage: row.percentage,
+		sortOrder: row.sortOrder
+	}
+}
+
+async function requireAcademicTitle(id: number) {
+	const [row] = await orm
+		.select()
+		.from(examAcademicTitles)
+		.where(eq(examAcademicTitles.id, id))
+		.limit(1)
+	if (!row) throw APIError.invalidArgument('Chức danh không tồn tại')
+	return row
+}
+
+/** Danh mục chức danh dùng khi khai báo giáo viên. */
+export const ListExamAcademicTitles = api(
+	{ auth: true, expose: true, method: 'GET', path: '/exam/academic-titles' },
+	async (): Promise<{ data: AcademicTitleRow[] }> => {
+		const actor = await getActor()
+		if (!canViewTeachingAssignments(actor)) {
+			throw APIError.permissionDenied(
+				'Không có quyền xem danh mục chức danh'
+			)
+		}
+		const rows = await orm
+			.select()
+			.from(examAcademicTitles)
+			.orderBy(
+				asc(examAcademicTitles.sortOrder),
+				asc(examAcademicTitles.percentage),
+				asc(examAcademicTitles.name)
+			)
+		return { data: rows.map(academicTitleDto) }
+	}
+)
+
+export const CreateExamAcademicTitle = api(
+	{ auth: true, expose: true, method: 'POST', path: '/exam/academic-titles' },
+	async (body: {
+		name: string
+		percentage: number
+		sortOrder?: number
+	}): Promise<{ data: AcademicTitleRow }> => {
+		const actor = await getActor()
+		if (!actor.isSuperAdmin)
+			throw APIError.permissionDenied('Chỉ admin được thêm chức danh')
+		const name = (body.name || '').trim()
+		if (!name) throw APIError.invalidArgument('Nhập tên chức danh')
+		if (
+			!Number.isFinite(body.percentage) ||
+			body.percentage < 0 ||
+			body.percentage > 100
+		) {
+			throw APIError.invalidArgument('Tỷ lệ phải từ 0 đến 100%')
+		}
+		const [row] = await orm
+			.insert(examAcademicTitles)
+			.values({
+				name,
+				percentage: Math.round(body.percentage),
+				sortOrder: body.sortOrder ?? 0
+			})
+			.returning()
+		return { data: academicTitleDto(row!) }
+	}
+)
+
+export const UpdateExamAcademicTitle = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'PATCH',
+		path: '/exam/academic-titles/:id'
+	},
+	async (body: {
+		id: number
+		name: string
+		percentage: number
+		sortOrder?: number
+	}): Promise<{ data: AcademicTitleRow }> => {
+		const actor = await getActor()
+		if (!actor.isSuperAdmin)
+			throw APIError.permissionDenied('Chỉ admin được sửa chức danh')
+		const existing = await requireAcademicTitle(body.id)
+		const name = (body.name || '').trim()
+		if (!name) throw APIError.invalidArgument('Nhập tên chức danh')
+		if (
+			!Number.isFinite(body.percentage) ||
+			body.percentage < 0 ||
+			body.percentage > 100
+		) {
+			throw APIError.invalidArgument('Tỷ lệ phải từ 0 đến 100%')
+		}
+		const [row] = await orm
+			.update(examAcademicTitles)
+			.set({
+				name,
+				percentage: Math.round(body.percentage),
+				sortOrder: body.sortOrder ?? existing.sortOrder,
+				updatedAt: sql`(datetime('now'))`
+			})
+			.where(eq(examAcademicTitles.id, body.id))
+			.returning()
+		return { data: academicTitleDto(row!) }
+	}
+)
+
+export const DeleteExamAcademicTitle = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'DELETE',
+		path: '/exam/academic-titles/:id'
+	},
+	async ({ id }: { id: number }): Promise<{ ok: boolean }> => {
+		const actor = await getActor()
+		if (!actor.isSuperAdmin)
+			throw APIError.permissionDenied('Chỉ admin được xóa chức danh')
+		const [used] = await orm
+			.select({ id: examTeachers.id })
+			.from(examTeachers)
+			.where(eq(examTeachers.academicTitleId, id))
+			.limit(1)
+		if (used)
+			throw APIError.failedPrecondition(
+				'Chức danh đang được giáo viên sử dụng'
+			)
+		await orm
+			.delete(examAcademicTitles)
+			.where(eq(examAcademicTitles.id, id))
+		return { ok: true }
+	}
+)
 
 export interface FacultyOption {
 	code: string
@@ -1227,6 +1488,44 @@ export interface FacultyHeadRow {
 	note: string | null
 }
 
+/** Danh sách Chủ nhiệm khoa hiện tại để hiển thị trong danh mục khoa. */
+export const ListExamFacultyHeads = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'GET',
+		path: '/exam/faculty-heads'
+	},
+	async (): Promise<{ data: FacultyHeadRow[] }> => {
+		const actor = await getActor()
+		if (!canViewTeachingAssignments(actor)) {
+			throw APIError.permissionDenied('Không có quyền xem Chủ nhiệm khoa')
+		}
+		const scope = await getScopedFacultyCodes(actor)
+		const rows = await orm
+			.select()
+			.from(examFacultyHeads)
+			.orderBy(examFacultyHeads.facultyCode)
+		const visible =
+			scope === null
+				? rows
+				: rows.filter((row) => scope.includes(row.facultyCode))
+		return {
+			data: visible.map((row) => ({
+				id: row.id,
+				createdAt: row.createdAt,
+				updatedAt: row.updatedAt,
+				facultyCode: row.facultyCode,
+				facultyName: row.facultyName,
+				userId: row.userId,
+				username: row.username,
+				displayName: row.displayName,
+				note: row.note
+			}))
+		}
+	}
+)
+
 /**
  * Gán / cập nhật Chủ nhiệm khoa theo mã khoa (K1…K8).
  * 1 khoa = 1 CNK chính. Chức vụ «Chủ nhiệm khoa» gắn tài khoản — không đơn vị.
@@ -1274,7 +1573,15 @@ export const UpsertExamFacultyHead = api(
 		if (!u) throw APIError.notFound('Tài khoản không tồn tại')
 
 		await ensureDeptHeadRole(u.id)
-		await lockTrainingUserProfile(u.id, 'Chủ nhiệm khoa')
+		const displaced = await orm
+			.select({ userId: examFacultyHeads.userId })
+			.from(examFacultyHeads)
+			.where(
+				and(
+					eq(examFacultyHeads.facultyCode, facultyCode),
+					ne(examFacultyHeads.userId, u.id)
+				)
+			)
 
 		// 1 khoa = 1 CNK: gỡ head khác trên cùng mã khoa
 		await orm
@@ -1332,6 +1639,8 @@ export const UpsertExamFacultyHead = api(
 				.returning()
 			row = created!
 		}
+		for (const old of displaced)
+			await releaseDeptHeadRoleIfUnused(old.userId)
 
 		return {
 			data: {
@@ -1346,6 +1655,36 @@ export const UpsertExamFacultyHead = api(
 				note: row.note
 			}
 		}
+	}
+)
+
+export const DeleteExamFacultyHead = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'DELETE',
+		path: '/exam/faculty-heads/:facultyCode'
+	},
+	async ({
+		facultyCode
+	}: {
+		facultyCode: string
+	}): Promise<{ ok: boolean }> => {
+		const actor = await getActor()
+		if (!actor.isSuperAdmin)
+			throw APIError.permissionDenied(
+				'Chỉ admin được bỏ phân công Chủ nhiệm khoa'
+			)
+		const code = facultyCode.trim().toUpperCase()
+		const rows = await orm
+			.select({ userId: examFacultyHeads.userId })
+			.from(examFacultyHeads)
+			.where(eq(examFacultyHeads.facultyCode, code))
+		await orm
+			.delete(examFacultyHeads)
+			.where(eq(examFacultyHeads.facultyCode, code))
+		for (const row of rows) await releaseDeptHeadRoleIfUnused(row.userId)
+		return { ok: true }
 	}
 )
 
@@ -1399,6 +1738,8 @@ export const ListExamTeacherCatalog = api(
 				asc(examTeachers.facultyCode),
 				asc(examTeachers.displayName)
 			)
+		const titleRows = await orm.select().from(examAcademicTitles)
+		const titleById = new Map(titleRows.map((title) => [title.id, title]))
 
 		// Dedup theo userId (phòng khi DB thiếu unique)
 		const seen = new Set<number>()
@@ -1406,6 +1747,9 @@ export const ListExamTeacherCatalog = api(
 		for (const r of rows) {
 			if (seen.has(r.userId)) continue
 			seen.add(r.userId)
+			const title = r.academicTitleId
+				? titleById.get(r.academicTitleId)
+				: null
 			data.push({
 				id: r.id,
 				createdAt: r.createdAt,
@@ -1415,6 +1759,9 @@ export const ListExamTeacherCatalog = api(
 				displayName: r.displayName,
 				facultyCode: r.facultyCode,
 				facultyName: r.facultyName,
+				academicTitleId: r.academicTitleId ?? null,
+				academicTitleName: title?.name ?? null,
+				academicTitlePercentage: title?.percentage ?? null,
 				note: r.note,
 				createdByUserId: r.createdByUserId ?? null,
 				createdByUsername: r.createdByUsername ?? null,
@@ -1441,6 +1788,7 @@ export const CreateExamTeacherCatalog = api(
 		password?: string
 		displayName?: string
 		facultyCode: string
+		academicTitleId: number
 		note?: string
 	}): Promise<{ data: TeacherCatalogRow }> => {
 		const actor = await getActor()
@@ -1468,6 +1816,7 @@ export const CreateExamTeacherCatalog = api(
 				`Khoa ${facultyCode} không có trong danh mục đào tạo`
 			)
 		}
+		const academicTitle = await requireAcademicTitle(body.academicTitleId)
 
 		let u: typeof users.$inferSelect | undefined
 
@@ -1573,12 +1922,21 @@ export const CreateExamTeacherCatalog = api(
 				displayName: finalName,
 				facultyCode,
 				facultyName,
+				academicTitleId: academicTitle.id,
 				note: body.note || null,
 				createdByUserId: actor.userId,
 				createdByUsername: actor.username,
 				createdByDisplayName: actor.displayName
 			})
 			.returning()
+
+		if (isFacultyHeadTitle(academicTitle.name)) {
+			await assignFacultyHeadFromTeacher(
+				{ ...u, displayName: finalName },
+				facultyCode,
+				facultyName
+			)
+		}
 
 		return {
 			data: {
@@ -1590,6 +1948,9 @@ export const CreateExamTeacherCatalog = api(
 				displayName: row!.displayName,
 				facultyCode: row!.facultyCode,
 				facultyName: row!.facultyName,
+				academicTitleId: row!.academicTitleId ?? null,
+				academicTitleName: academicTitle.name,
+				academicTitlePercentage: academicTitle.percentage,
 				note: row!.note,
 				createdByUserId: row!.createdByUserId ?? null,
 				createdByUsername: row!.createdByUsername ?? null,
@@ -1610,6 +1971,7 @@ export const UpdateExamTeacherCatalog = api(
 	async (params: {
 		id: number
 		facultyCode?: string
+		academicTitleId?: number
 		displayName?: string
 		note?: string | null
 	}): Promise<{ data: TeacherCatalogRow }> => {
@@ -1664,6 +2026,10 @@ export const UpdateExamTeacherCatalog = api(
 		if (params.note !== undefined) {
 			patch.note = params.note
 		}
+		if (params.academicTitleId !== undefined) {
+			const title = await requireAcademicTitle(params.academicTitleId)
+			patch.academicTitleId = title.id
+		}
 
 		const [row] = await orm
 			.update(examTeachers)
@@ -1671,6 +2037,25 @@ export const UpdateExamTeacherCatalog = api(
 			.where(eq(examTeachers.id, params.id))
 			.returning()
 
+		const title = row!.academicTitleId
+			? await requireAcademicTitle(row!.academicTitleId)
+			: null
+		const [teacherUser] = await orm
+			.select()
+			.from(users)
+			.where(eq(users.id, row!.userId))
+			.limit(1)
+		if (teacherUser && title && isFacultyHeadTitle(title.name)) {
+			await assignFacultyHeadFromTeacher(
+				teacherUser,
+				row!.facultyCode,
+				row!.facultyName ||
+					(await resolveFacultyName(row!.facultyCode)) ||
+					row!.facultyCode
+			)
+		} else {
+			await removeFacultyHeadAssignment(row!.userId)
+		}
 		return {
 			data: {
 				id: row!.id,
@@ -1681,6 +2066,9 @@ export const UpdateExamTeacherCatalog = api(
 				displayName: row!.displayName,
 				facultyCode: row!.facultyCode,
 				facultyName: row!.facultyName,
+				academicTitleId: row!.academicTitleId ?? null,
+				academicTitleName: title?.name ?? null,
+				academicTitlePercentage: title?.percentage ?? null,
 				note: row!.note,
 				createdByUserId: row!.createdByUserId ?? null,
 				createdByUsername: row!.createdByUsername ?? null,

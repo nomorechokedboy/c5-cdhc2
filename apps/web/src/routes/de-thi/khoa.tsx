@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import ExamRoleGuard from '@/components/exam/ExamRoleGuard'
-import ExamTrainingCatalogPage from '@/components/exam/ExamTrainingCatalogPage'
+import ExamFacultiesPage from '@/components/exam/ExamFacultiesPage'
 
-export const Route = createFileRoute('/de-thi/danh-muc')({
+export const Route = createFileRoute('/de-thi/khoa')({
 	component: () => (
 		<ProtectedRoute>
 			<ExamRoleGuard navKey='catalog'>
-				<ExamTrainingCatalogPage />
+				<ExamFacultiesPage />
 			</ExamRoleGuard>
 		</ProtectedRoute>
 	)

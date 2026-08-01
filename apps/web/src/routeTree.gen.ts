@@ -46,6 +46,7 @@ import { Route as DeThiQrRouteImport } from './routes/de-thi/qr'
 import { Route as DeThiPhanCongRouteImport } from './routes/de-thi/phan-cong'
 import { Route as DeThiNganHangRouteImport } from './routes/de-thi/ngan-hang'
 import { Route as DeThiLopRouteImport } from './routes/de-thi/lop'
+import { Route as DeThiKhoaRouteImport } from './routes/de-thi/khoa'
 import { Route as DeThiGiaoVienRouteImport } from './routes/de-thi/giao-vien'
 import { Route as DeThiDuyetRouteImport } from './routes/de-thi/duyet'
 import { Route as DeThiDanhMucRouteImport } from './routes/de-thi/danh-muc'
@@ -242,6 +243,11 @@ const DeThiLopRoute = DeThiLopRouteImport.update({
   path: '/de-thi/lop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeThiKhoaRoute = DeThiKhoaRouteImport.update({
+  id: '/de-thi/khoa',
+  path: '/de-thi/khoa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeThiGiaoVienRoute = DeThiGiaoVienRouteImport.update({
   id: '/de-thi/giao-vien',
   path: '/de-thi/giao-vien',
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/de-thi/danh-muc': typeof DeThiDanhMucRoute
   '/de-thi/duyet': typeof DeThiDuyetRoute
   '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/khoa': typeof DeThiKhoaRoute
   '/de-thi/lop': typeof DeThiLopRoute
   '/de-thi/ngan-hang': typeof DeThiNganHangRoute
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
@@ -366,6 +373,7 @@ export interface FileRoutesByTo {
   '/de-thi/danh-muc': typeof DeThiDanhMucRoute
   '/de-thi/duyet': typeof DeThiDuyetRoute
   '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/khoa': typeof DeThiKhoaRoute
   '/de-thi/lop': typeof DeThiLopRoute
   '/de-thi/ngan-hang': typeof DeThiNganHangRoute
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/de-thi/danh-muc': typeof DeThiDanhMucRoute
   '/de-thi/duyet': typeof DeThiDuyetRoute
   '/de-thi/giao-vien': typeof DeThiGiaoVienRoute
+  '/de-thi/khoa': typeof DeThiKhoaRoute
   '/de-thi/lop': typeof DeThiLopRoute
   '/de-thi/ngan-hang': typeof DeThiNganHangRoute
   '/de-thi/phan-cong': typeof DeThiPhanCongRoute
@@ -467,6 +476,7 @@ export interface FileRouteTypes {
     | '/de-thi/danh-muc'
     | '/de-thi/duyet'
     | '/de-thi/giao-vien'
+    | '/de-thi/khoa'
     | '/de-thi/lop'
     | '/de-thi/ngan-hang'
     | '/de-thi/phan-cong'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/de-thi/danh-muc'
     | '/de-thi/duyet'
     | '/de-thi/giao-vien'
+    | '/de-thi/khoa'
     | '/de-thi/lop'
     | '/de-thi/ngan-hang'
     | '/de-thi/phan-cong'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/de-thi/danh-muc'
     | '/de-thi/duyet'
     | '/de-thi/giao-vien'
+    | '/de-thi/khoa'
     | '/de-thi/lop'
     | '/de-thi/ngan-hang'
     | '/de-thi/phan-cong'
@@ -615,6 +627,7 @@ export interface RootRouteChildren {
   DeThiDanhMucRoute: typeof DeThiDanhMucRoute
   DeThiDuyetRoute: typeof DeThiDuyetRoute
   DeThiGiaoVienRoute: typeof DeThiGiaoVienRoute
+  DeThiKhoaRoute: typeof DeThiKhoaRoute
   DeThiLopRoute: typeof DeThiLopRoute
   DeThiNganHangRoute: typeof DeThiNganHangRoute
   DeThiPhanCongRoute: typeof DeThiPhanCongRoute
@@ -902,6 +915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeThiLopRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/de-thi/khoa': {
+      id: '/de-thi/khoa'
+      path: '/de-thi/khoa'
+      fullPath: '/de-thi/khoa'
+      preLoaderRoute: typeof DeThiKhoaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/de-thi/giao-vien': {
       id: '/de-thi/giao-vien'
       path: '/de-thi/giao-vien'
@@ -999,6 +1019,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeThiDanhMucRoute: DeThiDanhMucRoute,
   DeThiDuyetRoute: DeThiDuyetRoute,
   DeThiGiaoVienRoute: DeThiGiaoVienRoute,
+  DeThiKhoaRoute: DeThiKhoaRoute,
   DeThiLopRoute: DeThiLopRoute,
   DeThiNganHangRoute: DeThiNganHangRoute,
   DeThiPhanCongRoute: DeThiPhanCongRoute,

@@ -51,6 +51,11 @@ export interface MajorResponse {
 	systemId: number
 	levelCode: string | null
 	shortCode: string | null
+	catalogNumber: string | null
+	nationalMajorCode: string | null
+	qualification: string | null
+	trainingDuration: string | null
+	trainingForm: string | null
 	systemCode?: string | null
 	systemName?: string | null
 	systemLetter?: string | null
@@ -386,6 +391,11 @@ async function mapMajor(
 		systemId: r.systemId,
 		levelCode: r.levelCode ?? null,
 		shortCode: r.shortCode ?? null,
+		catalogNumber: r.catalogNumber ?? null,
+		nationalMajorCode: r.nationalMajorCode ?? null,
+		qualification: r.qualification ?? null,
+		trainingDuration: r.trainingDuration ?? null,
+		trainingForm: r.trainingForm ?? null,
 		systemCode: sys?.code ?? null,
 		systemName: sys?.name ?? null,
 		systemLetter: sys?.letter ?? null,
@@ -437,6 +447,11 @@ export const CreateExamMajor = api(
 		levelCode?: string | null
 		shortCode?: string | null
 		code?: string | null
+		catalogNumber?: string | null
+		nationalMajorCode?: string | null
+		qualification?: string | null
+		trainingDuration?: string | null
+		trainingForm?: string | null
 		description?: string
 	}): Promise<{ data: MajorResponse }> => {
 		const actor = await getActor()
@@ -456,13 +471,19 @@ export const CreateExamMajor = api(
 			.limit(1)
 		if (!sys) throw APIError.notFound('Hệ không tồn tại')
 
-		const code = buildMajorCode({
-			letter: sys.letter,
-			levelCode: body.levelCode,
-			shortCode: body.shortCode,
-			majorName: name,
-			manualCode: body.code
-		})
+		const nationalMajorCode = body.nationalMajorCode?.trim() || null
+		const catalogNumber = nationalMajorCode
+			? `${sys.letter.toUpperCase()}.${nationalMajorCode}`
+			: body.catalogNumber?.trim() || null
+		const code =
+			catalogNumber ||
+			buildMajorCode({
+				letter: sys.letter,
+				levelCode: body.levelCode,
+				shortCode: body.shortCode,
+				majorName: name,
+				manualCode: body.code
+			})
 
 		const [row] = await orm
 			.insert(examMajors)
@@ -472,6 +493,11 @@ export const CreateExamMajor = api(
 				systemId: body.systemId,
 				levelCode: body.levelCode?.trim().toUpperCase() || null,
 				shortCode: body.shortCode?.trim().toUpperCase() || null,
+				catalogNumber,
+				nationalMajorCode,
+				qualification: body.qualification?.trim() || null,
+				trainingDuration: body.trainingDuration?.trim() || null,
+				trainingForm: body.trainingForm?.trim() || null,
 				description: body.description || null
 			})
 			.returning()
@@ -487,6 +513,11 @@ export const UpdateExamMajor = api(
 		name?: string
 		levelCode?: string | null
 		shortCode?: string | null
+		catalogNumber?: string | null
+		nationalMajorCode?: string | null
+		qualification?: string | null
+		trainingDuration?: string | null
+		trainingForm?: string | null
 		systemId?: number
 		description?: string | null
 	}): Promise<{ data: MajorResponse }> => {
@@ -502,11 +533,31 @@ export const UpdateExamMajor = api(
 			.where(eq(examMajors.id, params.id))
 			.limit(1)
 		if (!existing) throw APIError.notFound('Ngành không tồn tại')
+		const nextSystemId = params.systemId ?? existing.systemId
+		const nextNationalMajorCode =
+			params.nationalMajorCode !== undefined
+				? params.nationalMajorCode?.trim() || null
+				: existing.nationalMajorCode
+		let nextCatalogNumber =
+			params.catalogNumber !== undefined
+				? params.catalogNumber?.trim() || null
+				: existing.catalogNumber
+		let nextCode = params.code?.trim().toUpperCase() || existing.code
+		if (nextNationalMajorCode) {
+			const [system] = await orm
+				.select({ letter: examSystems.letter })
+				.from(examSystems)
+				.where(eq(examSystems.id, nextSystemId))
+				.limit(1)
+			if (!system) throw APIError.notFound('Hệ không tồn tại')
+			nextCatalogNumber = `${system.letter.toUpperCase()}.${nextNationalMajorCode}`
+			nextCode = nextCatalogNumber
+		}
 
 		const [row] = await orm
 			.update(examMajors)
 			.set({
-				code: params.code?.trim().toUpperCase() || existing.code,
+				code: nextCode,
 				name: params.name?.trim() || existing.name,
 				systemId: params.systemId ?? existing.systemId,
 				levelCode:
@@ -517,6 +568,20 @@ export const UpdateExamMajor = api(
 					params.shortCode !== undefined
 						? params.shortCode?.trim().toUpperCase() || null
 						: existing.shortCode,
+				catalogNumber: nextCatalogNumber,
+				nationalMajorCode: nextNationalMajorCode,
+				qualification:
+					params.qualification !== undefined
+						? params.qualification?.trim() || null
+						: existing.qualification,
+				trainingDuration:
+					params.trainingDuration !== undefined
+						? params.trainingDuration?.trim() || null
+						: existing.trainingDuration,
+				trainingForm:
+					params.trainingForm !== undefined
+						? params.trainingForm?.trim() || null
+						: existing.trainingForm,
 				description:
 					params.description !== undefined
 						? params.description
@@ -524,6 +589,25 @@ export const UpdateExamMajor = api(
 			})
 			.where(eq(examMajors.id, params.id))
 			.returning()
+		if (existing.code !== nextCode) {
+			const linkedSubjects = await orm
+				.select({
+					id: examSubjects.id,
+					code: examSubjects.code,
+					baseCode: examSubjects.baseCode
+				})
+				.from(examSubjects)
+				.where(eq(examSubjects.majorId, params.id))
+			for (const subject of linkedSubjects) {
+				const baseCode =
+					subject.baseCode?.trim() ||
+					subject.code.slice(existing.code.length + 1)
+				await orm
+					.update(examSubjects)
+					.set({ code: buildSubjectCode(nextCode, baseCode) })
+					.where(eq(examSubjects.id, subject.id))
+			}
+		}
 		return { data: await mapMajor(row!) }
 	}
 )
@@ -833,7 +917,7 @@ export const ListExamClasses = api(
 		majorId?: Query<number>
 		facultyId?: Query<number>
 	}): Promise<{ data: ClassCatalogResponse[] }> => {
-		await getActor()
+		const actor = await getActor()
 		const conditions = []
 		if (q.systemId)
 			conditions.push(eq(examMajors.systemId, Number(q.systemId)))
@@ -849,6 +933,20 @@ export const ListExamClasses = api(
 					like(examClasses.name, `%${kw}%`)
 				)!
 			)
+		}
+		if (isScopedDeptHead(actor)) {
+			const facCodes = await getDeptHeadFacultyCodes(actor)
+			if (facCodes && facCodes.length) {
+				const codes = facCodes.map((code) => code.toUpperCase())
+				conditions.push(
+					sql`upper(${examFaculties.code}) in (${sql.join(
+						codes.map((code) => sql`${code}`),
+						sql`, `
+					)})`
+				)
+			} else {
+				return { data: [] }
+			}
 		}
 		const where = conditions.length ? and(...conditions) : undefined
 		const rows = await orm
@@ -1214,6 +1312,8 @@ export const CreateExamSubject = api(
 	async (body: {
 		name: string
 		facultyId: number
+		majorId?: number
+		sourceSubjectId?: number
 		baseCode?: string
 		code?: string
 		creditHours?: number
@@ -1224,11 +1324,18 @@ export const CreateExamSubject = api(
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền quản lý môn')
 		}
-		const name = body.name.trim()
+		const [sourceSubject] = body.sourceSubjectId
+			? await orm
+					.select()
+					.from(examSubjects)
+					.where(eq(examSubjects.id, body.sourceSubjectId))
+					.limit(1)
+			: [null]
+		const name = (sourceSubject?.name || body.name).trim()
 		if (!name || !body.facultyId) {
 			throw APIError.invalidArgument('Tên môn và khoa bắt buộc')
 		}
-		const [fac] = await orm
+		let [fac] = await orm
 			.select({
 				id: examFaculties.id,
 				code: examFaculties.code,
@@ -1243,7 +1350,68 @@ export const CreateExamSubject = api(
 			.limit(1)
 		if (!fac) throw APIError.notFound('Khoa không tồn tại')
 
-		const baseCode = (body.baseCode || body.code || '').trim().toUpperCase()
+		// Khoa là danh mục dùng chung. CSDL cũ lưu một bản ghi khoa theo từng
+		// ngành, vì vậy tự tạo bản ghi liên kết tương ứng khi thêm môn vào ngành.
+		if (body.majorId && fac.majorId !== body.majorId) {
+			const [targetMajor] = await orm
+				.select({ id: examMajors.id })
+				.from(examMajors)
+				.where(eq(examMajors.id, body.majorId))
+				.limit(1)
+			if (!targetMajor) throw APIError.notFound('Ngành không tồn tại')
+			let [targetFaculty] = await orm
+				.select({
+					id: examFaculties.id,
+					code: examFaculties.code,
+					name: examFaculties.name,
+					majorId: examFaculties.majorId,
+					majorCode: examMajors.code,
+					majorName: examMajors.name
+				})
+				.from(examFaculties)
+				.leftJoin(examMajors, eq(examFaculties.majorId, examMajors.id))
+				.where(
+					and(
+						eq(examFaculties.majorId, body.majorId),
+						eq(examFaculties.code, fac.code)
+					)
+				)
+				.limit(1)
+			if (!targetFaculty) {
+				const [created] = await orm
+					.insert(examFaculties)
+					.values({
+						code: fac.code,
+						name: fac.name,
+						majorId: body.majorId
+					})
+					.returning()
+				const [major] = await orm
+					.select({ code: examMajors.code, name: examMajors.name })
+					.from(examMajors)
+					.where(eq(examMajors.id, body.majorId))
+					.limit(1)
+				targetFaculty = {
+					id: created!.id,
+					code: created!.code,
+					name: created!.name,
+					majorId: created!.majorId,
+					majorCode: major?.code ?? null,
+					majorName: major?.name ?? null
+				}
+			}
+			fac = targetFaculty
+		}
+
+		const baseCode = (
+			sourceSubject?.baseCode ||
+			sourceSubject?.code.split('_').pop() ||
+			body.baseCode ||
+			body.code ||
+			''
+		)
+			.trim()
+			.toUpperCase()
 		if (!baseCode) {
 			throw APIError.invalidArgument('Mã môn (baseCode) bắt buộc')
 		}
@@ -1259,8 +1427,10 @@ export const CreateExamSubject = api(
 					? baseCode.split('_').pop()!
 					: baseCode,
 				name,
-				creditHours: body.creditHours ?? 0,
-				lessonHours: body.lessonHours ?? 0,
+				creditHours:
+					sourceSubject?.creditHours ?? body.creditHours ?? 0,
+				lessonHours:
+					sourceSubject?.lessonHours ?? body.lessonHours ?? 0,
 				facultyId: fac.id,
 				majorId: fac.majorId,
 				description: body.description || null

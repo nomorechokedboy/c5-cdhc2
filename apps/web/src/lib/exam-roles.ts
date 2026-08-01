@@ -139,7 +139,7 @@ export function canDrawExams(): boolean {
 
 /** Danh mục đào tạo (khoa / ngành ĐT / lớp / môn) — GV không quản */
 export function canManageExamCatalog(): boolean {
-	return isSuperAdmin() || isExamNganhOperator() || isExamOffice()
+	return isSuperAdmin() || isExamNganhOperator()
 }
 
 /**
@@ -171,6 +171,7 @@ export type ExamNavKey =
 	| 'overview'
 	| 'catalog'
 	| 'classes'
+	| 'faculties'
 	| 'teachers'
 	| 'assign'
 	| 'mine'
@@ -180,6 +181,31 @@ export type ExamNavKey =
 
 export function examNavAllowed(key: ExamNavKey): boolean {
 	if (isSuperAdmin()) return true
+	// CNK được cấp tự động từ chức danh: chỉ các màn hình phục vụ quản lý/duyệt khoa.
+	if (rolesLower().includes('exam_dept_head')) {
+		return [
+			'overview',
+			'catalog',
+			'classes',
+			'faculties',
+			'teachers',
+			'assign',
+			'approve',
+			'bank'
+		].includes(key)
+	}
+	// Ban Khảo thí chỉ xem danh mục; vận hành duyệt, ngân hàng và rút đề.
+	if (isExamOffice()) {
+		return [
+			'overview',
+			'catalog',
+			'classes',
+			'teachers',
+			'approve',
+			'bank',
+			'draw'
+		].includes(key)
+	}
 	// GV thuần: chỉ Tổng quan + Đề của tôi
 	const pureLecturer =
 		isExamLecturerRoleOnly() &&
