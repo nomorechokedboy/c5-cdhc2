@@ -70,7 +70,6 @@ class controller {
 		const resp = await this.repo.find().catch(AppError.handleAppErr)
 		const usersWithoutPw = resp.map(({ password: _, ...user }) => user)
 
-		// Gắn ngành (user_nganh) + tên ngành từ categories
 		try {
 			const { default: orm } = await import('../database')
 			const { userNganh } = await import('../schema/user-nganh')
