@@ -31,6 +31,7 @@ export * from './asset-movement-logs'
 export * from './account-audit-logs'
 export * from './catalog-audit-logs'
 export * from './catalog-stock-logs'
+export * from './leave-audit-logs'
 export * from './asset-broken-logs'
 export * from './user-nganh'
 export * from './asset-proposals'
@@ -51,3 +52,8 @@ export * from './notifications'
 
 // Đề thi tự luận
 export * from './exam-bank'
+
+// Quản lý nghỉ phép
+export * from './leave-management'
+export * from './leave-batches'
+export * from './leave-positions'

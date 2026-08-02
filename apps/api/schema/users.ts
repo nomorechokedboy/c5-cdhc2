@@ -35,6 +35,8 @@ export const users = p.sqliteTable('users', {
 	rank: p.text(),
 	position: p.text(),
 	alias: p.text(),
+	leaveUnitId: p.int('leave_unit_id'),
+	managementArea: p.text('management_area'),
 	/** Ảnh chữ ký số (URL / data URL) — BGH dùng khi phê duyệt đề */
 	signatureUrl: p.text('signature_url')
 })
@@ -57,6 +59,8 @@ export interface UserDB extends Base {
 	rank?: string | null
 	position?: string | null
 	alias?: string | null
+	leaveUnitId?: number | null
+	managementArea?: string | null
 	signatureUrl?: string | null
 }
 
