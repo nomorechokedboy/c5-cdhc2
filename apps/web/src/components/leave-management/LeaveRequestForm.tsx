@@ -519,9 +519,10 @@ export default function LeaveRequestForm() {
 										<Label>Quân nhân *</Label>
 										<Select
 											value={selectedPersonnelId}
-											onValueChange={
-												setSelectedPersonnelId
-											}
+											onValueChange={(value) => {
+												setSelectedPersonnelId(value)
+												setReplacementPersonnelId('')
+											}}
 										>
 											<SelectTrigger>
 												<SelectValue placeholder='Chọn người đề xuất phép…' />
@@ -681,9 +682,22 @@ export default function LeaveRequestForm() {
 											.filter(
 												(p) =>
 													p.id !== personnel.id &&
-													(personnel.unitId == null ||
-														p.unitId ===
-															personnel.unitId)
+													personnel.unitId != null &&
+													p.unitId ===
+														personnel.unitId &&
+													Boolean(
+														personnel.position?.trim()
+													) &&
+													p.position
+														?.trim()
+														.toLocaleLowerCase(
+															'vi'
+														) ===
+														personnel.position
+															.trim()
+															.toLocaleLowerCase(
+																'vi'
+															)
 											)
 											.map((p) => (
 												<SelectItem
@@ -699,8 +713,8 @@ export default function LeaveRequestForm() {
 									</SelectContent>
 								</Select>
 								<p className='mt-1 text-xs text-muted-foreground'>
-									Ví dụ: Tiểu đoàn trưởng nghỉ thì chọn Chính
-									trị viên làm người thay thế.
+									Chỉ hiển thị quân nhân có cùng chức vụ trong
+									cùng đơn vị.
 								</p>
 							</div>
 						)}
