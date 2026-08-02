@@ -250,196 +250,102 @@ jobs:
                       VITE_TOKEN_URI=${{ secrets.VITE_TOKEN_URI }}
                       VITE_REDIRECT_URI=${{ secrets.VITE_REDIRECT_URI }}
 
-    # --- New: mirror only the LAN sms-web images to the air-gapped registry and roll out ---
     mirror-sms-api-lan:
         needs: [detect-changes, build-sms-api]
         if: needs.detect-changes.outputs.sms-api == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Connect to Tailscale
-              uses: tailscale/github-action@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-api and roll out
+              uses: ./.github/actions/mirror-and-rollout
               with:
-                  authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-                  tags: tag:ci
-                  version: 1.90.6
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-                  ssh-keyscan -H ${{ secrets.DEST_IPv4 }} >> ~/.ssh/known_hosts
-            - name: Test SSH
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} \
-                    "echo 'SSH OK'; hostname"
-            - name: Mirror LAN image to local registry and roll out
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} << EOF
-                  set -e
-                  echo "== Logout GHCR to pull the freshly built LAN image =="
-                  docker logout ${{ env.REGISTRY }}
-                  echo "== Pulling lan-latest image from GHCR =="
-                  docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-api:lan-latest
-                  echo "== Tagging for local registry =="
-                  docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-api:lan-latest \
-                    ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/sms-api:latest
-                  echo "== Pushing to local registry (${{ env.LOCAL_REGISTRY }}) =="
-                  docker push ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/sms-api:latest
-                  echo "== Rolling out deployment =="
-                  kubectl rollout restart deployment/${{ env.SMS_API_K8S_DEPLOYMENT }} -n ${{ env.SMS_WEB_K8S_NAMESPACE }}
-                  echo "== Waiting for rollout to finish =="
-                  kubectl rollout status deployment/${{ env.SMS_API_K8S_DEPLOYMENT }} -n ${{ env.SMS_WEB_K8S_NAMESPACE }} --timeout=180s
-                  echo "✅ Deploy completed successfully!"
-                  EOF
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-api
+                  source_tag: lan-latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_API_K8S_DEPLOYMENT }}
+
     mirror-sms-web-lan:
         needs: [detect-changes, build-sms-web]
         if: needs.detect-changes.outputs.sms-web == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Connect to Tailscale
-              uses: tailscale/github-action@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-web and roll out
+              uses: ./.github/actions/mirror-and-rollout
               with:
-                  authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-                  tags: tag:ci
-                  version: 1.90.6
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-                  ssh-keyscan -H ${{ secrets.DEST_IPv4 }} >> ~/.ssh/known_hosts
-            - name: Test SSH
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} \
-                    "echo 'SSH OK'; hostname"
-            - name: Mirror LAN image to local registry and roll out
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} << EOF
-                  set -e
-                  echo "== Logout GHCR to pull the freshly built LAN image =="
-                  docker logout ${{ env.REGISTRY }}
-                  echo "== Pulling lan-latest image from GHCR =="
-                  docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-web:lan-latest
-                  echo "== Tagging for local registry =="
-                  docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/sms-web:lan-latest \
-                    ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/sms-web:latest
-                  echo "== Pushing to local registry (${{ env.LOCAL_REGISTRY }}) =="
-                  docker push ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/sms-web:latest
-                  echo "== Rolling out deployment =="
-                  kubectl rollout restart deployment/${{ env.SMS_WEB_K8S_DEPLOYMENT }} -n ${{ env.SMS_WEB_K8S_NAMESPACE }}
-                  echo "== Waiting for rollout to finish =="
-                  kubectl rollout status deployment/${{ env.SMS_WEB_K8S_DEPLOYMENT }} -n ${{ env.SMS_WEB_K8S_NAMESPACE }} --timeout=180s
-                  echo "✅ Deploy completed successfully!"
-                  EOF
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-web
+                  source_tag: lan-latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
+
     mirror-qlhv-api:
         needs: [detect-changes, build-api]
         if: needs.detect-changes.outputs.api == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Connect to Tailscale
-              uses: tailscale/github-action@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror qlhv-api and roll out
+              uses: ./.github/actions/mirror-and-rollout
               with:
-                  authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-                  tags: tag:ci
-                  version: 1.90.6
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-                  ssh-keyscan -H ${{ secrets.DEST_IPv4 }} >> ~/.ssh/known_hosts
-            - name: Test SSH
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} \
-                    "echo 'SSH OK'; hostname"
-            - name: Mirror LAN image to local registry and roll out
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} << EOF
-                  set -e
-                  echo "== Logout GHCR to pull the freshly built image =="
-                  docker logout ${{ env.REGISTRY }}
-                  echo "== Pulling latest image from GHCR =="
-                  docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-api:latest
-                  echo "== Tagging for local registry =="
-                  docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-api:latest \
-                    ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/qlhv-api:latest
-                  echo "== Pushing to local registry (${{ env.LOCAL_REGISTRY }}) =="
-                  docker push ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/qlhv-api:latest
-                  echo "== Rolling out deployment =="
-                  kubectl rollout restart deployment/${{ env.QLHV_API_K8S_DEPLOYMENT }} -n ${{ env.QLHV_WEB_K8S_NAMESPACE }}
-                  echo "== Waiting for rollout to finish =="
-                  kubectl rollout status deployment/${{ env.QLHV_API_K8S_DEPLOYMENT }} -n ${{ env.QLHV_WEB_K8S_NAMESPACE }} --timeout=180s
-                  echo "✅ Deploy completed successfully!"
-                  EOF
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: qlhv-api
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.QLHV_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.QLHV_API_K8S_DEPLOYMENT }}
+
     mirror-qlhv-web:
         needs: [detect-changes, build-web]
         if: needs.detect-changes.outputs.web == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Connect to Tailscale
-              uses: tailscale/github-action@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror qlhv-web and roll out
+              uses: ./.github/actions/mirror-and-rollout
               with:
-                  authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-                  tags: tag:ci
-                  version: 1.90.6
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-                  ssh-keyscan -H ${{ secrets.DEST_IPv4 }} >> ~/.ssh/known_hosts
-            - name: Test SSH
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} \
-                    "echo 'SSH OK'; hostname"
-            - name: Mirror LAN image to local registry and roll out
-              run: |
-                  ssh \
-                    -i ~/.ssh/id_ed25519 \
-                    -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=10 \
-                    cdhc2-itn@${{ secrets.DEST_IPv4 }} << EOF
-                  set -e
-                  echo "== Logout GHCR to pull the freshly built LAN image =="
-                  docker logout ${{ env.REGISTRY }}
-                  echo "== Pulling latest image from GHCR =="
-                  docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-web:latest
-                  echo "== Tagging for local registry =="
-                  docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/qlhv-web:latest \
-                    ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/qlhv-web:latest
-                  echo "== Pushing to local registry (${{ env.LOCAL_REGISTRY }}) =="
-                  docker push ${{ env.LOCAL_REGISTRY }}/${{ env.LOCAL_PROJECT }}/qlhv-web:latest
-                  echo "== Rolling out deployment =="
-                  kubectl rollout restart deployment/${{ env.QLHV_WEB_K8S_DEPLOYMENT }} -n ${{ env.QLHV_WEB_K8S_NAMESPACE }}
-                  echo "== Waiting for rollout to finish =="
-                  kubectl rollout status deployment/${{ env.QLHV_WEB_K8S_DEPLOYMENT }} -n ${{ env.QLHV_WEB_K8S_NAMESPACE }} --timeout=180s
-                  echo "✅ Deploy completed successfully!"
-                  EOF            
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: qlhv-web
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.QLHV_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.QLHV_WEB_K8S_DEPLOYMENT }}
