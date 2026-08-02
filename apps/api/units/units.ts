@@ -42,6 +42,29 @@ export const CreateUnit = api(
 	}
 )
 
+export const UpdateUnit = api(
+	{ auth: true, expose: true, method: 'PATCH', path: '/units/:id' },
+	async ({
+		id,
+		...body
+	}: {
+		id: number
+		alias?: string
+		name?: string
+		parentId?: number | null
+	}): Promise<{ data: UnitDB }> => ({
+		data: await unitController.update(id, body)
+	})
+)
+
+export const DeleteUnit = api(
+	{ auth: true, expose: true, method: 'DELETE', path: '/units/:id' },
+	async (params: { id: number }): Promise<{ ok: boolean }> => {
+		await unitController.delete(params.id)
+		return { ok: true }
+	}
+)
+
 type unit = Omit<UnitDB, 'parentId'>
 
 export type Unit = unit & {
