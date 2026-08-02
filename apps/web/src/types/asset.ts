@@ -319,7 +319,6 @@ export interface CreateAssetMovementBody {
 	holdingUnitId?: number | null
 }
 
-/** Điều động (TRANSFER) / thu hồi (RECALL) */
 export interface CreateTransferRecallBody {
 	movementType: 'TRANSFER' | 'RECALL'
 	/** RECALL: optional → kho KHO-VT */

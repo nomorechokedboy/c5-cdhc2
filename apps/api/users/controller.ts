@@ -36,7 +36,6 @@ class controller {
 		// Extract roleIds before creating user
 		const { roleIds, ...userParams } = params
 
-		// Chưa gán vai trò → status pending (ô «chờ cấp quyền» +1)
 		if (!roleIds?.length && !userParams.status) {
 			userParams.status = 'pending'
 		}
