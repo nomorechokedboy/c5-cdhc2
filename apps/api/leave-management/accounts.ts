@@ -52,6 +52,9 @@ export const AssignLeaveAccount = api(
 			await orm
 				.update(users)
 				.set({
+					displayName: p[0].fullName,
+					rank: p[0].rank,
+					unitId: p[0].unitId,
 					position: 'Quân nhân',
 					leaveUnitId: p[0].unitId,
 					managementArea: p[0].managementArea
