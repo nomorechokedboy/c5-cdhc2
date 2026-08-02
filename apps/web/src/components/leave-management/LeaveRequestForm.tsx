@@ -684,20 +684,7 @@ export default function LeaveRequestForm() {
 													p.id !== personnel.id &&
 													personnel.unitId != null &&
 													p.unitId ===
-														personnel.unitId &&
-													Boolean(
-														personnel.position?.trim()
-													) &&
-													p.position
-														?.trim()
-														.toLocaleLowerCase(
-															'vi'
-														) ===
-														personnel.position
-															.trim()
-															.toLocaleLowerCase(
-																'vi'
-															)
+														personnel.unitId
 											)
 											.map((p) => (
 												<SelectItem
@@ -713,8 +700,7 @@ export default function LeaveRequestForm() {
 									</SelectContent>
 								</Select>
 								<p className='mt-1 text-xs text-muted-foreground'>
-									Chỉ hiển thị quân nhân có cùng chức vụ trong
-									cùng đơn vị.
+									Chỉ hiển thị quân nhân trong cùng đơn vị.
 								</p>
 							</div>
 						)}

@@ -863,20 +863,6 @@ export const CreateLeaveRequest = api(
 				throw APIError.invalidArgument(
 					'Người thay thế phải thuộc cùng đơn vị'
 				)
-			const personnelPosition = (personnel.position || '')
-				.trim()
-				.toLocaleLowerCase('vi')
-			const replacementPosition = (replacementPersonnel.position || '')
-				.trim()
-				.toLocaleLowerCase('vi')
-			if (
-				!personnelPosition ||
-				!replacementPosition ||
-				replacementPosition !== personnelPosition
-			)
-				throw APIError.invalidArgument(
-					'Người thay thế phải có cùng chức vụ trong cùng đơn vị'
-				)
 		}
 
 		const inserted = await orm
