@@ -70,6 +70,9 @@ importers:
             node:
                 specifier: link:@libsql/client/node
                 version: link:@libsql/client/node
+            nodemailer:
+                specifier: ^9.0.3
+                version: 9.0.3
             uuid:
                 specifier: ^11.1.0
                 version: 11.1.0
@@ -7009,6 +7012,13 @@ packages:
                 integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==
             }
 
+    nodemailer@9.0.3:
+        resolution:
+            {
+                integrity: sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==
+            }
+        engines: { node: '>=6.0.0' }
+
     normalize-path@3.0.0:
         resolution:
             {
@@ -13026,6 +13036,8 @@ snapshots:
     node-gyp-build@4.8.4: {}
 
     node-releases@2.0.19: {}
+
+    nodemailer@9.0.3: {}
 
     normalize-path@3.0.0: {}
 
