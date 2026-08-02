@@ -6,7 +6,6 @@ import { and, eq, inArray, like, or, sql } from 'drizzle-orm'
 import { getAuthData } from '~encore/auth'
 import orm from '../database'
 import {
-	leaveClasses,
 	leavePersonnel,
 	type LeaveObjectType
 } from '../schema/leave-management'
