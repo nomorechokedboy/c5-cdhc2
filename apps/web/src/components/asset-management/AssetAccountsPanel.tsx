@@ -26,7 +26,14 @@ import { cn } from '@/lib/utils'
 function isDonViUser(u: User): boolean {
 	const pos = (u.position || '').toLowerCase()
 	const un = (u.username || '').toLowerCase()
-	return pos.includes('đơn vị') || un.startsWith('dv.')
+	return (
+		u.unitId != null ||
+		!!u.unit ||
+		!!u.unitName ||
+		pos.includes('đơn vị') ||
+		pos.includes('tài khoản phòng') ||
+		un.startsWith('dv.')
+	)
 }
 
 function isNganhAccount(u: User): boolean {
@@ -189,6 +196,18 @@ export default function AssetAccountsPanel() {
 						<div className='space-y-2'>
 							<Skeleton className='h-10 w-full' />
 							<Skeleton className='h-10 w-full' />
+						</div>
+					) : usersQ.isError ? (
+						<div className='py-10 text-center text-sm text-destructive'>
+							Không tải được danh sách tài khoản.{' '}
+							<Button
+								type='button'
+								variant='link'
+								className='h-auto p-0'
+								onClick={() => void usersQ.refetch()}
+							>
+								Thử lại
+							</Button>
 						</div>
 					) : !rows.length ? (
 						<p className='text-sm text-muted-foreground py-10 text-center'>

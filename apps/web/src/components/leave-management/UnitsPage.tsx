@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
 	CreateLeaveUnit,
+	CreateLeaveClass,
 	DeleteLeaveUnit,
 	ListLeaveClasses,
+	ListLeavePersonnel,
 	ListLeaveUnits,
 	UpdateLeaveUnit,
 	type LeaveUnit
@@ -28,6 +30,13 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 
 export default function UnitsPage() {
 	const qc = useQueryClient()
@@ -36,6 +45,10 @@ export default function UnitsPage() {
 	const [editing, setEditing] = useState<LeaveUnit | null>(null)
 	const [name, setName] = useState('')
 	const [code, setCode] = useState('')
+	const [createKind, setCreateKind] = useState<
+		'agency' | 'battalion' | 'company' | 'class'
+	>('agency')
+	const [parentId, setParentId] = useState('')
 
 	const { data = [], isLoading } = useQuery({
 		queryKey: ['leave-units', search],
@@ -49,6 +62,10 @@ export default function UnitsPage() {
 		queryKey: ['leave-classes'],
 		queryFn: () => ListLeaveClasses()
 	})
+	const { data: personnel = [] } = useQuery({
+		queryKey: ['leave-personnel', 'unit-tree-count'],
+		queryFn: () => ListLeavePersonnel()
+	})
 
 	const saveMut = useMutation({
 		mutationFn: async () => {
@@ -59,14 +76,26 @@ export default function UnitsPage() {
 					code: code.trim() || null
 				})
 			}
+			if (createKind === 'class') {
+				if (!parentId) throw new Error('Chọn đại đội cha')
+				return CreateLeaveClass({
+					unitId: Number(parentId),
+					name: name.trim()
+				})
+			}
+			if (createKind === 'company' && !parentId)
+				throw new Error('Chọn tiểu đoàn cha')
 			return CreateLeaveUnit({
 				name: name.trim(),
-				code: code.trim() || null
+				code: code.trim() || null,
+				level: createKind === 'agency' ? null : createKind,
+				parentId: createKind === 'company' ? Number(parentId) : null
 			})
 		},
 		onSuccess: () => {
 			toast.success(editing ? 'Đã cập nhật' : 'Đã thêm đơn vị')
 			qc.invalidateQueries({ queryKey: ['leave-units'] })
+			qc.invalidateQueries({ queryKey: ['leave-classes'] })
 			setOpen(false)
 			setEditing(null)
 			setName('')
@@ -88,6 +117,8 @@ export default function UnitsPage() {
 		setEditing(null)
 		setName('')
 		setCode('')
+		setCreateKind('agency')
+		setParentId('')
 		setOpen(true)
 	}
 
@@ -95,6 +126,8 @@ export default function UnitsPage() {
 		setEditing(u)
 		setName(u.name)
 		setCode(u.code || '')
+		setCreateKind((u.level as 'battalion' | 'company') || 'agency')
+		setParentId(u.parentId != null ? String(u.parentId) : '')
 		setOpen(true)
 	}
 
@@ -108,6 +141,8 @@ export default function UnitsPage() {
 	})
 	const classCount = (unitId: number) =>
 		classes.filter((c) => c.unitId === unitId)
+	const personnelCount = (classId: number) =>
+		personnel.filter((p) => p.classId === classId).length
 
 	return (
 		<div className='space-y-4'>
@@ -117,8 +152,7 @@ export default function UnitsPage() {
 						Danh mục đơn vị
 					</h2>
 					<p className='text-sm text-muted-foreground'>
-						Biên chế: Đại đội → Lớp học viên; Tiểu đoàn → Đại đội →
-						Trung đoàn → Lữ/Sư đoàn → Quân đoàn → Quân khu/chủng
+						Biên chế dạng cây: Tiểu đoàn → Đại đội → Lớp học viên
 					</p>
 				</div>
 				<div className='flex gap-2'>
@@ -166,23 +200,33 @@ export default function UnitsPage() {
 							</TableRow>
 						)}
 						{orderedUnits.map((u) => (
-							<>
-								<TableRow key={u.id}>
+							<Fragment key={u.id}>
+								<TableRow
+									className={
+										u.parentId == null
+											? 'bg-muted/25 font-semibold'
+											: ''
+									}
+								>
 									<TableCell className='font-mono text-sm'>
 										{u.code || '—'}
 									</TableCell>
 									<TableCell>
-										{u.parentId != null && (
-											<span className='mr-2 text-muted-foreground'>
-												└
-											</span>
+										{u.parentId != null ? (
+											<div className='flex items-center pl-8'>
+												<span className='mr-2 font-mono text-muted-foreground'>
+													├──
+												</span>
+												<span>{u.name}</span>
+											</div>
+										) : (
+											<span>{u.name}</span>
 										)}
-										{u.name}
 									</TableCell>
 									<TableCell>
 										{u.level
 											? levelLabel[u.level] || u.level
-											: '—'}
+											: 'Cơ quan / phòng ban'}
 									</TableCell>
 									<TableCell>
 										{u.managementArea === 'quân_lực'
@@ -221,12 +265,17 @@ export default function UnitsPage() {
 								{classCount(u.id).map((c) => (
 									<TableRow key={`class-${c.id}`}>
 										<TableCell />
-										<TableCell className='pl-12'>
-											└ Lớp {c.name} —{' '}
-											{data.length && c.name === 'A1'
-												? 2
-												: 0}{' '}
-											học viên
+										<TableCell>
+											<div className='flex items-center pl-16'>
+												<span className='mr-2 font-mono text-muted-foreground'>
+													│&nbsp;&nbsp;└──
+												</span>
+												<span>
+													Lớp {c.name} —{' '}
+													{personnelCount(c.id)} học
+													viên
+												</span>
+											</div>
 										</TableCell>
 										<TableCell>Lớp học viên</TableCell>
 										<TableCell>—</TableCell>
@@ -234,7 +283,7 @@ export default function UnitsPage() {
 										<TableCell />
 									</TableRow>
 								))}
-							</>
+							</Fragment>
 						))}
 					</TableBody>
 				</Table>
@@ -248,15 +297,121 @@ export default function UnitsPage() {
 						</DialogTitle>
 					</DialogHeader>
 					<div className='grid gap-3 py-2'>
+						{!editing && (
+							<div>
+								<Label>Loại cần thêm *</Label>
+								<Select
+									value={createKind}
+									onValueChange={(v) => {
+										setCreateKind(v as typeof createKind)
+										setParentId('')
+										setName('')
+										setCode('')
+									}}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value='agency'>
+											Cơ quan / phòng ban
+										</SelectItem>
+										<SelectItem value='battalion'>
+											Tiểu đoàn
+										</SelectItem>
+										<SelectItem value='company'>
+											Đại đội
+										</SelectItem>
+										<SelectItem value='class'>
+											Lớp học viên
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						)}
+						{!editing && createKind === 'company' && (
+							<div>
+								<Label>Tiểu đoàn cha *</Label>
+								<Select
+									value={parentId}
+									onValueChange={setParentId}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder='Chọn tiểu đoàn…' />
+									</SelectTrigger>
+									<SelectContent>
+										{data
+											.filter(
+												(u) => u.level === 'battalion'
+											)
+											.map((u) => (
+												<SelectItem
+													key={u.id}
+													value={String(u.id)}
+												>
+													{u.code
+														? `${u.code} — `
+														: ''}
+													{u.name}
+												</SelectItem>
+											))}
+									</SelectContent>
+								</Select>
+							</div>
+						)}
+						{!editing && createKind === 'class' && (
+							<div>
+								<Label>Đại đội cha *</Label>
+								<Select
+									value={parentId}
+									onValueChange={setParentId}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder='Chọn đại đội…' />
+									</SelectTrigger>
+									<SelectContent>
+										{data
+											.filter(
+												(u) => u.level === 'company'
+											)
+											.map((u) => (
+												<SelectItem
+													key={u.id}
+													value={String(u.id)}
+												>
+													{u.code
+														? `${u.code} — `
+														: ''}
+													{u.name}
+												</SelectItem>
+											))}
+									</SelectContent>
+								</Select>
+							</div>
+						)}
 						<div>
 							<Label>Tên *</Label>
 							<Input
 								value={name}
 								onChange={(e) => setName(e.target.value)}
-								placeholder='Ví dụ: Đại đội 1'
+								placeholder={
+									createKind === 'class'
+										? 'Ví dụ: A11, Lớp đào tạo 1…'
+										: createKind === 'company'
+											? 'Ví dụ: Đại đội 1'
+											: createKind === 'battalion'
+												? 'Ví dụ: Tiểu đoàn 1'
+												: 'Ví dụ: Phòng Tham mưu, Ban Hậu cần…'
+								}
 							/>
 						</div>
-						<div>
+						<div
+							className={
+								createKind === 'class' && !editing
+									? 'hidden'
+									: ''
+							}
+						>
 							<Label>Mã (tuỳ chọn)</Label>
 							<Input
 								value={code}

@@ -1221,6 +1221,7 @@ export default function RoomProfile({ roomId }: { roomId: number }) {
 				}
 				roomCode={data.roomCode}
 				roomName={data.roomName}
+				managerCode={data.managerCode ?? ''}
 				asset={editingAsset}
 				onCreate={async (body) => {
 					await mutations.createAsset.mutateAsync(body)

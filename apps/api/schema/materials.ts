@@ -25,6 +25,13 @@ export const materials = sqliteTable('materials', {
 	minQuantity: int('min_quantity').notNull().default(0),
 	price: real('price').default(0),
 	status: text('status').notNull().default('ACTIVE'),
+	/** Thuộc tính mặc định khi cấp vật tư vào phòng */
+	manufactureYear: int('manufacture_year'),
+	usageYear: int('usage_year'),
+	classification: text('classification'),
+	assetStatus: text('asset_status').notNull().default('NORMAL'),
+	purchaseDate: text('purchase_date'),
+	expiryDate: text('expiry_date'),
 	description: text('description')
 })
 
@@ -49,6 +56,12 @@ export interface MaterialDB extends Base {
 	minQuantity: number
 	price?: number
 	status?: string
+	manufactureYear?: number | null
+	usageYear?: number | null
+	classification?: string | null
+	assetStatus?: string | null
+	purchaseDate?: string | null
+	expiryDate?: string | null
 	description?: string
 }
 
@@ -67,6 +80,12 @@ export interface CreateMaterialRequest {
 	minQuantity?: number
 	price?: number
 	status?: string
+	manufactureYear?: number
+	usageYear?: number
+	classification?: string
+	assetStatus?: string
+	purchaseDate?: string
+	expiryDate?: string
 	description?: string
 }
 
@@ -81,5 +100,11 @@ export interface UpdateMaterialRequest {
 	minQuantity?: number
 	price?: number
 	status?: string
+	manufactureYear?: number | null
+	usageYear?: number | null
+	classification?: string | null
+	assetStatus?: string | null
+	purchaseDate?: string | null
+	expiryDate?: string | null
 	description?: string
 }

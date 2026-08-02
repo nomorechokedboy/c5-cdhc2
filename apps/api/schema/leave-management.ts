@@ -71,7 +71,7 @@ export const leaveUnits = sqliteTable('leave_units', {
 	managementArea: text('management_area').notNull().default('cán_bộ')
 })
 
-/** Lớp học viên thuộc đại đội (mỗi đại đội tối đa 2 lớp A1–A10). */
+/** Lớp học viên thuộc đại đội; tên tự do theo biên chế thực tế. */
 export const leaveClasses = sqliteTable('leave_classes', {
 	...baseSchema,
 	unitId: int('unit_id').notNull(),
@@ -194,6 +194,10 @@ export const leaveRequests = sqliteTable('leave_requests', {
 	/** Chỉ huy cơ quan phụ trách đơn này */
 	commanderUserId: int('commander_user_id'),
 	commanderName: text('commander_name'),
+	/** Quân nhân được phân công thay thế trong thời gian nghỉ */
+	replacementPersonnelId: int('replacement_personnel_id'),
+	replacementPersonnelName: text('replacement_personnel_name'),
+	replacementPosition: text('replacement_position'),
 	adminNote: text('admin_note'),
 	decidedByUserId: int('decided_by_user_id'),
 	decidedByUsername: text('decided_by_username'),
@@ -263,6 +267,9 @@ export const leaveRecords = sqliteTable('leave_records', {
 	localityId: int('locality_id'),
 	localityPath: text('locality_path'),
 	note: text('note'),
+	replacementPersonnelId: int('replacement_personnel_id'),
+	replacementPersonnelName: text('replacement_personnel_name'),
+	replacementPosition: text('replacement_position'),
 	adminNote: text('admin_note'),
 	proposedByUserId: int('proposed_by_user_id'),
 	proposedByUsername: text('proposed_by_username'),
