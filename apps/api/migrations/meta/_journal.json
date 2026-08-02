@@ -393,6 +393,41 @@
 			"when": 1785555000000,
 			"tag": "0055_sync_exam_log_major_codes",
 			"breakpoints": true
+		},
+		{
+			"idx": 56,
+			"version": "6",
+			"when": 1785660000000,
+			"tag": "0056_standalone-faculties",
+			"breakpoints": true
+		},
+		{
+			"idx": 57,
+			"version": "6",
+			"when": 1785632400000,
+			"tag": "0057_material_asset_defaults",
+			"breakpoints": true
+		},
+		{
+			"idx": 58,
+			"version": "6",
+			"when": 1785636000000,
+			"tag": "0058_leave_replacement_personnel",
+			"breakpoints": true
+		},
+		{
+			"idx": 59,
+			"version": "6",
+			"when": 1785662800042,
+			"tag": "0059_burly_banshee",
+			"breakpoints": true
+		},
+		{
+			"idx": 60,
+			"version": "6",
+			"when": 1785666047014,
+			"tag": "0060_white_scarecrow",
+			"breakpoints": true
 		}
 	]
 }
