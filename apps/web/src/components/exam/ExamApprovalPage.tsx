@@ -29,7 +29,6 @@ import { GetUserInfo, UpdateMySignature } from '@/api'
 import { isExamBgh, isExamDeptHead, isExamOffice } from '@/lib/exam-roles'
 import { extractSignatureFromImage } from '@/lib/signature-extract'
 import { isSuperAdmin } from '@/lib/utils'
-import { ExamStatusBadge } from './exam-status'
 import {
 	Card,
 	CardContent,
