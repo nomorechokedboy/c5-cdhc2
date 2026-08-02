@@ -2,7 +2,7 @@
 	"version": "6",
 	"dialect": "sqlite",
 	"id": "0b0df46e-6525-456a-b4c3-ab54a055121d",
-	"prevId": "dfff3282-0fb1-42a4-b9fe-17c78924f6f5",
+	"prevId": "c9dd64f7-b331-47df-ac46-69818a43617b",
 	"tables": {
 		"account_audit_logs": {
 			"name": "account_audit_logs",
