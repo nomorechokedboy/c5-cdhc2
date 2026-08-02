@@ -1,5 +1,5 @@
 import { api, APIError, Query } from 'encore.dev/api'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import orm from '../database'
 import { leaveClasses, leaveUnits } from '../schema/leave-management'
 
@@ -42,9 +42,9 @@ export const CreateLeaveClass = api(
 		unitId: number
 		name: string
 	}): Promise<{ data: LeaveClassResponse }> => {
-		const name = body.name?.trim().toUpperCase()
-		if (!/^A(?:10|[1-9])$/.test(name || '')) {
-			throw APIError.invalidArgument('Tên lớp phải từ A1 đến A10')
+		const name = body.name?.trim()
+		if (!name) {
+			throw APIError.invalidArgument('Tên lớp là bắt buộc')
 		}
 		const unit = await orm
 			.select()
@@ -58,15 +58,6 @@ export const CreateLeaveClass = api(
 			.limit(1)
 		if (!unit[0])
 			throw APIError.invalidArgument('Lớp chỉ được tạo trong đại đội')
-		const count = await orm
-			.select({ value: sql<number>`count(*)` })
-			.from(leaveClasses)
-			.where(eq(leaveClasses.unitId, body.unitId))
-		if (Number(count[0]?.value || 0) >= 2) {
-			throw APIError.failedPrecondition(
-				'Mỗi đại đội chỉ được duy trì tối đa 2 lớp'
-			)
-		}
 		const row = (
 			await orm
 				.insert(leaveClasses)
