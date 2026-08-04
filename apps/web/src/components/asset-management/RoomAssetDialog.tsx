@@ -26,6 +26,7 @@ import type {
 	UpdateRoomAssetBody
 } from '@/types/asset'
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { ASSET_GRADES } from '@/lib/asset-grade'
 import {
 	isCatalogStyleAssetCode,
@@ -38,6 +39,7 @@ import {
 	validateAssetYears
 } from '@/lib/asset-year'
 import useUnitsData from '@/hooks/useUnitsData'
+import { GetAssetCatalog } from '@/api/asset'
 import { toast } from 'sonner'
 
 const STATUSES = [
@@ -81,6 +83,8 @@ type Props = {
 	/** Mã/tên phòng — gợi ý đơn vị sử dụng (CDHC2-D2 → D2) */
 	roomCode?: string
 	roomName?: string
+	/** Đơn vị quản lý của phòng; đồng thời là đơn vị sử dụng vật tư */
+	managerCode?: string
 	asset?: RoomAsset | null
 	onCreate: (body: CreateRoomAssetBody) => Promise<void>
 	onUpdate: (id: number, body: UpdateRoomAssetBody) => Promise<void>
@@ -93,12 +97,18 @@ export default function RoomAssetDialog({
 	locationCode = '',
 	roomCode = '',
 	roomName = '',
+	managerCode = '',
 	asset,
 	onCreate,
 	onUpdate
 }: Props) {
 	const isEdit = !!asset
 	const { data: unitsTree = [] } = useUnitsData()
+	const catalogQ = useQuery({
+		queryKey: ['asset-catalog', 'room-asset-picker'],
+		queryFn: () => GetAssetCatalog(),
+		enabled: open
+	})
 	const [pending, setPending] = useState(false)
 	/** Mã đầy đủ — một ô (vd. HC2A0113), không tách prefix vị trí */
 	const [fullCode, setFullCode] = useState('')
@@ -127,6 +137,20 @@ export default function RoomAssetDialog({
 	const [holdingPick, setHoldingPick] = useState<string>('')
 	/** Khi pick = OTHER: đơn vị thật bắt buộc */
 	const [otherUnitId, setOtherUnitId] = useState('')
+	const [selectedCatalogCode, setSelectedCatalogCode] = useState('')
+	const [selectedNganhCode, setSelectedNganhCode] = useState('')
+	const [selectedChuyenNganhCode, setSelectedChuyenNganhCode] = useState('')
+	const catalogMaterials = catalogQ.data?.materials ?? []
+	const catalogNganh = catalogQ.data?.nganh ?? []
+	const catalogChuyenNganh = catalogQ.data?.chuyenNganh ?? []
+	const filteredChuyenNganh = catalogChuyenNganh.filter(
+		(item) => !selectedNganhCode || item.nganhCode === selectedNganhCode
+	)
+	const filteredCatalogMaterials = catalogMaterials.filter(
+		(item) =>
+			!selectedChuyenNganhCode ||
+			item.categoryCode === selectedChuyenNganhCode
+	)
 
 	const allUnits: UnitFlat[] = useMemo(() => {
 		const list: UnitFlat[] = []
@@ -155,6 +179,11 @@ export default function RoomAssetDialog({
 
 	/** Gợi ý đơn vị từ mã/tên phòng hiện tại */
 	const suggestedUnitId = useMemo(() => {
+		const managerAlias = managerCode.trim().toUpperCase()
+		if (managerAlias) {
+			const managed = allUnits.find((u) => u.alias === managerAlias)
+			if (managed) return String(managed.id)
+		}
 		const code = (roomCode || '').toUpperCase()
 		const tail = code.includes('-') ? code.split('-').pop() || '' : ''
 		if (tail) {
@@ -169,7 +198,7 @@ export default function RoomAssetDialog({
 			if (byName) return String(byName.id)
 		}
 		return ''
-	}, [roomCode, roomName, allUnits])
+	}, [managerCode, roomCode, roomName, allUnits])
 
 	const unitOptions: SearchableOption[] = useMemo(
 		() => [
@@ -188,12 +217,13 @@ export default function RoomAssetDialog({
 	)
 
 	const resolvedHoldingUnitId = useMemo(() => {
+		if (!isEdit) return suggestedUnitId ? Number(suggestedUnitId) : null
 		if (holdingPick === OTHER_UNIT) {
 			return otherUnitId ? Number(otherUnitId) : null
 		}
 		if (holdingPick) return Number(holdingPick)
 		return null
-	}, [holdingPick, otherUnitId])
+	}, [holdingPick, otherUnitId, isEdit, suggestedUnitId])
 
 	useEffect(() => {
 		if (asset) {
@@ -201,6 +231,20 @@ export default function RoomAssetDialog({
 			setFullCode(cleaned)
 			setName(asset.name)
 			setCategory(asset.category)
+			setSelectedCatalogCode(
+				catalogMaterials.find(
+					(item) =>
+						asset.code === item.code ||
+						asset.code.startsWith(`${item.code}-`)
+				)?.code ?? ''
+			)
+			const picked = catalogMaterials.find(
+				(item) =>
+					asset.code === item.code ||
+					asset.code.startsWith(`${item.code}-`)
+			)
+			setSelectedNganhCode(picked?.nganhCode ?? '')
+			setSelectedChuyenNganhCode(picked?.categoryCode ?? '')
 			setQuantity(asset.quantity)
 			setUnit(asset.unit ?? '')
 			setGrade(String(asset.grade ?? 1))
@@ -238,6 +282,9 @@ export default function RoomAssetDialog({
 			setFullCode('')
 			setName('')
 			setCategory('')
+			setSelectedCatalogCode('')
+			setSelectedNganhCode('')
+			setSelectedChuyenNganhCode('')
 			setQuantity(1)
 			setUnit('')
 			setGrade('1')
@@ -255,7 +302,7 @@ export default function RoomAssetDialog({
 			setHoldingPick(suggestedUnitId || '')
 			setOtherUnitId('')
 		}
-	}, [asset, open, suggestedUnitId])
+	}, [asset, suggestedUnitId, catalogMaterials])
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault()
@@ -266,21 +313,21 @@ export default function RoomAssetDialog({
 			code = code.toUpperCase()
 		}
 		if (!code || !name.trim() || !category.trim()) {
-			toast.error('Mã, tên và loại vật tư là bắt buộc')
+			toast.error('Hãy chọn vật tư trong danh mục ngành')
 			return
 		}
-		if (!holdingPick) {
+		if (isEdit && !holdingPick) {
 			toast.error('Chọn đơn vị sử dụng')
 			return
 		}
-		if (holdingPick === OTHER_UNIT && !otherUnitId) {
+		if (isEdit && holdingPick === OTHER_UNIT && !otherUnitId) {
 			toast.error(
 				'Đã chọn «Khác» — bắt buộc chọn đơn vị quản lý / sử dụng'
 			)
 			return
 		}
 		if (resolvedHoldingUnitId == null) {
-			toast.error('Chọn đơn vị sử dụng hợp lệ')
+			toast.error('Phòng chưa có đơn vị sử dụng để tự động cập nhật')
 			return
 		}
 		const yearErr = validateAssetYears({
@@ -348,26 +395,98 @@ export default function RoomAssetDialog({
 						<Label className='text-base font-semibold'>
 							Mã vật tư *
 						</Label>
-						<Input
-							value={fullCode}
-							onChange={(e) =>
-								setFullCode(
-									stripLocationPrefixFromCatalog(
-										e.target.value
+						<div className='grid grid-cols-1 gap-3'>
+							<Select
+								value={selectedNganhCode}
+								onValueChange={(value) => {
+									setSelectedNganhCode(value)
+									setSelectedChuyenNganhCode('')
+									setSelectedCatalogCode('')
+								}}
+							>
+								<SelectTrigger className='h-12'>
+									<SelectValue placeholder='Chọn ngành' />
+								</SelectTrigger>
+								<SelectContent>
+									{catalogNganh.map((item) => (
+										<SelectItem
+											key={item.code}
+											value={item.code}
+										>
+											{item.code} — {item.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Select
+								value={selectedChuyenNganhCode}
+								onValueChange={(value) => {
+									setSelectedChuyenNganhCode(value)
+									setSelectedCatalogCode('')
+								}}
+								disabled={!selectedNganhCode}
+							>
+								<SelectTrigger className='h-12'>
+									<SelectValue placeholder='Chọn loại vật' />
+								</SelectTrigger>
+								<SelectContent>
+									{filteredChuyenNganh.map((item) => (
+										<SelectItem
+											key={item.code}
+											value={item.code}
+										>
+											{item.code} — {item.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Select
+								value={selectedCatalogCode}
+								onValueChange={(value) => {
+									const m = filteredCatalogMaterials.find(
+										(item) => item.code === value
 									)
-								)
-							}
-							placeholder='VD: HC2A0113-G2-D1'
-							required
-							className='font-mono h-12 text-lg'
-						/>
+									if (!m) return
+									setSelectedCatalogCode(value)
+									setFullCode(value)
+									setName(m.name)
+									setCategory(
+										m.classification ||
+											m.categoryName ||
+											m.categoryCode
+									)
+									setUnit(m.unit)
+									setManufactureYear(
+										m.manufactureYear != null
+											? String(m.manufactureYear)
+											: ''
+									)
+									setUsageYear(
+										m.usageYear != null
+											? String(m.usageYear)
+											: ''
+									)
+									setStatus(m.assetStatus || 'NORMAL')
+									setPurchaseDate(m.purchaseDate || '')
+									setExpiryDate(m.expiryDate || '')
+								}}
+								disabled={!selectedChuyenNganhCode}
+							>
+								<SelectTrigger className='h-12'>
+									<SelectValue placeholder='Chọn vật tư' />
+								</SelectTrigger>
+								<SelectContent>
+									{filteredCatalogMaterials.map((m) => (
+										<SelectItem key={m.id} value={m.code}>
+											{m.code} — {m.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 						<p className='text-base text-muted-foreground leading-relaxed'>
-							<strong>Quy tắc mã:</strong>{' '}
-							<span className='font-mono font-medium text-foreground'>
-								HC2A0113-G2-D1
-							</span>{' '}
-							= mã thiết bị danh mục + cấp (G1–G5) + alias đơn vị.
-							Không ghép mã tòa/tầng/phòng.
+							<strong>Danh mục:</strong> chọn lần lượt Ngành, Loại
+							vật và Vật tư.
 							{locationCode ? (
 								<>
 									<br />
@@ -380,27 +499,24 @@ export default function RoomAssetDialog({
 						</p>
 					</div>
 					<div className='grid grid-cols-2 gap-3'>
-						<div className='space-y-2'>
+						<div className={isEdit ? 'space-y-2' : 'hidden'}>
 							<Label className='text-base font-semibold'>
 								Tên thiết bị *
 							</Label>
 							<Input
 								value={name}
-								onChange={(e) => setName(e.target.value)}
-								required
-								className='h-12 text-lg'
+								readOnly
+								className='h-12 text-lg bg-muted'
 							/>
 						</div>
-						<div className='space-y-2'>
+						<div className={isEdit ? 'space-y-2' : 'hidden'}>
 							<Label className='text-base font-semibold'>
 								Loại / nhóm *
 							</Label>
 							<Input
 								value={category}
-								onChange={(e) => setCategory(e.target.value)}
-								placeholder='VD: IT, Khác'
-								required
-								className='h-12 text-lg'
+								readOnly
+								className='h-12 text-lg bg-muted'
 							/>
 						</div>
 					</div>
@@ -419,7 +535,7 @@ export default function RoomAssetDialog({
 								className='h-12 text-lg'
 							/>
 						</div>
-						<div className='space-y-2'>
+						<div className={isEdit ? 'space-y-2' : 'hidden'}>
 							<Label className='text-base font-semibold'>
 								ĐVT
 							</Label>
@@ -430,7 +546,7 @@ export default function RoomAssetDialog({
 								className='h-12 text-lg'
 							/>
 						</div>
-						<div className='space-y-2'>
+						<div className={isEdit ? 'space-y-2' : 'hidden'}>
 							<Label className='text-base font-semibold'>
 								Phân cấp
 							</Label>
@@ -451,15 +567,29 @@ export default function RoomAssetDialog({
 							</Select>
 						</div>
 					</div>
-					{grade === '5' && (
+					{isEdit && grade === '5' && (
 						<p className='text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5'>
 							Phân cấp 5 (Hỏng): hệ thống sẽ tự đề xuất phiếu sửa
 							chữa.
 						</p>
 					)}
 
-					{/* Đơn vị sử dụng — bắt buộc; Khác → chọn đơn vị quản lý */}
-					<div className='space-y-3 rounded-md border p-3 bg-muted/20'>
+					{/* Khi thêm mới, đơn vị được lấy tự động từ phòng. */}
+					{!isEdit && (
+						<div className='rounded-md border bg-muted/30 p-3 text-sm'>
+							<strong>Đơn vị sử dụng:</strong>{' '}
+							{allUnits.find(
+								(u) => String(u.id) === suggestedUnitId
+							)?.name || 'Chưa xác định từ phòng'}
+						</div>
+					)}
+					<div
+						className={
+							isEdit
+								? 'space-y-3 rounded-md border p-3 bg-muted/20'
+								: 'hidden'
+						}
+					>
 						<div className='space-y-2'>
 							<Label className='text-base font-semibold'>
 								Đơn vị sử dụng{' '}
@@ -512,7 +642,9 @@ export default function RoomAssetDialog({
 						)}
 					</div>
 
-					<div className='grid grid-cols-2 gap-3'>
+					<div
+						className={isEdit ? 'grid grid-cols-2 gap-3' : 'hidden'}
+					>
 						<div className='space-y-2'>
 							<Label className='text-base font-semibold'>
 								Năm sản xuất
@@ -559,7 +691,9 @@ export default function RoomAssetDialog({
 							className='h-12 text-lg'
 						/>
 					</div>
-					<div className='grid grid-cols-2 gap-3'>
+					<div
+						className={isEdit ? 'grid grid-cols-2 gap-3' : 'hidden'}
+					>
 						<div className='space-y-2'>
 							<Label className='text-base font-semibold'>
 								Trạng thái
@@ -591,7 +725,7 @@ export default function RoomAssetDialog({
 							/>
 						</div>
 					</div>
-					<div className='space-y-2'>
+					<div className={isEdit ? 'space-y-2' : 'hidden'}>
 						<Label>Ngày hết hạn / BH</Label>
 						<Input
 							type='date'
@@ -599,56 +733,63 @@ export default function RoomAssetDialog({
 							onChange={(e) => setExpiryDate(e.target.value)}
 						/>
 					</div>
-					{(status === 'BROKEN' || status === 'REPAIRING') && (
-						<div className='rounded-md border p-3 space-y-3 bg-muted/30'>
-							<p className='text-xs font-medium text-muted-foreground'>
-								Thông tin hư hỏng / sửa chữa
-							</p>
-							<div className='grid grid-cols-2 gap-3'>
-								<div className='space-y-2'>
-									<Label>Ngày hư</Label>
-									<Input
-										type='date'
-										value={brokenAt}
-										onChange={(e) =>
-											setBrokenAt(e.target.value)
-										}
-									/>
+					{isEdit &&
+						(status === 'BROKEN' || status === 'REPAIRING') && (
+							<div className='rounded-md border p-3 space-y-3 bg-muted/30'>
+								<p className='text-xs font-medium text-muted-foreground'>
+									Thông tin hư hỏng / sửa chữa
+								</p>
+								<div className='grid grid-cols-2 gap-3'>
+									<div className='space-y-2'>
+										<Label>Ngày hư</Label>
+										<Input
+											type='date'
+											value={brokenAt}
+											onChange={(e) =>
+												setBrokenAt(e.target.value)
+											}
+										/>
+									</div>
+									<div className='space-y-2'>
+										<Label>Bắt đầu sửa</Label>
+										<Input
+											type='date'
+											value={repairStartedAt}
+											onChange={(e) =>
+												setRepairStartedAt(
+													e.target.value
+												)
+											}
+										/>
+									</div>
 								</div>
-								<div className='space-y-2'>
-									<Label>Bắt đầu sửa</Label>
-									<Input
-										type='date'
-										value={repairStartedAt}
-										onChange={(e) =>
-											setRepairStartedAt(e.target.value)
-										}
-									/>
+								<div className='grid grid-cols-2 gap-3'>
+									<div className='space-y-2'>
+										<Label>Hoàn thành SC</Label>
+										<Input
+											type='date'
+											value={repairCompletedAt}
+											onChange={(e) =>
+												setRepairCompletedAt(
+													e.target.value
+												)
+											}
+										/>
+									</div>
+									<div className='space-y-2'>
+										<Label>Người sửa</Label>
+										<Input
+											value={repairPerformer}
+											onChange={(e) =>
+												setRepairPerformer(
+													e.target.value
+												)
+											}
+										/>
+									</div>
 								</div>
 							</div>
-							<div className='grid grid-cols-2 gap-3'>
-								<div className='space-y-2'>
-									<Label>Hoàn thành SC</Label>
-									<Input
-										type='date'
-										value={repairCompletedAt}
-										onChange={(e) =>
-											setRepairCompletedAt(e.target.value)
-										}
-									/>
-								</div>
-								<div className='space-y-2'>
-									<Label>Người sửa</Label>
-									<Input
-										value={repairPerformer}
-										onChange={(e) =>
-											setRepairPerformer(e.target.value)
-										}
-									/>
-								</div>
-							</div>
-						</div>
-					)}
+						)}
 					<div className='space-y-2'>
 						<Label>Mô tả / ghi chú</Label>
 						<Textarea

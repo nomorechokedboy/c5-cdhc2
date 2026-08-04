@@ -335,6 +335,12 @@ export type CatalogMaterial = {
 	stockQuantity?: number
 	/** SL danh mục (materials.quantity) — tăng/giảm user ngành */
 	catalogQuantity?: number
+	manufactureYear?: number | null
+	usageYear?: number | null
+	classification?: string | null
+	assetStatus?: string
+	purchaseDate?: string | null
+	expiryDate?: string | null
 }
 
 export type AssetCatalog = {
@@ -422,7 +428,17 @@ export async function CreateCatalogChuyenNganh(body: {
 /** Sửa vật tư danh mục */
 export async function UpdateCatalogMaterial(
 	id: number,
-	body: { name?: string; unit?: string; description?: string | null }
+	body: {
+		name?: string
+		unit?: string
+		description?: string | null
+		manufactureYear?: number | null
+		usageYear?: number | null
+		classification?: string | null
+		assetStatus?: string | null
+		purchaseDate?: string | null
+		expiryDate?: string | null
+	}
 ): Promise<CatalogMaterial> {
 	const resp = await jsonFetch<{ data: CatalogMaterial }>(
 		`/asset-catalog/materials/${id}`,
@@ -501,8 +517,15 @@ export async function CreateCatalogMaterial(body: {
 	chuyenNganhCode: string
 	name: string
 	unit?: string
+	quantity?: number
 	code?: string
 	description?: string
+	manufactureYear?: number
+	usageYear?: number
+	classification?: string
+	assetStatus?: string
+	purchaseDate?: string
+	expiryDate?: string
 }): Promise<CatalogMaterial> {
 	const resp = await jsonFetch<{ data: CatalogMaterial }>(
 		'/asset-catalog/materials',

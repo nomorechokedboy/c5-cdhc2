@@ -24,6 +24,7 @@ import {
 import { toast } from 'sonner'
 import {
 	CreateCatalogChuyenNganh,
+	CreateCatalogMaterial,
 	CreateCatalogNganh,
 	DeleteCatalogCategories,
 	DeleteCatalogMaterials,
@@ -58,6 +59,13 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/error-state'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import {
 	Dialog,
 	DialogContent,
@@ -146,6 +154,7 @@ export default function NganhCatalog({
 	const [editMaterial, setEditMaterial] = useState<CatalogMaterial | null>(
 		null
 	)
+	const [createMaterialOpen, setCreateMaterialOpen] = useState(false)
 	const [confirm, setConfirm] = useState<{
 		title: string
 		onConfirm: () => Promise<void>
@@ -174,6 +183,7 @@ export default function NganhCatalog({
 	 * - JWT nganhCodes / catalog (đã filter API) → auto set
 	 * - 1 ngành → khóa cứng
 	 */
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-scope only when assigned catalog access changes
 	useEffect(() => {
 		if (!nganhScoped) return
 		// Ưu tiên JWT → catalog API (đã scope)
@@ -201,7 +211,8 @@ export default function NganhCatalog({
 		// Mặc định: ngành đầu (user.cntt → HC2A)
 		const first =
 			nganh.find((n) => allowed.includes(n.code.toUpperCase()))?.code ||
-			allowed[0]!
+			allowed[0]
+		if (!first) return
 		setFilterNganhCode(first)
 		void navigate({
 			to: '/vat-tu/danh-muc-nganh',
@@ -539,7 +550,7 @@ export default function NganhCatalog({
 						/* Vật tư: Ngành (cố định user ngành) + Loại vật */
 						<div className='flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-end'>
 							<div className='flex-1 min-w-[200px] space-y-1.5'>
-								<label className='text-sm font-medium'>
+								<div className='text-sm font-medium'>
 									Ngành
 									{nganhScoped ? (
 										<span className='text-muted-foreground font-normal'>
@@ -547,7 +558,7 @@ export default function NganhCatalog({
 											(cố định)
 										</span>
 									) : null}
-								</label>
+								</div>
 								{nganhScoped && nganh.length === 1 ? (
 									<div className='h-10 px-3 flex items-center rounded-md border bg-muted/50 text-sm font-medium'>
 										{selectedNganh
@@ -581,7 +592,7 @@ export default function NganhCatalog({
 								)}
 							</div>
 							<div className='flex-1 min-w-[200px] space-y-1.5'>
-								<label className='text-sm font-medium'>
+								<div className='text-sm font-medium'>
 									Loại vật
 									{nganhScoped ? (
 										<span className='text-muted-foreground font-normal'>
@@ -589,7 +600,7 @@ export default function NganhCatalog({
 											(trong ngành)
 										</span>
 									) : null}
-								</label>
+								</div>
 								<SearchableSelect
 									value={selectedLoaiVatCode ?? ''}
 									onValueChange={(v) => {
@@ -663,7 +674,7 @@ export default function NganhCatalog({
 						/* Ngành / Loại vật: ngành cố định (user) + nút lọc */
 						<div className='flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-end'>
 							<div className='flex-1 min-w-[220px] space-y-1.5'>
-								<label className='text-sm font-medium'>
+								<div className='text-sm font-medium'>
 									Ngành
 									{nganhScoped ? (
 										<span className='text-muted-foreground font-normal'>
@@ -671,7 +682,7 @@ export default function NganhCatalog({
 											(cố định)
 										</span>
 									) : null}
-								</label>
+								</div>
 								{nganhScoped && nganh.length === 1 ? (
 									<div className='h-10 px-3 flex items-center rounded-md border bg-muted/50 text-sm font-medium'>
 										{selectedNganh
@@ -1185,6 +1196,14 @@ export default function NganhCatalog({
 									className='pl-9'
 								/>
 							</div>
+							{canMutate && (
+								<Button
+									onClick={() => setCreateMaterialOpen(true)}
+								>
+									<Plus className='mr-2 h-4 w-4' /> Thêm vật
+									tư
+								</Button>
+							)}
 							{materialSuggestions.length > 0 && (
 								<div className='flex flex-wrap gap-1.5'>
 									<span className='text-xs text-muted-foreground self-center'>
@@ -1435,6 +1454,13 @@ export default function NganhCatalog({
 					setEditMaterial(null)
 				}}
 			/>
+			<CreateMaterialDialog
+				open={createMaterialOpen}
+				onOpenChange={setCreateMaterialOpen}
+				categories={loaiVat}
+				defaultCode={selectedLoaiVatCode}
+				onSuccess={invalidate}
+			/>
 
 			<Dialog
 				open={!!confirm}
@@ -1477,6 +1503,217 @@ export default function NganhCatalog({
 	)
 }
 
+function CreateMaterialDialog({
+	open,
+	onOpenChange,
+	categories,
+	defaultCode,
+	onSuccess
+}: {
+	open: boolean
+	onOpenChange: (o: boolean) => void
+	categories: CatalogCategory[]
+	defaultCode: string | null
+	onSuccess: () => void | Promise<void>
+}) {
+	const [code, setCode] = useState(defaultCode || '')
+	const [name, setName] = useState('')
+	const [unit, setUnit] = useState('Bộ')
+	const [quantity, setQuantity] = useState('0')
+	const [manufactureYear, setManufactureYear] = useState('')
+	const [usageYear, setUsageYear] = useState('')
+	const [classification, setClassification] = useState('')
+	const [assetStatus, setAssetStatus] = useState('NORMAL')
+	const [purchaseDate, setPurchaseDate] = useState('')
+	const [expiryDate, setExpiryDate] = useState('')
+	useEffect(() => {
+		if (open) {
+			setCode(defaultCode || categories[0]?.code || '')
+			setName('')
+			setUnit('Bộ')
+			setQuantity('0')
+			setManufactureYear('')
+			setUsageYear('')
+			setClassification('')
+			setAssetStatus('NORMAL')
+			setPurchaseDate('')
+			setExpiryDate('')
+		}
+	}, [open, defaultCode, categories])
+	const mut = useMutation({
+		mutationFn: () =>
+			CreateCatalogMaterial({
+				chuyenNganhCode: code,
+				name: name.trim(),
+				unit: unit.trim() || 'Bộ',
+				quantity: Math.max(0, Number(quantity) || 0),
+				manufactureYear: manufactureYear
+					? Number(manufactureYear)
+					: undefined,
+				usageYear: usageYear ? Number(usageYear) : undefined,
+				classification: classification.trim() || undefined,
+				assetStatus,
+				purchaseDate: purchaseDate || undefined,
+				expiryDate: expiryDate || undefined
+			}),
+		onSuccess: async () => {
+			toast.success('Đã thêm vật tư')
+			await onSuccess()
+			onOpenChange(false)
+		},
+		onError: (err) =>
+			toast.error('Thêm vật tư thất bại', {
+				description: (err as Error).message
+			})
+	})
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className='sm:max-w-2xl max-h-[90vh] overflow-y-auto'>
+				<DialogHeader>
+					<DialogTitle>Thêm vật tư</DialogTitle>
+				</DialogHeader>
+				<form
+					className='space-y-4'
+					onSubmit={(e) => {
+						e.preventDefault()
+						if (!code || !name.trim()) return
+						mut.mutate()
+					}}
+				>
+					<div className='space-y-2'>
+						<Label>Chuyên ngành *</Label>
+						<Select value={code} onValueChange={setCode}>
+							<SelectTrigger>
+								<SelectValue placeholder='Chọn chuyên ngành' />
+							</SelectTrigger>
+							<SelectContent>
+								{categories
+									.filter((c) => !c.isNganh)
+									.map((c) => (
+										<SelectItem key={c.code} value={c.code}>
+											{c.code} — {c.name}
+										</SelectItem>
+									))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className='space-y-2'>
+						<Label>Tên vật tư *</Label>
+						<Input
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							required
+						/>
+					</div>
+					<div className='grid grid-cols-2 gap-3'>
+						<div className='space-y-2'>
+							<Label>Đơn vị tính</Label>
+							<Input
+								value={unit}
+								onChange={(e) => setUnit(e.target.value)}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Số lượng danh mục</Label>
+							<Input
+								type='number'
+								min='0'
+								step='1'
+								value={quantity}
+								onChange={(e) => setQuantity(e.target.value)}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Năm sản xuất</Label>
+							<Input
+								type='number'
+								value={manufactureYear}
+								onChange={(e) =>
+									setManufactureYear(e.target.value)
+								}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Năm sử dụng</Label>
+							<Input
+								type='number'
+								value={usageYear}
+								onChange={(e) => setUsageYear(e.target.value)}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Phân loại</Label>
+							<Input
+								value={classification}
+								onChange={(e) =>
+									setClassification(e.target.value)
+								}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Trạng thái</Label>
+							<Select
+								value={assetStatus}
+								onValueChange={setAssetStatus}
+							>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='NORMAL'>
+										Bình thường
+									</SelectItem>
+									<SelectItem value='BROKEN'>Hỏng</SelectItem>
+									<SelectItem value='REPAIRING'>
+										Đang sửa
+									</SelectItem>
+									<SelectItem value='DISPOSED'>
+										Thanh lý
+									</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className='space-y-2'>
+							<Label>Ngày mua</Label>
+							<Input
+								type='date'
+								value={purchaseDate}
+								onChange={(e) =>
+									setPurchaseDate(e.target.value)
+								}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Ngày hết hạn bảo hành</Label>
+							<Input
+								type='date'
+								min={purchaseDate || undefined}
+								value={expiryDate}
+								onChange={(e) => setExpiryDate(e.target.value)}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							type='button'
+							variant='outline'
+							onClick={() => onOpenChange(false)}
+						>
+							Hủy
+						</Button>
+						<Button
+							type='submit'
+							disabled={mut.isPending || !code || !name.trim()}
+						>
+							Lưu
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	)
+}
+
 function EditMaterialDialog({
 	open,
 	material,
@@ -1499,11 +1736,13 @@ function EditMaterialDialog({
 	}, [open, material])
 
 	const mut = useMutation({
-		mutationFn: () =>
-			UpdateCatalogMaterial(material!.id, {
+		mutationFn: () => {
+			if (!material) throw new Error('Không tìm thấy vật tư cần cập nhật')
+			return UpdateCatalogMaterial(material.id, {
 				name: name.trim(),
 				unit: unit.trim() || 'Bộ'
-			}),
+			})
+		},
 		onSuccess: async () => {
 			toast.success('Đã cập nhật vật tư')
 			await onSuccess()
@@ -1836,8 +2075,10 @@ function EditCategoryDialog({
 	}, [open, target])
 
 	const mut = useMutation({
-		mutationFn: () =>
-			UpdateCatalogCategory(target!.item.id, { name: name.trim() }),
+		mutationFn: () => {
+			if (!target) throw new Error('Không tìm thấy danh mục cần cập nhật')
+			return UpdateCatalogCategory(target.item.id, { name: name.trim() })
+		},
 		onSuccess: async () => {
 			toast.success(
 				target?.kind === 'nganh'
