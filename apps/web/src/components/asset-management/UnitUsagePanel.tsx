@@ -20,12 +20,10 @@ import useUnitsData from '@/hooks/useUnitsData'
 import {
 	AssignRolesToUser,
 	CreateUnit,
-	DeleteUnit,
 	CreateUser,
 	GetRoles,
 	GetUsers,
-	UpdateUser,
-	UpdateUnit
+	UpdateUser
 } from '@/api'
 import { GetRoomAssets } from '@/api/asset'
 import { Link } from '@tanstack/react-router'
@@ -145,9 +143,6 @@ export default function UnitUsagePanel({
 	const [level, setLevel] = useState<'battalion' | 'company'>('company')
 	const [parentId, setParentId] = useState('')
 	const [saving, setSaving] = useState(false)
-	const [editOpen, setEditOpen] = useState(false)
-	const [editUnit, setEditUnit] = useState<UnitFlat | null>(null)
-	const [editName, setEditName] = useState('')
 
 	// Tạo TK đơn vị sử dụng — 1 đơn vị + chọn phân quyền hiện có
 	const [acctOpen, setAcctOpen] = useState(false)
@@ -412,44 +407,6 @@ export default function UnitUsagePanel({
 			})
 		} finally {
 			setSaving(false)
-		}
-	}
-
-	async function handleEditUnit(unit: UnitFlat) {
-		setEditUnit(unit)
-		setEditName(unit.name)
-		setEditOpen(true)
-	}
-
-	async function handleSaveEditUnit() {
-		if (!editUnit || !editName.trim()) return
-		setSaving(true)
-		try {
-			await UpdateUnit(editUnit.id, { name: editName.trim() })
-			toast.success('Đã cập nhật đơn vị')
-			setEditOpen(false)
-			await refetchUnits()
-			void qc.invalidateQueries({ queryKey: ['units'] })
-		} catch (err) {
-			toast.error('Cập nhật đơn vị thất bại', {
-				description: (err as Error).message
-			})
-		} finally {
-			setSaving(false)
-		}
-	}
-
-	async function handleDeleteUnit(unit: UnitFlat) {
-		if (!window.confirm(`Xóa đơn vị ${unit.alias} — ${unit.name}?`)) return
-		try {
-			await DeleteUnit(unit.id)
-			toast.success('Đã xóa đơn vị')
-			await refetchUnits()
-			void qc.invalidateQueries({ queryKey: ['units'] })
-		} catch (err) {
-			toast.error('Xóa đơn vị thất bại', {
-				description: (err as Error).message
-			})
 		}
 	}
 
@@ -778,31 +735,6 @@ export default function UnitUsagePanel({
 													</TableCell>
 													<TableCell className='text-center'>
 														<div className='flex flex-wrap items-center justify-center gap-1'>
-															<Button
-																type='button'
-																size='sm'
-																variant='outline'
-																onClick={() =>
-																	void handleEditUnit(
-																		row.unit
-																	)
-																}
-															>
-																Sửa
-															</Button>
-															<Button
-																type='button'
-																size='sm'
-																variant='ghost'
-																className='text-destructive'
-																onClick={() =>
-																	void handleDeleteUnit(
-																		row.unit
-																	)
-																}
-															>
-																Xóa
-															</Button>
 															<Button
 																type='button'
 																size='sm'
@@ -1160,47 +1092,6 @@ export default function UnitUsagePanel({
 									Thêm
 								</>
 							)}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-			<Dialog open={editOpen} onOpenChange={setEditOpen}>
-				<DialogContent className='sm:max-w-md'>
-					<DialogHeader>
-						<DialogTitle>Sửa đơn vị sử dụng</DialogTitle>
-					</DialogHeader>
-					<div className='space-y-3'>
-						<div>
-							<Label>Alias</Label>
-							<Input
-								value={editUnit?.alias ?? ''}
-								readOnly
-								className='font-mono bg-muted'
-							/>
-						</div>
-						<div>
-							<Label>Tên đơn vị *</Label>
-							<Input
-								value={editName}
-								onChange={(e) => setEditName(e.target.value)}
-								autoFocus
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							type='button'
-							variant='outline'
-							onClick={() => setEditOpen(false)}
-						>
-							Hủy
-						</Button>
-						<Button
-							type='button'
-							disabled={saving || !editName.trim()}
-							onClick={() => void handleSaveEditUnit()}
-						>
-							Lưu thay đổi
 						</Button>
 					</DialogFooter>
 				</DialogContent>
