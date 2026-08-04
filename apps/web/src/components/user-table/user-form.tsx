@@ -711,7 +711,17 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 							</Label>
 							<SearchableSelect
 								value={personnelId}
-								onValueChange={setPersonnelId}
+								onValueChange={(value) => {
+									setPersonnelId(value)
+									const selected = (
+										leavePersonnelQ.data || []
+									).find(
+										(personnel) =>
+											String(personnel.id) === value
+									)
+									if (selected)
+										setDisplayName(selected.fullName)
+								}}
 								options={personnelOptions}
 								placeholder={
 									leavePersonnelQ.isLoading
