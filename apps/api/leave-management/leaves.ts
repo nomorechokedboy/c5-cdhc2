@@ -855,10 +855,11 @@ export const CreateLeaveRequest = api(
 				throw APIError.invalidArgument(
 					'Người nghỉ không thể tự thay thế chính mình'
 				)
-			if (
-				personnel?.unitId != null &&
-				replacementPersonnel.unitId !== personnel.unitId
-			)
+			if (personnel?.unitId == null)
+				throw APIError.invalidArgument(
+					'Người nghỉ chưa được gán đơn vị để chọn người thay thế'
+				)
+			if (replacementPersonnel.unitId !== personnel.unitId)
 				throw APIError.invalidArgument(
 					'Người thay thế phải thuộc cùng đơn vị'
 				)
