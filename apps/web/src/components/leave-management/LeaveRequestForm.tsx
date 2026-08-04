@@ -67,7 +67,7 @@ export default function LeaveRequestForm() {
 	const { data: allPersonnel = [], isLoading: loadingAll } = useQuery({
 		queryKey: ['leave-personnel', 'for-propose'],
 		queryFn: () => ListLeavePersonnel(),
-		enabled: canProposeForUnit
+		enabled: true
 	})
 	const { data: classes = [] } = useQuery({
 		queryKey: ['leave-classes', 'for-propose'],
@@ -87,6 +87,7 @@ export default function LeaveRequestForm() {
 	})
 
 	const [selectedPersonnelId, setSelectedPersonnelId] = useState<string>('')
+	const [replacementPersonnelId, setReplacementPersonnelId] = useState('')
 	type RequestScope = 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	const [requestScope, setRequestScope] = useState<RequestScope>('INDIVIDUAL')
 	const [selectedClassId, setSelectedClassId] = useState('')
@@ -204,7 +205,7 @@ export default function LeaveRequestForm() {
 		],
 		queryFn: () =>
 			ComputeLeaveDays({
-				objectType: objectType!,
+				objectType: objectType || '',
 				enlistmentDate: personnel?.enlistmentDate,
 				startDate: startDate || null,
 				leaveType,
@@ -353,7 +354,11 @@ export default function LeaveRequestForm() {
 				localityId: canProposeForUnit ? null : localityId,
 				startDate: startDate || null,
 				endDate: endDate || autoEndDate || null,
-				note: proposalReason || null
+				note: proposalReason || null,
+				replacementPersonnelId:
+					requestScope === 'INDIVIDUAL' && replacementPersonnelId
+						? Number(replacementPersonnelId)
+						: null
 			}
 			return Promise.all(
 				targets.map((target) =>
@@ -400,6 +405,7 @@ export default function LeaveRequestForm() {
 			setAddressDetail('')
 			setSelectedTargetIds([])
 			setTargetLocations({})
+			setReplacementPersonnelId('')
 		},
 		onError: (e: Error) => toast.error(e.message)
 	})
@@ -656,6 +662,46 @@ export default function LeaveRequestForm() {
 										}
 									/>
 								)}
+							</div>
+						)}
+						{requestScope === 'INDIVIDUAL' && (
+							<div className='md:col-span-2'>
+								<Label>
+									Người thay thế trong thời gian nghỉ
+								</Label>
+								<Select
+									value={replacementPersonnelId}
+									onValueChange={setReplacementPersonnelId}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder='Chọn quân nhân thay thế…' />
+									</SelectTrigger>
+									<SelectContent>
+										{allPersonnel
+											.filter(
+												(p) =>
+													p.id !== personnel.id &&
+													(personnel.unitId == null ||
+														p.unitId ===
+															personnel.unitId)
+											)
+											.map((p) => (
+												<SelectItem
+													key={p.id}
+													value={String(p.id)}
+												>
+													{p.fullName}
+													{p.position
+														? ` — ${p.position}`
+														: ''}
+												</SelectItem>
+											))}
+									</SelectContent>
+								</Select>
+								<p className='mt-1 text-xs text-muted-foreground'>
+									Ví dụ: Tiểu đoàn trưởng nghỉ thì chọn Chính
+									trị viên làm người thay thế.
+								</p>
 							</div>
 						)}
 						<div className={isMultiProposal ? 'hidden' : ''}>
@@ -1040,7 +1086,7 @@ export default function LeaveRequestForm() {
 								</p>
 								<div className='space-y-3'>
 									{(meta?.specialReasons || []).map((r) => (
-										<label
+										<div
 											key={r.code}
 											className='flex items-start gap-2 text-sm'
 										>
@@ -1053,7 +1099,7 @@ export default function LeaveRequestForm() {
 												}
 											/>
 											<span>{r.label}</span>
-										</label>
+										</div>
 									))}
 								</div>
 							</div>
@@ -1121,7 +1167,7 @@ export default function LeaveRequestForm() {
 													Lý do (chọn ít nhất 1):
 												</p>
 												{reasonOptions.map((r) => (
-													<label
+													<div
 														key={r.code}
 														className='flex items-start gap-2 text-sm'
 													>
@@ -1136,7 +1182,7 @@ export default function LeaveRequestForm() {
 															}
 														/>
 														<span>{r.label}</span>
-													</label>
+													</div>
 												))}
 											</div>
 										</>

@@ -153,6 +153,9 @@ export interface LeaveRequestResponse {
 	proposerEmail: string | null
 	commanderUserId: number | null
 	commanderName: string | null
+	replacementPersonnelId: number | null
+	replacementPersonnelName: string | null
+	replacementPosition: string | null
 	adminNote: string | null
 	decidedByUserId: number | null
 	decidedByUsername: string | null
@@ -284,6 +287,9 @@ function mapRow(
 		proposerEmail: r.proposerEmail ?? null,
 		commanderUserId: r.commanderUserId ?? null,
 		commanderName: r.commanderName ?? null,
+		replacementPersonnelId: r.replacementPersonnelId ?? null,
+		replacementPersonnelName: r.replacementPersonnelName ?? null,
+		replacementPosition: r.replacementPosition ?? null,
 		adminNote: r.adminNote,
 		decidedByUserId: r.decidedByUserId,
 		decidedByUsername: r.decidedByUsername,
@@ -326,6 +332,9 @@ async function upsertLeaveRecord(
 		localityId: row.localityId,
 		localityPath: row.localityPath,
 		note: row.note,
+		replacementPersonnelId: row.replacementPersonnelId,
+		replacementPersonnelName: row.replacementPersonnelName,
+		replacementPosition: row.replacementPosition,
 		adminNote: row.adminNote,
 		proposedByUserId: row.proposedByUserId,
 		proposedByUsername: row.proposedByUsername,
@@ -649,6 +658,7 @@ interface CreateLeaveBody {
 	/** Địa chỉ cụ thể (số nhà, đường…) — ghép vào localityPath */
 	localityDetail?: string | null
 	note?: string | null
+	replacementPersonnelId?: number | null
 }
 
 export const CreateLeaveRequest = api(
@@ -830,6 +840,29 @@ export const CreateLeaveRequest = api(
 		// Snapshot email: ưu tiên email tài khoản đăng nhập (users.email)
 		const proposerEmail =
 			(await resolveUserEmail(uid)) || personnel?.email?.trim() || null
+		let replacementPersonnel: typeof leavePersonnel.$inferSelect | undefined
+		if (body.replacementPersonnelId != null) {
+			replacementPersonnel = (
+				await orm
+					.select()
+					.from(leavePersonnel)
+					.where(eq(leavePersonnel.id, body.replacementPersonnelId))
+					.limit(1)
+			)[0]
+			if (!replacementPersonnel)
+				throw APIError.invalidArgument('Người thay thế không tồn tại')
+			if (replacementPersonnel.id === personnel?.id)
+				throw APIError.invalidArgument(
+					'Người nghỉ không thể tự thay thế chính mình'
+				)
+			if (
+				personnel?.unitId != null &&
+				replacementPersonnel.unitId !== personnel.unitId
+			)
+				throw APIError.invalidArgument(
+					'Người thay thế phải thuộc cùng đơn vị'
+				)
+		}
 
 		const inserted = await orm
 			.insert(leaveRequests)
@@ -866,7 +899,11 @@ export const CreateLeaveRequest = api(
 					userRow?.displayName || userRow?.username || null,
 				proposerEmail,
 				commanderUserId: commanderId,
-				commanderName: commanderNm
+				commanderName: commanderNm,
+				replacementPersonnelId: replacementPersonnel?.id ?? null,
+				replacementPersonnelName:
+					replacementPersonnel?.fullName ?? null,
+				replacementPosition: replacementPersonnel?.position ?? null
 			})
 			.returning()
 
