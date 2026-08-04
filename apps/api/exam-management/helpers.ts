@@ -432,6 +432,7 @@ export function canFinalApproveExam(actor: Actor): boolean {
 export function canViewTeachingAssignments(actor: Actor) {
 	return (
 		actor.isSuperAdmin ||
+		hasPerm(actor, 'exam-assignments:read') ||
 		isNganhOperator(actor) ||
 		isBgh(actor) ||
 		isExamOffice(actor)
@@ -441,12 +442,30 @@ export function canViewTeachingAssignments(actor: Actor) {
 export function canManageTeachingAssignments(actor: Actor) {
 	// BGH chỉ xem — không chỉnh
 	if (isBgh(actor) && !actor.isSuperAdmin) return false
-	return actor.isSuperAdmin || isNganhOperator(actor)
+	return (
+		actor.isSuperAdmin ||
+		isNganhOperator(actor) ||
+		['create', 'update', 'delete'].some((action) =>
+			hasPerm(actor, `exam-assignments:${action}`)
+		)
+	)
 }
 
 /** Danh mục ngành/môn: super + CNK (quản môn ngành) + Ban KT xem/vận hành */
 export function canManageCatalogApi(actor: Actor): boolean {
-	return actor.isSuperAdmin || isNganhOperator(actor)
+	if (actor.isSuperAdmin || isNganhOperator(actor)) return true
+	const resources = [
+		'exam-systems',
+		'exam-majors',
+		'exam-faculties',
+		'exam-subjects',
+		'exam-classes'
+	]
+	return resources.some((resource) =>
+		['create', 'update', 'delete'].some((action) =>
+			hasPerm(actor, `${resource}:${action}`)
+		)
+	)
 }
 
 export function statusLabel(s: string): string {

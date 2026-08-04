@@ -6326,6 +6326,24 @@ export namespace leave_management {
 		 */
 		canPropose: boolean
 
+		/** Có ít nhất một quyền trong phân hệ quản lý phép */
+		hasModuleAccess: boolean
+
+		/** Được xem và xử lý danh sách duyệt */
+		canApprove: boolean
+
+		/** Được đọc các danh mục phục vụ lập phiếu */
+		canReadCatalogs: boolean
+
+		/** Được thêm, xóa, sửa các danh mục quản lý phép */
+		canManageCatalogs: boolean
+
+		/** Được xem báo cáo và dữ liệu lưu trữ */
+		canViewReports: boolean
+
+		/** Được quản lý cấu hình phân hệ phép */
+		canManageSettings: boolean
+
 		managementArea: string | null
 		/**
 		 * Đơn vị được phụ trách (leave_units.id); admin = [] nghĩa là tất cả

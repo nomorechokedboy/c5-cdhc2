@@ -72,7 +72,8 @@ export const ListLeaveUnits = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const conditions = []
 		if (!access.isAdmin) {

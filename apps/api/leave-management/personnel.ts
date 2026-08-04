@@ -77,7 +77,8 @@ export const ListLeavePersonnel = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const currentUserId = Number(auth.userID)
 		const conditions = []
@@ -139,7 +140,8 @@ export const GetLeavePersonnel = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const rows = await orm
 			.select()

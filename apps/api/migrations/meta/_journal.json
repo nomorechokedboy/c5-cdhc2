@@ -442,6 +442,13 @@
 			"when": 1785843600000,
 			"tag": "0062_sync_leave_personnel_accounts",
 			"breakpoints": true
+		},
+		{
+			"idx": 63,
+			"version": "6",
+			"when": 1785847200000,
+			"tag": "0063_granular_leave_exam_permissions",
+			"breakpoints": true
 		}
 	]
 }

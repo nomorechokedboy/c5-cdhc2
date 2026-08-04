@@ -64,7 +64,7 @@ import { toast } from 'sonner'
 
 export default function ExamFacultiesPage() {
 	const qc = useQueryClient()
-	const canManage = canManageExamCatalog()
+	const canManage = canManageExamCatalog('exam-faculties')
 	const [editingCode, setEditingCode] = useState<string | null>(null)
 	const [facultyEditorOpen, setFacultyEditorOpen] = useState(false)
 	const [facultyEditorMode, setFacultyEditorMode] = useState<

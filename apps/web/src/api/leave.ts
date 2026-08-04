@@ -1021,6 +1021,12 @@ export interface LeaveAccess {
 	isAgency: boolean
 	isPersonnel: boolean
 	canPropose: boolean
+	hasModuleAccess: boolean
+	canApprove: boolean
+	canReadCatalogs: boolean
+	canManageCatalogs: boolean
+	canViewReports: boolean
+	canManageSettings: boolean
 	managementArea: string | null
 	unitIds: number[]
 	unitNames: string[]
