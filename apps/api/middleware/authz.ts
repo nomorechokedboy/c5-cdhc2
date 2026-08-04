@@ -149,6 +149,16 @@ const PERMISSION_MAP: Record<string, string[]> = {
 	'DELETE:/users': ['users:delete'],
 
 	'GET:/resources': ['resources:read'],
+	'GET:/audit-logs': [
+		'audit-logs:read',
+		'leave-reports:read',
+		'asset-catalog:read',
+		'rooms:read',
+		'exam-approvals:read',
+		'exam-bank:read'
+	],
+	'GET:/account-audit-logs': ['audit-logs:read', 'rooms:read'],
+	'GET:/catalog-audit-logs': ['audit-logs:read', 'asset-catalog:read'],
 
 	// Quản lý phép — tách quyền lập phiếu, duyệt, danh mục, báo cáo và cấu hình.
 	'GET:/leave/requests': ['leave-proposals:read', 'leave-approvals:read'],

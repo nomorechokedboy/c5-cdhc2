@@ -619,9 +619,28 @@ export interface LeaveAuditLog {
 }
 
 export function ListLeaveAuditLogs(entityType?: string) {
-	const q = entityType ? `?entityType=${encodeURIComponent(entityType)}` : ''
-	return jsonFetch<{ data: LeaveAuditLog[] }>(`/leave/audit-logs${q}`).then(
-		(r) => r.data
+	const params = new URLSearchParams({ module: 'LEAVE' })
+	if (entityType) params.set('resourceType', entityType)
+	return jsonFetch<{
+		data: Array<{
+			id: number
+			createdAt: string
+			actorUserId: number | null
+			action: string
+			resourceType: string
+			resourceId: number | null
+			details: string | null
+		}>
+	}>(`/audit-logs?${params}`).then((response) =>
+		response.data.map((row) => ({
+			id: row.id,
+			createdAt: row.createdAt,
+			userId: row.actorUserId,
+			action: row.action,
+			entityType: row.resourceType,
+			entityId: row.resourceId,
+			details: row.details
+		}))
 	)
 }
 

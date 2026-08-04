@@ -4,12 +4,15 @@
 import { api, Query } from 'encore.dev/api'
 import type {
 	CatalogAuditAction,
-	CatalogAuditEntity,
-	CatalogAuditLogDB
+	CatalogAuditEntity
 } from '../schema/catalog-audit-logs'
-import { catalogAuditLogRepo } from './repo'
 import { resolveActor } from './account-audit'
 import log from 'encore.dev/log'
+import {
+	findAuditLogs,
+	type AuditLogResponse,
+	writeAuditLog
+} from '../audit/audit'
 
 export interface CatalogAuditLogResponse {
 	id: number
@@ -29,17 +32,17 @@ export interface CatalogAuditLogResponse {
 	details: string | null
 }
 
-function toResponse(row: CatalogAuditLogDB): CatalogAuditLogResponse {
+function toResponse(row: AuditLogResponse): CatalogAuditLogResponse {
 	return {
 		id: row.id,
 		createdAt: row.createdAt,
 		action: row.action,
-		entityType: row.entityType,
+		entityType: row.resourceType,
 		actorUserId: row.actorUserId ?? null,
 		actorUsername: row.actorUsername ?? null,
 		actorDisplayName: row.actorDisplayName ?? null,
 		actorIsAdmin: !!row.actorIsAdmin,
-		entityId: row.entityId ?? null,
+		entityId: row.resourceId,
 		entityCode: row.entityCode ?? null,
 		entityName: row.entityName ?? null,
 		parentCode: row.parentCode ?? null,
@@ -83,14 +86,15 @@ export async function logCatalogChange(opts: {
 			opts.entityName ? ` — ${opts.entityName}` : ''
 		}`
 
-		await catalogAuditLogRepo.create({
+		await writeAuditLog({
+			module: 'ASSET',
+			resourceType: opts.entityType,
 			action: opts.action,
-			entityType: opts.entityType,
 			actorUserId: actor.userId,
 			actorUsername: actor.username,
 			actorDisplayName: actor.displayName,
 			actorIsAdmin: actor.isAdmin,
-			entityId: opts.entityId ?? null,
+			resourceId: opts.entityId ?? null,
 			entityCode: opts.entityCode ?? null,
 			entityName: opts.entityName ?? null,
 			parentCode: opts.parentCode ?? null,
@@ -119,9 +123,10 @@ export const GetCatalogAuditLogs = api(
 	async (
 		query: GetCatalogAuditLogsQuery
 	): Promise<{ data: CatalogAuditLogResponse[] }> => {
-		const list = await catalogAuditLogRepo.find({
+		const list = await findAuditLogs({
+			module: 'ASSET',
 			search: query.q,
-			entityType: query.entityType,
+			resourceType: query.entityType,
 			limit: query.limit != null ? Number(query.limit) : 200
 		})
 		return { data: list.map(toResponse) }

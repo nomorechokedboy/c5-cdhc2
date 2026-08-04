@@ -24,6 +24,7 @@ export * from './room-images'
 export * from './room-assets'
 
 // Nhật ký
+export * from './audit-logs'
 export * from './repair-logs'
 export * from './inventory-logs'
 export * from './replacement-logs'
