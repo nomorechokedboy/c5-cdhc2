@@ -1,14 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SidebarInset } from '@/components/ui/sidebar'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import PlaceholderPage from '@/components/leave-management/PlaceholderPage'
+import LeaveBatchesPage from '@/components/leave-management/LeaveBatchesPage'
 
 export const Route = createFileRoute('/quan-ly-phep/dot-nghi')({
 	component: () => (
 		<ProtectedRoute>
 			<SidebarInset>
 				<div className='p-6 md:p-8'>
-					<PlaceholderPage />
+					<LeaveBatchesPage />
 				</div>
 			</SidebarInset>
 		</ProtectedRoute>
