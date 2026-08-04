@@ -117,6 +117,27 @@ export const CreateLeaveUnit = api(
 		if (!body.name?.trim()) {
 			throw APIError.invalidArgument('Tên đơn vị là bắt buộc')
 		}
+		if (body.level === 'company') {
+			if (body.parentId == null)
+				throw APIError.invalidArgument(
+					'Đại đội phải thuộc một tiểu đoàn'
+				)
+			const parent = (
+				await orm
+					.select()
+					.from(leaveUnits)
+					.where(eq(leaveUnits.id, body.parentId))
+					.limit(1)
+			)[0]
+			if (!parent || parent.level !== 'battalion')
+				throw APIError.invalidArgument(
+					'Đơn vị cha của đại đội phải là tiểu đoàn'
+				)
+		}
+		if (body.level === 'battalion' && body.parentId != null)
+			throw APIError.invalidArgument(
+				'Tiểu đoàn là cấp gốc, không chọn đơn vị cha'
+			)
 		const inserted = await orm
 			.insert(leaveUnits)
 			.values({

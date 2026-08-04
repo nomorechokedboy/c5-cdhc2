@@ -6,7 +6,6 @@ import { and, eq, inArray, like, or, sql } from 'drizzle-orm'
 import { getAuthData } from '~encore/auth'
 import orm from '../database'
 import {
-	leaveClasses,
 	leavePersonnel,
 	type LeaveObjectType
 } from '../schema/leave-management'
@@ -80,12 +79,29 @@ export const ListLeavePersonnel = api(
 			Number(auth.userID),
 			!!auth.isSuperAdmin
 		)
+		const currentUserId = Number(auth.userID)
 		const conditions = []
 		if (!access.isAdmin) {
 			if (access.unitIds.length) {
 				conditions.push(inArray(leavePersonnel.unitId, access.unitIds))
+			} else if (access.isPersonnel) {
+				// A personnel account needs the colleagues in its own unit so the
+				// leave form can offer valid replacement personnel. Keep this scope
+				// local to the personnel catalog; do not broaden other leave access.
+				const linkedPersonnel = await orm
+					.select({ unitId: leavePersonnel.unitId })
+					.from(leavePersonnel)
+					.where(eq(leavePersonnel.userId, currentUserId))
+					.limit(1)
+				if (linkedPersonnel[0]?.unitId != null) {
+					conditions.push(
+						eq(leavePersonnel.unitId, linkedPersonnel[0].unitId)
+					)
+				} else {
+					conditions.push(eq(leavePersonnel.userId, currentUserId))
+				}
 			} else {
-				conditions.push(eq(leavePersonnel.userId, Number(auth.userID)))
+				conditions.push(eq(leavePersonnel.userId, currentUserId))
 			}
 		}
 		if (q.objectType && isLeaveObjectType(String(q.objectType))) {
