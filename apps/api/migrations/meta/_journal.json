@@ -299,99 +299,99 @@
 		{
 			"idx": 42,
 			"version": "6",
-			"when": 1785376116953,
-			"tag": "0042_lying_greymalkin",
+			"when": 1785420000000,
+			"tag": "0042_leave_management",
 			"breakpoints": true
 		},
 		{
 			"idx": 43,
 			"version": "6",
-			"when": 1785420000000,
-			"tag": "0043_leave_management",
+			"when": 1785421500000,
+			"tag": "0043_leave_user_account_fields",
 			"breakpoints": true
 		},
 		{
 			"idx": 44,
 			"version": "6",
 			"when": 1785422100000,
-			"tag": "0046_restore_roles_and_leave_roles",
+			"tag": "0044_restore_roles_and_leave_roles",
 			"breakpoints": true
 		},
 		{
 			"idx": 45,
 			"version": "6",
 			"when": 1785422700000,
-			"tag": "0047_add_leave_personnel_role",
+			"tag": "0045_add_leave_personnel_role",
 			"breakpoints": true
 		},
 		{
 			"idx": 46,
 			"version": "6",
 			"when": 1785423300000,
-			"tag": "0048_leave_audit_logs",
+			"tag": "0046_leave_audit_logs",
 			"breakpoints": true
 		},
 		{
 			"idx": 47,
 			"version": "6",
 			"when": 1785423900000,
-			"tag": "0049_backfill_approved_leave_data",
+			"tag": "0047_backfill_approved_leave_data",
 			"breakpoints": true
 		},
 		{
 			"idx": 48,
 			"version": "6",
 			"when": 1785424500000,
-			"tag": "0050_restore_leave_regulations",
+			"tag": "0048_restore_leave_regulations",
 			"breakpoints": true
 		},
 		{
 			"idx": 49,
 			"version": "6",
 			"when": 1785425100000,
-			"tag": "0051_seed_leave_objects_and_extra_standards",
+			"tag": "0049_seed_leave_objects_and_extra_standards",
 			"breakpoints": true
 		},
 		{
 			"idx": 50,
 			"version": "6",
 			"when": 1785552000000,
-			"tag": "0052_exam_academic_titles",
+			"tag": "0050_exam_academic_titles",
 			"breakpoints": true
 		},
 		{
 			"idx": 51,
 			"version": "6",
 			"when": 1785552600000,
-			"tag": "0053_restore_exam_classes",
+			"tag": "0051_restore_exam_classes",
 			"breakpoints": true
 		},
 		{
 			"idx": 52,
 			"version": "6",
 			"when": 1785553200000,
-			"tag": "0054_restore_exam_runtime_tables",
+			"tag": "0052_restore_exam_runtime_tables",
 			"breakpoints": true
 		},
 		{
 			"idx": 53,
 			"version": "6",
 			"when": 1785553800000,
-			"tag": "0055_exam_major_official_catalog",
+			"tag": "0053_exam_major_official_catalog",
 			"breakpoints": true
 		},
 		{
 			"idx": 54,
 			"version": "6",
 			"when": 1785554400000,
-			"tag": "0056_use_catalog_number_as_major_code",
+			"tag": "0054_use_catalog_number_as_major_code",
 			"breakpoints": true
 		},
 		{
 			"idx": 55,
 			"version": "6",
 			"when": 1785555000000,
-			"tag": "0057_sync_exam_log_major_codes",
+			"tag": "0055_sync_exam_log_major_codes",
 			"breakpoints": true
 		}
 	]
