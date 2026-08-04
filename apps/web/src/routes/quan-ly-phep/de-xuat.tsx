@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { SidebarInset } from '@/components/ui/sidebar'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import LeaveRequestForm from '@/components/leave-management/LeaveRequestForm'
+import PlaceholderPage from '@/components/leave-management/PlaceholderPage'
 import { GetLeaveMyAccess } from '@/api/leave'
 
 export const Route = createFileRoute('/quan-ly-phep/de-xuat')({
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/quan-ly-phep/de-xuat')({
 		<ProtectedRoute>
 			<SidebarInset>
 				<div className='p-6 md:p-8'>
-					<LeaveRequestForm />
+					<PlaceholderPage />
 				</div>
 			</SidebarInset>
 		</ProtectedRoute>
