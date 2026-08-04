@@ -1080,7 +1080,6 @@ export const PatchLeaveRequest = api(
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
 		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
 
 		const rows = await orm
 			.select()
