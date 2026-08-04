@@ -269,7 +269,7 @@ jobs:
                   registry: ${{ env.REGISTRY }}
                   image_prefix: ${{ env.IMAGE_PREFIX }}
                   image_name: sms-api
-                  source_tag: lan-latest
+                  source_tag: latest
                   local_registry: ${{ env.LOCAL_REGISTRY }}
                   local_project: ${{ env.LOCAL_PROJECT }}
                   k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
