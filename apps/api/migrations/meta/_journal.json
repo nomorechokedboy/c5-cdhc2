@@ -428,6 +428,13 @@
 			"when": 1785666047014,
 			"tag": "0060_white_scarecrow",
 			"breakpoints": true
+		},
+		{
+			"idx": 61,
+			"version": "6",
+			"when": 1785672000000,
+			"tag": "0061_sync_leave_personnel_accounts",
+			"breakpoints": true
 		}
 	]
 }
