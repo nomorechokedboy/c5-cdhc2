@@ -31,6 +31,16 @@ async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
 	return resp.json() as Promise<T>
 }
 
+export function ConvertLeaveWordTemplate(input: {
+	fileName: string
+	base64: string
+}) {
+	return jsonFetch<{ fileName: string; base64: string }>(
+		'/leave-management/word-templates/convert',
+		{ method: 'POST', body: JSON.stringify(input) }
+	)
+}
+
 /** Mã đối tượng theo quy định (legacy: QN|CN|HSQ|BS vẫn map được phía API) */
 export type LeaveObjectType =
 	| 'SQ'
@@ -76,6 +86,9 @@ export interface LeavePersonnel {
 	email: string | null
 	commanderUserId: number | null
 	commanderName: string | null
+	replacementPersonnelId: number | null
+	replacementPersonnelName: string | null
+	replacementPosition: string | null
 	className: string | null
 	managementArea: string
 }
@@ -96,7 +109,7 @@ export interface LeaveRegulation {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	objectType: LeaveObjectType | null
@@ -114,7 +127,7 @@ export interface LeaveRequest {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	status: LeaveRequestStatus
@@ -179,6 +192,13 @@ export interface LeaveClass {
 	isActive: boolean
 }
 
+export function CreateLeaveClass(body: { unitId: number; name: string }) {
+	return jsonFetch<{ data: LeaveClass }>('/leave/classes', {
+		method: 'POST',
+		body: JSON.stringify(body)
+	}).then((r) => r.data)
+}
+
 export interface LeaveRecord {
 	id: number
 	createdAt: string
@@ -215,7 +235,7 @@ export interface LeaveRecord {
 	decidedByUsername: string | null
 	decidedAt: string | null
 	archivedAt: string
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	memberCount: number
@@ -323,6 +343,7 @@ export function CreateLeaveLocality(body: {
 	name: string
 	level: LeaveLocalityLevel
 	parentId?: number | null
+	level?: string | null
 	code?: string | null
 }) {
 	return jsonFetch<{ data: LeaveLocality }>('/leave/localities', {
@@ -430,7 +451,7 @@ export function ListLeaveRequests(params?: {
 
 export function CreateLeaveRequest(body: {
 	leaveType?: string
-	requestScope?: 'INDIVIDUAL' | 'CLASS'
+	requestScope?: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId?: number | null
 	className?: string | null
 	manualDays?: number
@@ -449,6 +470,7 @@ export function CreateLeaveRequest(body: {
 	/** Địa chỉ cụ thể (số nhà, đường…) */
 	localityDetail?: string | null
 	note?: string | null
+	replacementPersonnelId?: number | null
 }) {
 	return jsonFetch<{ data: LeaveRequest }>('/leave/requests', {
 		method: 'POST',
@@ -597,9 +619,28 @@ export interface LeaveAuditLog {
 }
 
 export function ListLeaveAuditLogs(entityType?: string) {
-	const q = entityType ? `?entityType=${encodeURIComponent(entityType)}` : ''
-	return jsonFetch<{ data: LeaveAuditLog[] }>(`/leave/audit-logs${q}`).then(
-		(r) => r.data
+	const params = new URLSearchParams({ module: 'LEAVE' })
+	if (entityType) params.set('resourceType', entityType)
+	return jsonFetch<{
+		data: Array<{
+			id: number
+			createdAt: string
+			actorUserId: number | null
+			action: string
+			resourceType: string
+			resourceId: number | null
+			details: string | null
+		}>
+	}>(`/audit-logs?${params}`).then((response) =>
+		response.data.map((row) => ({
+			id: row.id,
+			createdAt: row.createdAt,
+			userId: row.actorUserId,
+			action: row.action,
+			entityType: row.resourceType,
+			entityId: row.resourceId,
+			details: row.details
+		}))
 	)
 }
 
@@ -999,6 +1040,12 @@ export interface LeaveAccess {
 	isAgency: boolean
 	isPersonnel: boolean
 	canPropose: boolean
+	hasModuleAccess: boolean
+	canApprove: boolean
+	canReadCatalogs: boolean
+	canManageCatalogs: boolean
+	canViewReports: boolean
+	canManageSettings: boolean
 	managementArea: string | null
 	unitIds: number[]
 	unitNames: string[]

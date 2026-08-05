@@ -273,6 +273,26 @@ export async function GetRoomProfile(id: number): Promise<RoomProfile> {
 
 // ── Account audit logs (tài khoản phòng) ───────────────────────
 
+type CentralAuditLog = {
+	id: number
+	createdAt: string
+	module: string
+	resourceType: string
+	resourceId: number | null
+	action: string
+	actorUserId: number | null
+	actorUsername: string | null
+	actorDisplayName: string | null
+	actorIsAdmin: boolean
+	entityCode: string | null
+	entityName: string | null
+	parentCode: string | null
+	parentName: string | null
+	summary: string
+	details: string | null
+	metadata: Record<string, unknown> | null
+}
+
 export type AccountAuditLog = {
 	id: number
 	createdAt: string
@@ -298,13 +318,42 @@ export async function GetAccountAuditLogs(params?: {
 	limit?: number
 }): Promise<AccountAuditLog[]> {
 	const sp = new URLSearchParams()
+	sp.set('module', 'ASSET')
+	sp.set('resourceType', 'ROOM_ACCOUNT')
 	if (params?.q?.trim()) sp.set('q', params.q.trim())
 	if (params?.limit != null) sp.set('limit', String(params.limit))
 	const qs = sp.toString() ? `?${sp}` : ''
-	const resp = await jsonFetch<{ data: AccountAuditLog[] }>(
-		`/account-audit-logs${qs}`
+	const resp = await jsonFetch<{ data: CentralAuditLog[] }>(
+		`/audit-logs${qs}`
 	)
-	return resp.data
+	return resp.data.map((row) => ({
+		id: row.id,
+		createdAt: row.createdAt,
+		action: row.action,
+		actorUserId: row.actorUserId,
+		actorUsername: row.actorUsername,
+		actorDisplayName: row.actorDisplayName,
+		actorIsAdmin: row.actorIsAdmin,
+		roomId: row.resourceId,
+		roomCode: row.entityCode,
+		roomName: row.entityName,
+		address:
+			typeof row.metadata?.address === 'string'
+				? row.metadata.address
+				: null,
+		floorName:
+			typeof row.metadata?.floorName === 'string'
+				? row.metadata.floorName
+				: null,
+		buildingCode: row.parentCode,
+		buildingName: row.parentName,
+		accountLabel:
+			typeof row.metadata?.accountLabel === 'string'
+				? row.metadata.accountLabel
+				: null,
+		summary: row.summary,
+		details: row.details
+	}))
 }
 
 // ── Material catalog (ngành / chuyên ngành / danh mục VT) ───────
@@ -335,6 +384,12 @@ export type CatalogMaterial = {
 	stockQuantity?: number
 	/** SL danh mục (materials.quantity) — tăng/giảm user ngành */
 	catalogQuantity?: number
+	manufactureYear?: number | null
+	usageYear?: number | null
+	classification?: string | null
+	assetStatus?: string
+	purchaseDate?: string | null
+	expiryDate?: string | null
 }
 
 export type AssetCatalog = {
@@ -348,6 +403,7 @@ export async function GetAssetCatalog(params?: {
 	chuyenNganhCode?: string
 }): Promise<AssetCatalog> {
 	const sp = new URLSearchParams()
+	sp.set('module', 'ASSET')
 	if (params?.nganhCode) sp.set('nganhCode', params.nganhCode)
 	if (params?.chuyenNganhCode)
 		sp.set('chuyenNganhCode', params.chuyenNganhCode)
@@ -422,7 +478,17 @@ export async function CreateCatalogChuyenNganh(body: {
 /** Sửa vật tư danh mục */
 export async function UpdateCatalogMaterial(
 	id: number,
-	body: { name?: string; unit?: string; description?: string | null }
+	body: {
+		name?: string
+		unit?: string
+		description?: string | null
+		manufactureYear?: number | null
+		usageYear?: number | null
+		classification?: string | null
+		assetStatus?: string | null
+		purchaseDate?: string | null
+		expiryDate?: string | null
+	}
 ): Promise<CatalogMaterial> {
 	const resp = await jsonFetch<{ data: CatalogMaterial }>(
 		`/asset-catalog/materials/${id}`,
@@ -472,13 +538,31 @@ export async function GetCatalogAuditLogs(params?: {
 }): Promise<CatalogAuditLog[]> {
 	const sp = new URLSearchParams()
 	if (params?.q?.trim()) sp.set('q', params.q.trim())
-	if (params?.entityType) sp.set('entityType', params.entityType)
+	if (params?.entityType) sp.set('resourceType', params.entityType)
 	if (params?.limit != null) sp.set('limit', String(params.limit))
 	const qs = sp.toString() ? `?${sp}` : ''
-	const resp = await jsonFetch<{ data: CatalogAuditLog[] }>(
-		`/catalog-audit-logs${qs}`
+	const resp = await jsonFetch<{ data: CentralAuditLog[] }>(
+		`/audit-logs${qs}`
 	)
 	return resp.data
+		.filter((row) => row.resourceType !== 'ROOM_ACCOUNT')
+		.map((row) => ({
+			id: row.id,
+			createdAt: row.createdAt,
+			action: row.action,
+			entityType: row.resourceType,
+			actorUserId: row.actorUserId,
+			actorUsername: row.actorUsername,
+			actorDisplayName: row.actorDisplayName,
+			actorIsAdmin: row.actorIsAdmin,
+			entityId: row.resourceId,
+			entityCode: row.entityCode,
+			entityName: row.entityName,
+			parentCode: row.parentCode,
+			parentName: row.parentName,
+			summary: row.summary,
+			details: row.details
+		}))
 }
 
 /** Sửa tên ngành / chuyên ngành (không đổi mã) */
@@ -501,8 +585,15 @@ export async function CreateCatalogMaterial(body: {
 	chuyenNganhCode: string
 	name: string
 	unit?: string
+	quantity?: number
 	code?: string
 	description?: string
+	manufactureYear?: number
+	usageYear?: number
+	classification?: string
+	assetStatus?: string
+	purchaseDate?: string
+	expiryDate?: string
 }): Promise<CatalogMaterial> {
 	const resp = await jsonFetch<{ data: CatalogMaterial }>(
 		'/asset-catalog/materials',

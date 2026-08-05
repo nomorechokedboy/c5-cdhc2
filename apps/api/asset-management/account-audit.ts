@@ -6,9 +6,13 @@ import { api, Query } from 'encore.dev/api'
 import { getAuthData } from '~encore/auth'
 import log from 'encore.dev/log'
 import type { Room } from '../schema/rooms'
-import type { AccountAuditLogDB } from '../schema/account-audit-logs'
 import userRepo from '../users/repo'
-import { accountAuditLogRepo, roomRepo } from './repo'
+import {
+	findAuditLogs,
+	type AuditLogResponse,
+	writeAuditLog
+} from '../audit/audit'
+import { roomRepo } from './repo'
 
 export interface AccountAuditLogResponse {
 	id: number
@@ -30,7 +34,14 @@ export interface AccountAuditLogResponse {
 	details: string | null
 }
 
-function toResponse(row: AccountAuditLogDB): AccountAuditLogResponse {
+function metadataOf(row: AuditLogResponse): Record<string, unknown> {
+	return row.metadata && typeof row.metadata === 'object'
+		? (row.metadata as Record<string, unknown>)
+		: {}
+}
+
+function toResponse(row: AuditLogResponse): AccountAuditLogResponse {
+	const metadata = metadataOf(row)
 	return {
 		id: row.id,
 		createdAt: row.createdAt,
@@ -39,14 +50,18 @@ function toResponse(row: AccountAuditLogDB): AccountAuditLogResponse {
 		actorUsername: row.actorUsername ?? null,
 		actorDisplayName: row.actorDisplayName ?? null,
 		actorIsAdmin: !!row.actorIsAdmin,
-		roomId: row.roomId ?? null,
-		roomCode: row.roomCode ?? null,
-		roomName: row.roomName ?? null,
-		address: row.address ?? null,
-		floorName: row.floorName ?? null,
-		buildingCode: row.buildingCode ?? null,
-		buildingName: row.buildingName ?? null,
-		accountLabel: row.accountLabel ?? null,
+		roomId: row.resourceId,
+		roomCode: row.entityCode,
+		roomName: row.entityName,
+		address: typeof metadata.address === 'string' ? metadata.address : null,
+		floorName:
+			typeof metadata.floorName === 'string' ? metadata.floorName : null,
+		buildingCode: row.parentCode,
+		buildingName: row.parentName,
+		accountLabel:
+			typeof metadata.accountLabel === 'string'
+				? metadata.accountLabel
+				: null,
 		summary: row.summary,
 		details: row.details ?? null
 	}
@@ -219,22 +234,26 @@ export async function logRoomAccountChange(opts: {
 			buildingName = l2.buildingName
 		}
 
-		await accountAuditLogRepo.create({
+		await writeAuditLog({
+			module: 'ASSET',
+			resourceType: 'ROOM_ACCOUNT',
 			action: opts.action,
 			actorUserId: actor.userId,
 			actorUsername: actor.username,
 			actorDisplayName: actor.displayName,
 			actorIsAdmin: actor.isAdmin,
-			roomId: opts.action === 'DELETE' ? null : opts.room.id,
-			roomCode,
-			roomName,
-			address,
-			floorName,
-			buildingCode,
-			buildingName,
-			accountLabel: accountLabel || null,
+			resourceId: opts.action === 'DELETE' ? null : opts.room.id,
+			entityCode: roomCode,
+			entityName: roomName,
+			parentCode: buildingCode,
+			parentName: buildingName,
 			summary,
-			details
+			details,
+			metadata: {
+				address,
+				floorName,
+				accountLabel: accountLabel || null
+			}
 		})
 	} catch (err) {
 		// Không chặn thao tác chính nếu ghi log lỗi
@@ -263,22 +282,26 @@ export async function logRoomAccountDeleteBefore(
 			accountLabel ? ` — ${accountLabel}` : ''
 		}`
 		try {
-			await accountAuditLogRepo.create({
+			await writeAuditLog({
+				module: 'ASSET',
+				resourceType: 'ROOM_ACCOUNT',
 				action: 'DELETE',
 				actorUserId: actor.userId,
 				actorUsername: actor.username,
 				actorDisplayName: actor.displayName,
 				actorIsAdmin: actor.isAdmin,
-				roomId: null,
-				roomCode: room.roomCode,
-				roomName: room.roomName,
-				address: loc.address,
-				floorName: loc.floorName,
-				buildingCode: loc.buildingCode,
-				buildingName: loc.buildingName,
-				accountLabel: accountLabel || null,
+				resourceId: null,
+				entityCode: room.roomCode,
+				entityName: room.roomName,
+				parentCode: loc.buildingCode,
+				parentName: loc.buildingName,
 				summary,
-				details: null
+				details: null,
+				metadata: {
+					address: loc.address,
+					floorName: loc.floorName,
+					accountLabel: accountLabel || null
+				}
 			})
 		} catch (err) {
 			log.error('logRoomAccountDeleteBefore failed', { err, id })
@@ -301,7 +324,9 @@ export const GetAccountAuditLogs = api(
 	async (
 		query: GetAccountAuditLogsQuery
 	): Promise<{ data: AccountAuditLogResponse[] }> => {
-		const list = await accountAuditLogRepo.find({
+		const list = await findAuditLogs({
+			module: 'ASSET',
+			resourceType: 'ROOM_ACCOUNT',
 			search: query.q,
 			limit: query.limit != null ? Number(query.limit) : 200
 		})

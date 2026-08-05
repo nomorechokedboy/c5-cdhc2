@@ -71,16 +71,6 @@ import {
 	AssetMovementReportRow,
 	CreateAssetMovementRequest
 } from '../schema/asset-movement-logs'
-import {
-	accountAuditLogs,
-	AccountAuditLogDB,
-	CreateAccountAuditLogRequest
-} from '../schema/account-audit-logs'
-import {
-	catalogAuditLogs,
-	CatalogAuditLogDB,
-	CreateCatalogAuditLogRequest
-} from '../schema/catalog-audit-logs'
 import { repairRequests } from '../schema/repair-requests'
 import { handleDatabaseErr } from '../utils'
 import type {
@@ -1541,78 +1531,6 @@ class AssetMovementSqliteRepo implements AssetMovementLogRepository {
 	}
 }
 
-class AccountAuditLogSqliteRepo {
-	constructor(private readonly db: DrizzleDatabase) {}
-
-	create(params: CreateAccountAuditLogRequest): Promise<AccountAuditLogDB> {
-		log.info('AccountAuditLogRepo.create', {
-			action: params.action,
-			roomId: params.roomId
-		})
-		return this.db
-			.insert(accountAuditLogs)
-			.values({
-				action: params.action,
-				actorUserId: params.actorUserId ?? null,
-				actorUsername: params.actorUsername ?? null,
-				actorDisplayName: params.actorDisplayName ?? null,
-				actorIsAdmin: params.actorIsAdmin ? 1 : 0,
-				roomId: params.roomId ?? null,
-				roomCode: params.roomCode ?? null,
-				roomName: params.roomName ?? null,
-				address: params.address ?? null,
-				floorName: params.floorName ?? null,
-				buildingCode: params.buildingCode ?? null,
-				buildingName: params.buildingName ?? null,
-				accountLabel: params.accountLabel ?? null,
-				summary: params.summary,
-				details: params.details ?? null
-			})
-			.returning()
-			.then((rows) => rows[0])
-			.catch(handleDatabaseErr)
-	}
-
-	async find(q?: {
-		search?: string
-		limit?: number
-	}): Promise<AccountAuditLogDB[]> {
-		const limit = Math.min(Math.max(q?.limit ?? 200, 1), 500)
-		const search = q?.search?.trim()
-		if (!search) {
-			return this.db
-				.select()
-				.from(accountAuditLogs)
-				.orderBy(desc(accountAuditLogs.id))
-				.limit(limit)
-				.catch(handleDatabaseErr)
-		}
-		const pattern = `%${search}%`
-		return this.db
-			.select()
-			.from(accountAuditLogs)
-			.where(
-				or(
-					like(accountAuditLogs.summary, pattern),
-					like(accountAuditLogs.roomCode, pattern),
-					like(accountAuditLogs.roomName, pattern),
-					like(accountAuditLogs.accountLabel, pattern),
-					like(accountAuditLogs.actorUsername, pattern),
-					like(accountAuditLogs.actorDisplayName, pattern),
-					like(accountAuditLogs.address, pattern),
-					like(accountAuditLogs.floorName, pattern),
-					like(accountAuditLogs.buildingName, pattern),
-					like(accountAuditLogs.buildingCode, pattern),
-					like(accountAuditLogs.action, pattern),
-					like(accountAuditLogs.details, pattern)
-				)
-			)
-			.orderBy(desc(accountAuditLogs.id))
-			.limit(limit)
-			.catch(handleDatabaseErr)
-	}
-}
-
 export const buildingRepo = new BuildingSqliteRepo(orm)
 export const floorRepo = new FloorSqliteRepo(orm)
 export const roomRepo = new RoomSqliteRepo(orm)
@@ -1623,81 +1541,3 @@ export const inventoryLogRepo = new InventoryLogSqliteRepo(orm)
 export const replacementLogRepo = new ReplacementLogSqliteRepo(orm)
 export const reportRepo = new ReportSqliteRepo(orm)
 export const assetMovementLogRepo = new AssetMovementSqliteRepo(orm)
-export const accountAuditLogRepo = new AccountAuditLogSqliteRepo(orm)
-
-class CatalogAuditLogSqliteRepo {
-	constructor(private readonly db: DrizzleDatabase) {}
-
-	create(params: CreateCatalogAuditLogRequest): Promise<CatalogAuditLogDB> {
-		log.info('CatalogAuditLogRepo.create', {
-			action: params.action,
-			entityType: params.entityType
-		})
-		return this.db
-			.insert(catalogAuditLogs)
-			.values({
-				action: params.action,
-				entityType: params.entityType,
-				actorUserId: params.actorUserId ?? null,
-				actorUsername: params.actorUsername ?? null,
-				actorDisplayName: params.actorDisplayName ?? null,
-				actorIsAdmin: params.actorIsAdmin ? 1 : 0,
-				entityId: params.entityId ?? null,
-				entityCode: params.entityCode ?? null,
-				entityName: params.entityName ?? null,
-				parentCode: params.parentCode ?? null,
-				parentName: params.parentName ?? null,
-				summary: params.summary,
-				details: params.details ?? null
-			})
-			.returning()
-			.then((rows) => rows[0])
-			.catch(handleDatabaseErr)
-	}
-
-	async find(q?: {
-		search?: string
-		entityType?: string
-		limit?: number
-	}): Promise<CatalogAuditLogDB[]> {
-		const limit = Math.min(Math.max(q?.limit ?? 200, 1), 500)
-		const search = q?.search?.trim()
-		const entityType = q?.entityType?.trim().toUpperCase()
-		const conditions: SQL[] = []
-		if (entityType) {
-			conditions.push(eq(catalogAuditLogs.entityType, entityType))
-		}
-		if (search) {
-			const pattern = `%${search}%`
-			conditions.push(
-				or(
-					like(catalogAuditLogs.summary, pattern),
-					like(catalogAuditLogs.entityCode, pattern),
-					like(catalogAuditLogs.entityName, pattern),
-					like(catalogAuditLogs.actorUsername, pattern),
-					like(catalogAuditLogs.actorDisplayName, pattern),
-					like(catalogAuditLogs.parentCode, pattern),
-					like(catalogAuditLogs.parentName, pattern),
-					like(catalogAuditLogs.action, pattern),
-					like(catalogAuditLogs.details, pattern)
-				)!
-			)
-		}
-		const where =
-			conditions.length === 0
-				? undefined
-				: conditions.length === 1
-					? conditions[0]
-					: and(...conditions)
-
-		return this.db
-			.select()
-			.from(catalogAuditLogs)
-			.where(where)
-			.orderBy(desc(catalogAuditLogs.id))
-			.limit(limit)
-			.catch(handleDatabaseErr)
-	}
-}
-
-export const catalogAuditLogRepo = new CatalogAuditLogSqliteRepo(orm)

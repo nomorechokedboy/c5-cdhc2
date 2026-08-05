@@ -24,6 +24,24 @@ Run this command from your application's root folder:
 ```bash
 encore run
 ```
+
+### Cấu hình SMTP sau khi clone
+
+Git không lưu `apps/api/.env` vì file này chứa mật khẩu. Sau khi clone, tạo
+file cấu hình local từ mẫu:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+```
+
+Sau đó điền `SMTP_USER`, `SMTP_PASS` và `SMTP_FROM` trong
+`apps/api/.env`. Với Gmail, `SMTP_PASS` phải là App Password được tạo sau khi
+bật xác minh hai bước, không phải mật khẩu đăng nhập Gmail. Đặt
+`LEAVE_MAIL_DEV=false` để gửi mail thật rồi khởi động lại Encore.
+
+Nếu chỉ cần kiểm thử mà chưa có SMTP, đặt `LEAVE_MAIL_DEV=true`; thư sẽ được
+gửi vào hộp thư Ethereal thử nghiệm và không tới địa chỉ người nhận thật.
+
 ### Using the API
 
 To see that your app is running, you can ping the API.

@@ -23,7 +23,12 @@ import {
 	type GetUserRolesResponse
 } from '@/types'
 import { appFetcher } from '@/lib/axios'
-import Client, { auth, classes, students, units } from './client'
+import Client, {
+	type auth,
+	type classes,
+	type students,
+	type units
+} from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
@@ -176,6 +181,29 @@ export async function CreateUnit(
 	}
 	const json = (await resp.json()) as { data: units.UnitDB[] }
 	return json.data
+}
+
+export async function UpdateUnit(id: number, body: Partial<CreateUnitBody>) {
+	const { appFetcher } = await import('@/lib/axios')
+	const { ApiUrl } = await import('@/lib/const')
+	const resp = await appFetcher(`${ApiUrl.replace(/\/$/, '')}/units/${id}`, {
+		method: 'PATCH',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body)
+	})
+	if (!resp.ok)
+		throw new Error((await resp.json()).message || `HTTP ${resp.status}`)
+	return ((await resp.json()) as { data: units.UnitDB }).data
+}
+
+export async function DeleteUnit(id: number) {
+	const { appFetcher } = await import('@/lib/axios')
+	const { ApiUrl } = await import('@/lib/const')
+	const resp = await appFetcher(`${ApiUrl.replace(/\/$/, '')}/units/${id}`, {
+		method: 'DELETE'
+	})
+	if (!resp.ok)
+		throw new Error((await resp.json()).message || `HTTP ${resp.status}`)
 }
 
 export function GetUnreadNotificationsCount(): Promise<number> {

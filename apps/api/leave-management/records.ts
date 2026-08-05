@@ -52,7 +52,7 @@ export interface LeaveRecordResponse {
 	decidedByUsername: string | null
 	decidedAt: string | null
 	archivedAt: string
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	memberCount: number
@@ -131,7 +131,8 @@ export const ListLeaveRecords = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const conditions = []
 		// Lưu trữ là sổ các giấy phép đã ký, không phải lịch sử luân chuyển đơn.
@@ -258,7 +259,8 @@ export const GetLeaveRecord = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const rows = await orm
 			.select()

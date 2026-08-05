@@ -122,7 +122,7 @@ export interface LeaveRequestResponse {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	status: LeaveRequestStatus
@@ -153,6 +153,9 @@ export interface LeaveRequestResponse {
 	proposerEmail: string | null
 	commanderUserId: number | null
 	commanderName: string | null
+	replacementPersonnelId: number | null
+	replacementPersonnelName: string | null
+	replacementPosition: string | null
 	adminNote: string | null
 	decidedByUserId: number | null
 	decidedByUsername: string | null
@@ -252,7 +255,7 @@ function mapRow(
 		createdAt: r.createdAt ?? '',
 		updatedAt: r.updatedAt ?? '',
 		leaveType: r.leaveType as LeaveType,
-		requestScope: r.requestScope as 'INDIVIDUAL' | 'CLASS',
+		requestScope: r.requestScope as 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE',
 		classId: r.classId ?? null,
 		className: r.className ?? null,
 		status: r.status as LeaveRequestStatus,
@@ -284,6 +287,9 @@ function mapRow(
 		proposerEmail: r.proposerEmail ?? null,
 		commanderUserId: r.commanderUserId ?? null,
 		commanderName: r.commanderName ?? null,
+		replacementPersonnelId: r.replacementPersonnelId ?? null,
+		replacementPersonnelName: r.replacementPersonnelName ?? null,
+		replacementPosition: r.replacementPosition ?? null,
 		adminNote: r.adminNote,
 		decidedByUserId: r.decidedByUserId,
 		decidedByUsername: r.decidedByUsername,
@@ -326,6 +332,9 @@ async function upsertLeaveRecord(
 		localityId: row.localityId,
 		localityPath: row.localityPath,
 		note: row.note,
+		replacementPersonnelId: row.replacementPersonnelId,
+		replacementPersonnelName: row.replacementPersonnelName,
+		replacementPosition: row.replacementPosition,
 		adminNote: row.adminNote,
 		proposedByUserId: row.proposedByUserId,
 		proposedByUsername: row.proposedByUsername,
@@ -485,8 +494,12 @@ export const ListLeaveRequests = api(
 	}): Promise<{ data: LeaveRequestResponse[] }> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 		const conditions = []
 		if (q.status) {
 			const st = String(q.status)
@@ -604,7 +617,11 @@ export const GetLeaveRequest = api(
 			.limit(1)
 		if (!rows[0]) throw APIError.notFound('Không tìm thấy đơn phép')
 		const uid = Number(auth.userID)
-		const access = await resolveLeaveAccess(uid, !!auth.isSuperAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
 		const isCommander =
 			rows[0].commanderUserId != null && rows[0].commanderUserId === uid
 		if (
@@ -626,7 +643,7 @@ export const GetLeaveRequest = api(
 
 interface CreateLeaveBody {
 	leaveType?: string
-	requestScope?: 'INDIVIDUAL' | 'CLASS'
+	requestScope?: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId?: number | null
 	className?: string | null
 	/** Chỉ huy/đại đội nhập trực tiếp, không tính theo thâm niên */
@@ -649,6 +666,7 @@ interface CreateLeaveBody {
 	/** Địa chỉ cụ thể (số nhà, đường…) — ghép vào localityPath */
 	localityDetail?: string | null
 	note?: string | null
+	replacementPersonnelId?: number | null
 }
 
 export const CreateLeaveRequest = api(
@@ -661,7 +679,11 @@ export const CreateLeaveRequest = api(
 	async (body: CreateLeaveBody): Promise<{ data: LeaveRequestResponse }> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const access = await resolveLeaveAccess(uid, !!auth.isSuperAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
 		if (access.isAgency && !access.isAdmin) {
 			throw APIError.permissionDenied(
 				'Cơ quan quản lý không có quyền đề xuất nghỉ phép'
@@ -795,14 +817,13 @@ export const CreateLeaveRequest = api(
 		const basePath = await resolveLocalityPath(body.localityId)
 		const detail = body.localityDetail?.trim() || ''
 		// VD: Tỉnh Hà Tĩnh, Xã Cẩm Bình, số 12 đường ABC
-		const localityPath =
-			body.manualDays !== undefined
-				? personnel?.permanentResidence || personnel?.hometown || null
+		const localityPath = detail
+			? basePath
+				? `${basePath}, ${detail}`
 				: detail
-					? basePath
-						? `${basePath}, ${detail}`
-						: detail
-					: basePath
+			: body.manualDays !== undefined
+				? personnel?.permanentResidence || personnel?.hometown || null
+				: basePath
 
 		// SQ/QNCN/CNQP/VCQP: chờ chỉ huy đơn vị → CQQL
 		// Chỉ huy lấy cố định theo đơn vị (danh mục), fallback hồ sơ QN
@@ -831,6 +852,30 @@ export const CreateLeaveRequest = api(
 		// Snapshot email: ưu tiên email tài khoản đăng nhập (users.email)
 		const proposerEmail =
 			(await resolveUserEmail(uid)) || personnel?.email?.trim() || null
+		let replacementPersonnel: typeof leavePersonnel.$inferSelect | undefined
+		if (body.replacementPersonnelId != null) {
+			replacementPersonnel = (
+				await orm
+					.select()
+					.from(leavePersonnel)
+					.where(eq(leavePersonnel.id, body.replacementPersonnelId))
+					.limit(1)
+			)[0]
+			if (!replacementPersonnel)
+				throw APIError.invalidArgument('Người thay thế không tồn tại')
+			if (replacementPersonnel.id === personnel?.id)
+				throw APIError.invalidArgument(
+					'Người nghỉ không thể tự thay thế chính mình'
+				)
+			if (personnel?.unitId == null)
+				throw APIError.invalidArgument(
+					'Người nghỉ chưa được gán đơn vị để chọn người thay thế'
+				)
+			if (replacementPersonnel.unitId !== personnel.unitId)
+				throw APIError.invalidArgument(
+					'Người thay thế phải thuộc cùng đơn vị'
+				)
+		}
 
 		const inserted = await orm
 			.insert(leaveRequests)
@@ -867,7 +912,11 @@ export const CreateLeaveRequest = api(
 					userRow?.displayName || userRow?.username || null,
 				proposerEmail,
 				commanderUserId: commanderId,
-				commanderName: commanderNm
+				commanderName: commanderNm,
+				replacementPersonnelId: replacementPersonnel?.id ?? null,
+				replacementPersonnelName:
+					replacementPersonnel?.fullName ?? null,
+				replacementPosition: replacementPersonnel?.position ?? null
 			})
 			.returning()
 
@@ -1043,7 +1092,6 @@ export const PatchLeaveRequest = api(
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
 		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
 
 		const rows = await orm
 			.select()
@@ -1181,8 +1229,12 @@ export const DecideLeaveRequest = api(
 	}> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 
 		const norm =
 			decision === 'REJECTED'

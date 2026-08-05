@@ -1224,16 +1224,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	const examOfficeUser = isExamOffice() && !isSuperAdmin() && !nganhUser
 	const leaveOperator =
-		!isSuperAdmin() &&
-		Boolean(
-			leaveAccess?.isCommander ||
-				leaveAccess?.isAgency ||
-				leaveAccess?.isPersonnel
-		)
-	const leavePersonnelOnly =
-		Boolean(leaveAccess?.isPersonnel) &&
-		!leaveAccess?.isCommander &&
-		!leaveAccess?.isAgency
+		!isSuperAdmin() && Boolean(leaveAccess?.hasModuleAccess)
 	const leaveRoleNav: typeof data.navMain = [
 		{
 			title: 'Chung',
@@ -1256,18 +1247,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							}
 						]
 					: []),
-				{
-					title: 'Quy định phép',
-					url: '/quan-ly-phep/quy-dinh',
-					icon: FileText
-				},
-				...(!leavePersonnelOnly
+				...(leaveAccess?.canReadCatalogs
+					? [
+							{
+								title: 'Quy định phép',
+								url: '/quan-ly-phep/quy-dinh',
+								icon: FileText
+							}
+						]
+					: []),
+				...(leaveAccess?.canApprove
 					? [
 							{
 								title: 'Duyệt đề xuất phép',
 								url: '/quan-ly-phep/duyet',
 								icon: ClipboardCheck
-							},
+							}
+						]
+					: []),
+				...(leaveAccess?.canManageCatalogs
+					? [
 							{
 								title: 'Danh sách quân nhân',
 								url: '/quan-ly-phep/quan-nhan',
@@ -1292,7 +1291,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 								title: 'Quản lý đợt nghỉ phép',
 								url: '/quan-ly-phep/dot-nghi',
 								icon: Calendar
-							},
+							}
+						]
+					: []),
+				...(leaveAccess?.canViewReports
+					? [
 							{
 								title: 'Lưu trữ nghỉ phép',
 								url: '/quan-ly-phep/luu-tru',
