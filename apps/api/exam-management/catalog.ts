@@ -8,7 +8,7 @@
  * Mã môn: {mã_ngành}_{mã_gốc}
  */
 import { api, APIError, Query } from 'encore.dev/api'
-import { and, eq, inArray, like, or, sql } from 'drizzle-orm'
+import { and, eq, inArray, like, or, sql, isNull } from 'drizzle-orm'
 import orm from '../database'
 import {
 	examClasses,
@@ -68,7 +68,7 @@ export interface FacultyResponse {
 	updatedAt: string
 	code: string
 	name: string
-	majorId: number
+	majorId: number | null
 	majorCode?: string | null
 	majorName?: string | null
 	description: string | null
@@ -116,7 +116,7 @@ export interface SubjectResponse {
 	facultyId: number
 	facultyCode?: string | null
 	facultyName?: string | null
-	majorId: number
+	majorId: number | null
 	majorCode?: string | null
 	majorName?: string | null
 	/** Hệ đào tạo (QS/DS) — để UI cố định khi GV import */
@@ -669,7 +669,7 @@ async function mapFaculty(
 		updatedAt: r.updatedAt,
 		code: r.code,
 		name: r.name,
-		majorId: r.majorId,
+		majorId: r.majorId ?? null,
 		majorCode: m?.code ?? null,
 		majorName: m?.name ?? null,
 		description: r.description
@@ -731,7 +731,7 @@ export const CreateExamFaculty = api(
 	async (body: {
 		code: string
 		name: string
-		majorId: number
+		majorId?: number | null
 		description?: string
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
@@ -740,21 +740,14 @@ export const CreateExamFaculty = api(
 		}
 		const code = body.code.trim().toUpperCase()
 		const name = body.name.trim()
-		if (!code || !name || !body.majorId) {
-			throw APIError.invalidArgument('Mã, tên khoa và ngành bắt buộc')
-		}
-		const [m] = await orm
-			.select()
-			.from(examMajors)
-			.where(eq(examMajors.id, body.majorId))
-			.limit(1)
-		if (!m) throw APIError.notFound('Ngành không tồn tại')
+		if (!code || !name)
+			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
 		const [row] = await orm
 			.insert(examFaculties)
 			.values({
 				code,
 				name,
-				majorId: body.majorId,
+				majorId: body.majorId ?? null,
 				description: body.description || null
 			})
 			.returning()
@@ -809,7 +802,9 @@ export const UpdateExamFaculty = api(
 				.from(examFaculties)
 				.where(
 					and(
-						eq(examFaculties.majorId, majorId),
+						majorId == null
+							? isNull(examFaculties.majorId)
+							: eq(examFaculties.majorId, majorId),
 						eq(examFaculties.code, code),
 						sql`${examFaculties.id} != ${params.id}`
 					)
