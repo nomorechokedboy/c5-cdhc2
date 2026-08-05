@@ -122,7 +122,7 @@ export interface LeaveRequestResponse {
 	createdAt: string
 	updatedAt: string
 	leaveType: LeaveType
-	requestScope: 'INDIVIDUAL' | 'CLASS'
+	requestScope: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId: number | null
 	className: string | null
 	status: LeaveRequestStatus
@@ -252,7 +252,7 @@ function mapRow(
 		createdAt: r.createdAt ?? '',
 		updatedAt: r.updatedAt ?? '',
 		leaveType: r.leaveType as LeaveType,
-		requestScope: r.requestScope as 'INDIVIDUAL' | 'CLASS',
+		requestScope: r.requestScope as 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE',
 		classId: r.classId ?? null,
 		className: r.className ?? null,
 		status: r.status as LeaveRequestStatus,
@@ -626,7 +626,7 @@ export const GetLeaveRequest = api(
 
 interface CreateLeaveBody {
 	leaveType?: string
-	requestScope?: 'INDIVIDUAL' | 'CLASS'
+	requestScope?: 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
 	classId?: number | null
 	className?: string | null
 	/** Chỉ huy/đại đội nhập trực tiếp, không tính theo thâm niên */
@@ -795,14 +795,13 @@ export const CreateLeaveRequest = api(
 		const basePath = await resolveLocalityPath(body.localityId)
 		const detail = body.localityDetail?.trim() || ''
 		// VD: Tỉnh Hà Tĩnh, Xã Cẩm Bình, số 12 đường ABC
-		const localityPath =
-			body.manualDays !== undefined
-				? personnel?.permanentResidence || personnel?.hometown || null
+		const localityPath = detail
+			? basePath
+				? `${basePath}, ${detail}`
 				: detail
-					? basePath
-						? `${basePath}, ${detail}`
-						: detail
-					: basePath
+			: body.manualDays !== undefined
+				? personnel?.permanentResidence || personnel?.hometown || null
+				: basePath
 
 		// SQ/QNCN/CNQP/VCQP: chờ chỉ huy đơn vị → CQQL
 		// Chỉ huy lấy cố định theo đơn vị (danh mục), fallback hồ sơ QN

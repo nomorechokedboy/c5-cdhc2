@@ -29,6 +29,7 @@ import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import { appConfig } from '../configs'
 import orm from '../database'
 import { leaveMailLog } from '../schema/leave-management'
@@ -72,9 +73,112 @@ let etherealUser: string | null = null
 let lastPreviewUrl: string | null = null
 
 const PREVIEW_FILE = path.resolve(process.cwd(), '.leave-mail-last-preview.txt')
+const CONFIG_FILE = path.resolve(process.cwd(), '.leave-mail-config.enc')
+
+type StoredMailConfig = {
+	SMTP_HOST: string
+	SMTP_PORT: string
+	SMTP_USER: string
+	SMTP_PASS: string
+	SMTP_FROM: string
+	LEAVE_MAIL_DEV: string
+}
+
+let storedConfig: StoredMailConfig | null | undefined
+
+function configKey(): Buffer {
+	return crypto
+		.createHash('sha256')
+		.update(
+			String(
+				process.env.JWT_PRIVATE_KEY ||
+					process.env.HASH_SECRET ||
+					'leave-mail-local-config'
+			)
+		)
+		.digest()
+}
+
+function loadStoredConfig(): StoredMailConfig | null {
+	if (storedConfig !== undefined) return storedConfig
+	try {
+		if (!fs.existsSync(CONFIG_FILE)) return (storedConfig = null)
+		const payload = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) as {
+			iv: string
+			tag: string
+			data: string
+		}
+		const decipher = crypto.createDecipheriv(
+			'aes-256-gcm',
+			configKey(),
+			Buffer.from(payload.iv, 'base64')
+		)
+		decipher.setAuthTag(Buffer.from(payload.tag, 'base64'))
+		const plain = Buffer.concat([
+			decipher.update(Buffer.from(payload.data, 'base64')),
+			decipher.final()
+		]).toString('utf8')
+		return (storedConfig = JSON.parse(plain) as StoredMailConfig)
+	} catch (error) {
+		log.error('Leave mail: cannot read saved SMTP config', {
+			error: String((error as Error)?.message || error)
+		})
+		return (storedConfig = null)
+	}
+}
+
+export function saveMailConfig(input: {
+	host?: string
+	port?: number | string
+	user: string
+	pass: string
+	from?: string
+}): MailStatus {
+	const user = input.user.trim()
+	const pass = input.pass.replace(/\s+/g, '')
+	if (!user || !pass)
+		throw new Error('SMTP user và SMTP password là bắt buộc')
+
+	const next: StoredMailConfig = {
+		SMTP_HOST: input.host?.trim() || 'smtp.gmail.com',
+		SMTP_PORT: String(Number(input.port) || 587),
+		SMTP_USER: user,
+		SMTP_PASS: pass,
+		SMTP_FROM: input.from?.trim() || `Quản lý phép <${user}>`,
+		LEAVE_MAIL_DEV: 'false'
+	}
+	const iv = crypto.randomBytes(12)
+	const cipher = crypto.createCipheriv('aes-256-gcm', configKey(), iv)
+	const encrypted = Buffer.concat([
+		cipher.update(JSON.stringify(next), 'utf8'),
+		cipher.final()
+	])
+	const tmp = `${CONFIG_FILE}.tmp`
+	fs.writeFileSync(
+		tmp,
+		JSON.stringify({
+			iv: iv.toString('base64'),
+			tag: cipher.getAuthTag().toString('base64'),
+			data: encrypted.toString('base64')
+		}),
+		{ encoding: 'utf8', mode: 0o600 }
+	)
+	fs.renameSync(tmp, CONFIG_FILE)
+	storedConfig = next
+	transporter?.close()
+	transporter = null
+	transportMode = 'none'
+	etherealUser = null
+	return getMailStatus()
+}
 
 function env(key: string, fallback = ''): string {
-	// Ưu tiên process.env (dotenv / encore), fallback appConfig
+	// Cấu hình lưu từ giao diện được ưu tiên, sau đó mới tới .env / Encore.
+	const saved = loadStoredConfig()
+	const fromSaved = saved?.[key as keyof StoredMailConfig]
+	if (fromSaved != null && String(fromSaved).trim() !== '') {
+		return String(fromSaved).trim()
+	}
 	const fromProcess = process.env[key]
 	if (fromProcess != null && String(fromProcess).trim() !== '') {
 		return String(fromProcess).trim()

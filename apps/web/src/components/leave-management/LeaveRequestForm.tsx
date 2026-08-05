@@ -73,6 +73,10 @@ export default function LeaveRequestForm() {
 		queryKey: ['leave-classes', 'for-propose'],
 		queryFn: () => ListLeaveClasses()
 	})
+	const managedStudents = useMemo(
+		() => allPersonnel.filter((p) => p.classId != null),
+		[allPersonnel]
+	)
 	const { data: meta } = useQuery({
 		queryKey: ['leave-meta'],
 		queryFn: GetLeaveMeta
@@ -83,10 +87,13 @@ export default function LeaveRequestForm() {
 	})
 
 	const [selectedPersonnelId, setSelectedPersonnelId] = useState<string>('')
-	const [requestScope, setRequestScope] = useState<'INDIVIDUAL' | 'CLASS'>(
-		'INDIVIDUAL'
-	)
+	type RequestScope = 'INDIVIDUAL' | 'CLASS' | 'SHORT_LEAVE'
+	const [requestScope, setRequestScope] = useState<RequestScope>('INDIVIDUAL')
 	const [selectedClassId, setSelectedClassId] = useState('')
+	const [selectedTargetIds, setSelectedTargetIds] = useState<number[]>([])
+	const [targetLocations, setTargetLocations] = useState<
+		Record<number, string>
+	>({})
 	const [leaveType, setLeaveType] = useState<'ANNUAL' | 'SPECIAL'>('ANNUAL')
 	const [rank, setRank] = useState('')
 	const [unitName, setUnitName] = useState('')
@@ -117,6 +124,13 @@ export default function LeaveRequestForm() {
 				) || null
 			)
 		}
+		if (requestScope === 'SHORT_LEAVE') {
+			return (
+				managedStudents.find((p) => selectedTargetIds.includes(p.id)) ||
+				managedStudents[0] ||
+				null
+			)
+		}
 		if (canProposeForUnit && selectedPersonnelId) {
 			return (
 				allPersonnel.find(
@@ -131,7 +145,9 @@ export default function LeaveRequestForm() {
 		requestScope,
 		selectedClassId,
 		selectedPersonnelId,
-		allPersonnel
+		selectedTargetIds,
+		allPersonnel,
+		managedStudents
 	])
 
 	useEffect(() => {
@@ -305,9 +321,20 @@ export default function LeaveRequestForm() {
 					? allPersonnel.filter(
 							(p) => p.classId === Number(selectedClassId)
 						)
-					: [personnel]
+					: requestScope === 'SHORT_LEAVE'
+						? managedStudents.filter((p) =>
+								selectedTargetIds.includes(p.id)
+							)
+						: [personnel]
 			if (!targets.length) {
-				throw new Error('Lớp chưa có quân nhân')
+				throw new Error(
+					requestScope === 'SHORT_LEAVE'
+						? 'Vui lòng tích chọn ít nhất một học viên'
+						: 'Lớp chưa có quân nhân'
+				)
+			}
+			if (canProposeForUnit && !proposalReason) {
+				throw new Error('Vui lòng nhập lý do')
 			}
 			const common = {
 				leaveType,
@@ -324,9 +351,6 @@ export default function LeaveRequestForm() {
 							: [],
 				specialDays: leaveType === 'SPECIAL' ? specialDays : undefined,
 				localityId: canProposeForUnit ? null : localityId,
-				localityDetail: canProposeForUnit
-					? null
-					: addressDetail.trim() || null,
 				startDate: startDate || null,
 				endDate: endDate || autoEndDate || null,
 				note: proposalReason || null
@@ -335,6 +359,14 @@ export default function LeaveRequestForm() {
 				targets.map((target) =>
 					CreateLeaveRequest({
 						...common,
+						localityDetail: canProposeForUnit
+							? requestScope === 'INDIVIDUAL'
+								? addressDetail.trim() || null
+								: targetLocations[target.id]?.trim() ||
+									target.permanentResidence ||
+									target.hometown ||
+									null
+							: addressDetail.trim() || null,
 						requestScope,
 						classId:
 							requestScope === 'CLASS'
@@ -364,7 +396,10 @@ export default function LeaveRequestForm() {
 			setSpecialReasons([])
 			setSpecialDays(specialMax)
 			setNote('')
+			setOtherReason('')
 			setAddressDetail('')
+			setSelectedTargetIds([])
+			setTargetLocations({})
 		},
 		onError: (e: Error) => toast.error(e.message)
 	})
@@ -401,6 +436,9 @@ export default function LeaveRequestForm() {
 				?.label || personnel.objectType
 		: ''
 	const isClassProposal = canProposeForUnit && requestScope === 'CLASS'
+	const isMultiProposal =
+		canProposeForUnit &&
+		(requestScope === 'CLASS' || requestScope === 'SHORT_LEAVE')
 	const selectedClass = classes.find((c) => c.id === Number(selectedClassId))
 	const proposalReason = canProposeForUnit
 		? isClassProposal
@@ -441,9 +479,10 @@ export default function LeaveRequestForm() {
 							<Select
 								value={requestScope}
 								onValueChange={(v) => {
-									setRequestScope(v as 'INDIVIDUAL' | 'CLASS')
+									setRequestScope(v as RequestScope)
 									setSelectedPersonnelId('')
 									setSelectedClassId('')
+									setSelectedTargetIds([])
 								}}
 							>
 								<SelectTrigger>
@@ -455,6 +494,9 @@ export default function LeaveRequestForm() {
 									</SelectItem>
 									<SelectItem value='CLASS'>
 										Cả lớp
+									</SelectItem>
+									<SelectItem value='SHORT_LEAVE'>
+										Tranh thủ
 									</SelectItem>
 								</SelectContent>
 							</Select>
@@ -493,7 +535,7 @@ export default function LeaveRequestForm() {
 											</SelectContent>
 										</Select>
 									</>
-								) : (
+								) : requestScope === 'CLASS' ? (
 									<>
 										<Label>Lớp *</Label>
 										<Select
@@ -524,6 +566,16 @@ export default function LeaveRequestForm() {
 											</SelectContent>
 										</Select>
 									</>
+								) : (
+									<div className='space-y-2'>
+										<Label>
+											Học viên được phép đi tranh thủ *
+										</Label>
+										<p className='text-xs text-muted-foreground'>
+											Tích chọn trong toàn bộ học viên
+											thuộc các lớp đại đội quản lý.
+										</p>
+									</div>
 								)}
 							</div>
 						)}
@@ -597,12 +649,16 @@ export default function LeaveRequestForm() {
 										onChange={(e) =>
 											setOtherReason(e.target.value)
 										}
-										placeholder='Nhập lý do phép khác…'
+										placeholder={
+											requestScope === 'SHORT_LEAVE'
+												? 'Nhập lý do đi tranh thủ…'
+												: 'Nhập lý do phép khác…'
+										}
 									/>
 								)}
 							</div>
 						)}
-						<div className={isClassProposal ? 'hidden' : ''}>
+						<div className={isMultiProposal ? 'hidden' : ''}>
 							<Label>Họ tên</Label>
 							<Input
 								value={personnel.fullName}
@@ -611,7 +667,7 @@ export default function LeaveRequestForm() {
 								className='bg-muted/40'
 							/>
 						</div>
-						<div className={isClassProposal ? 'hidden' : ''}>
+						<div className={isMultiProposal ? 'hidden' : ''}>
 							<Label>Ngày nhập ngũ / tuyển dụng</Label>
 							<Input
 								value={
@@ -626,7 +682,7 @@ export default function LeaveRequestForm() {
 								className='bg-muted/40'
 							/>
 						</div>
-						<div className={isClassProposal ? 'hidden' : ''}>
+						<div className={isMultiProposal ? 'hidden' : ''}>
 							<Label>Cấp bậc</Label>
 							<Input
 								value={rank || '—'}
@@ -830,6 +886,145 @@ export default function LeaveRequestForm() {
 										}
 										placeholder='Số nhà, đường, tổ, thôn…'
 									/>
+								</div>
+							</div>
+						)}
+
+						{canProposeForUnit && requestScope === 'INDIVIDUAL' && (
+							<div className='md:col-span-2'>
+								<Label>Nơi nghỉ</Label>
+								<Input
+									value={addressDetail}
+									onChange={(e) =>
+										setAddressDetail(e.target.value)
+									}
+									placeholder={
+										personnel.permanentResidence ||
+										personnel.hometown ||
+										'Nhập nơi nghỉ…'
+									}
+								/>
+							</div>
+						)}
+
+						{canProposeForUnit && isMultiProposal && (
+							<div className='md:col-span-2 space-y-2'>
+								<Label>
+									{requestScope === 'SHORT_LEAVE'
+										? 'Danh sách học viên đi tranh thủ'
+										: 'Nơi nghỉ của học viên trong lớp'}
+								</Label>
+								<div className='max-h-96 overflow-auto rounded-md border'>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												{requestScope ===
+													'SHORT_LEAVE' && (
+													<TableHead className='w-12'>
+														Chọn
+													</TableHead>
+												)}
+												<TableHead>Học viên</TableHead>
+												<TableHead>Lớp</TableHead>
+												<TableHead>Nơi nghỉ</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{managedStudents
+												.filter(
+													(p) =>
+														requestScope ===
+															'SHORT_LEAVE' ||
+														p.classId ===
+															Number(
+																selectedClassId
+															)
+												)
+												.map((p) => {
+													const checked =
+														requestScope ===
+															'CLASS' ||
+														selectedTargetIds.includes(
+															p.id
+														)
+													return (
+														<TableRow key={p.id}>
+															{requestScope ===
+																'SHORT_LEAVE' && (
+																<TableCell>
+																	<Checkbox
+																		checked={
+																			checked
+																		}
+																		onCheckedChange={(
+																			value
+																		) =>
+																			setSelectedTargetIds(
+																				(
+																					prev
+																				) =>
+																					value
+																						? [
+																								...prev,
+																								p.id
+																							]
+																						: prev.filter(
+																								(
+																									id
+																								) =>
+																									id !==
+																									p.id
+																							)
+																			)
+																		}
+																	/>
+																</TableCell>
+															)}
+															<TableCell>
+																{p.fullName}
+																<span className='block text-xs text-muted-foreground'>
+																	{p.code}
+																</span>
+															</TableCell>
+															<TableCell>
+																{p.className ||
+																	'—'}
+															</TableCell>
+															<TableCell>
+																<Input
+																	disabled={
+																		!checked
+																	}
+																	value={
+																		targetLocations[
+																			p.id
+																		] ??
+																		p.permanentResidence ??
+																		p.hometown ??
+																		''
+																	}
+																	onChange={(
+																		e
+																	) =>
+																		setTargetLocations(
+																			(
+																				prev
+																			) => ({
+																				...prev,
+																				[p.id]: e
+																					.target
+																					.value
+																			})
+																		)
+																	}
+																	placeholder='Nhập nơi nghỉ…'
+																/>
+															</TableCell>
+														</TableRow>
+													)
+												})}
+										</TableBody>
+									</Table>
 								</div>
 							</div>
 						)}

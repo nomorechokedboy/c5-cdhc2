@@ -6,7 +6,12 @@ import { desc } from 'drizzle-orm'
 import { getAuthData } from '~encore/auth'
 import orm from '../database'
 import { leaveMailLog } from '../schema/leave-management'
-import { getMailStatus, sendLeaveMail, type MailStatus } from './mail'
+import {
+	getMailStatus,
+	saveMailConfig,
+	sendLeaveMail,
+	type MailStatus
+} from './mail'
 
 export const GetLeaveMailStatus = api(
 	{
@@ -17,6 +22,43 @@ export const GetLeaveMailStatus = api(
 	},
 	async (): Promise<{ data: MailStatus }> => {
 		return { data: getMailStatus() }
+	}
+)
+
+export const SaveLeaveMailConfig = api(
+	{
+		auth: true,
+		expose: true,
+		method: 'POST',
+		path: '/leave/mail/config'
+	},
+	async (body: {
+		host?: string
+		port?: string | number
+		user: string
+		pass: string
+		from?: string
+	}): Promise<{
+		data: { ok: boolean; message: string; status: MailStatus }
+	}> => {
+		const auth = getAuthData()!
+		if (!auth.isSuperAdmin) {
+			throw APIError.permissionDenied('Chỉ admin được cấu hình SMTP')
+		}
+		try {
+			const status = saveMailConfig(body)
+			return {
+				data: {
+					ok: true,
+					message: 'Đã lưu cấu hình SMTP',
+					status
+				}
+			}
+		} catch (error) {
+			throw APIError.invalidArgument(
+				String((error as Error)?.message || error)
+			)
+		}
 	}
 )
 
