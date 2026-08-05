@@ -28,6 +28,15 @@ class repo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
+	update(id: number, params: Partial<UnitParams>): Promise<UnitDB[]> {
+		return this.db
+			.update(units)
+			.set(params)
+			.where(eq(units.id, id))
+			.returning()
+			.catch(handleDatabaseErr)
+	}
+
 	async find(query: UnitQuery): Promise<Unit[]> {
 		const baseQuery = this.db.query.units
 		const conditions: SQL[] = []

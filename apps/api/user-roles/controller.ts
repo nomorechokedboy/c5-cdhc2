@@ -3,9 +3,12 @@ import { AssignRoleRequest } from '../schema'
 import { AppError } from '../errors'
 import userRolesRepo from './repo'
 import log from 'encore.dev/log'
+import orm from '../database'
+import { users } from '../schema/users'
+import { eq } from 'drizzle-orm'
 
 class Controller {
-	constructor(private readonly repo: Repository) { }
+	constructor(private readonly repo: Repository) {}
 
 	async assignRolesToUser(params: AssignRoleRequest): Promise<void> {
 		log.trace('UserRolesController.assignRolesToUser params', { params })
@@ -19,6 +22,15 @@ class Controller {
 		// }
 
 		await this.repo.assignRolesToUser(params).catch(AppError.handleAppErr)
+
+		// Có ít nhất một vai trò nghĩa là tài khoản đã được cấp quyền sử dụng.
+		if (params.roleIds?.length) {
+			await orm
+				.update(users)
+				.set({ status: 'approved' })
+				.where(eq(users.id, params.userId))
+				.catch(AppError.handleAppErr)
+		}
 	}
 
 	async getRolesByUserId(userId: number): Promise<number[]> {

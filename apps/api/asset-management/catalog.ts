@@ -43,6 +43,12 @@ export interface CatalogMaterial {
 	stockQuantity: number
 	/** SL danh mục (materials.quantity) — tăng/giảm user ngành */
 	catalogQuantity: number
+	manufactureYear: number | null
+	usageYear: number | null
+	classification: string | null
+	assetStatus: string
+	purchaseDate: string | null
+	expiryDate: string | null
 }
 
 export interface AssetCatalogResponse {
@@ -267,7 +273,13 @@ export const GetAssetCatalog = api(
 				quantity: materials.quantity,
 				categoryId: materials.categoryId,
 				categoryCode: categories.code,
-				categoryName: categories.name
+				categoryName: categories.name,
+				manufactureYear: materials.manufactureYear,
+				usageYear: materials.usageYear,
+				classification: materials.classification,
+				assetStatus: materials.assetStatus,
+				purchaseDate: materials.purchaseDate,
+				expiryDate: materials.expiryDate
 			})
 			.from(materials)
 			.innerJoin(categories, eq(materials.categoryId, categories.id))
@@ -303,7 +315,13 @@ export const GetAssetCatalog = api(
 					categoryName: m.categoryName,
 					nganhCode: nganhFromCode(categoryCode || m.code),
 					stockQuantity: stockMap.get(code) || 0,
-					catalogQuantity: Number(m.quantity) || 0
+					catalogQuantity: Number(m.quantity) || 0,
+					manufactureYear: m.manufactureYear ?? null,
+					usageYear: m.usageYear ?? null,
+					classification: m.classification ?? null,
+					assetStatus: m.assetStatus || 'NORMAL',
+					purchaseDate: m.purchaseDate ?? null,
+					expiryDate: m.expiryDate ?? null
 				}
 			})
 			.filter((m) => {
@@ -456,9 +474,16 @@ export const CreateCatalogMaterial = api(
 		chuyenNganhCode: string
 		name: string
 		unit?: string
+		quantity?: number
 		/** Tùy chọn — nếu trống hệ thống tự sinh */
 		code?: string
 		description?: string
+		manufactureYear?: number
+		usageYear?: number
+		classification?: string
+		assetStatus?: string
+		purchaseDate?: string
+		expiryDate?: string
 	}): Promise<{ data: CatalogMaterial }> => {
 		const cnCode = (body.chuyenNganhCode || '').trim().toUpperCase()
 		const name = (body.name || '').trim()
@@ -509,10 +534,16 @@ export const CreateCatalogMaterial = api(
 				code,
 				name,
 				unit,
-				quantity: 0,
+				quantity: Math.max(0, Math.floor(Number(body.quantity) || 0)),
 				minQuantity: 0,
 				status: 'ACTIVE',
-				description: body.description?.trim() || null
+				description: body.description?.trim() || null,
+				manufactureYear: body.manufactureYear,
+				usageYear: body.usageYear,
+				classification: body.classification?.trim() || null,
+				assetStatus: body.assetStatus || 'NORMAL',
+				purchaseDate: body.purchaseDate || null,
+				expiryDate: body.expiryDate || null
 			})
 			.returning()
 
@@ -546,7 +577,14 @@ export const CreateCatalogMaterial = api(
 				categoryCode: cat.code,
 				categoryName: cat.name,
 				nganhCode: nganhFromCode(cat.code),
-				stockQuantity: 0
+				stockQuantity: 0,
+				catalogQuantity: row.quantity,
+				manufactureYear: row.manufactureYear ?? null,
+				usageYear: row.usageYear ?? null,
+				classification: row.classification ?? null,
+				assetStatus: row.assetStatus || 'NORMAL',
+				purchaseDate: row.purchaseDate ?? null,
+				expiryDate: row.expiryDate ?? null
 			}
 		}
 	}
@@ -568,6 +606,12 @@ export const UpdateCatalogMaterial = api(
 		name?: string
 		unit?: string
 		description?: string | null
+		manufactureYear?: number | null
+		usageYear?: number | null
+		classification?: string | null
+		assetStatus?: string | null
+		purchaseDate?: string | null
+		expiryDate?: string | null
 	}): Promise<{ data: CatalogMaterial }> => {
 		const id = Number(params.id)
 		if (!Number.isFinite(id) || id <= 0) {
@@ -585,6 +629,12 @@ export const UpdateCatalogMaterial = api(
 			name?: string
 			unit?: string
 			description?: string | null
+			manufactureYear?: number | null
+			usageYear?: number | null
+			classification?: string | null
+			assetStatus?: string
+			purchaseDate?: string | null
+			expiryDate?: string | null
 		} = {}
 		const changes: string[] = []
 		if (params.name !== undefined) {
@@ -607,6 +657,22 @@ export const UpdateCatalogMaterial = api(
 				params.description === null
 					? null
 					: params.description.trim() || null
+		}
+		for (const key of [
+			'manufactureYear',
+			'usageYear',
+			'classification',
+			'purchaseDate',
+			'expiryDate'
+		] as const) {
+			if (params[key] !== undefined)
+				(patch as Record<string, unknown>)[key] =
+					typeof params[key] === 'string'
+						? (params[key] as string).trim() || null
+						: params[key]
+		}
+		if (params.assetStatus !== undefined) {
+			patch.assetStatus = params.assetStatus?.trim() || 'NORMAL'
 		}
 		if (Object.keys(patch).length === 0) {
 			throw APIError.invalidArgument('Không có trường để cập nhật')
@@ -642,7 +708,14 @@ export const UpdateCatalogMaterial = api(
 				categoryCode: cat?.code ?? '',
 				categoryName: cat?.name ?? '',
 				nganhCode: cat ? nganhFromCode(cat.code) : '',
-				stockQuantity: 0
+				stockQuantity: 0,
+				catalogQuantity: row.quantity,
+				manufactureYear: row.manufactureYear ?? null,
+				usageYear: row.usageYear ?? null,
+				classification: row.classification ?? null,
+				assetStatus: row.assetStatus || 'NORMAL',
+				purchaseDate: row.purchaseDate ?? null,
+				expiryDate: row.expiryDate ?? null
 			}
 		}
 	}

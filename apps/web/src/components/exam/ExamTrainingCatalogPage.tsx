@@ -1,16 +1,20 @@
 import {
 	CreateExamMajor,
 	CreateExamSubject,
+	CreateExamSystem,
 	DeleteExamMajor,
 	DeleteExamSubject,
+	DeleteExamSystem,
 	type ExamMajor,
 	type ExamSubject,
+	type ExamSystem,
 	ListExamFaculties,
 	ListExamMajors,
 	ListExamSubjects,
 	ListExamSystems,
 	UpdateExamMajor,
-	UpdateExamSubject
+	UpdateExamSubject,
+	UpdateExamSystem
 } from '@/api/exam'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -60,18 +64,13 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 const QUALIFICATION_OPTIONS = ['Sơ cấp', 'Trung cấp', 'Cao đẳng']
-const TRAINING_DURATION_OPTIONS = [
-	'6 tháng',
-	'1 năm',
-	'2 năm',
-	'2,5 năm',
-	'3 năm'
-]
 const TRAINING_FORM_OPTIONS = ['Chính quy', 'Liên thông', 'Chuyển loại']
 
 export default function ExamTrainingCatalogPage() {
 	const qc = useQueryClient()
 	const canManage = canManageExamCatalog()
+	const [systemOpen, setSystemOpen] = useState(false)
+	const [editingSystemId, setEditingSystemId] = useState<number | null>(null)
 	const [majorOpen, setMajorOpen] = useState(false)
 	const [editingId, setEditingId] = useState<number | null>(null)
 	const [subjectOpen, setSubjectOpen] = useState(false)
@@ -80,6 +79,11 @@ export default function ExamTrainingCatalogPage() {
 	)
 	const [subjectMajorId, setSubjectMajorId] = useState<number | null>(null)
 	const [majorSearch, setMajorSearch] = useState('')
+	const [systemForm, setSystemForm] = useState({
+		code: 'QS',
+		name: 'Hệ quân sự',
+		letter: 'A'
+	})
 	const [form, setForm] = useState({
 		systemId: 0,
 		nationalMajorCode: '',
@@ -199,6 +203,60 @@ export default function ExamTrainingCatalogPage() {
 		})
 		setMajorOpen(true)
 	}
+
+	const openCreateSystem = () => {
+		setEditingSystemId(null)
+		setSystemForm({ code: '', name: '', letter: '' })
+		setSystemOpen(true)
+	}
+
+	const openEditSystem = (system: ExamSystem) => {
+		setEditingSystemId(system.id)
+		setSystemForm({
+			code: system.code,
+			name: system.name,
+			letter: system.letter
+		})
+		setSystemOpen(true)
+	}
+
+	const saveSystem = useMutation({
+		mutationFn: () => {
+			const body = {
+				code: systemForm.code.trim(),
+				name: systemForm.name.trim(),
+				letter: systemForm.letter.trim(),
+				trainingTypeId: 1
+			}
+			return editingSystemId == null
+				? CreateExamSystem(body)
+				: UpdateExamSystem(editingSystemId, body)
+		},
+		onSuccess: (system) => {
+			toast.success(
+				editingSystemId == null
+					? 'Đã thêm hệ đào tạo'
+					: 'Đã cập nhật hệ đào tạo'
+			)
+			setSystemOpen(false)
+			setEditingSystemId(null)
+			setForm((old) => ({
+				...old,
+				systemId: old.systemId || system.id
+			}))
+			void qc.invalidateQueries({ queryKey: ['exam-systems'] })
+		},
+		onError: (error: Error) => toast.error(error.message)
+	})
+
+	const removeSystem = useMutation({
+		mutationFn: (id: number) => DeleteExamSystem(id),
+		onSuccess: () => {
+			toast.success('Đã xóa hệ đào tạo')
+			void qc.invalidateQueries({ queryKey: ['exam-systems'] })
+		},
+		onError: (error: Error) => toast.error(error.message)
+	})
 
 	const openEdit = (major: ExamMajor) => {
 		setEditingId(major.id)
@@ -346,6 +404,98 @@ export default function ExamTrainingCatalogPage() {
 				</div>
 			)}
 			<Card>
+				<CardHeader className='gap-3 pb-3'>
+					<div className='flex flex-col justify-between gap-3 sm:flex-row sm:items-start'>
+						<div>
+							<CardTitle>HỆ ĐÀO TẠO</CardTitle>
+							<CardDescription>
+								Quản lý các hệ và ký hiệu dùng để tạo mã ngành
+								đào tạo.
+							</CardDescription>
+						</div>
+						{canManage && (
+							<Button
+								className='shrink-0'
+								variant='outline'
+								onClick={openCreateSystem}
+							>
+								<Plus className='mr-2 h-4 w-4' /> Thêm hệ
+							</Button>
+						)}
+					</div>
+				</CardHeader>
+				<CardContent>
+					{systems.length ? (
+						<div className='grid gap-3 md:grid-cols-2'>
+							{systems.map((system) => (
+								<div
+									key={system.id}
+									className='flex items-center gap-3 rounded-lg border p-3'
+								>
+									<div className='bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-mono font-bold'>
+										{system.letter}
+									</div>
+									<div className='min-w-0 flex-1'>
+										<div className='font-medium'>
+											{system.name}
+										</div>
+										<div className='text-muted-foreground text-xs'>
+											Mã {system.code} ·{' '}
+											{
+												(
+													majorsBySystem.get(
+														system.id
+													) || []
+												).length
+											}{' '}
+											ngành
+										</div>
+									</div>
+									{canManage && (
+										<div className='flex shrink-0 gap-0.5'>
+											<Button
+												type='button'
+												size='icon'
+												variant='ghost'
+												title='Sửa hệ đào tạo'
+												onClick={() =>
+													openEditSystem(system)
+												}
+											>
+												<Pencil className='h-4 w-4' />
+											</Button>
+											<Button
+												type='button'
+												size='icon'
+												variant='ghost'
+												title='Xóa hệ đào tạo'
+												onClick={() => {
+													if (
+														window.confirm(
+															`Xóa ${system.name}?`
+														)
+													)
+														removeSystem.mutate(
+															system.id
+														)
+												}}
+											>
+												<Trash2 className='h-4 w-4 text-destructive' />
+											</Button>
+										</div>
+									)}
+								</div>
+							))}
+						</div>
+					) : (
+						<div className='text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm'>
+							Chưa có hệ đào tạo. Bấm “Thêm hệ” để tạo hệ quân sự
+							hoặc dân sự.
+						</div>
+					)}
+				</CardContent>
+			</Card>
+			<Card>
 				<CardHeader className='gap-4 pb-3'>
 					<div className='flex flex-col justify-between gap-3 lg:flex-row lg:items-start'>
 						<div>
@@ -389,20 +539,19 @@ export default function ExamTrainingCatalogPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{['B', 'A'].map((letter) => {
+							{systems.map((system) => {
 								const rows = visibleMajors.filter(
-									(major) => major.systemLetter === letter
+									(major) => major.systemId === system.id
 								)
 								if (!rows.length) return null
 								return [
-									<TableRow key={`${letter}-heading`}>
+									<TableRow key={`${system.id}-heading`}>
 										<TableCell
 											colSpan={canManage ? 5 : 4}
 											className='bg-muted/50 h-9 py-2 text-center font-bold text-red-600'
 										>
-											{letter === 'B'
-												? 'HỆ DÂN SỰ'
-												: 'HỆ QUÂN SỰ'}
+											{system.name.toUpperCase()} (
+											{system.letter})
 										</TableCell>
 									</TableRow>,
 									...rows.map((major) => (
@@ -649,6 +798,88 @@ export default function ExamTrainingCatalogPage() {
 					)}
 				</CardContent>
 			</Card>
+			<Dialog
+				open={systemOpen}
+				onOpenChange={(open) => {
+					setSystemOpen(open)
+					if (!open) setEditingSystemId(null)
+				}}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{editingSystemId == null
+								? 'Thêm hệ đào tạo'
+								: 'Sửa hệ đào tạo'}
+						</DialogTitle>
+					</DialogHeader>
+					<p className='text-muted-foreground text-xs'>
+						Nhập ký hiệu chưa được sử dụng; ký hiệu này sẽ đứng đầu
+						mã ngành, ví dụ A.6720301.
+					</p>
+					<div className='space-y-4 py-2'>
+						<div className='space-y-2'>
+							<Label>Ký hiệu hệ *</Label>
+							<Input
+								value={systemForm.letter}
+								onChange={(event) =>
+									setSystemForm((old) => ({
+										...old,
+										letter: event.target.value.toUpperCase()
+									}))
+								}
+								placeholder='Ví dụ: C'
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Mã hệ *</Label>
+							<Input
+								value={systemForm.code}
+								onChange={(event) =>
+									setSystemForm((old) => ({
+										...old,
+										code: event.target.value
+									}))
+								}
+							/>
+						</div>
+						<div className='space-y-2'>
+							<Label>Tên hệ *</Label>
+							<Input
+								value={systemForm.name}
+								onChange={(event) =>
+									setSystemForm((old) => ({
+										...old,
+										name: event.target.value
+									}))
+								}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant='outline'
+							onClick={() => setSystemOpen(false)}
+						>
+							Hủy
+						</Button>
+						<Button
+							disabled={
+								saveSystem.isPending ||
+								!systemForm.code.trim() ||
+								!systemForm.name.trim() ||
+								!systemForm.letter.trim()
+							}
+							onClick={() => saveSystem.mutate()}
+						>
+							{saveSystem.isPending && (
+								<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+							)}
+							Lưu
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<Dialog open={subjectOpen} onOpenChange={setSubjectOpen}>
 				<DialogContent className='max-w-xl'>
 					<DialogHeader>
@@ -879,26 +1110,16 @@ export default function ExamTrainingCatalogPage() {
 						</div>
 						<div className='space-y-2'>
 							<Label>Thời gian đào tạo *</Label>
-							<Select
+							<Input
 								value={form.trainingDuration}
-								onValueChange={(value) =>
+								onChange={(event) =>
 									setForm((old) => ({
 										...old,
-										trainingDuration: value
+										trainingDuration: event.target.value
 									}))
 								}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder='Chọn thời gian' />
-								</SelectTrigger>
-								<SelectContent>
-									{TRAINING_DURATION_OPTIONS.map((option) => (
-										<SelectItem key={option} value={option}>
-											{option}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+								placeholder='Ví dụ: 2 năm 6 tháng'
+							/>
 						</div>
 						<div className='space-y-2'>
 							<Label>Hình thức đào tạo *</Label>
