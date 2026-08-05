@@ -2,10 +2,6 @@
  * Nhật ký danh mục ngành / loại vật / vật tư.
  */
 import { api, Query } from 'encore.dev/api'
-import type {
-	CatalogAuditAction,
-	CatalogAuditEntity
-} from '../schema/catalog-audit-logs'
 import { resolveActor } from './account-audit'
 import log from 'encore.dev/log'
 import {
@@ -13,6 +9,9 @@ import {
 	type AuditLogResponse,
 	writeAuditLog
 } from '../audit/audit'
+
+type CatalogAuditAction = 'CREATE' | 'UPDATE' | 'DELETE'
+type CatalogAuditEntity = 'NGANH' | 'LOAI_VAT' | 'VAT_TU'
 
 export interface CatalogAuditLogResponse {
 	id: number
