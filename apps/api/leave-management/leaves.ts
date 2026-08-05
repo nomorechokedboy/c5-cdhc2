@@ -494,8 +494,12 @@ export const ListLeaveRequests = api(
 	}): Promise<{ data: LeaveRequestResponse[] }> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 		const conditions = []
 		if (q.status) {
 			const st = String(q.status)
@@ -613,7 +617,11 @@ export const GetLeaveRequest = api(
 			.limit(1)
 		if (!rows[0]) throw APIError.notFound('Không tìm thấy đơn phép')
 		const uid = Number(auth.userID)
-		const access = await resolveLeaveAccess(uid, !!auth.isSuperAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
 		const isCommander =
 			rows[0].commanderUserId != null && rows[0].commanderUserId === uid
 		if (
@@ -671,7 +679,11 @@ export const CreateLeaveRequest = api(
 	async (body: CreateLeaveBody): Promise<{ data: LeaveRequestResponse }> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const access = await resolveLeaveAccess(uid, !!auth.isSuperAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
 		if (access.isAgency && !access.isAdmin) {
 			throw APIError.permissionDenied(
 				'Cơ quan quản lý không có quyền đề xuất nghỉ phép'
@@ -855,10 +867,11 @@ export const CreateLeaveRequest = api(
 				throw APIError.invalidArgument(
 					'Người nghỉ không thể tự thay thế chính mình'
 				)
-			if (
-				personnel?.unitId != null &&
-				replacementPersonnel.unitId !== personnel.unitId
-			)
+			if (personnel?.unitId == null)
+				throw APIError.invalidArgument(
+					'Người nghỉ chưa được gán đơn vị để chọn người thay thế'
+				)
+			if (replacementPersonnel.unitId !== personnel.unitId)
 				throw APIError.invalidArgument(
 					'Người thay thế phải thuộc cùng đơn vị'
 				)
@@ -1079,7 +1092,6 @@ export const PatchLeaveRequest = api(
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
 		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
 
 		const rows = await orm
 			.select()
@@ -1217,8 +1229,12 @@ export const DecideLeaveRequest = api(
 	}> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const isAdmin = !!auth.isSuperAdmin
-		const access = await resolveLeaveAccess(uid, isAdmin)
+		const access = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 
 		const norm =
 			decision === 'REJECTED'

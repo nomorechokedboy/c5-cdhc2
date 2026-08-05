@@ -138,7 +138,12 @@ export const GetTakenLeaveList = api(
 		unitId?: Query<number>
 	}): Promise<{ data: TakenListResponse[] }> => {
 		const auth = getAuthData()!
-		const isAdmin = !!auth.isSuperAdmin
+		const access = await resolveLeaveAccess(
+			Number(auth.userID),
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 
 		const conditions = [
 			or(
@@ -149,10 +154,6 @@ export const GetTakenLeaveList = api(
 		]
 
 		if (!isAdmin) {
-			const access = await resolveLeaveAccess(
-				Number(auth.userID),
-				isAdmin
-			)
 			if (access.isCommander && access.unitIds.length) {
 				conditions.push(inArray(leaveRecords.unitId, access.unitIds))
 			}
@@ -386,7 +387,13 @@ export const GetNotYetTakenLeave = api(
 		}>
 	}> => {
 		const year = String(Number(q.year))
-		const isAdmin = !!(await getAuthData())!.isSuperAdmin
+		const reportAuth = (await getAuthData())!
+		const access = await resolveLeaveAccess(
+			Number(reportAuth.userID),
+			!!reportAuth.isSuperAdmin,
+			reportAuth.permissions || []
+		)
+		const isAdmin = access.isAdmin
 
 		let personnels: {
 			id: number
@@ -411,10 +418,6 @@ export const GetNotYetTakenLeave = api(
 						: undefined
 				)
 		} else {
-			const access = await resolveLeaveAccess(
-				Number((await getAuthData())!.userID),
-				false
-			)
 			if (!access.isCommander || access.unitIds.length === 0) {
 				return { data: [] }
 			}

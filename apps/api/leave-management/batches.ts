@@ -123,7 +123,8 @@ export const ListLeaveBatches = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const conditions = []
 		if (!access.isAdmin) {
@@ -194,7 +195,8 @@ export const GetLeaveBatch = api(
 		const auth = getAuthData()!
 		const access = await resolveLeaveAccess(
 			Number(auth.userID),
-			!!auth.isSuperAdmin
+			!!auth.isSuperAdmin,
+			auth.permissions || []
 		)
 		const rows = await orm
 			.select()
@@ -248,7 +250,7 @@ export const UpdateLeaveBatch = api(
 			.from(leaveBatches)
 			.where(eq(leaveBatches.id, id))
 			.limit(1)
-		if (!existing[0])
+		if (existing.length === 0)
 			throw APIError.notFound('Không tìm thấy đợt nghỉ phép')
 
 		const updated = await orm

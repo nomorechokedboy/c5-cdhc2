@@ -9,6 +9,7 @@
  * Super (admin.cdhc2): full — cũng được phê duyệt cuối + QR + khóa
  */
 import {
+	getTokenPermissions,
 	getTokenRoles,
 	isBghAdminUser,
 	isNganhUser,
@@ -17,6 +18,32 @@ import {
 
 function rolesLower() {
 	return getTokenRoles().map((r) => r.toLowerCase())
+}
+
+type ExamPermissionResource =
+	| 'exam-systems'
+	| 'exam-majors'
+	| 'exam-faculties'
+	| 'exam-subjects'
+	| 'exam-classes'
+	| 'exam-teachers'
+	| 'exam-assignments'
+	| 'exam-approvals'
+
+function hasExamPermission(
+	resource: ExamPermissionResource,
+	actions: string[] = ['read']
+): boolean {
+	const permissions = getTokenPermissions()
+	return actions.some((action) =>
+		permissions.includes(`${resource}:${action}`)
+	)
+}
+
+function hasAnyGranularExamPermission(): boolean {
+	return getTokenPermissions().some((permission) =>
+		permission.startsWith('exam-')
+	)
 }
 
 /** CNK = user ngành */
@@ -105,6 +132,7 @@ export function isExamBgh(): boolean {
 export function canAccessExamModule(): boolean {
 	return (
 		isSuperAdmin() ||
+		hasAnyGranularExamPermission() ||
 		isExamLecturer() ||
 		isExamNganhOperator() ||
 		isExamOffice() ||
@@ -115,6 +143,7 @@ export function canAccessExamModule(): boolean {
 /** Có bước duyệt nào đó — GV thuần KHÔNG duyệt */
 export function canApproveExams(): boolean {
 	if (isSuperAdmin()) return true
+	if (hasExamPermission('exam-approvals', ['read', 'update'])) return true
 	// GV thuần: không menu duyệt
 	if (
 		isExamLecturerRoleOnly() &&
@@ -138,8 +167,25 @@ export function canDrawExams(): boolean {
 }
 
 /** Danh mục đào tạo (khoa / ngành ĐT / lớp / môn) — GV không quản */
-export function canManageExamCatalog(): boolean {
-	return isSuperAdmin() || isExamNganhOperator()
+export function canManageExamCatalog(
+	resource?: ExamPermissionResource
+): boolean {
+	if (isSuperAdmin()) return true
+	const actions = ['create', 'update', 'delete']
+	if (resource)
+		return hasExamPermission(resource, actions) || isExamNganhOperator()
+	return (
+		isExamNganhOperator() ||
+		(
+			[
+				'exam-systems',
+				'exam-majors',
+				'exam-faculties',
+				'exam-subjects',
+				'exam-classes'
+			] as ExamPermissionResource[]
+		).some((item) => hasExamPermission(item, actions))
+	)
 }
 
 /**
@@ -149,13 +195,21 @@ export function canManageExamCatalog(): boolean {
  */
 export function canViewTeachingAssignments(): boolean {
 	return (
-		isSuperAdmin() || isExamNganhOperator() || isExamBgh() || isExamOffice()
+		isSuperAdmin() ||
+		hasExamPermission('exam-assignments') ||
+		isExamNganhOperator() ||
+		isExamBgh() ||
+		isExamOffice()
 	)
 }
 
 export function canManageTeachingAssignments(): boolean {
 	if (isExamBgh() && !isSuperAdmin()) return false
-	return isSuperAdmin() || isExamNganhOperator()
+	return (
+		isSuperAdmin() ||
+		hasExamPermission('exam-assignments', ['create', 'update', 'delete']) ||
+		isExamNganhOperator()
+	)
 }
 
 export function canDecideExamStatus(status: string): boolean {
@@ -217,13 +271,31 @@ export function examNavAllowed(key: ExamNavKey): boolean {
 		case 'overview':
 			return canAccessExamModule()
 		case 'catalog':
-			return canManageExamCatalog()
+			return (
+				canManageExamCatalog() ||
+				hasExamPermission('exam-systems') ||
+				hasExamPermission('exam-majors') ||
+				hasExamPermission('exam-subjects')
+			)
 		case 'classes':
 			// Danh mục lớp (Hệ + Ngành) — admin/CNK/KT quản; BGH xem qua catalog scope
-			return canManageExamCatalog() || isExamBgh() || isExamOffice()
+			return (
+				canManageExamCatalog('exam-classes') ||
+				hasExamPermission('exam-classes') ||
+				isExamBgh() ||
+				isExamOffice()
+			)
+		case 'faculties':
+			return (
+				canManageExamCatalog('exam-faculties') ||
+				hasExamPermission('exam-faculties')
+			)
 		case 'teachers':
 			// Danh mục GV theo khoa — CNK/admin/BGH/KT (như phân công)
-			return canViewTeachingAssignments()
+			return (
+				canViewTeachingAssignments() ||
+				hasExamPermission('exam-teachers')
+			)
 		case 'assign':
 			// Khoa + admin + BGH (xem) + Ban KT xem
 			return canViewTeachingAssignments()
