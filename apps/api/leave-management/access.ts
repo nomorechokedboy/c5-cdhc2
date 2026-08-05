@@ -27,6 +27,18 @@ export interface LeaveAccess {
 	isPersonnel: boolean
 	/** Được lập đề xuất phép (admin / chỉ huy / quân nhân, không áp dụng CQQL) */
 	canPropose: boolean
+	/** Có ít nhất một quyền trong phân hệ quản lý phép */
+	hasModuleAccess: boolean
+	/** Được xem và xử lý danh sách duyệt */
+	canApprove: boolean
+	/** Được đọc các danh mục phục vụ lập phiếu */
+	canReadCatalogs: boolean
+	/** Được thêm, xóa, sửa các danh mục quản lý phép */
+	canManageCatalogs: boolean
+	/** Được xem báo cáo và dữ liệu lưu trữ */
+	canViewReports: boolean
+	/** Được quản lý cấu hình phân hệ phép */
+	canManageSettings: boolean
 	managementArea: string | null
 	/** Đơn vị được phụ trách (leave_units.id); admin = [] nghĩa là tất cả */
 	unitIds: number[]
@@ -37,9 +49,18 @@ export interface LeaveAccess {
 /** Tính quyền leave cho user hiện tại (dùng trong API khác) */
 export async function resolveLeaveAccess(
 	userId: number,
-	isSuperAdmin: boolean
+	isSuperAdmin: boolean,
+	permissions: string[] = []
 ): Promise<LeaveAccess> {
-	if (isSuperAdmin) {
+	const hasFullLeaveAccess = [
+		'leave-proposals:create',
+		'leave-approvals:update',
+		'leave-catalogs:update',
+		'leave-reports:read',
+		'leave-settings:update'
+	].every((permission) => permissions.includes(permission))
+
+	if (isSuperAdmin || hasFullLeaveAccess) {
 		return {
 			role: 'admin',
 			isAdmin: true,
@@ -47,6 +68,12 @@ export async function resolveLeaveAccess(
 			isAgency: true,
 			isPersonnel: false,
 			canPropose: true,
+			hasModuleAccess: true,
+			canApprove: true,
+			canReadCatalogs: true,
+			canManageCatalogs: true,
+			canViewReports: true,
+			canManageSettings: true,
 			managementArea: null,
 			unitIds: [],
 			unitNames: []
@@ -110,13 +137,46 @@ export async function resolveLeaveAccess(
 	else if (isCommander) role = 'commander'
 	else if (isPersonnel) role = 'personnel'
 
+	const granularPermissions = permissions.filter((permission) =>
+		permission.startsWith('leave-')
+	)
+	const hasGranularPermissions = granularPermissions.length > 0
+	const hasPermission = (permission: string) =>
+		granularPermissions.includes(permission)
+	const roleCanPropose = (isCommander || isPersonnel) && !isAgency
+	const roleCanApprove = isCommander || isAgency
+	const roleCanManageCatalogs = isAgency
+	const roleCanViewReports = isCommander || isAgency
+
 	return {
 		role,
 		isAdmin: false,
 		isCommander,
 		isAgency,
 		isPersonnel,
-		canPropose: (isCommander || isPersonnel) && !isAgency,
+		canPropose:
+			roleCanPropose &&
+			(!hasGranularPermissions ||
+				hasPermission('leave-proposals:create')),
+		hasModuleAccess: role !== 'none' || hasGranularPermissions,
+		canApprove:
+			roleCanApprove &&
+			(!hasGranularPermissions ||
+				hasPermission('leave-approvals:update')),
+		canReadCatalogs:
+			!hasGranularPermissions || hasPermission('leave-catalogs:read'),
+		canManageCatalogs:
+			roleCanManageCatalogs &&
+			(!hasGranularPermissions ||
+				hasPermission('leave-catalogs:create') ||
+				hasPermission('leave-catalogs:update') ||
+				hasPermission('leave-catalogs:delete')),
+		canViewReports:
+			roleCanViewReports &&
+			(!hasGranularPermissions || hasPermission('leave-reports:read')),
+		canManageSettings:
+			hasPermission('leave-settings:read') ||
+			hasPermission('leave-settings:update'),
 		managementArea,
 		unitIds,
 		unitNames
@@ -133,7 +193,11 @@ export const GetLeaveMyAccess = api(
 	async (): Promise<{ data: LeaveAccess }> => {
 		const auth = getAuthData()!
 		const uid = Number(auth.userID)
-		const data = await resolveLeaveAccess(uid, !!auth.isSuperAdmin)
+		const data = await resolveLeaveAccess(
+			uid,
+			!!auth.isSuperAdmin,
+			auth.permissions || []
+		)
 		// super admin: check if also has personnel
 		if (data.isAdmin) {
 			const p = await orm

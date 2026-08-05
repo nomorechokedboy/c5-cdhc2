@@ -134,7 +134,7 @@ function suggestCode(name: string): string {
 
 export default function ExamClassesPage() {
 	const qc = useQueryClient()
-	const canManage = canManageExamCatalog()
+	const canManage = canManageExamCatalog('exam-classes')
 
 	const [filterSystem, setFilterSystem] = useState<string>('all')
 	const [filterMajor, setFilterMajor] = useState<string>('all')
