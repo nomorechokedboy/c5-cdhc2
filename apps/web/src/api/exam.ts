@@ -409,7 +409,7 @@ export async function CreateExamMajor(body: {
 	systemId: number
 	levelCode?: string | null
 	shortCode?: string | null
-	/** Để trống → tự sinh A/B_CD… */
+	/** Mã nội bộ; với ngành mới dùng cùng giá trị mã số. */
 	code?: string | null
 	catalogNumber?: string | null
 	nationalMajorCode?: string | null

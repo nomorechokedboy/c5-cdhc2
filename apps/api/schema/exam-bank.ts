@@ -53,7 +53,8 @@ export const examSystems = sqliteTable('exam_systems', {
 /**
  * Ngành đào tạo thuộc một hệ (cột trên sheet tổng hợp).
  * Tên vd «Y sĩ đa khoa (trung cấp)»; trình độ gắn trong ngành (levelCode).
- * Mã dùng chính mã số danh mục — vd B.6720301.
+ * Mã nội bộ dùng chính mã số duy nhất — vd B.6720301. Mã ngành quốc gia
+ * có thể trùng giữa nhiều chương trình trong cùng một hệ.
  */
 export const examMajors = sqliteTable('exam_majors', {
 	...baseSchema,

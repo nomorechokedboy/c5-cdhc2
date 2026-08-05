@@ -4,8 +4,9 @@
  *     → Ngành (cột chương trình: Y sĩ TC/CD/LT, Điều dưỡng…)
  *       → Khoa → Môn
  *
- * Mã ngành: A/B_TC|CD|LT + viết tắt (vd B_CDDD), chỉnh tay được.
- * Mã môn: {mã_ngành}_{mã_gốc}
+ * Mã số: định danh duy nhất của từng chương trình/ngành (vd A.6720301).
+ * Mã ngành: mã danh mục quốc gia, có thể trùng giữa các chương trình trong cùng hệ.
+ * Mã môn: {mã_số}_{mã_gốc}
  */
 import { api, APIError, Query } from 'encore.dev/api'
 import { and, eq, inArray, like, or, sql, isNull } from 'drizzle-orm'
@@ -174,9 +175,7 @@ type LegacySystemRow = {
 }
 
 async function hasTrainingTypeColumn(): Promise<boolean> {
-	const columns = await orm.all(
-		sql`PRAGMA table_info(exam_systems)`
-	)
+	const columns = await orm.all(sql`PRAGMA table_info(exam_systems)`)
 	return columns.some((column) => column.name === 'training_type_id')
 }
 
@@ -268,11 +267,24 @@ export const CreateExamSystem = api(
 		const hasTrainingType = await hasTrainingTypeColumn()
 		let row: LegacySystemRow | undefined
 		if (hasTrainingType) {
-			const [inserted] = await orm.insert(examSystems).values({ code, name, letter, trainingTypeId, description: body.description || null }).returning()
+			const [inserted] = await orm
+				.insert(examSystems)
+				.values({
+					code,
+					name,
+					letter,
+					trainingTypeId,
+					description: body.description || null
+				})
+				.returning()
 			row = inserted
 		} else {
-			await orm.run(sql`INSERT INTO exam_systems (code, name, letter, description) VALUES (${code}, ${name}, ${letter}, ${body.description || null})`)
-			row = await listSystems().then((rows) => rows.find((item) => item.code === code))
+			await orm.run(
+				sql`INSERT INTO exam_systems (code, name, letter, description) VALUES (${code}, ${name}, ${letter}, ${body.description || null})`
+			)
+			row = await listSystems().then((rows) =>
+				rows.find((item) => item.code === code)
+			)
 		}
 		return {
 			data: {
@@ -357,20 +369,26 @@ export const UpdateExamSystem = api(
 		const hasTrainingType = await hasTrainingTypeColumn()
 		let row: LegacySystemRow | undefined
 		if (hasTrainingType) {
-			const [updated] = await orm.update(examSystems).set({
-				code,
-				name,
-				letter,
-				trainingTypeId,
-				description:
-					params.description !== undefined
-						? params.description
-						: existing.description
-			}).where(eq(examSystems.id, params.id)).returning()
+			const [updated] = await orm
+				.update(examSystems)
+				.set({
+					code,
+					name,
+					letter,
+					trainingTypeId,
+					description:
+						params.description !== undefined
+							? params.description
+							: existing.description
+				})
+				.where(eq(examSystems.id, params.id))
+				.returning()
 			row = updated
 		} else {
-			await orm.run(sql`UPDATE exam_systems SET code = ${code}, name = ${name}, letter = ${letter}, description = ${params.description !== undefined ? params.description : existing.description} WHERE id = ${params.id}`)
-			row = await getSystem(params.id) ?? undefined
+			await orm.run(
+				sql`UPDATE exam_systems SET code = ${code}, name = ${name}, letter = ${letter}, description = ${params.description !== undefined ? params.description : existing.description} WHERE id = ${params.id}`
+			)
+			row = (await getSystem(params.id)) ?? undefined
 		}
 		return { data: row! }
 	}
@@ -480,25 +498,28 @@ export const CreateExamMajor = api(
 			)
 		}
 		const name = body.name.trim()
-		if (!name || !body.systemId) {
-			throw APIError.invalidArgument('Tên ngành và hệ bắt buộc')
+		const catalogNumber = body.catalogNumber?.trim().toUpperCase() || ''
+		if (!name || !body.systemId || !catalogNumber) {
+			throw APIError.invalidArgument('Mã số, tên ngành và hệ bắt buộc')
 		}
 		const sys = await getSystem(body.systemId)
 		if (!sys) throw APIError.notFound('Hệ không tồn tại')
 
 		const nationalMajorCode = body.nationalMajorCode?.trim() || null
-		const catalogNumber = nationalMajorCode
-			? `${sys.letter.toUpperCase()}.${nationalMajorCode}`
-			: body.catalogNumber?.trim() || null
-		const code =
-			catalogNumber ||
-			buildMajorCode({
-				letter: sys.letter,
-				levelCode: body.levelCode,
-				shortCode: body.shortCode,
-				majorName: name,
-				manualCode: body.code
-			})
+		const [duplicate] = await orm
+			.select({ id: examMajors.id })
+			.from(examMajors)
+			.where(
+				or(
+					eq(examMajors.code, catalogNumber),
+					eq(examMajors.catalogNumber, catalogNumber)
+				)
+			)
+			.limit(1)
+		if (duplicate) {
+			throw APIError.alreadyExists(`Mã số ${catalogNumber} đã tồn tại`)
+		}
+		const code = catalogNumber
 
 		const [row] = await orm
 			.insert(examMajors)
@@ -548,25 +569,32 @@ export const UpdateExamMajor = api(
 			.where(eq(examMajors.id, params.id))
 			.limit(1)
 		if (!existing) throw APIError.notFound('Ngành không tồn tại')
-		const nextSystemId = params.systemId ?? existing.systemId
 		const nextNationalMajorCode =
 			params.nationalMajorCode !== undefined
 				? params.nationalMajorCode?.trim() || null
 				: existing.nationalMajorCode
-		let nextCatalogNumber =
+		const nextCatalogNumber =
 			params.catalogNumber !== undefined
-				? params.catalogNumber?.trim() || null
+				? params.catalogNumber?.trim().toUpperCase() || null
 				: existing.catalogNumber
-		let nextCode = params.code?.trim().toUpperCase() || existing.code
-		if (nextNationalMajorCode) {
-			const [system] = await orm
-				.select({ letter: examSystems.letter })
-				.from(examSystems)
-				.where(eq(examSystems.id, nextSystemId))
-				.limit(1)
-			if (!system) throw APIError.notFound('Hệ không tồn tại')
-			nextCatalogNumber = `${system.letter.toUpperCase()}.${nextNationalMajorCode}`
-			nextCode = nextCatalogNumber
+		if (!nextCatalogNumber) {
+			throw APIError.invalidArgument('Mã số ngành là bắt buộc')
+		}
+		const nextCode = nextCatalogNumber
+		const [duplicate] = await orm
+			.select({ id: examMajors.id })
+			.from(examMajors)
+			.where(
+				or(
+					eq(examMajors.code, nextCatalogNumber),
+					eq(examMajors.catalogNumber, nextCatalogNumber)
+				)
+			)
+			.limit(1)
+		if (duplicate && duplicate.id !== params.id) {
+			throw APIError.alreadyExists(
+				`Mã số ${nextCatalogNumber} đã tồn tại`
+			)
 		}
 
 		const [row] = await orm
