@@ -86,6 +86,7 @@ export default function ExamTrainingCatalogPage() {
 	})
 	const [form, setForm] = useState({
 		systemId: 0,
+		catalogNumber: '',
 		nationalMajorCode: '',
 		name: '',
 		qualification: '',
@@ -120,11 +121,6 @@ export default function ExamTrainingCatalogPage() {
 	const majors = majorsQ.data || []
 	const subjects = subjectsQ.data || []
 	const faculties = facultiesQ.data || []
-	const selectedSystem = systems.find((system) => system.id === form.systemId)
-	const generatedCatalogNumber =
-		selectedSystem && form.nationalMajorCode.trim()
-			? `${selectedSystem.letter.toUpperCase()}.${form.nationalMajorCode.trim()}`
-			: ''
 	const loading =
 		systemsQ.isLoading ||
 		majorsQ.isLoading ||
@@ -132,14 +128,14 @@ export default function ExamTrainingCatalogPage() {
 		facultiesQ.isLoading
 	const error =
 		systemsQ.error || majorsQ.error || subjectsQ.error || facultiesQ.error
-	const officialMajors = majors.filter((major) => major.catalogNumber)
 	const visibleMajors = useMemo(() => {
 		const keyword = majorSearch.trim().toLocaleLowerCase('vi')
-		if (!keyword) return officialMajors
-		return officialMajors.filter((major) =>
+		if (!keyword) return majors
+		return majors.filter((major) =>
 			[
 				major.catalogNumber,
 				major.nationalMajorCode,
+				major.code,
 				major.name,
 				major.qualification,
 				major.trainingForm
@@ -147,7 +143,7 @@ export default function ExamTrainingCatalogPage() {
 				(value || '').toLocaleLowerCase('vi').includes(keyword)
 			)
 		)
-	}, [officialMajors, majorSearch])
+	}, [majors, majorSearch])
 	const facultyDirectory = useMemo(() => {
 		const byCode = new Map<string, (typeof faculties)[number]>()
 		for (const faculty of faculties) {
@@ -183,18 +179,17 @@ export default function ExamTrainingCatalogPage() {
 			new Map(
 				systems.map((system) => [
 					system.id,
-					officialMajors.filter(
-						(major) => major.systemId === system.id
-					)
+					majors.filter((major) => major.systemId === system.id)
 				])
 			),
-		[systems, officialMajors]
+		[systems, majors]
 	)
 
 	const openCreate = () => {
 		setEditingId(null)
 		setForm({
 			systemId: systems[0]?.id || 0,
+			catalogNumber: '',
 			nationalMajorCode: '',
 			name: '',
 			qualification: '',
@@ -262,6 +257,7 @@ export default function ExamTrainingCatalogPage() {
 		setEditingId(major.id)
 		setForm({
 			systemId: major.systemId,
+			catalogNumber: major.catalogNumber || '',
 			nationalMajorCode: major.nationalMajorCode || '',
 			name: major.name,
 			qualification: major.qualification || '',
@@ -275,8 +271,8 @@ export default function ExamTrainingCatalogPage() {
 		mutationFn: () => {
 			const body = {
 				systemId: form.systemId,
-				code: generatedCatalogNumber,
-				catalogNumber: generatedCatalogNumber,
+				code: form.catalogNumber,
+				catalogNumber: form.catalogNumber,
 				nationalMajorCode: form.nationalMajorCode,
 				name: form.name,
 				qualification: form.qualification,
@@ -527,7 +523,7 @@ export default function ExamTrainingCatalogPage() {
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Mã đào tạo</TableHead>
+								<TableHead>Mã số / Mã ngành</TableHead>
 								<TableHead>Tên ngành</TableHead>
 								<TableHead>Trình độ / Thời gian</TableHead>
 								<TableHead>Hình thức đào tạo</TableHead>
@@ -560,9 +556,13 @@ export default function ExamTrainingCatalogPage() {
 											className='text-sm'
 										>
 											<TableCell className='py-2.5 font-mono font-medium'>
-												<div>{major.catalogNumber}</div>
+												<div>
+													{major.catalogNumber ||
+														'Chưa có mã số'}
+												</div>
 												<div className='text-muted-foreground mt-0.5 text-xs'>
-													{major.nationalMajorCode}
+													{major.nationalMajorCode ||
+														`Mã cũ: ${major.code}`}
 												</div>
 											</TableCell>
 											<TableCell className='py-2.5 font-medium'>
@@ -635,8 +635,8 @@ export default function ExamTrainingCatalogPage() {
 						ngành
 					</CardTitle>
 					<CardDescription>
-						Danh sách môn học của {officialMajors.length} ngành
-						trong bảng trên · {subjects.length} môn
+						Danh sách môn học của {majors.length} ngành trong bảng
+						trên · {subjects.length} môn
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -1061,6 +1061,19 @@ export default function ExamTrainingCatalogPage() {
 							</Select>
 						</div>
 						<div className='space-y-2'>
+							<Label>Mã số * (không được trùng)</Label>
+							<Input
+								value={form.catalogNumber}
+								onChange={(e) =>
+									setForm((old) => ({
+										...old,
+										catalogNumber: e.target.value
+									}))
+								}
+								placeholder='Ví dụ: A.6720301'
+							/>
+						</div>
+						<div className='space-y-2'>
 							<Label>Mã ngành *</Label>
 							<Input
 								value={form.nationalMajorCode}
@@ -1156,7 +1169,7 @@ export default function ExamTrainingCatalogPage() {
 							disabled={
 								saveMajor.isPending ||
 								!form.systemId ||
-								!generatedCatalogNumber ||
+								!form.catalogNumber.trim() ||
 								!form.nationalMajorCode.trim() ||
 								!form.name.trim() ||
 								!form.qualification.trim() ||
