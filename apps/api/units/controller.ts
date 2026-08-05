@@ -85,6 +85,45 @@ class controller {
 		return this.repo.create(validParams).catch(AppError.handleAppErr)
 	}
 
+	async update(id: number, params: Partial<UnitParams>): Promise<UnitDB> {
+		const existing = await this.repo.findById(id)
+		if (!existing)
+			throw AppError.handleAppErr(
+				AppError.notFound('Đơn vị không tồn tại')
+			)
+		if (params.alias !== undefined && !params.alias.trim())
+			throw AppError.handleAppErr(
+				AppError.invalidArgument('Alias không được để trống')
+			)
+		if (params.name !== undefined && !params.name.trim())
+			throw AppError.handleAppErr(
+				AppError.invalidArgument('Tên không được để trống')
+			)
+		const rows = await this.repo.update(id, params)
+		return rows[0]!
+	}
+
+	async delete(id: number): Promise<void> {
+		const existing = await this.repo.findById(id)
+		if (!existing)
+			throw AppError.handleAppErr(
+				AppError.notFound('Đơn vị không tồn tại')
+			)
+		const full = (
+			(await this.repo.find({ ids: [id] })) as unknown as Array<{
+				children?: unknown[]
+				classes?: unknown[]
+			}>
+		)[0]
+		if (full?.children?.length || full?.classes?.length)
+			throw AppError.handleAppErr(
+				AppError.invalidArgument(
+					'Không thể xóa đơn vị đang có đơn vị con hoặc lớp'
+				)
+			)
+		await this.repo.delete([existing as InteralUnitDB])
+	}
+
 	find(q: GetUnitsQuery, unitIds: number[]): Promise<Unit[]> {
 		log.trace('UnitController.find params', { params: q })
 
