@@ -3,6 +3,7 @@ import { Unit, UnitDB, UnitParams, UnitQuery } from '../schema/units'
 export interface Repository {
 	create(params: UnitParams[]): Promise<UnitDB[]>
 	delete(units: UnitDB[]): Promise<UnitDB[]>
+	update(id: number, params: Partial<UnitParams>): Promise<UnitDB[]>
 	find(query: UnitQuery): Promise<Unit[]>
 	findAll(): Promise<Unit[]>
 	findOne(params: {

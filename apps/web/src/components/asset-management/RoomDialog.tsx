@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import type { Room } from '@/types/asset'
 import { useRoomMutations } from '@/hooks/useRooms'
+import useUnitsData from '@/hooks/useUnitsData'
 import { toast } from 'sonner'
 
 type Props = {
@@ -45,10 +46,12 @@ export default function RoomDialog({
 }: Props) {
 	const isEdit = !!room
 	const { create, update } = useRoomMutations()
+	const unitsQ = useUnitsData()
 	const [roomCode, setRoomCode] = useState('')
 	const [roomName, setRoomName] = useState('')
 	const [roomType, setRoomType] = useState('')
 	const [manager, setManager] = useState('')
+	const [managerCode, setManagerCode] = useState('')
 	const [capacity, setCapacity] = useState(0)
 	const [status, setStatus] = useState('ACTIVE')
 	const [description, setDescription] = useState('')
@@ -59,6 +62,7 @@ export default function RoomDialog({
 			setRoomName(room.roomName)
 			setRoomType(room.roomType ?? '')
 			setManager(room.manager ?? '')
+			setManagerCode(room.managerCode ?? '')
 			setCapacity(room.capacity ?? 0)
 			setStatus(room.status ?? 'ACTIVE')
 			setDescription(room.description ?? '')
@@ -67,11 +71,12 @@ export default function RoomDialog({
 			setRoomName('')
 			setRoomType('')
 			setManager('')
+			setManagerCode('')
 			setCapacity(0)
 			setStatus('ACTIVE')
 			setDescription('')
 		}
-	}, [room, open, locationPrefix])
+	}, [room, locationPrefix])
 
 	const pending = create.isPending || update.isPending
 
@@ -88,6 +93,7 @@ export default function RoomDialog({
 			roomType: roomType || undefined,
 			// Chỉ text «Đơn vị quản lý» — không tạo TK đăng nhập phòng
 			manager: manager || undefined,
+			managerCode: managerCode || undefined,
 			capacity,
 			status,
 			description: description || undefined
@@ -141,13 +147,36 @@ export default function RoomDialog({
 					</div>
 					<div className='grid grid-cols-2 gap-3'>
 						<div className='space-y-2 col-span-2'>
-							<Label htmlFor='manager'>Đơn vị quản lý</Label>
-							<Input
-								id='manager'
-								value={manager}
-								onChange={(e) => setManager(e.target.value)}
-								placeholder='VD: Tiểu đoàn 1, Đại đội 1, Ban Giám hiệu…'
-							/>
+							<Label>Đơn vị quản lý</Label>
+							<Select
+								value={managerCode || 'none'}
+								onValueChange={(v) => {
+									const unit = unitsQ.data?.find(
+										(u) => u.alias === v
+									)
+									setManagerCode(v === 'none' ? '' : v)
+									setManager(
+										v === 'none' ? '' : unit?.name || ''
+									)
+								}}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder='Chọn đơn vị sử dụng' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='none'>
+										Chưa chọn
+									</SelectItem>
+									{(unitsQ.data || []).map((unit) => (
+										<SelectItem
+											key={unit.id}
+											value={unit.alias}
+										>
+											{unit.alias} — {unit.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 							<p className='text-[11px] text-muted-foreground'>
 								Chỉ ghi nhận đơn vị quản lý phòng — không tạo
 								tài khoản đăng nhập. TK đăng nhập: đơn vị sử

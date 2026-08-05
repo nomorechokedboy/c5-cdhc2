@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
 	ArrowLeft,
@@ -46,6 +47,7 @@ import AccountDialog from './AccountDialog'
 import AccountAuditLogPanel from './AccountAuditLogPanel'
 import UnitUsagePanel from './UnitUsagePanel'
 import AssetAccountsPanel from './AssetAccountsPanel'
+import UserForm from '@/components/user-table/user-form'
 import { toast } from 'sonner'
 import {
 	Dialog,
@@ -132,6 +134,7 @@ export default function BuildingCatalog({
 	view: viewProp,
 	buildingId: buildingIdProp = null
 }: Props) {
+	const qc = useQueryClient()
 	const navigate = useNavigate()
 	const nganhUser = useIsNganhUser()
 	const bghOnly = isBghOnlyUser()
@@ -195,6 +198,7 @@ export default function BuildingCatalog({
 	const [roomFloorId, setRoomFloorId] = useState<number | null>(null)
 	const [editingRoom, setEditingRoom] = useState<Room | null>(null)
 	const [accountDialogOpen, setAccountDialogOpen] = useState(false)
+	const [userFormOpen, setUserFormOpen] = useState(false)
 	const [editingAccount, setEditingAccount] = useState<FlatRoom | null>(null)
 	const [accountSearch, setAccountSearch] = useState('')
 	/** Trong màn tài khoản: chọn xem danh sách hay nhật ký (một bên) */
@@ -427,18 +431,24 @@ export default function BuildingCatalog({
 									toast.error('Chọn tòa trong Bộ lọc')
 									return
 								}
-								const floors = selectedBuilding.floors ?? []
-								if (!floors.length) {
+								const firstFloor = selectedBuilding.floors?.[0]
+								if (!firstFloor) {
 									toast.error('Tòa chưa có tầng')
 									return
 								}
-								setRoomFloorId(floors[0]!.id)
+								setRoomFloorId(firstFloor.id)
 								setEditingRoom(null)
 								setRoomDialogOpen(true)
 							}}
 						>
 							<Plus className='w-4 h-4 mr-2' />
 							Thêm phòng
+						</Button>
+					)}
+					{view === 'tai-khoan' && !readOnly && (
+						<Button onClick={() => setUserFormOpen(true)}>
+							<Plus className='w-4 h-4 mr-2' />
+							Thêm tài khoản
 						</Button>
 					)}
 					{view === 'don-vi' && !readOnly && (
@@ -501,9 +511,9 @@ export default function BuildingCatalog({
 					<CardContent className='space-y-3'>
 						<div className='flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-end'>
 							<div className='flex-1 min-w-[220px] space-y-1.5'>
-								<label className='text-base font-medium'>
+								<div className='text-base font-medium'>
 									Tòa nhà
-								</label>
+								</div>
 								<SearchableSelect
 									value={
 										filterBuildingId != null
@@ -568,8 +578,11 @@ export default function BuildingCatalog({
 
 			{view === 'don-vi' ? null : isLoading ? (
 				<div className='space-y-3'>
-					{Array.from({ length: 3 }).map((_, i) => (
-						<Skeleton key={i} className='h-24 w-full rounded-xl' />
+					{['building-1', 'building-2', 'building-3'].map((key) => (
+						<Skeleton
+							key={key}
+							className='h-24 w-full rounded-xl'
+						/>
 					))}
 				</div>
 			) : view === 'toa' ? (
@@ -951,6 +964,14 @@ export default function BuildingCatalog({
 				tree={tree}
 				defaultBuildingId={filterBuildingId}
 				room={editingAccount}
+			/>
+			<UserForm
+				open={userFormOpen}
+				setOpen={setUserFormOpen}
+				onSuccess={() => {
+					void qc.invalidateQueries({ queryKey: ['users'] })
+					setUserFormOpen(false)
+				}}
 			/>
 			{floorBuildingId !== null && (
 				<FloorDialog

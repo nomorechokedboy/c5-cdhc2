@@ -11,7 +11,13 @@
  * Mã môn: {mã_ngành}_{mã_gốc} — vd B_CDDD_M009K2
  */
 import { sql } from 'drizzle-orm'
-import { int, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import {
+	index,
+	int,
+	sqliteTable,
+	text,
+	uniqueIndex
+} from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 
 /** DRAFT | PENDING_DEPT | PENDING_EXAM_OFFICE | PENDING_BGH | APPROVED | RETURNED | REJECTED */
@@ -78,11 +84,11 @@ export const examFaculties = sqliteTable(
 		...baseSchema,
 		code: text('code').notNull(),
 		name: text('name').notNull(),
-		majorId: int('major_id').notNull(),
+		majorId: int('major_id'),
 		description: text('description')
 	},
 	(t) => ({
-		uq: uniqueIndex('exam_faculties_major_code_uq').on(t.majorId, t.code)
+		codeIdx: index('exam_faculties_code_idx').on(t.code)
 	})
 )
 
@@ -114,7 +120,7 @@ export const examSubjects = sqliteTable('exam_subjects', {
 	lessonHours: int('lesson_hours').default(0),
 	facultyId: int('faculty_id').notNull(),
 	/** Denormalized — ngành (từ khoa) để lọc / CNK */
-	majorId: int('major_id').notNull(),
+	majorId: int('major_id'),
 	description: text('description')
 })
 

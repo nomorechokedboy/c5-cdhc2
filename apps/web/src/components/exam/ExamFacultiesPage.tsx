@@ -1,5 +1,7 @@
 import {
 	CreateExamSubject,
+	CreateExamFaculty,
+	DeleteExamFaculty,
 	DeleteExamFacultyHead,
 	DeleteExamSubject,
 	type ExamSubject,
@@ -64,6 +66,10 @@ export default function ExamFacultiesPage() {
 	const qc = useQueryClient()
 	const canManage = canManageExamCatalog()
 	const [editingCode, setEditingCode] = useState<string | null>(null)
+	const [facultyEditorOpen, setFacultyEditorOpen] = useState(false)
+	const [facultyEditorMode, setFacultyEditorMode] = useState<
+		'create' | 'edit'
+	>('edit')
 	const [managingCode, setManagingCode] = useState<string | null>(null)
 	const [subjectEditorOpen, setSubjectEditorOpen] = useState(false)
 	const [editingSubjectId, setEditingSubjectId] = useState<number | null>(
@@ -172,6 +178,31 @@ export default function ExamFacultiesPage() {
 		},
 		onError: (error: Error) => toast.error(error.message)
 	})
+	const createFaculty = useMutation({
+		mutationFn: () =>
+			CreateExamFaculty({ code: form.code, name: form.name }),
+		onSuccess: () => {
+			toast.success('Đã thêm khoa')
+			setFacultyEditorOpen(false)
+			void qc.invalidateQueries({ queryKey: ['exam-faculties'] })
+			void qc.invalidateQueries({ queryKey: ['exam-faculty-options'] })
+		},
+		onError: (error: Error) => toast.error(error.message)
+	})
+	const deleteFaculty = useMutation({
+		mutationFn: async (code: string) => {
+			const records = (facultiesQ.data || []).filter(
+				(f) => f.code === code
+			)
+			for (const record of records) await DeleteExamFaculty(record.id)
+		},
+		onSuccess: () => {
+			toast.success('Đã xóa khoa')
+			void qc.invalidateQueries({ queryKey: ['exam-faculties'] })
+			void qc.invalidateQueries({ queryKey: ['exam-faculty-options'] })
+		},
+		onError: (error: Error) => toast.error(error.message)
+	})
 
 	const managedFaculty = rows.find((faculty) => faculty.code === managingCode)
 	const managedRecords = (facultiesQ.data || []).filter(
@@ -252,14 +283,27 @@ export default function ExamFacultiesPage() {
 
 	return (
 		<div className='space-y-6 p-4 md:p-6'>
-			<div>
-				<h1 className='text-2xl font-semibold tracking-tight'>
-					Danh mục khoa
-				</h1>
-				<p className='text-muted-foreground text-sm'>
-					Khoa quản lý môn học, giáo viên thuộc khoa và Chủ nhiệm khoa
-					duyệt đề.
-				</p>
+			<div className='flex items-start justify-between gap-4'>
+				<div>
+					<h1 className='text-2xl font-semibold tracking-tight'>
+						Danh mục khoa
+					</h1>
+					<p className='text-muted-foreground text-sm'>
+						Khoa quản lý môn học, giáo viên thuộc khoa và Chủ nhiệm
+						khoa duyệt đề.
+					</p>
+				</div>
+				{canManage && (
+					<Button
+						onClick={() => {
+							setFacultyEditorMode('create')
+							setForm({ code: '', name: '', headUserId: 'none' })
+							setFacultyEditorOpen(true)
+						}}
+					>
+						<Plus className='mr-2 h-4 w-4' /> Thêm khoa
+					</Button>
+				)}
 			</div>
 			{error && (
 				<div className='rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive'>
@@ -289,26 +333,43 @@ export default function ExamFacultiesPage() {
 										</CardDescription>
 									</div>
 									{canManage && (
-										<Button
-											size='icon'
-											variant='ghost'
-											title='Sửa khoa'
-											onClick={() => {
-												setEditingCode(faculty.code)
-												setForm({
-													code: faculty.code,
-													name: faculty.name,
-													headUserId: faculty.head
-														? String(
-																faculty.head
-																	.userId
-															)
-														: 'none'
-												})
-											}}
-										>
-											<Pencil className='h-4 w-4' />
-										</Button>
+										<div className='flex gap-1'>
+											<Button
+												size='icon'
+												variant='ghost'
+												title='Sửa khoa'
+												onClick={() => {
+													setEditingCode(faculty.code)
+													setForm({
+														code: faculty.code,
+														name: faculty.name,
+														headUserId: faculty.head
+															? String(
+																	faculty.head
+																		.userId
+																)
+															: 'none'
+													})
+												}}
+											>
+												<Pencil className='h-4 w-4' />
+											</Button>
+											<Button
+												size='icon'
+												variant='ghost'
+												title='Xóa khoa'
+												onClick={() =>
+													window.confirm(
+														`Xóa khoa ${faculty.code}?`
+													) &&
+													deleteFaculty.mutate(
+														faculty.code
+													)
+												}
+											>
+												<Trash2 className='h-4 w-4 text-destructive' />
+											</Button>
+										</div>
 									)}
 								</div>
 							</CardHeader>
@@ -541,6 +602,73 @@ export default function ExamFacultiesPage() {
 							</TableBody>
 						</Table>
 					</div>
+				</DialogContent>
+			</Dialog>
+			<Dialog
+				open={facultyEditorOpen}
+				onOpenChange={setFacultyEditorOpen}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{facultyEditorMode === 'create'
+								? 'Thêm khoa'
+								: 'Sửa khoa'}
+						</DialogTitle>
+					</DialogHeader>
+					<div className='space-y-3'>
+						<div>
+							<Label>Mã khoa *</Label>
+							<Input
+								value={form.code}
+								onChange={(e) =>
+									setForm((o) => ({
+										...o,
+										code: e.target.value.toUpperCase()
+									}))
+								}
+								placeholder='K1'
+							/>
+						</div>
+						<div>
+							<Label>Tên khoa *</Label>
+							<Input
+								value={form.name}
+								onChange={(e) =>
+									setForm((o) => ({
+										...o,
+										name: e.target.value
+									}))
+								}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant='outline'
+							onClick={() => setFacultyEditorOpen(false)}
+						>
+							Hủy
+						</Button>
+						<Button
+							disabled={
+								!form.code.trim() ||
+								!form.name.trim() ||
+								createFaculty.isPending ||
+								save.isPending
+							}
+							onClick={() => {
+								if (facultyEditorMode === 'create')
+									createFaculty.mutate()
+								else {
+									setFacultyEditorOpen(false)
+									save.mutate()
+								}
+							}}
+						>
+							Lưu
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 

@@ -288,6 +288,7 @@ export default function UnitUsagePanel({
 		setAddOpen(true)
 	}
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: this effect intentionally reacts only to the external signal
 	useEffect(() => {
 		if (openAddSignal > 0) openAddDialog()
 	}, [openAddSignal])
