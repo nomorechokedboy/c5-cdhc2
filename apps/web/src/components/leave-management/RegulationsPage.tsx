@@ -820,7 +820,7 @@ export default function RegulationsPage() {
 									<SelectValue placeholder='Chọn…' />
 								</SelectTrigger>
 								<SelectContent>
-									{objectTypes.map((o) => (
+									{displayedObjectTypes.map((o) => (
 										<SelectItem key={o.code} value={o.code}>
 											{o.code} — {o.name}
 										</SelectItem>

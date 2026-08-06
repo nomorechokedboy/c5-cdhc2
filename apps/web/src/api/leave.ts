@@ -648,6 +648,8 @@ export function CreateLeaveUnit(body: {
 	name: string
 	code?: string | null
 	parentId?: number | null
+	level?: string | null
+	managementArea?: string
 	isActive?: boolean
 	commanderUserId?: number | null
 }) {
@@ -663,6 +665,8 @@ export function UpdateLeaveUnit(
 		name: string
 		code: string | null
 		parentId: number | null
+		level: string | null
+		managementArea: string
 		isActive: boolean
 		commanderUserId: number | null
 	}>
