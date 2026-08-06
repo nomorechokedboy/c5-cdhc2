@@ -364,7 +364,9 @@ export default function ExamCatalogPage() {
 					code: facultyForm.code,
 					shortCode: facultyForm.shortCode,
 					name: facultyForm.name,
-					majorId: facultyForm.majorId
+					...(facultyForm.majorId > 0
+						? { majorId: facultyForm.majorId }
+						: {})
 				})
 			]
 		},

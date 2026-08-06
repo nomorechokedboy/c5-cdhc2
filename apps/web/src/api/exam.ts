@@ -473,7 +473,7 @@ export async function CreateExamFaculty(body: {
 	code: string
 	shortCode?: string | null
 	name: string
-	majorId?: number | null
+	majorId?: number
 	description?: string
 }) {
 	const resp = await jsonFetch<{ data: ExamFaculty }>('/exam/faculties', {

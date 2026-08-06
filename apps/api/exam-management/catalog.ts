@@ -753,7 +753,9 @@ export const CreateExamFaculty = api(
 		code: string
 		shortCode?: string | null
 		name: string
-		majorId?: number | null
+		// Optional Encore fields must be omitted when no major is selected;
+		// explicit null is rejected by the request decoder.
+		majorId?: number
 		description?: string
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
