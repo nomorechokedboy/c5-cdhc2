@@ -505,16 +505,14 @@ export const CreateExamMajor = api(
 		const sys = await getSystem(body.systemId)
 		if (!sys) throw APIError.notFound('Hệ không tồn tại')
 
-		const nationalMajorCode = body.nationalMajorCode?.trim() || null
+		const nationalMajorCode =
+			body.nationalMajorCode?.trim().toUpperCase() ||
+			body.code?.trim().toUpperCase() ||
+			null
 		const [duplicate] = await orm
 			.select({ id: examMajors.id })
 			.from(examMajors)
-			.where(
-				or(
-					eq(examMajors.code, catalogNumber),
-					eq(examMajors.catalogNumber, catalogNumber)
-				)
-			)
+			.where(eq(examMajors.catalogNumber, catalogNumber))
 			.limit(1)
 		if (duplicate) {
 			throw APIError.alreadyExists(`Mã số ${catalogNumber} đã tồn tại`)
@@ -571,8 +569,10 @@ export const UpdateExamMajor = api(
 		if (!existing) throw APIError.notFound('Ngành không tồn tại')
 		const nextNationalMajorCode =
 			params.nationalMajorCode !== undefined
-				? params.nationalMajorCode?.trim() || null
-				: existing.nationalMajorCode
+				? params.nationalMajorCode?.trim().toUpperCase() || null
+				: params.code !== undefined
+					? params.code.trim().toUpperCase() || null
+					: existing.nationalMajorCode
 		const nextCatalogNumber =
 			params.catalogNumber !== undefined
 				? params.catalogNumber?.trim().toUpperCase() || null
@@ -595,10 +595,20 @@ export const UpdateExamMajor = api(
 				`Mã số ${nextCatalogNumber} đã tồn tại`
 			)
 		}
+		const catalogNumberChanged =
+			nextCatalogNumber !== existing.catalogNumber
+		const linkedSubjects = catalogNumberChanged
+			? await orm
+					.select()
+					.from(examSubjects)
+					.where(eq(examSubjects.majorId, params.id))
+			: []
+		const nextCode = nextCatalogNumber
 
 		const [row] = await orm
 			.update(examMajors)
 			.set({
+				code: nextCode,
 				name: params.name?.trim() || existing.name,
 				systemId: params.systemId ?? existing.systemId,
 				levelCode:
