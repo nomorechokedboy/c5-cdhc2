@@ -271,7 +271,6 @@ export default function ExamTrainingCatalogPage() {
 		mutationFn: () => {
 			const body = {
 				systemId: form.systemId,
-				code: form.catalogNumber,
 				catalogNumber: form.catalogNumber,
 				nationalMajorCode: form.nationalMajorCode,
 				name: form.name,
