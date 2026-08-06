@@ -471,7 +471,7 @@ export async function ListExamFaculties(params?: {
 export async function CreateExamFaculty(body: {
 	code: string
 	name: string
-	majorId?: number | null
+	majorId?: number
 	description?: string
 }) {
 	const resp = await jsonFetch<{ data: ExamFaculty }>('/exam/faculties', {

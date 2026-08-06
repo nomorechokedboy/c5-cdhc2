@@ -360,7 +360,9 @@ export default function ExamCatalogPage() {
 				await CreateExamFaculty({
 					code: facultyForm.code,
 					name: facultyForm.name,
-					majorId: facultyForm.majorId
+					...(facultyForm.majorId > 0
+						? { majorId: facultyForm.majorId }
+						: {})
 				})
 			]
 		},
