@@ -84,6 +84,7 @@ export const examFaculties = sqliteTable(
 	{
 		...baseSchema,
 		code: text('code').notNull(),
+		shortCode: text('short_code'),
 		name: text('name').notNull(),
 		majorId: int('major_id'),
 		description: text('description')
