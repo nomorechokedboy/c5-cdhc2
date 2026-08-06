@@ -91,7 +91,27 @@ runs:
         echo "== Rolling out deployment on inner LAN host =="
         ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
           ${{ inputs.inner_user }}@${{ inputs.inner_host }} << 'INNER_EOF'
-        set -e
+        set -Eeuo pipefail
+        diagnose_rollout() {
+          exit_code=$?
+          echo "::error::Rollout failed for deployment/${{ inputs.k8s_deployment }} in namespace ${{ inputs.k8s_namespace }}"
+          kubectl get deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} -o wide || true
+          kubectl get replicasets,pods -n ${{ inputs.k8s_namespace }} -o wide || true
+          kubectl describe deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} || true
+          kubectl get events -n ${{ inputs.k8s_namespace }} --sort-by=.lastTimestamp | tail -50 || true
+          selector=$(kubectl get deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} -o jsonpath='{range $k,$v := .spec.selector.matchLabels}{$k}={$v},{end}' 2>/dev/null)
+          selector=${selector%,}
+          for pod in $(kubectl get pods -n ${{ inputs.k8s_namespace }} -l "$selector" -o name 2>/dev/null); do
+            echo "== Describe ${pod} =="
+            kubectl describe "$pod" -n ${{ inputs.k8s_namespace }} || true
+            echo "== Current logs for ${pod} =="
+            kubectl logs "$pod" -n ${{ inputs.k8s_namespace }} --all-containers --tail=200 || true
+            echo "== Previous logs for ${pod} =="
+            kubectl logs "$pod" -n ${{ inputs.k8s_namespace }} --all-containers --previous --tail=200 || true
+          done
+          exit "$exit_code"
+        }
+        trap diagnose_rollout ERR
         kubectl rollout restart deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }}
         kubectl rollout status deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} --timeout=180s
         INNER_EOF
