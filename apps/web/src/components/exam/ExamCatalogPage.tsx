@@ -101,6 +101,7 @@ export default function ExamCatalogPage() {
 	})
 	const [facultyForm, setFacultyForm] = useState({
 		code: '',
+		shortCode: '',
 		name: '',
 		majorId: 0,
 		majorLabel: ''
@@ -342,6 +343,7 @@ export default function ExamCatalogPage() {
 					sameFaculty.map((faculty) =>
 						UpdateExamFaculty(faculty.id, {
 							code: facultyForm.code,
+							shortCode: facultyForm.shortCode,
 							name: facultyForm.name
 						})
 					)
@@ -351,6 +353,7 @@ export default function ExamCatalogPage() {
 				return [
 					await UpdateExamFaculty(editFacultyId, {
 						code: facultyForm.code,
+						shortCode: facultyForm.shortCode,
 						name: facultyForm.name,
 						majorId: facultyForm.majorId
 					})
@@ -359,6 +362,7 @@ export default function ExamCatalogPage() {
 			return [
 				await CreateExamFaculty({
 					code: facultyForm.code,
+					shortCode: facultyForm.shortCode,
 					name: facultyForm.name,
 					majorId: facultyForm.majorId
 				})
@@ -483,6 +487,7 @@ export default function ExamCatalogPage() {
 		setEditFacultyId(null)
 		setFacultyForm({
 			code: '',
+			shortCode: '',
 			name: '',
 			majorId: m.id,
 			majorLabel: `${m.code} — ${m.name}`
@@ -495,6 +500,7 @@ export default function ExamCatalogPage() {
 		setEditFacultyId(fac.id)
 		setFacultyForm({
 			code: fac.code,
+			shortCode: fac.shortCode || '',
 			name: fac.name,
 			majorId: fac.majorId,
 			majorLabel: major
@@ -508,6 +514,7 @@ export default function ExamCatalogPage() {
 		setEditFacultyId(-1)
 		setFacultyForm({
 			code,
+			shortCode: '',
 			name,
 			majorId: 0,
 			/** Tạm giữ mã gốc để cập nhật mọi bản ghi khoa cùng mã. */
@@ -1450,6 +1457,19 @@ export default function ExamCatalogPage() {
 									}))
 								}
 								placeholder='K1'
+							/>
+						</div>
+						<div>
+							<Label>Viết tắt khoa</Label>
+							<Input
+								value={facultyForm.shortCode}
+								onChange={(e) =>
+									setFacultyForm((f) => ({
+										...f,
+										shortCode: e.target.value.toUpperCase()
+									}))
+								}
+								placeholder='VD: CNTT'
 							/>
 						</div>
 						<div>
