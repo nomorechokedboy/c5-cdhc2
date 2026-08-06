@@ -94,7 +94,8 @@ export default function ExamCatalogPage() {
 		name: '',
 		levelCode: 'CD',
 		shortCode: '',
-		code: '',
+		nationalMajorCode: '',
+		catalogNumber: '',
 		systemId: 0,
 		systemLabel: '',
 		letter: ''
@@ -246,8 +247,9 @@ export default function ExamCatalogPage() {
 		setOpenFaculties(new Set())
 	}
 
-	const previewMajorCode = useMemo(() => {
-		if (majorForm.code.trim()) return majorForm.code.trim().toUpperCase()
+	const previewCatalogNumber = useMemo(() => {
+		if (majorForm.catalogNumber.trim())
+			return majorForm.catalogNumber.trim().toUpperCase()
 		const letter = majorForm.letter || 'X'
 		const level = majorForm.levelCode || ''
 		const short =
@@ -305,7 +307,8 @@ export default function ExamCatalogPage() {
 					systemId: majorForm.systemId,
 					levelCode: majorForm.levelCode || null,
 					shortCode: majorForm.shortCode || null,
-					code: majorForm.code || undefined
+					nationalMajorCode: majorForm.nationalMajorCode || null,
+					catalogNumber: majorForm.catalogNumber || undefined
 				})
 			}
 			return CreateExamMajor({
@@ -313,7 +316,8 @@ export default function ExamCatalogPage() {
 				systemId: majorForm.systemId,
 				levelCode: majorForm.levelCode || null,
 				shortCode: majorForm.shortCode || null,
-				code: majorForm.code || null
+				nationalMajorCode: majorForm.nationalMajorCode || null,
+				catalogNumber: majorForm.catalogNumber || null
 			})
 		},
 		onSuccess: (m) => {
@@ -460,7 +464,8 @@ export default function ExamCatalogPage() {
 			name: '',
 			levelCode: 'CD',
 			shortCode: '',
-			code: '',
+			nationalMajorCode: '',
+			catalogNumber: '',
 			systemId: s.id,
 			systemLabel: `${s.letter} — ${s.name}`,
 			letter: s.letter
@@ -475,7 +480,8 @@ export default function ExamCatalogPage() {
 			name: maj.name,
 			levelCode: maj.levelCode || 'CD',
 			shortCode: maj.shortCode || '',
-			code: maj.code,
+			nationalMajorCode: maj.nationalMajorCode || '',
+			catalogNumber: maj.catalogNumber || maj.code,
 			systemId: maj.systemId,
 			systemLabel: sys
 				? `${sys.letter} — ${sys.name}`
@@ -912,10 +918,23 @@ export default function ExamCatalogPage() {
 																		<span className='text-muted-foreground text-xs'>
 																			Ngành
 																		</span>
+																		{maj.nationalMajorCode && (
+																			<Badge
+																				variant='outline'
+																				className='font-mono text-[10px]'
+																			>
+																				Mã
+																				ngành:{' '}
+																				{
+																					maj.nationalMajorCode
+																				}
+																			</Badge>
+																		)}
 																		<span className='font-mono text-xs font-semibold'>
-																			{
-																				maj.code
-																			}
+																			Mã
+																			số:{' '}
+																			{maj.catalogNumber ||
+																				maj.code}
 																		</span>
 																		<span className='text-sm font-medium'>
 																			{
@@ -1385,19 +1404,32 @@ export default function ExamCatalogPage() {
 							/>
 						</div>
 						<div>
-							<Label>Mã ngành (tuỳ chọn — chỉnh tay)</Label>
+							<Label>Mã ngành (được trùng)</Label>
 							<Input
-								value={majorForm.code}
+								value={majorForm.nationalMajorCode}
 								onChange={(e) =>
 									setMajorForm((f) => ({
 										...f,
-										code: e.target.value
+										nationalMajorCode: e.target.value
 									}))
 								}
-								placeholder={previewMajorCode}
+								placeholder='6720301'
+							/>
+						</div>
+						<div>
+							<Label>Mã số (duy nhất) *</Label>
+							<Input
+								value={majorForm.catalogNumber}
+								onChange={(e) =>
+									setMajorForm((f) => ({
+										...f,
+										catalogNumber: e.target.value
+									}))
+								}
+								placeholder={previewCatalogNumber}
 							/>
 							<p className='text-muted-foreground mt-1 text-xs'>
-								Sẽ dùng: <strong>{previewMajorCode}</strong>
+								Sẽ dùng: <strong>{previewCatalogNumber}</strong>
 							</p>
 						</div>
 					</div>
@@ -1415,7 +1447,8 @@ export default function ExamCatalogPage() {
 							disabled={
 								saveMajor.isPending ||
 								!majorForm.systemId ||
-								!majorForm.name
+								!majorForm.name ||
+								!majorForm.catalogNumber.trim()
 							}
 							onClick={() => saveMajor.mutate()}
 						>

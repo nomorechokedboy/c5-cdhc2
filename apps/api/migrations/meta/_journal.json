@@ -491,6 +491,13 @@
 			"when": 1786014000000,
 			"tag": "0069_restore_skipped_leave_schema",
 			"breakpoints": true
+		},
+		{
+			"idx": 69,
+			"version": "6",
+			"when": 1786100000000,
+			"tag": "0071_exam_major_catalog_number_unique",
+			"breakpoints": true
 		}
 	]
 }
