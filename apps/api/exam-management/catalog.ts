@@ -62,6 +62,7 @@ export interface FacultyResponse {
 	createdAt: string
 	updatedAt: string
 	code: string
+	shortCode: string | null
 	name: string
 	majorId: number
 	majorCode?: string | null
@@ -266,6 +267,7 @@ async function mapMajor(
 		createdAt: r.createdAt,
 		updatedAt: r.updatedAt,
 		code: r.code,
+		shortCode: r.shortCode ?? null,
 		name: r.name,
 		systemId: r.systemId,
 		levelCode: r.levelCode ?? null,
@@ -515,6 +517,7 @@ export const CreateExamFaculty = api(
 	{ auth: true, expose: true, method: 'POST', path: '/exam/faculties' },
 	async (body: {
 		code: string
+		shortCode?: string | null
 		name: string
 		majorId: number
 		description?: string
@@ -524,6 +527,7 @@ export const CreateExamFaculty = api(
 			throw APIError.permissionDenied('Không có quyền quản lý khoa')
 		}
 		const code = body.code.trim().toUpperCase()
+		const shortCode = body.shortCode?.trim().toUpperCase() || null
 		const name = body.name.trim()
 		if (!code || !name || !body.majorId) {
 			throw APIError.invalidArgument('Mã, tên khoa và ngành bắt buộc')
@@ -538,6 +542,7 @@ export const CreateExamFaculty = api(
 			.insert(examFaculties)
 			.values({
 				code,
+				shortCode,
 				name,
 				majorId: body.majorId,
 				description: body.description || null
@@ -552,6 +557,7 @@ export const UpdateExamFaculty = api(
 	async (params: {
 		id: number
 		code?: string
+		shortCode?: string | null
 		name?: string
 		majorId?: number
 		description?: string | null
@@ -584,6 +590,10 @@ export const UpdateExamFaculty = api(
 				: existing.code
 		const name =
 			params.name !== undefined ? params.name.trim() : existing.name
+		const shortCode =
+			params.shortCode !== undefined
+				? params.shortCode?.trim().toUpperCase() || null
+				: existing.shortCode
 		if (!code || !name) {
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
 		}
@@ -611,6 +621,7 @@ export const UpdateExamFaculty = api(
 			.update(examFaculties)
 			.set({
 				code,
+				shortCode,
 				name,
 				majorId,
 				description:

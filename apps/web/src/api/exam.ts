@@ -64,6 +64,7 @@ export interface ExamFaculty {
 	createdAt: string
 	updatedAt: string
 	code: string
+	shortCode: string | null
 	name: string
 	majorId: number
 	majorCode?: string | null
@@ -413,6 +414,7 @@ export async function ListExamFaculties(params?: {
 
 export async function CreateExamFaculty(body: {
 	code: string
+	shortCode?: string | null
 	name: string
 	majorId: number
 	description?: string
@@ -428,6 +430,7 @@ export async function UpdateExamFaculty(
 	id: number,
 	body: {
 		code?: string
+		shortCode?: string | null
 		name?: string
 		majorId?: number
 		description?: string | null
