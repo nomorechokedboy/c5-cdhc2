@@ -9,7 +9,7 @@
  * Mã môn: {mã_số}_{mã_gốc}
  */
 import { api, APIError, Query } from 'encore.dev/api'
-import { and, eq, inArray, like, or, sql, isNull } from 'drizzle-orm'
+import { and, eq, inArray, like, ne, or, sql, isNull } from 'drizzle-orm'
 import orm from '../database'
 import {
 	examClasses,
@@ -580,14 +580,25 @@ export const UpdateExamMajor = api(
 		if (!nextCatalogNumber) {
 			throw APIError.invalidArgument('Mã số ngành là bắt buộc')
 		}
-		const nextCode = nextCatalogNumber
+		const catalogNumberChanged =
+			(existing.catalogNumber?.trim().toUpperCase() || null) !==
+			nextCatalogNumber
+		// A metadata-only save must not unexpectedly rename the internal code
+		// and every linked subject. Legacy rows are synchronized by migration;
+		// only an actual catalog-number change triggers the cascade here.
+		const nextCode = catalogNumberChanged
+			? nextCatalogNumber
+			: existing.code
 		const [duplicate] = await orm
 			.select({ id: examMajors.id })
 			.from(examMajors)
 			.where(
-				or(
-					eq(examMajors.code, nextCatalogNumber),
-					eq(examMajors.catalogNumber, nextCatalogNumber)
+				and(
+					ne(examMajors.id, params.id),
+					or(
+						eq(examMajors.code, nextCatalogNumber),
+						eq(examMajors.catalogNumber, nextCatalogNumber)
+					)
 				)
 			)
 			.limit(1)
@@ -595,6 +606,38 @@ export const UpdateExamMajor = api(
 			throw APIError.alreadyExists(
 				`Mã số ${nextCatalogNumber} đã tồn tại`
 			)
+		}
+
+		const linkedSubjects = catalogNumberChanged
+			? await orm
+					.select({
+						id: examSubjects.id,
+						code: examSubjects.code,
+						baseCode: examSubjects.baseCode
+					})
+					.from(examSubjects)
+					.where(eq(examSubjects.majorId, params.id))
+			: []
+		for (const subject of linkedSubjects) {
+			const baseCode =
+				subject.baseCode?.trim() ||
+				subject.code.slice(existing.code.length + 1)
+			const nextSubjectCode = buildSubjectCode(nextCode, baseCode)
+			const [conflict] = await orm
+				.select({ id: examSubjects.id })
+				.from(examSubjects)
+				.where(
+					and(
+						ne(examSubjects.id, subject.id),
+						eq(examSubjects.code, nextSubjectCode)
+					)
+				)
+				.limit(1)
+			if (conflict) {
+				throw APIError.alreadyExists(
+					`Không thể đổi mã số: mã môn ${nextSubjectCode} đã tồn tại`
+				)
+			}
 		}
 
 		const [row] = await orm
@@ -632,15 +675,7 @@ export const UpdateExamMajor = api(
 			})
 			.where(eq(examMajors.id, params.id))
 			.returning()
-		if (existing.code !== nextCode) {
-			const linkedSubjects = await orm
-				.select({
-					id: examSubjects.id,
-					code: examSubjects.code,
-					baseCode: examSubjects.baseCode
-				})
-				.from(examSubjects)
-				.where(eq(examSubjects.majorId, params.id))
+		if (catalogNumberChanged) {
 			for (const subject of linkedSubjects) {
 				const baseCode =
 					subject.baseCode?.trim() ||

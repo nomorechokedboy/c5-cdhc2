@@ -200,15 +200,23 @@ export const GetLeaveMyAccess = api(
 		)
 		// super admin: check if also has personnel
 		if (data.isAdmin) {
-			const p = await orm
-				.select({ id: leavePersonnel.id })
-				.from(leavePersonnel)
-				.where(eq(leavePersonnel.userId, uid))
-				.limit(1)
+			let isPersonnel = false
+			try {
+				const p = await orm
+					.select({ id: leavePersonnel.id })
+					.from(leavePersonnel)
+					.where(eq(leavePersonnel.userId, uid))
+					.limit(1)
+				isPersonnel = !!p[0]
+			} catch {
+				// Personnel linkage is supplemental for administrators. A catalog
+				// migration/availability issue must not make /leave/my-access fail
+				// and take down every leave-management route.
+			}
 			return {
 				data: {
 					...data,
-					isPersonnel: !!p[0]
+					isPersonnel
 				}
 			}
 		}
