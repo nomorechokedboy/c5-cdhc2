@@ -19,6 +19,28 @@ const mapPosition = (
 	isActive: !!row.isActive
 })
 
+function isUniqueConstraintError(error: unknown): boolean {
+	let current: unknown = error
+	for (let depth = 0; current && depth < 4; depth += 1) {
+		const record = current as {
+			code?: unknown
+			message?: unknown
+			cause?: unknown
+		}
+		const code = String(record.code || '').toUpperCase()
+		const message = String(record.message || '').toUpperCase()
+		if (
+			code.includes('CONSTRAINT_UNIQUE') ||
+			message.includes('UNIQUE CONSTRAINT') ||
+			message.includes('UNIQUE CONSTRAINT FAILED')
+		) {
+			return true
+		}
+		current = record.cause
+	}
+	return false
+}
+
 export const ListLeavePositions = api(
 	{ auth: true, expose: true, method: 'GET', path: '/leave/positions' },
 	async (q: {
@@ -53,8 +75,11 @@ export const CreateLeavePosition = api(
 				})
 				.returning()
 			return { data: mapPosition(rows[0]!) }
-		} catch {
-			throw APIError.alreadyExists('Chức vụ đã tồn tại')
+		} catch (error) {
+			if (isUniqueConstraintError(error)) {
+				throw APIError.alreadyExists('Chức vụ đã tồn tại')
+			}
+			throw error
 		}
 	}
 )
