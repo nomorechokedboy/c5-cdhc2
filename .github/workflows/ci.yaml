@@ -114,9 +114,27 @@ jobs:
                   docker build -t temp-final-api:build .
             - name: Tag and push API image
               run: |
-                  for tag in $(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' '); do
+                  set -euo pipefail
+                  docker image inspect temp-final-api:build >/dev/null
+                  while IFS= read -r tag; do
+                    [[ -n "$tag" ]] || continue
                     docker tag temp-final-api:build "$tag"
-                    docker push "$tag"
+                    pushed=0
+                    for attempt in 1 2 3; do
+                      if docker push "$tag"; then
+                        pushed=1
+                        break
+                      fi
+                      if [[ "$attempt" -lt 3 ]]; then
+                        echo "Push failed for $tag (attempt $attempt/3); retrying..."
+                        sleep 10
+                      fi
+                    done
+                    if [[ "$pushed" -ne 1 ]]; then
+                      echo "Unable to push $tag after 3 attempts" >&2
+                      exit 1
+                    fi
+                  done <<< "${{ steps.meta.outputs.tags }}"
                   done
             - name: Image digest
               run: echo "API image pushed successfully"
