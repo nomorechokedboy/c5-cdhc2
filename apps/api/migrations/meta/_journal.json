@@ -477,6 +477,13 @@
 			"when": 1785931200000,
 			"tag": "0067_remove_hidden_exam_majors",
 			"breakpoints": true
+		},
+		{
+			"idx": 68,
+			"version": "6",
+			"when": 1786014000000,
+			"tag": "0069_restore_skipped_leave_schema",
+			"breakpoints": true
 		}
 	]
 }

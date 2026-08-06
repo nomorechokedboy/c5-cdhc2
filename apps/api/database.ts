@@ -7,10 +7,6 @@ import { migrate } from 'drizzle-orm/libsql/migrator'
 import { appConfig } from './configs'
 import path from 'path'
 import { mkdirSync } from 'fs'
-import {
-	ensureLegacyUserColumns,
-	ensureSkippedLeaveMigrations
-} from './migration-compat'
 
 class AppDBLogger implements Logger {
 	logQuery(query: string, params: unknown[]): void {
@@ -33,8 +29,6 @@ const orm = drizzle({ schema, client, logger: new AppDBLogger() })
 
 async function autoMigrate() {
 	try {
-		await ensureLegacyUserColumns(client)
-		await ensureSkippedLeaveMigrations(client)
 		await migrate(orm, { migrationsFolder: './migrations' }) // Specify your migrations folder
 		console.log('Migrations applied successfully!')
 	} catch (error) {
