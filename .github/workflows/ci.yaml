@@ -1,63 +1,42 @@
 name: Continuous Integration
+
 on:
-    push:
-        branches:
-            - main
+    workflow_dispatch:
+        inputs:
+            build_api:
+                description: 'Build & deploy qlhv-api'
+                type: boolean
+                default: false
+            build_web:
+                description: 'Build & deploy qlhv-web'
+                type: boolean
+                default: false
+            build_sms_api:
+                description: 'Build & deploy sms-api'
+                type: boolean
+                default: false
+            build_sms_web:
+                description: 'Build & deploy sms-web (wan + lan)'
+                type: boolean
+                default: false
+
 env:
     REGISTRY: ghcr.io
     IMAGE_PREFIX: ${{ github.repository_owner }}
     LOCAL_REGISTRY: registry.hc2
     LOCAL_PROJECT: cdhc2
-    SMS_WEB_K8S_NAMESPACE: sms       
-    SMS_API_K8S_DEPLOYMENT: sms-api  
-    SMS_WEB_K8S_DEPLOYMENT: sms-web  
-    QLHV_WEB_K8S_NAMESPACE: qlhv       
-    QLHV_API_K8S_DEPLOYMENT: qlhv-api  
-    QLHV_WEB_K8S_DEPLOYMENT: qlhv-web 
-jobs:
-    detect-changes:
-        runs-on: ubuntu-latest
-        outputs:
-            api: ${{ steps.filter.outputs.api }}
-            web: ${{ steps.filter.outputs.web }}
-            cron: ${{ steps.filter.outputs.cron }}
-            sms-api: ${{ steps.filter.outputs.sms-api }}
-            sms-web: ${{ steps.filter.outputs.sms-web }}
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-            - name: Check for changes
-              uses: dorny/paths-filter@v3
-              id: filter
-              with:
-                  filters: |
-                      api:
-                        - 'apps/api/**'
-                        - 'packages/eslint-config/**'
-                        - 'package.json'
-                        - 'pnpm-lock.yaml'
-                      web:
-                        - 'apps/web/**'
-                        - 'packages/eslint-config/**'
-                        - 'package.json'
-                        - 'pnpm-lock.yaml'
-                      sms-api:
-                        - 'apps/sms-api/**'
-                        - 'packages/coursegrades/**'
-                        - 'packages/teachercourses/**'
-                        - 'packages/userinfo/**'
-                        - 'package.json'
-                        - 'pnpm-lock.yaml'
-                      sms-web:
-                        - 'apps/sms-web/**'
-                        - 'packages/ui/**'
-                        - 'packages/eslint-config/**'
-                        - 'package.json'
-                        - 'pnpm-lock.yaml'
+    SMS_WEB_K8S_NAMESPACE: sms
+    SMS_API_K8S_DEPLOYMENT: sms-api
+    SMS_WEB_K8S_DEPLOYMENT: sms-web
+    SMS_API_WAN_K8S_NAMESPACE: sms       # TODO: confirm namespace for WAN sms-api on DEST_IPv4
+    SMS_WEB_WAN_K8S_NAMESPACE: sms       # TODO: confirm namespace for WAN sms-web on DEST_IPv4
+    QLHV_WEB_K8S_NAMESPACE: qlhv
+    QLHV_API_K8S_DEPLOYMENT: qlhv-api
+    QLHV_WEB_K8S_DEPLOYMENT: qlhv-web
 
+jobs:
     build-api:
-        needs: detect-changes
-        if: needs.detect-changes.outputs.api == 'true'
+        if: github.event.inputs.build_api == 'true'
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -122,8 +101,7 @@ jobs:
               run: echo "API image pushed successfully"
 
     build-web:
-        needs: detect-changes
-        if: needs.detect-changes.outputs.web == 'true'
+        if: github.event.inputs.build_web == 'true'
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -161,8 +139,7 @@ jobs:
                       VITE_API_URL=${{ secrets.WEB_VITE_API_URL }}
 
     build-sms-api:
-        needs: detect-changes
-        if: needs.detect-changes.outputs.sms-api == 'true'
+        if: github.event.inputs.build_sms_api == 'true'
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -204,8 +181,7 @@ jobs:
               run: echo "SMS API image pushed successfully"
 
     build-sms-web:
-        needs: detect-changes
-        if: needs.detect-changes.outputs.sms-web == 'true'
+        if: github.event.inputs.build_sms_web == 'true'
         runs-on: ubuntu-latest
         strategy:
             matrix:
@@ -250,19 +226,22 @@ jobs:
                       VITE_TOKEN_URI=${{ secrets.VITE_TOKEN_URI }}
                       VITE_REDIRECT_URI=${{ secrets.VITE_REDIRECT_URI }}
 
+    # --- LAN rollouts (via inner-host hop) ---
+
     mirror-sms-api-lan:
-        needs: [detect-changes, build-sms-api]
-        if: needs.detect-changes.outputs.sms-api == 'true'
+        needs: build-sms-api
+        if: github.event.inputs.build_sms_api == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
-            - name: Mirror sms-api and roll out
+            - name: Mirror sms-api and roll out (LAN)
               uses: ./.github/actions/mirror-and-rollout
               with:
                   tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
                   dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
                   dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
                   inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
                   inner_host: ${{ secrets.INNER_LAN_HOST }}
                   inner_user: ${{ secrets.INNER_LAN_USER }}
@@ -276,18 +255,19 @@ jobs:
                   k8s_deployment: ${{ env.SMS_API_K8S_DEPLOYMENT }}
 
     mirror-sms-web-lan:
-        needs: [detect-changes, build-sms-web]
-        if: needs.detect-changes.outputs.sms-web == 'true'
+        needs: build-sms-web
+        if: github.event.inputs.build_sms_web == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
-            - name: Mirror sms-web and roll out
+            - name: Mirror sms-web and roll out (LAN)
               uses: ./.github/actions/mirror-and-rollout
               with:
                   tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
                   dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
                   dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
                   inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
                   inner_host: ${{ secrets.INNER_LAN_HOST }}
                   inner_user: ${{ secrets.INNER_LAN_USER }}
@@ -300,9 +280,59 @@ jobs:
                   k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
                   k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
 
+    # --- WAN rollouts (direct on DEST_IPv4, no inner hop) ---
+
+    rollout-sms-api-wan:
+        needs: build-sms-api
+        if: github.event.inputs.build_sms_api == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-api and roll out (WAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'false'
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-api
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.SMS_API_WAN_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_API_K8S_DEPLOYMENT }}
+
+    rollout-sms-web-wan:
+        needs: build-sms-web
+        if: github.event.inputs.build_sms_web == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-web and roll out (WAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'false'
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-web
+                  source_tag: wan-latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  k8s_namespace: ${{ env.SMS_WEB_WAN_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
+
+    # --- QLHV rollouts (unchanged, LAN via inner hop) ---
+
     mirror-qlhv-api:
-        needs: [detect-changes, build-api]
-        if: needs.detect-changes.outputs.api == 'true'
+        needs: build-api
+        if: github.event.inputs.build_api == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -313,6 +343,7 @@ jobs:
                   tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
                   dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
                   dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
                   inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
                   inner_host: ${{ secrets.INNER_LAN_HOST }}
                   inner_user: ${{ secrets.INNER_LAN_USER }}
@@ -326,8 +357,8 @@ jobs:
                   k8s_deployment: ${{ env.QLHV_API_K8S_DEPLOYMENT }}
 
     mirror-qlhv-web:
-        needs: [detect-changes, build-web]
-        if: needs.detect-changes.outputs.web == 'true'
+        needs: build-web
+        if: github.event.inputs.build_web == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -338,6 +369,7 @@ jobs:
                   tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
                   dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
                   dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
                   inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
                   inner_host: ${{ secrets.INNER_LAN_HOST }}
                   inner_user: ${{ secrets.INNER_LAN_USER }}
