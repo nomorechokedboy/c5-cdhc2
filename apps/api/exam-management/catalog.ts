@@ -688,6 +688,7 @@ async function mapFaculty(
 		createdAt: r.createdAt,
 		updatedAt: r.updatedAt,
 		code: r.code,
+		shortCode: r.shortCode ?? null,
 		name: r.name,
 		majorId: r.majorId ?? null,
 		majorCode: m?.code ?? null,
