@@ -71,7 +71,7 @@ export interface ExamFaculty {
 	code: string
 	shortCode: string | null
 	name: string
-	majorId: number
+	majorId: number | null
 	majorCode?: string | null
 	majorName?: string | null
 	description: string | null
@@ -476,9 +476,20 @@ export async function CreateExamFaculty(body: {
 	majorId?: number
 	description?: string
 }) {
+	// Encore không nhận `null` cho field optional. Bỏ hẳn các field rỗng
+	// trước khi serialize request; đây là lớp bảo vệ chung cho mọi màn hình.
+	const payload = {
+		code: body.code,
+		name: body.name,
+		...(body.shortCode?.trim()
+			? { shortCode: body.shortCode.trim().toUpperCase() }
+			: {}),
+		...(body.majorId != null ? { majorId: Number(body.majorId) } : {}),
+		...(body.description != null ? { description: body.description } : {})
+	}
 	const resp = await jsonFetch<{ data: ExamFaculty }>('/exam/faculties', {
 		method: 'POST',
-		body: JSON.stringify(body)
+		body: JSON.stringify(payload)
 	})
 	return resp.data
 }
@@ -487,7 +498,7 @@ export async function UpdateExamFaculty(
 	id: number,
 	body: {
 		code?: string
-	shortCode?: string | null
+		shortCode?: string | null
 		name?: string
 		majorId?: number
 		description?: string | null

@@ -688,11 +688,13 @@ export const DeleteExamMajor = api(
 async function mapFaculty(
 	r: typeof examFaculties.$inferSelect
 ): Promise<FacultyResponse> {
-	const [m] = await orm
-		.select()
-		.from(examMajors)
-		.where(eq(examMajors.id, r.majorId))
-		.limit(1)
+	const [m] = r.majorId
+		? await orm
+				.select()
+				.from(examMajors)
+				.where(eq(examMajors.id, r.majorId))
+				.limit(1)
+		: []
 	return {
 		id: r.id,
 		createdAt: r.createdAt,
@@ -777,6 +779,27 @@ export const CreateExamFaculty = api(
 		const name = body.name.trim()
 		if (!code || !name)
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
+		if (
+			body.majorId != null &&
+			(!Number.isInteger(body.majorId) || body.majorId <= 0)
+		)
+			throw APIError.invalidArgument('Ngành của khoa không hợp lệ')
+		const duplicate = await orm
+			.select({ id: examFaculties.id })
+			.from(examFaculties)
+			.where(
+				and(
+					eq(examFaculties.code, code),
+					body.majorId == null
+						? isNull(examFaculties.majorId)
+						: eq(examFaculties.majorId, body.majorId)
+				)
+			)
+			.limit(1)
+		if (duplicate[0])
+			throw APIError.alreadyExists(
+				`Mã khoa ${code} đã có trong ngành này`
+			)
 		const [row] = await orm
 			.insert(examFaculties)
 			.values({

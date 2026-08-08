@@ -182,11 +182,7 @@ export default function ExamFacultiesPage() {
 		mutationFn: () =>
 			CreateExamFaculty({
 				code: form.code.trim(),
-				name: form.name.trim(),
-				// Keep the request compatible with API revisions where the nullable
-				// field was required during decoding. Standalone faculties are not
-				// attached to a specific major.
-				majorId: null
+				name: form.name.trim()
 			}),
 		onSuccess: () => {
 			toast.success('Đã thêm khoa')
