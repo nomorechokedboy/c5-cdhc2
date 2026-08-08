@@ -476,15 +476,9 @@ export async function CreateExamFaculty(body: {
 	majorId?: number
 	description?: string
 }) {
-	const payload = {
-		code: body.code,
-		name: body.name,
-		...(body.majorId != null ? { majorId: Number(body.majorId) } : {}),
-		...(body.description != null ? { description: body.description } : {})
-	}
 	const resp = await jsonFetch<{ data: ExamFaculty }>('/exam/faculties', {
 		method: 'POST',
-		body: JSON.stringify(payload)
+		body: JSON.stringify(body)
 	})
 	return resp.data
 }
