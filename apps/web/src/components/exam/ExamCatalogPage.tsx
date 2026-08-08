@@ -103,9 +103,7 @@ export default function ExamCatalogPage() {
 	const [facultyForm, setFacultyForm] = useState({
 		code: '',
 		shortCode: '',
-		name: '',
-		majorId: 0,
-		majorLabel: ''
+		name: ''
 	})
 	const [subjectForm, setSubjectForm] = useState({
 		baseCode: '',
@@ -157,13 +155,9 @@ export default function ExamCatalogPage() {
 
 	const facultiesByMajor = useMemo(() => {
 		const m = new Map<number, ExamFaculty[]>()
-		for (const f of faculties) {
-			const list = m.get(f.majorId) || []
-			list.push(f)
-			m.set(f.majorId, list)
-		}
+		for (const major of majors) m.set(major.id, faculties)
 		return m
-	}, [faculties])
+	}, [faculties, majors])
 
 	const subjectsByFaculty = useMemo(() => {
 		const m = new Map<number, ExamSubject[]>()
@@ -259,7 +253,7 @@ export default function ExamCatalogPage() {
 				.trim()
 				.split(/[\s\-_/]+/)
 				.filter(Boolean)
-				.map((w) => w[0]!.toUpperCase())
+				.map((w) => w[0]?.toUpperCase() || '')
 				.join('')
 		if (!level && !short) return '—'
 		return `${letter}_${level}${short}`
@@ -339,9 +333,7 @@ export default function ExamCatalogPage() {
 		mutationFn: async () => {
 			if (editFacultyId === -1) {
 				const sameFaculty = faculties.filter(
-					(f) =>
-						f.code.trim().toUpperCase() ===
-						facultyForm.majorLabel.trim().toUpperCase()
+					(f) => f.code === facultyForm.code
 				)
 				return Promise.all(
 					sameFaculty.map((faculty) =>
@@ -358,8 +350,7 @@ export default function ExamCatalogPage() {
 					await UpdateExamFaculty(editFacultyId, {
 						code: facultyForm.code,
 						shortCode: facultyForm.shortCode,
-						name: facultyForm.name,
-						majorId: facultyForm.majorId
+						name: facultyForm.name
 					})
 				]
 			}
@@ -367,10 +358,7 @@ export default function ExamCatalogPage() {
 				await CreateExamFaculty({
 					code: facultyForm.code,
 					shortCode: facultyForm.shortCode,
-					name: facultyForm.name,
-					...(facultyForm.majorId > 0
-						? { majorId: facultyForm.majorId }
-						: {})
+					name: facultyForm.name
 				})
 			]
 		},
@@ -388,7 +376,6 @@ export default function ExamCatalogPage() {
 			void qc.invalidateQueries({ queryKey: ['exam-faculties'] })
 			void qc.invalidateQueries({ queryKey: ['exam-subjects'] })
 			if (f) {
-				setOpenMajors((p) => new Set(p).add(f.majorId))
 				setOpenFaculties((p) => new Set(p).add(f.id))
 			}
 		},
@@ -491,29 +478,22 @@ export default function ExamCatalogPage() {
 		setMajorOpen(true)
 	}
 
-	function openAddFaculty(m: ExamMajor) {
+	function openAddFaculty() {
 		setEditFacultyId(null)
 		setFacultyForm({
 			code: '',
 			shortCode: '',
-			name: '',
-			majorId: m.id,
-			majorLabel: `${m.code} — ${m.name}`
+			name: ''
 		})
 		setFacultyOpen(true)
 	}
 
-	function openEditFaculty(fac: ExamFaculty, m?: ExamMajor) {
-		const major = m || majors.find((x) => x.id === fac.majorId) || null
+	function openEditFaculty(fac: ExamFaculty) {
 		setEditFacultyId(fac.id)
 		setFacultyForm({
 			code: fac.code,
 			shortCode: fac.shortCode || '',
-			name: fac.name,
-			majorId: fac.majorId,
-			majorLabel: major
-				? `${major.code} — ${major.name}`
-				: fac.majorCode || String(fac.majorId)
+			name: fac.name
 		})
 		setFacultyOpen(true)
 	}
@@ -523,23 +503,20 @@ export default function ExamCatalogPage() {
 		setFacultyForm({
 			code,
 			shortCode: '',
-			name,
-			majorId: 0,
-			/** Tạm giữ mã gốc để cập nhật mọi bản ghi khoa cùng mã. */
-			majorLabel: code
+			name
 		})
 		setFacultyOpen(true)
 	}
 
 	function openAddSubject(f: ExamFaculty, m?: ExamMajor) {
-		const major = m || majors.find((x) => x.id === f.majorId) || null
+		const major = m || null
 		setEditSubjectId(null)
 		setSubjectForm({
 			baseCode: '',
 			name: '',
 			facultyId: f.id,
 			facultyLabel: `${f.code} — ${f.name}`,
-			majorCode: major?.code || f.majorCode || '',
+			majorCode: major?.code || '',
 			creditHours: '0',
 			lessonHours: '0'
 		})
@@ -548,11 +525,7 @@ export default function ExamCatalogPage() {
 
 	function openEditSubject(sub: ExamSubject, f?: ExamFaculty, m?: ExamMajor) {
 		const fac = f || faculties.find((x) => x.id === sub.facultyId) || null
-		const major =
-			m ||
-			majors.find((x) => x.id === sub.majorId) ||
-			(fac ? majors.find((x) => x.id === fac.majorId) : null) ||
-			null
+		const major = m || majors.find((x) => x.id === sub.majorId) || null
 		setEditSubjectId(sub.id)
 		setSubjectForm({
 			baseCode: sub.baseCode || '',
@@ -1534,7 +1507,6 @@ export default function ExamCatalogPage() {
 						<Button
 							disabled={
 								saveFaculty.isPending ||
-								!facultyForm.majorId ||
 								!facultyForm.code ||
 								!facultyForm.name
 							}

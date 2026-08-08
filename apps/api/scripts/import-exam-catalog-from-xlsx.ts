@@ -293,13 +293,22 @@ async function main() {
 	let facultyCount = 0
 	let subjectCount = 0
 
-	async function ensureFaculty(majorId: number, code: string, name: string) {
-		const key = `${majorId}|${code}`
+	async function ensureFaculty(code: string, name: string) {
+		const key = code
 		const hit = facultyCache.get(key)
 		if (hit) return hit
+		const existing = await client.execute({
+			sql: `SELECT id FROM exam_faculties WHERE code = ? LIMIT 1`,
+			args: [code]
+		})
+		if (existing.rows.length) {
+			const id = Number(existing.rows[0]!.id)
+			facultyCache.set(key, id)
+			return id
+		}
 		const r = await client.execute({
-			sql: `INSERT INTO exam_faculties (code, name, major_id) VALUES (?, ?, ?) RETURNING id`,
-			args: [code, name, majorId]
+			sql: `INSERT INTO exam_faculties (code, name) VALUES (?, ?) RETURNING id`,
+			args: [code, name]
 		})
 		const id = Number(r.rows[0]!.id)
 		facultyCache.set(key, id)
@@ -326,7 +335,6 @@ async function main() {
 			const mCode = majorCodeByCol.get(p.col)!
 			const mid = majorIdByCode.get(mCode)!
 			const facId = await ensureFaculty(
-				mid,
 				currentFaculty.code,
 				currentFaculty.name
 			)

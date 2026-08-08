@@ -1,11 +1,11 @@
 /**
  * Phân hệ Quản lý đề thi tự luận
  *
- * Danh mục đào tạo (hierarchy — khớp sheet Tổng hợp mã môn):
+ * Danh mục đào tạo (khớp sheet Tổng hợp mã môn):
  *   Hệ (chỉ 2: Quân sự A / Dân sự B)
  *     → Ngành (cột: Y sĩ đa khoa TC/CD/LT, Điều dưỡng, Dược…)
- *       → Khoa (K1…K8)
- *         → Môn học
+ *   Khoa (K1…K8) → Môn học dùng chung
+ *   Ngành ↔ Môn học là quan hệ nhiều-nhiều.
  *
  * Mã ngành: {A|B}_{TC|CD|LT}{viết_tắt} — vd B_CDDD
  * Mã môn: {mã_ngành}_{mã_gốc} — vd B_CDDD_M009K2
@@ -76,8 +76,8 @@ export const examMajors = sqliteTable('exam_majors', {
 })
 
 /**
- * Khoa thuộc ngành đào tạo (K1…K8 trong khung CTĐT).
- * Mã khoa lặp lại giữa các ngành (unique theo major + code).
+ * Khoa là danh mục độc lập. Mỗi môn thuộc một khoa; ngành chọn môn
+ * thông qua examMajorSubjects và không sở hữu khoa.
  */
 export const examFaculties = sqliteTable(
 	'exam_faculties',
@@ -90,7 +90,24 @@ export const examFaculties = sqliteTable(
 		description: text('description')
 	},
 	(t) => ({
-		codeIdx: index('exam_faculties_code_idx').on(t.code)
+		codeIdx: uniqueIndex('exam_faculties_code_unique').on(t.code)
+	})
+)
+
+/** Môn học dùng trong một hoặc nhiều ngành đào tạo. */
+export const examMajorSubjects = sqliteTable(
+	'exam_major_subjects',
+	{
+		majorId: int('major_id').notNull(),
+		subjectId: int('subject_id').notNull()
+	},
+	(t) => ({
+		pk: uniqueIndex('exam_major_subjects_unique').on(
+			t.majorId,
+			t.subjectId
+		),
+		majorIdx: index('exam_major_subjects_major_idx').on(t.majorId),
+		subjectIdx: index('exam_major_subjects_subject_idx').on(t.subjectId)
 	})
 )
 

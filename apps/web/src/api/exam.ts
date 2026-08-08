@@ -63,7 +63,7 @@ export interface ExamMajor {
 	description: string | null
 }
 
-/** Khoa thuộc ngành (K1…K8) */
+/** Khoa dùng chung (K1…K8), không thuộc riêng một ngành */
 export interface ExamFaculty {
 	id: number
 	createdAt: string
@@ -71,9 +71,6 @@ export interface ExamFaculty {
 	code: string
 	shortCode: string | null
 	name: string
-	majorId: number | null
-	majorCode?: string | null
-	majorName?: string | null
 	description: string | null
 }
 
@@ -455,13 +452,9 @@ export async function DeleteExamMajor(id: number) {
 	})
 }
 
-export async function ListExamFaculties(params?: {
-	q?: string
-	majorId?: number
-}) {
+export async function ListExamFaculties(params?: { q?: string }) {
 	const sp = new URLSearchParams()
 	if (params?.q) sp.set('q', params.q)
-	if (params?.majorId) sp.set('majorId', String(params.majorId))
 	const qs = sp.toString() ? `?${sp}` : ''
 	const resp = await jsonFetch<{ data: ExamFaculty[] }>(
 		`/exam/faculties${qs}`
@@ -473,7 +466,6 @@ export async function CreateExamFaculty(body: {
 	code: string
 	shortCode?: string | null
 	name: string
-	majorId?: number
 	description?: string
 }) {
 	// Encore không nhận `null` cho field optional. Bỏ hẳn các field rỗng
@@ -484,7 +476,6 @@ export async function CreateExamFaculty(body: {
 		...(body.shortCode?.trim()
 			? { shortCode: body.shortCode.trim().toUpperCase() }
 			: {}),
-		...(body.majorId != null ? { majorId: Number(body.majorId) } : {}),
 		...(body.description != null ? { description: body.description } : {})
 	}
 	const resp = await jsonFetch<{ data: ExamFaculty }>('/exam/faculties', {
@@ -500,7 +491,6 @@ export async function UpdateExamFaculty(
 		code?: string
 		shortCode?: string | null
 		name?: string
-		majorId?: number
 		description?: string | null
 	}
 ) {

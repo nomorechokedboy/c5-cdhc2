@@ -7,7 +7,7 @@ import { GetLeaveMyAccess } from '@/api/leave'
 export const Route = createFileRoute('/quan-ly-phep/de-xuat')({
 	beforeLoad: async () => {
 		const access = await GetLeaveMyAccess()
-		if (access.isAgency && !access.isAdmin) {
+		if (!access.canPropose || (access.isAgency && !access.isAdmin)) {
 			throw redirect({ to: '/quan-ly-phep/duyet' })
 		}
 	},
