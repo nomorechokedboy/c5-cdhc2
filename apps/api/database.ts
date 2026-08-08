@@ -27,8 +27,23 @@ const client = createClient({
 
 const orm = drizzle({ schema, client, logger: new AppDBLogger() })
 
+async function repairLegacyUserColumns() {
+	const result = await client.execute('PRAGMA table_info(users)')
+	const columns = new Set(result.rows.map((row) => String(row.name || '')))
+	for (const [name, type] of [
+		['rank', 'text'],
+		['position', 'text'],
+		['alias', 'text']
+	] as const) {
+		if (!columns.has(name)) {
+			await client.execute(`ALTER TABLE users ADD COLUMN ${name} ${type}`)
+		}
+	}
+}
+
 async function autoMigrate() {
 	try {
+		await repairLegacyUserColumns()
 		await migrate(orm, { migrationsFolder: './migrations' }) // Specify your migrations folder
 		console.log('Migrations applied successfully!')
 	} catch (error) {
