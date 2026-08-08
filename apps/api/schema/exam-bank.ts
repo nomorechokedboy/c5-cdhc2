@@ -56,24 +56,32 @@ export const examSystems = sqliteTable('exam_systems', {
  * Mã nội bộ dùng chính mã số duy nhất — vd B.6720301. Mã ngành quốc gia
  * có thể trùng giữa nhiều chương trình trong cùng một hệ.
  */
-export const examMajors = sqliteTable('exam_majors', {
-	...baseSchema,
-	code: text('code').notNull().unique(),
-	name: text('name').notNull(),
-	systemId: int('system_id').notNull(),
-	/** TC | CD | LT — trình độ trong tên ngành */
-	levelCode: text('level_code'),
-	/** Viết tắt ngành (DD, YSDK, DUOC…) */
-	shortCode: text('short_code'),
-	/** Mã số chương trình hiển thị, vd A.6720101 */
-	catalogNumber: text('catalog_number'),
-	/** Mã ngành theo danh mục Bộ GDĐT, vd 6720101 */
-	nationalMajorCode: text('national_major_code'),
-	qualification: text('qualification'),
-	trainingDuration: text('training_duration'),
-	trainingForm: text('training_form'),
-	description: text('description')
-})
+export const examMajors = sqliteTable(
+	'exam_majors',
+	{
+		...baseSchema,
+		code: text('code').notNull().unique(),
+		name: text('name').notNull(),
+		systemId: int('system_id').notNull(),
+		/** TC | CD | LT — trình độ trong tên ngành */
+		levelCode: text('level_code'),
+		/** Viết tắt ngành (DD, YSDK, DUOC…) */
+		shortCode: text('short_code'),
+		/** Mã số chương trình hiển thị, vd A.6720101 */
+		catalogNumber: text('catalog_number'),
+		/** Mã ngành theo danh mục Bộ GDĐT, vd 6720101; được phép trùng. */
+		nationalMajorCode: text('national_major_code'),
+		qualification: text('qualification'),
+		trainingDuration: text('training_duration'),
+		trainingForm: text('training_form'),
+		description: text('description')
+	},
+	(t) => ({
+		catalogNumberUnique: uniqueIndex(
+			'exam_majors_catalog_number_unique'
+		).on(t.catalogNumber)
+	})
+)
 
 /**
  * Khoa là danh mục độc lập. Mỗi môn thuộc một khoa; ngành chọn môn
