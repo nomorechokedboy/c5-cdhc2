@@ -505,6 +505,13 @@
 			"when": 1786101000000,
 			"tag": "0072_exam_major_subjects",
 			"breakpoints": true
+		},
+		{
+			"idx": 71,
+			"version": "7",
+			"when": 1786102000000,
+			"tag": "0073_sync_leave_personnel_accounts",
+			"breakpoints": true
 		}
 	]
 }
