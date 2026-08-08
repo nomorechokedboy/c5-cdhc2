@@ -13,6 +13,7 @@ import {
 	examClasses,
 	examFaculties,
 	examFacultyHeads,
+	examMajorSubjects,
 	examMajors,
 	examSubjects,
 	examSystems,
@@ -56,14 +57,21 @@ async function getScopedFacultyCodes(
 			.filter(Boolean)
 	}
 
-	// Legacy: chỉ gán theo ngành → mọi khoa thuộc các ngành đó
+	// Legacy: chỉ gán theo ngành. Khoa nay là danh mục dùng chung nên
+	// không còn lọc qua exam_faculties.major_id; lấy mã khoa từ các môn
+	// thuộc ngành được quản lý.
 	const majorIds = await getDeptHeadMajorIds(actor)
 	if (majorIds === null) return null
 	if (!majorIds.length) return []
 	const facs = await orm
 		.select({ code: examFaculties.code })
 		.from(examFaculties)
-		.where(inArray(examFaculties.majorId, majorIds))
+		.innerJoin(examSubjects, eq(examSubjects.facultyId, examFaculties.id))
+		.innerJoin(
+			examMajorSubjects,
+			eq(examMajorSubjects.subjectId, examSubjects.id)
+		)
+		.where(inArray(examMajorSubjects.majorId, majorIds))
 	return [
 		...new Set(
 			facs

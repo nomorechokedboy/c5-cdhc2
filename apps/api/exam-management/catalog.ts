@@ -14,6 +14,7 @@ import orm from '../database'
 import {
 	examClasses,
 	examFaculties,
+	examMajorSubjects,
 	examMajors,
 	examSubjects,
 	examSystems,
@@ -70,9 +71,6 @@ export interface FacultyResponse {
 	code: string
 	shortCode: string | null
 	name: string
-	majorId: number | null
-	majorCode?: string | null
-	majorName?: string | null
 	description: string | null
 }
 
@@ -177,7 +175,9 @@ type LegacySystemRow = {
 
 async function hasTrainingTypeColumn(): Promise<boolean> {
 	const columns = await orm.all(sql`PRAGMA table_info(exam_systems)`)
-	return columns.some((column) => column.name === 'training_type_id')
+	return (columns as Array<{ name?: string }>).some(
+		(column) => column.name === 'training_type_id'
+	)
 }
 
 async function listSystems(kw?: string): Promise<LegacySystemRow[]> {
@@ -429,7 +429,6 @@ async function mapMajor(
 		name: r.name,
 		systemId: r.systemId,
 		levelCode: r.levelCode ?? null,
-		shortCode: r.shortCode ?? null,
 		catalogNumber: r.catalogNumber ?? null,
 		nationalMajorCode: r.nationalMajorCode ?? null,
 		qualification: r.qualification ?? null,
@@ -664,17 +663,10 @@ export const DeleteExamMajor = api(
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền xóa ngành')
 		}
-		const [fac] = await orm
-			.select({ c: sql<number>`count(*)` })
-			.from(examFaculties)
-			.where(eq(examFaculties.majorId, params.id))
-		if (Number(fac?.c || 0) > 0) {
-			throw APIError.failedPrecondition('Ngành còn khoa — xóa khoa trước')
-		}
 		const [subj] = await orm
 			.select({ c: sql<number>`count(*)` })
-			.from(examSubjects)
-			.where(eq(examSubjects.majorId, params.id))
+			.from(examMajorSubjects)
+			.where(eq(examMajorSubjects.majorId, params.id))
 		if (Number(subj?.c || 0) > 0) {
 			throw APIError.failedPrecondition('Ngành còn môn — xóa môn trước')
 		}
@@ -688,13 +680,6 @@ export const DeleteExamMajor = api(
 async function mapFaculty(
 	r: typeof examFaculties.$inferSelect
 ): Promise<FacultyResponse> {
-	const [m] = r.majorId
-		? await orm
-				.select()
-				.from(examMajors)
-				.where(eq(examMajors.id, r.majorId))
-				.limit(1)
-		: []
 	return {
 		id: r.id,
 		createdAt: r.createdAt,
@@ -702,23 +687,15 @@ async function mapFaculty(
 		code: r.code,
 		shortCode: r.shortCode ?? null,
 		name: r.name,
-		majorId: r.majorId ?? null,
-		majorCode: m?.code ?? null,
-		majorName: m?.name ?? null,
 		description: r.description
 	}
 }
 
 export const ListExamFaculties = api(
 	{ auth: true, expose: true, method: 'GET', path: '/exam/faculties' },
-	async (q: {
-		q?: Query<string>
-		majorId?: Query<number>
-	}): Promise<{ data: FacultyResponse[] }> => {
+	async (q: { q?: Query<string> }): Promise<{ data: FacultyResponse[] }> => {
 		const actor = await getActor()
 		const conditions = []
-		if (q.majorId)
-			conditions.push(eq(examFaculties.majorId, Number(q.majorId)))
 		const kw = (q.q || '').trim()
 		if (kw) {
 			conditions.push(
@@ -740,11 +717,7 @@ export const ListExamFaculties = api(
 					)})`
 				)
 			} else {
-				const cnkMajors = await getDeptHeadMajorIds(actor)
-				if (cnkMajors !== null) {
-					if (!cnkMajors.length) return { data: [] }
-					conditions.push(inArray(examFaculties.majorId, cnkMajors))
-				}
+				return { data: [] }
 			}
 		}
 		const where = conditions.length ? and(...conditions) : undefined
@@ -765,9 +738,6 @@ export const CreateExamFaculty = api(
 		code: string
 		shortCode?: string | null
 		name: string
-		// Optional Encore fields must be omitted when no major is selected;
-		// explicit null is rejected by the request decoder.
-		majorId?: number
 		description?: string
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
@@ -779,22 +749,10 @@ export const CreateExamFaculty = api(
 		const name = body.name.trim()
 		if (!code || !name)
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
-		if (
-			body.majorId != null &&
-			(!Number.isInteger(body.majorId) || body.majorId <= 0)
-		)
-			throw APIError.invalidArgument('Ngành của khoa không hợp lệ')
 		const duplicate = await orm
 			.select({ id: examFaculties.id })
 			.from(examFaculties)
-			.where(
-				and(
-					eq(examFaculties.code, code),
-					body.majorId == null
-						? isNull(examFaculties.majorId)
-						: eq(examFaculties.majorId, body.majorId)
-				)
-			)
+			.where(and(eq(examFaculties.code, code)))
 			.limit(1)
 		if (duplicate[0])
 			throw APIError.alreadyExists(
@@ -806,7 +764,6 @@ export const CreateExamFaculty = api(
 				code,
 				shortCode,
 				name,
-				majorId: body.majorId ?? null,
 				description: body.description || null
 			})
 			.returning()
@@ -821,7 +778,6 @@ export const UpdateExamFaculty = api(
 		code?: string
 		shortCode?: string | null
 		name?: string
-		majorId?: number
 		description?: string | null
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
@@ -834,17 +790,6 @@ export const UpdateExamFaculty = api(
 			.where(eq(examFaculties.id, params.id))
 			.limit(1)
 		if (!existing) throw APIError.notFound('Khoa không tồn tại')
-
-		let majorId = existing.majorId
-		if (params.majorId != null) {
-			const [m] = await orm
-				.select({ id: examMajors.id })
-				.from(examMajors)
-				.where(eq(examMajors.id, params.majorId))
-				.limit(1)
-			if (!m) throw APIError.notFound('Ngành không tồn tại')
-			majorId = params.majorId
-		}
 
 		const code =
 			params.code !== undefined
@@ -860,15 +805,12 @@ export const UpdateExamFaculty = api(
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
 		}
 
-		if (code !== existing.code || majorId !== existing.majorId) {
+		if (code !== existing.code) {
 			const [dup] = await orm
 				.select({ id: examFaculties.id })
 				.from(examFaculties)
 				.where(
 					and(
-						majorId == null
-							? isNull(examFaculties.majorId)
-							: eq(examFaculties.majorId, majorId),
 						eq(examFaculties.code, code),
 						sql`${examFaculties.id} != ${params.id}`
 					)
@@ -887,7 +829,6 @@ export const UpdateExamFaculty = api(
 				code,
 				shortCode,
 				name,
-				majorId,
 				description:
 					params.description !== undefined
 						? params.description
@@ -895,14 +836,6 @@ export const UpdateExamFaculty = api(
 			})
 			.where(eq(examFaculties.id, params.id))
 			.returning()
-
-		// Đồng bộ majorId môn nếu chuyển khoa sang ngành khác
-		if (majorId !== existing.majorId) {
-			await orm
-				.update(examSubjects)
-				.set({ majorId })
-				.where(eq(examSubjects.facultyId, params.id))
-		}
 
 		return { data: await mapFaculty(row!) }
 	}
@@ -1124,9 +1057,6 @@ export const CreateExamClass = api(
 				.where(eq(examFaculties.id, facultyId))
 				.limit(1)
 			if (!f) throw APIError.notFound('Khoa không tồn tại')
-			if (f.majorId !== majorId) {
-				throw APIError.invalidArgument('Khoa không thuộc ngành đã chọn')
-			}
 		}
 		const [existing] = await orm
 			.select({ id: examClasses.id })
@@ -1221,12 +1151,6 @@ export const UpdateExamClass = api(
 					.where(eq(examFaculties.id, facultyId))
 					.limit(1)
 				if (!f) throw APIError.notFound('Khoa không tồn tại')
-				const mid = (patch.majorId as number | undefined) ?? cur.majorId
-				if (mid != null && f.majorId !== mid) {
-					throw APIError.invalidArgument(
-						'Khoa không thuộc ngành của lớp'
-					)
-				}
 			}
 			patch.facultyId = facultyId
 		}
@@ -1273,8 +1197,16 @@ export const ListExamSubjects = api(
 	}): Promise<{ data: SubjectResponse[] }> => {
 		const actor = await getActor()
 		const conditions = []
-		if (q.majorId)
-			conditions.push(eq(examSubjects.majorId, Number(q.majorId)))
+		if (q.majorId) {
+			const majorId = Number(q.majorId)
+			conditions.push(
+				sql`EXISTS (
+					SELECT 1 FROM exam_major_subjects ems
+					WHERE ems.subject_id = ${examSubjects.id}
+					  AND ems.major_id = ${majorId}
+				)`
+			)
+		}
 		if (q.facultyId)
 			conditions.push(eq(examSubjects.facultyId, Number(q.facultyId)))
 		const kw = (q.q || '').trim()
@@ -1320,7 +1252,16 @@ export const ListExamSubjects = api(
 				const cnkMajors = await getDeptHeadMajorIds(actor)
 				if (cnkMajors !== null) {
 					if (!cnkMajors.length) return { data: [] }
-					conditions.push(inArray(examSubjects.majorId, cnkMajors))
+					conditions.push(
+						sql`EXISTS (
+							SELECT 1 FROM exam_major_subjects ems
+							WHERE ems.subject_id = ${examSubjects.id}
+							  AND ems.major_id IN (${sql.join(
+									cnkMajors.map((id) => sql`${id}`),
+									sql`, `
+								)})
+						)`
+					)
 				}
 			}
 		}
@@ -1410,72 +1351,24 @@ export const CreateExamSubject = api(
 		if (!name || !body.facultyId) {
 			throw APIError.invalidArgument('Tên môn và khoa bắt buộc')
 		}
-		let [fac] = await orm
+		const [fac] = await orm
 			.select({
 				id: examFaculties.id,
 				code: examFaculties.code,
-				name: examFaculties.name,
-				majorId: examFaculties.majorId,
-				majorCode: examMajors.code,
-				majorName: examMajors.name
+				name: examFaculties.name
 			})
 			.from(examFaculties)
-			.leftJoin(examMajors, eq(examFaculties.majorId, examMajors.id))
 			.where(eq(examFaculties.id, body.facultyId))
 			.limit(1)
 		if (!fac) throw APIError.notFound('Khoa không tồn tại')
 
-		// Khoa là danh mục dùng chung. CSDL cũ lưu một bản ghi khoa theo từng
-		// ngành, vì vậy tự tạo bản ghi liên kết tương ứng khi thêm môn vào ngành.
-		if (body.majorId && fac.majorId !== body.majorId) {
+		if (body.majorId) {
 			const [targetMajor] = await orm
 				.select({ id: examMajors.id })
 				.from(examMajors)
 				.where(eq(examMajors.id, body.majorId))
 				.limit(1)
 			if (!targetMajor) throw APIError.notFound('Ngành không tồn tại')
-			let [targetFaculty] = await orm
-				.select({
-					id: examFaculties.id,
-					code: examFaculties.code,
-					name: examFaculties.name,
-					majorId: examFaculties.majorId,
-					majorCode: examMajors.code,
-					majorName: examMajors.name
-				})
-				.from(examFaculties)
-				.leftJoin(examMajors, eq(examFaculties.majorId, examMajors.id))
-				.where(
-					and(
-						eq(examFaculties.majorId, body.majorId),
-						eq(examFaculties.code, fac.code)
-					)
-				)
-				.limit(1)
-			if (!targetFaculty) {
-				const [created] = await orm
-					.insert(examFaculties)
-					.values({
-						code: fac.code,
-						name: fac.name,
-						majorId: body.majorId
-					})
-					.returning()
-				const [major] = await orm
-					.select({ code: examMajors.code, name: examMajors.name })
-					.from(examMajors)
-					.where(eq(examMajors.id, body.majorId))
-					.limit(1)
-				targetFaculty = {
-					id: created!.id,
-					code: created!.code,
-					name: created!.name,
-					majorId: created!.majorId,
-					majorCode: major?.code ?? null,
-					majorName: major?.name ?? null
-				}
-			}
-			fac = targetFaculty
 		}
 
 		const baseCode = (
@@ -1492,7 +1385,7 @@ export const CreateExamSubject = api(
 		}
 		const fullCode = body.code?.includes('_')
 			? body.code.trim().toUpperCase()
-			: buildSubjectCode(fac.majorCode || 'X', baseCode)
+			: baseCode
 
 		const [row] = await orm
 			.insert(examSubjects)
@@ -1507,10 +1400,16 @@ export const CreateExamSubject = api(
 				lessonHours:
 					sourceSubject?.lessonHours ?? body.lessonHours ?? 0,
 				facultyId: fac.id,
-				majorId: fac.majorId,
+				majorId: body.majorId ?? null,
 				description: body.description || null
 			})
 			.returning()
+		if (body.majorId && row) {
+			await orm
+				.insert(examMajorSubjects)
+				.values({ majorId: body.majorId, subjectId: row.id })
+				.onConflictDoNothing()
+		}
 
 		return {
 			data: {
@@ -1526,8 +1425,8 @@ export const CreateExamSubject = api(
 				facultyCode: fac.code,
 				facultyName: fac.name,
 				majorId: row!.majorId,
-				majorCode: fac.majorCode ?? null,
-				majorName: fac.majorName ?? null,
+				majorCode: null,
+				majorName: null,
 				description: row!.description
 			}
 		}
@@ -1540,6 +1439,7 @@ export const UpdateExamSubject = api(
 		id: number
 		name?: string
 		facultyId?: number
+		majorId?: number
 		baseCode?: string
 		code?: string
 		creditHours?: number
@@ -1558,24 +1458,18 @@ export const UpdateExamSubject = api(
 		if (!existing) throw APIError.notFound('Môn không tồn tại')
 
 		let facultyId = existing.facultyId
-		let majorId = existing.majorId
+		const majorId = existing.majorId
 		let facCode: string | null = null
 		let facName: string | null = null
-		let majorCode: string | null = null
-		let majorName: string | null = null
 
 		const resolveFac = async (fid: number) => {
 			const [fac] = await orm
 				.select({
 					id: examFaculties.id,
 					code: examFaculties.code,
-					name: examFaculties.name,
-					majorId: examFaculties.majorId,
-					majorCode: examMajors.code,
-					majorName: examMajors.name
+					name: examFaculties.name
 				})
 				.from(examFaculties)
-				.leftJoin(examMajors, eq(examFaculties.majorId, examMajors.id))
 				.where(eq(examFaculties.id, fid))
 				.limit(1)
 			if (!fac) throw APIError.notFound('Khoa không tồn tại')
@@ -1588,17 +1482,20 @@ export const UpdateExamSubject = api(
 		) {
 			const fac = await resolveFac(params.facultyId)
 			facultyId = fac.id
-			majorId = fac.majorId
 			facCode = fac.code
 			facName = fac.name
-			majorCode = fac.majorCode ?? null
-			majorName = fac.majorName ?? null
 		} else {
 			const fac = await resolveFac(existing.facultyId)
 			facCode = fac.code
 			facName = fac.name
-			majorCode = fac.majorCode ?? null
-			majorName = fac.majorName ?? null
+		}
+		if (params.majorId != null) {
+			const [major] = await orm
+				.select({ id: examMajors.id })
+				.from(examMajors)
+				.where(eq(examMajors.id, params.majorId))
+				.limit(1)
+			if (!major) throw APIError.notFound('Ngành không tồn tại')
 		}
 
 		const name =
@@ -1620,20 +1517,7 @@ export const UpdateExamSubject = api(
 			baseCode = rawBase.includes('_')
 				? rawBase.split('_').pop()!
 				: rawBase
-			fullCode = params.code?.includes('_')
-				? params.code.trim().toUpperCase()
-				: buildSubjectCode(majorCode || 'X', baseCode)
-		} else if (facultyId !== existing.facultyId && majorCode) {
-			// Đổi khoa → cập nhật prefix mã môn nếu đang theo convention
-			const base = (
-				existing.baseCode ||
-				existing.code.split('_').pop() ||
-				''
-			).toUpperCase()
-			if (base) {
-				baseCode = base
-				fullCode = buildSubjectCode(majorCode, base)
-			}
+			fullCode = params.code?.trim().toUpperCase() || baseCode
 		}
 
 		if (fullCode !== existing.code) {
@@ -1675,6 +1559,12 @@ export const UpdateExamSubject = api(
 			})
 			.where(eq(examSubjects.id, params.id))
 			.returning()
+		if (params.majorId != null) {
+			await orm
+				.insert(examMajorSubjects)
+				.values({ majorId: params.majorId, subjectId: params.id })
+				.onConflictDoNothing()
+		}
 
 		return {
 			data: {
@@ -1690,8 +1580,8 @@ export const UpdateExamSubject = api(
 				facultyCode: facCode,
 				facultyName: facName,
 				majorId: row!.majorId,
-				majorCode,
-				majorName,
+				majorCode: null,
+				majorName: null,
 				description: row!.description
 			}
 		}
@@ -1705,6 +1595,9 @@ export const DeleteExamSubject = api(
 		if (!canManageCatalog(actor)) {
 			throw APIError.permissionDenied('Không có quyền xóa môn')
 		}
+		await orm
+			.delete(examMajorSubjects)
+			.where(eq(examMajorSubjects.subjectId, params.id))
 		await orm.delete(examSubjects).where(eq(examSubjects.id, params.id))
 		return { ok: true }
 	}

@@ -54,25 +54,29 @@ const EXTRA_ELIGIBLE = new Set([
 export default function LeaveRequestForm() {
 	const qc = useQueryClient()
 	const admin = isSuperAdmin()
-	const { data: access } = useQuery({
+	const accessQ = useQuery({
 		queryKey: ['leave-my-access'],
 		queryFn: GetLeaveMyAccess
 	})
+	const access = accessQ.data
 	const canProposeForUnit = admin || Boolean(access?.isCommander)
 
 	const { data: myPersonnel, isLoading: loadingP } = useQuery({
 		queryKey: ['leave-my-personnel'],
 		queryFn: GetMyLeavePersonnel
 	})
-	const { data: allPersonnel = [], isLoading: loadingAll } = useQuery({
+	const personnelQ = useQuery({
 		queryKey: ['leave-personnel', 'for-propose'],
-		queryFn: () => ListLeavePersonnel(),
-		enabled: true
+		queryFn: ListLeavePersonnel,
+		enabled: canProposeForUnit
 	})
-	const { data: classes = [] } = useQuery({
+	const allPersonnel = personnelQ.data || []
+	const classesQ = useQuery({
 		queryKey: ['leave-classes', 'for-propose'],
-		queryFn: () => ListLeaveClasses()
+		queryFn: ListLeaveClasses,
+		enabled: canProposeForUnit
 	})
+	const classes = classesQ.data || []
 	const managedStudents = useMemo(
 		() => allPersonnel.filter((p) => p.classId != null),
 		[allPersonnel]
@@ -410,11 +414,36 @@ export default function LeaveRequestForm() {
 		onError: (e: Error) => toast.error(e.message)
 	})
 
-	if (loadingP || (canProposeForUnit && loadingAll)) {
+	if (
+		accessQ.isLoading ||
+		loadingP ||
+		(canProposeForUnit && personnelQ.isLoading)
+	) {
 		return (
 			<div className='flex justify-center p-12'>
 				<Loader2 className='h-6 w-6 animate-spin' />
 			</div>
+		)
+	}
+
+	const pageError = accessQ.error || personnelQ.error || classesQ.error
+	if (pageError) {
+		return (
+			<Card>
+				<CardContent className='space-y-3 p-6'>
+					<h2 className='text-lg font-semibold'>
+						Không tải được đề xuất phép
+					</h2>
+					<p className='text-sm text-destructive'>
+						{pageError instanceof Error
+							? pageError.message
+							: 'Lỗi không xác định'}
+					</p>
+					<Button onClick={() => window.location.reload()}>
+						Thử lại
+					</Button>
+				</CardContent>
+			</Card>
 		)
 	}
 
