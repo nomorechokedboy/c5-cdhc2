@@ -73,7 +73,9 @@ export default function LeaveRequestForm() {
 	const allPersonnel = personnelQ.data || []
 	const classesQ = useQuery({
 		queryKey: ['leave-classes', 'for-propose'],
-		queryFn: ListLeaveClasses,
+		// React Query passes its context object to queryFn. Do not forward it
+		// as unitId; this endpoint should list all classes for the proposer.
+		queryFn: () => ListLeaveClasses(),
 		enabled: canProposeForUnit
 	})
 	const classes = classesQ.data || []
