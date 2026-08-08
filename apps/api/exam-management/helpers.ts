@@ -21,6 +21,7 @@ import {
 	examFaculties,
 	examFacultyHeads,
 	examMajorHeads,
+	examMajorSubjects,
 	examMajors,
 	examSubjects,
 	type ExamStatus
@@ -162,11 +163,15 @@ export async function getDeptHeadMajorIds(
 	const facCodes = await getDeptHeadFacultyCodes(actor)
 	if (facCodes && facCodes.length) {
 		const fromFac = await orm
-			.selectDistinct({ majorId: examSubjects.majorId })
+			.selectDistinct({ majorId: examMajorSubjects.majorId })
 			.from(examSubjects)
 			.innerJoin(
 				examFaculties,
 				eq(examSubjects.facultyId, examFaculties.id)
+			)
+			.innerJoin(
+				examMajorSubjects,
+				eq(examMajorSubjects.subjectId, examSubjects.id)
 			)
 			.where(inArray(examFaculties.code, facCodes))
 		for (const r of fromFac) {
@@ -197,11 +202,15 @@ export async function getDeptHeadMajorIds(
 		if (/^K\d+$/i.test(code) || code === 'DIEUDUONG' || code === 'DD') {
 			const facCode = /^K\d+$/i.test(code) ? code.toUpperCase() : 'K7'
 			const fromFac = await orm
-				.selectDistinct({ majorId: examSubjects.majorId })
+				.selectDistinct({ majorId: examMajorSubjects.majorId })
 				.from(examSubjects)
 				.innerJoin(
 					examFaculties,
 					eq(examSubjects.facultyId, examFaculties.id)
+				)
+				.innerJoin(
+					examMajorSubjects,
+					eq(examMajorSubjects.subjectId, examSubjects.id)
 				)
 				.where(eq(examFaculties.code, facCode))
 			for (const r of fromFac) {
