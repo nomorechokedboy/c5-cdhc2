@@ -512,6 +512,13 @@
 			"when": 1786102000000,
 			"tag": "0073_sync_leave_personnel_accounts",
 			"breakpoints": true
+		},
+		{
+			"idx": 72,
+			"version": "7",
+			"when": 1786103000000,
+			"tag": "0074_repair_leave_personnel_schema",
+			"breakpoints": true
 		}
 	]
 }
