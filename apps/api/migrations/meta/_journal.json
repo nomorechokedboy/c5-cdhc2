@@ -526,6 +526,13 @@
 			"when": 1786104000000,
 			"tag": "0075_exam_faculty_major_code_unique",
 			"breakpoints": true
+		},
+		{
+			"idx": 74,
+			"version": "7",
+			"when": 1786105000000,
+			"tag": "0076_exam_faculties_standalone",
+			"breakpoints": true
 		}
 	]
 }

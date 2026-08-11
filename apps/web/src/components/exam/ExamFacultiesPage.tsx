@@ -8,7 +8,6 @@ import {
 	ListExamFaculties,
 	ListExamFacultyHeads,
 	ListExamFacultyOptions,
-	ListExamMajors,
 	ListExamSubjects,
 	ListExamTeacherCatalog,
 	UpdateExamFaculty,
@@ -93,7 +92,6 @@ export default function ExamFacultiesPage() {
 	const [managingCode, setManagingCode] = useState<string | null>(null)
 	const [subjectEditorOpen, setSubjectEditorOpen] = useState(false)
 	const [facultyImportBusy, setFacultyImportBusy] = useState(false)
-	const [facultyImportMajorId, setFacultyImportMajorId] = useState('')
 	const [editingSubjectId, setEditingSubjectId] = useState<number | null>(
 		null
 	)
@@ -101,7 +99,6 @@ export default function ExamFacultiesPage() {
 		code: '',
 		shortCode: '',
 		name: '',
-		majorId: '',
 		headUserId: 'none'
 	})
 	const [subjectForm, setSubjectForm] = useState({
@@ -118,10 +115,6 @@ export default function ExamFacultiesPage() {
 	const facultiesQ = useQuery({
 		queryKey: ['exam-faculties'],
 		queryFn: () => ListExamFaculties()
-	})
-	const majorsQ = useQuery({
-		queryKey: ['exam-majors'],
-		queryFn: ListExamMajors
 	})
 	const subjectsQ = useQuery({
 		queryKey: ['exam-subjects'],
@@ -178,8 +171,7 @@ export default function ExamFacultiesPage() {
 					UpdateExamFaculty(faculty.id, {
 						code: form.code,
 						name: form.name,
-						shortCode: form.shortCode || null,
-						majorId: faculty.majorId
+						shortCode: form.shortCode || null
 					})
 				)
 			)
@@ -217,8 +209,7 @@ export default function ExamFacultiesPage() {
 			CreateExamFaculty({
 				code: form.code.trim(),
 				name: form.name.trim(),
-				shortCode: form.shortCode.trim() || null,
-				majorId: Number(form.majorId)
+				shortCode: form.shortCode.trim() || null
 			}),
 		onSuccess: () => {
 			toast.success('Đã thêm khoa')
@@ -246,10 +237,6 @@ export default function ExamFacultiesPage() {
 	async function importFaculties(file: File) {
 		setFacultyImportBusy(true)
 		try {
-			if (!facultyImportMajorId) {
-				throw new Error('Hãy chọn ngành trước khi import khoa')
-			}
-			const majorId = Number(facultyImportMajorId)
 			const rows = await parseCatalogImportFile(file, 'Khoa')
 			if (!rows.length) throw new Error('Sheet Khoa không có dữ liệu')
 			const headers = new Set(Object.keys(rows[0] || {}).map(importKey))
@@ -301,8 +288,7 @@ export default function ExamFacultiesPage() {
 							code,
 							shortCode: shortCode || null,
 							name,
-							description: description || undefined,
-							majorId
+							description: description || undefined
 						})
 					}
 					saved++
@@ -421,24 +407,6 @@ export default function ExamFacultiesPage() {
 						>
 							<Download className='mr-2 h-4 w-4' /> Tải file mẫu
 						</a>
-						<Select
-							value={facultyImportMajorId || undefined}
-							onValueChange={setFacultyImportMajorId}
-						>
-							<SelectTrigger className='w-[240px]'>
-								<SelectValue placeholder='Chọn ngành để import' />
-							</SelectTrigger>
-							<SelectContent>
-								{(majorsQ.data || []).map((major) => (
-									<SelectItem
-										key={major.id}
-										value={String(major.id)}
-									>
-										{major.code} — {major.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 						<label className='inline-flex cursor-pointer items-center'>
 							<input
 								className='hidden'
@@ -467,7 +435,6 @@ export default function ExamFacultiesPage() {
 									code: '',
 									shortCode: '',
 									name: '',
-									majorId: '',
 									headUserId: 'none'
 								})
 								setFacultyEditorOpen(true)
@@ -527,11 +494,6 @@ export default function ExamFacultiesPage() {
 															faculty.shortCode ||
 															'',
 														name: faculty.name,
-														majorId: faculty.majorId
-															? String(
-																	faculty.majorId
-																)
-															: '',
 														headUserId: faculty.head
 															? String(
 																	faculty.head
@@ -588,11 +550,6 @@ export default function ExamFacultiesPage() {
 														shortCode:
 															faculty.shortCode ||
 															'',
-														majorId: faculty.majorId
-															? String(
-																	faculty.majorId
-																)
-															: '',
 														headUserId: faculty.head
 															? String(
 																	faculty.head
@@ -814,31 +771,6 @@ export default function ExamFacultiesPage() {
 						</DialogTitle>
 					</DialogHeader>
 					<div className='space-y-3'>
-						{facultyEditorMode === 'create' && (
-							<div>
-								<Label>Ngành *</Label>
-								<Select
-									value={form.majorId}
-									onValueChange={(majorId) =>
-										setForm((o) => ({ ...o, majorId }))
-									}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder='Chọn ngành' />
-									</SelectTrigger>
-									<SelectContent>
-										{(majorsQ.data || []).map((major) => (
-											<SelectItem
-												key={major.id}
-												value={String(major.id)}
-											>
-												{major.code} — {major.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-						)}
 						<div>
 							<Label>Mã khoa *</Label>
 							<Input
@@ -902,8 +834,6 @@ export default function ExamFacultiesPage() {
 							disabled={
 								!form.code.trim() ||
 								!form.name.trim() ||
-								(facultyEditorMode === 'create' &&
-									!form.majorId) ||
 								createFaculty.isPending ||
 								save.isPending
 							}
