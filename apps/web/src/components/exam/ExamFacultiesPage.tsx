@@ -527,9 +527,6 @@ export default function ExamFacultiesPage() {
 															faculty.shortCode ||
 															'',
 														name: faculty.name,
-														shortCode:
-															faculty.shortCode ||
-															'',
 														majorId: faculty.majorId
 															? String(
 																	faculty.majorId
