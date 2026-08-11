@@ -72,6 +72,9 @@ export interface FacultyResponse {
 	code: string
 	shortCode: string | null
 	name: string
+	majorId: number | null
+	majorCode: string | null
+	majorName: string | null
 	description: string | null
 }
 
@@ -714,6 +717,13 @@ export const DeleteExamMajor = api(
 async function mapFaculty(
 	r: typeof examFaculties.$inferSelect
 ): Promise<FacultyResponse> {
+	const [major] = r.majorId
+		? await orm
+				.select({ code: examMajors.code, name: examMajors.name })
+				.from(examMajors)
+				.where(eq(examMajors.id, r.majorId))
+				.limit(1)
+		: []
 	return {
 		id: r.id,
 		createdAt: r.createdAt,
@@ -721,13 +731,19 @@ async function mapFaculty(
 		code: r.code,
 		shortCode: r.shortCode ?? null,
 		name: r.name,
+		majorId: r.majorId ?? null,
+		majorCode: major?.code ?? null,
+		majorName: major?.name ?? null,
 		description: r.description
 	}
 }
 
 export const ListExamFaculties = api(
 	{ auth: true, expose: true, method: 'GET', path: '/exam/faculties' },
-	async (q: { q?: Query<string> }): Promise<{ data: FacultyResponse[] }> => {
+	async (q: {
+		q?: Query<string>
+		majorId?: Query<number>
+	}): Promise<{ data: FacultyResponse[] }> => {
 		const actor = await getActor()
 		const conditions = []
 		const lecturerFaculties = await getLecturerFacultyCodes(actor)
@@ -741,6 +757,17 @@ export const ListExamFaculties = api(
 			)
 		}
 		const kw = (q.q || '').trim()
+		if (q.majorId) {
+			const majorId = Number(q.majorId)
+			if (!Number.isInteger(majorId) || majorId <= 0)
+				throw APIError.invalidArgument('Ngành của khoa không hợp lệ')
+			conditions.push(
+				or(
+					eq(examFaculties.majorId, majorId),
+					isNull(examFaculties.majorId)
+				)!
+			)
+		}
 		if (kw) {
 			conditions.push(
 				or(
@@ -782,6 +809,7 @@ export const CreateExamFaculty = api(
 		code: string
 		shortCode?: string | null
 		name: string
+		majorId?: number | null
 		description?: string
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
@@ -791,12 +819,26 @@ export const CreateExamFaculty = api(
 		const code = body.code.trim().toUpperCase()
 		const shortCode = body.shortCode?.trim().toUpperCase() || null
 		const name = body.name.trim()
+		const majorId = body.majorId == null ? null : Number(body.majorId)
 		if (!code || !name)
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
+		if (majorId == null || !Number.isInteger(majorId) || majorId <= 0)
+			throw APIError.invalidArgument('Ngành của khoa là bắt buộc')
+		const [major] = await orm
+			.select({ id: examMajors.id })
+			.from(examMajors)
+			.where(eq(examMajors.id, majorId))
+			.limit(1)
+		if (!major) throw APIError.notFound('Ngành không tồn tại')
 		const duplicate = await orm
 			.select({ id: examFaculties.id })
 			.from(examFaculties)
-			.where(and(eq(examFaculties.code, code)))
+			.where(
+				and(
+					eq(examFaculties.code, code),
+					eq(examFaculties.majorId, majorId)
+				)
+			)
 			.limit(1)
 		if (duplicate[0])
 			throw APIError.alreadyExists(
@@ -808,6 +850,7 @@ export const CreateExamFaculty = api(
 				code,
 				shortCode,
 				name,
+				majorId,
 				description: body.description || null
 			})
 			.returning()
@@ -822,6 +865,7 @@ export const UpdateExamFaculty = api(
 		code?: string
 		shortCode?: string | null
 		name?: string
+		majorId?: number | null
 		description?: string | null
 	}): Promise<{ data: FacultyResponse }> => {
 		const actor = await getActor()
@@ -848,14 +892,35 @@ export const UpdateExamFaculty = api(
 		if (!code || !name) {
 			throw APIError.invalidArgument('Mã và tên khoa bắt buộc')
 		}
+		const majorId =
+			params.majorId !== undefined
+				? params.majorId == null
+					? null
+					: Number(params.majorId)
+				: existing.majorId
+		if (majorId != null && (!Number.isInteger(majorId) || majorId <= 0))
+			throw APIError.invalidArgument('Ngành của khoa không hợp lệ')
+		if (majorId != null) {
+			const [major] = await orm
+				.select({ id: examMajors.id })
+				.from(examMajors)
+				.where(eq(examMajors.id, majorId))
+				.limit(1)
+			if (!major) throw APIError.notFound('Ngành không tồn tại')
+		}
 
-		if (code !== existing.code) {
+		if (code !== existing.code || majorId !== existing.majorId) {
+			const majorCondition =
+				majorId == null
+					? isNull(examFaculties.majorId)
+					: eq(examFaculties.majorId, majorId)
 			const [dup] = await orm
 				.select({ id: examFaculties.id })
 				.from(examFaculties)
 				.where(
 					and(
 						eq(examFaculties.code, code),
+						majorCondition,
 						sql`${examFaculties.id} != ${params.id}`
 					)
 				)
@@ -872,6 +937,7 @@ export const UpdateExamFaculty = api(
 			.set({
 				code,
 				shortCode,
+				majorId,
 				name,
 				description:
 					params.description !== undefined

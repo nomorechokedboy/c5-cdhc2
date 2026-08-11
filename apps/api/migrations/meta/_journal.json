@@ -519,6 +519,13 @@
 			"when": 1786103000000,
 			"tag": "0074_repair_leave_personnel_schema",
 			"breakpoints": true
+		},
+		{
+			"idx": 73,
+			"version": "7",
+			"when": 1786104000000,
+			"tag": "0075_exam_faculty_major_code_unique",
+			"breakpoints": true
 		}
 	]
 }

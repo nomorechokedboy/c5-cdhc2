@@ -71,6 +71,9 @@ export interface ExamFaculty {
 	code: string
 	shortCode: string | null
 	name: string
+	majorId: number | null
+	majorCode: string | null
+	majorName: string | null
 	description: string | null
 }
 
@@ -454,9 +457,13 @@ export async function DeleteExamMajor(id: number) {
 	})
 }
 
-export async function ListExamFaculties(params?: { q?: string }) {
+export async function ListExamFaculties(params?: {
+	q?: string
+	majorId?: number
+}) {
 	const sp = new URLSearchParams()
 	if (params?.q) sp.set('q', params.q)
+	if (params?.majorId) sp.set('majorId', String(params.majorId))
 	const qs = sp.toString() ? `?${sp}` : ''
 	const resp = await jsonFetch<{ data: ExamFaculty[] }>(
 		`/exam/faculties${qs}`
@@ -468,6 +475,7 @@ export async function CreateExamFaculty(body: {
 	code: string
 	shortCode?: string | null
 	name: string
+	majorId: number
 	description?: string
 }) {
 	// Encore không nhận `null` cho field optional. Bỏ hẳn các field rỗng
@@ -475,6 +483,7 @@ export async function CreateExamFaculty(body: {
 	const payload = {
 		code: body.code,
 		name: body.name,
+		majorId: body.majorId,
 		...(body.shortCode?.trim()
 			? { shortCode: body.shortCode.trim().toUpperCase() }
 			: {}),
@@ -493,6 +502,7 @@ export async function UpdateExamFaculty(
 		code?: string
 		shortCode?: string | null
 		name?: string
+		majorId?: number | null
 		description?: string | null
 	}
 ) {

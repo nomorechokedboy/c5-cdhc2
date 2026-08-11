@@ -98,7 +98,10 @@ export const examFaculties = sqliteTable(
 		description: text('description')
 	},
 	(t) => ({
-		codeIdx: uniqueIndex('exam_faculties_code_unique').on(t.code)
+		codeIdx: uniqueIndex('exam_faculties_major_code_unique').on(
+			t.majorId,
+			t.code
+		)
 	})
 )
 
