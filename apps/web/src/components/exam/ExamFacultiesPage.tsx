@@ -809,19 +809,6 @@ export default function ExamFacultiesPage() {
 								}
 							/>
 						</div>
-						<div>
-							<Label>Viết tắt khoa</Label>
-							<Input
-								value={form.shortCode}
-								onChange={(e) =>
-									setForm((o) => ({
-										...o,
-										shortCode: e.target.value.toUpperCase()
-									}))
-								}
-								placeholder='VD: CNTT'
-							/>
-						</div>
 					</div>
 					<DialogFooter>
 						<Button
