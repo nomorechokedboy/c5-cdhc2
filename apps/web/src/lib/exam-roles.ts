@@ -92,7 +92,16 @@ export function isExamLecturerAllowedPath(pathname: string): boolean {
 	if (path.startsWith('/de-thi/soan/')) return true
 	if (path.startsWith('/de-thi/chi-tiet/')) return true
 	if (path === '/de-thi/qr' || path.startsWith('/de-thi/qr')) return true
-	// Cấm vật tư / học viên / duyệt / ngân hàng / rút đề / danh mục
+	// GV có quyền đọc granular được xem đúng màn hình, nhưng vẫn không được sửa.
+	if (path === '/de-thi/danh-muc' || path === '/de-thi/khoa')
+		return examNavAllowed('catalog')
+	if (path === '/de-thi/lop') return examNavAllowed('classes')
+	if (path === '/de-thi/giao-vien') return examNavAllowed('teachers')
+	if (path === '/de-thi/phan-cong') return examNavAllowed('assign')
+	if (path === '/de-thi/duyet') return examNavAllowed('approve')
+	if (path === '/de-thi/ngan-hang') return examNavAllowed('bank')
+	if (path === '/de-thi/rut-de') return examNavAllowed('draw')
+	// Cấm vật tư / học viên và các màn hình đề thi không có quyền đọc.
 	return false
 }
 

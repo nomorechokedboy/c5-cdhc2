@@ -1076,13 +1076,11 @@ export const CreateExam = api(
 						'Bạn chưa được phân công môn này cho lớp đã chọn — không import đề lớp này.'
 					)
 				}
-				// Cần ít nhất 1 phân công còn hiệu lực thời gian
+				// Chỉ chặn phân công đã hết hạn. Phân công sắp bắt đầu vẫn
+				// được phép chuẩn bị/import đề cho lớp và môn đã gán.
 				const active = onSlot.find(
 					(a) =>
-						!isTeachingPeriodInactive(
-							a.teachingStart,
-							a.teachingEnd
-						)
+						!isTeachingPeriodEnded(a.teachingStart, a.teachingEnd)
 				)
 				if (!active) {
 					const sample = onSlot[0]!

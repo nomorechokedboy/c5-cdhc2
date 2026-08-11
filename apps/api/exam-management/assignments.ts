@@ -366,7 +366,9 @@ export const ListExamAssignments = api(
 				eq(examTeachingAssignments.classId, Number(q.classId))
 			)
 		if (q.majorId)
-			conditions.push(eq(examSubjects.majorId, Number(q.majorId)))
+			conditions.push(
+				sql`coalesce(${examSubjects.majorId}, ${examClasses.majorId}) = ${Number(q.majorId)}`
+			)
 		if (q.facultyId)
 			conditions.push(eq(examSubjects.facultyId, Number(q.facultyId)))
 
@@ -418,7 +420,9 @@ export const ListExamAssignments = api(
 				subjectCode: examSubjects.code,
 				subjectName: examSubjects.name,
 				baseCode: examSubjects.baseCode,
-				majorId: examSubjects.majorId,
+				majorId: sql<
+					number | null
+				>`coalesce(${examSubjects.majorId}, ${examClasses.majorId})`,
 				facultyId: examSubjects.facultyId,
 				majorCode: examMajors.code,
 				majorName: examMajors.name,
@@ -437,15 +441,18 @@ export const ListExamAssignments = api(
 				examSubjects,
 				eq(examTeachingAssignments.subjectId, examSubjects.id)
 			)
-			.leftJoin(examMajors, eq(examSubjects.majorId, examMajors.id))
+			.leftJoin(
+				examClasses,
+				eq(examTeachingAssignments.classId, examClasses.id)
+			)
+			.leftJoin(
+				examMajors,
+				sql`${examMajors.id} = coalesce(${examSubjects.majorId}, ${examClasses.majorId})`
+			)
 			.leftJoin(examSystems, eq(examMajors.systemId, examSystems.id))
 			.leftJoin(
 				examFaculties,
 				eq(examSubjects.facultyId, examFaculties.id)
-			)
-			.leftJoin(
-				examClasses,
-				eq(examTeachingAssignments.classId, examClasses.id)
 			)
 			.leftJoin(
 				examTeachers,
@@ -534,7 +541,7 @@ export const ListExamAssignments = api(
 async function resolveClassForMajor(
 	classId: number | null | undefined,
 	majorId: number | null
-): Promise<{ id: number; code: string; name: string }> {
+): Promise<{ id: number; code: string; name: string; majorId: number }> {
 	if (classId == null || !Number.isFinite(Number(classId))) {
 		throw APIError.invalidArgument(
 			'Phải chọn lớp khi phân công giảng dạy (Hệ → Ngành → Khoa → Môn → Lớp)'
@@ -552,25 +559,20 @@ async function resolveClassForMajor(
 		.where(eq(examClasses.id, Number(classId)))
 		.limit(1)
 	if (!cls) throw APIError.notFound('Lớp không tồn tại trong danh mục')
-	if (majorId == null) {
-		throw APIError.failedPrecondition(
-			'Môn chưa gắn ngành — không phân công được'
-		)
-	}
-	if (cls.majorId != null && cls.majorId !== majorId) {
-		throw APIError.invalidArgument('Lớp không thuộc ngành của môn đã chọn')
-	}
 	if (cls.majorId == null) {
 		throw APIError.invalidArgument(
 			'Lớp chưa gắn ngành — cập nhật danh mục lớp trước'
 		)
+	}
+	if (majorId != null && cls.majorId !== majorId) {
+		throw APIError.invalidArgument('Lớp không thuộc ngành của môn đã chọn')
 	}
 	if (isClassCohortExpired(cls.cohort)) {
 		throw APIError.failedPrecondition(
 			`Lớp «${cls.name}» đã hết niên khóa (${cls.cohort || '—'}) — không phân công giáo viên / gán môn cho lớp này`
 		)
 	}
-	return { id: cls.id, code: cls.code, name: cls.name }
+	return { id: cls.id, code: cls.code, name: cls.name, majorId: cls.majorId }
 }
 
 /**
@@ -747,11 +749,27 @@ export const CreateExamAssignment = api(
 			.where(eq(examSubjects.id, body.subjectId))
 			.limit(1)
 		if (!subj) throw APIError.notFound('Môn học không tồn tại')
+		const cls = await resolveClassForMajor(body.classId, subj.majorId)
+		const [majorSubjectLink] = await orm
+			.select({ subjectId: examMajorSubjects.subjectId })
+			.from(examMajorSubjects)
+			.where(
+				and(
+					eq(examMajorSubjects.majorId, cls.majorId),
+					eq(examMajorSubjects.subjectId, subj.id)
+				)
+			)
+			.limit(1)
+		if (!majorSubjectLink) {
+			throw APIError.failedPrecondition(
+				'Môn chưa được gắn vào ngành của lớp — không phân công được'
+			)
+		}
 
 		// CNK chỉ phân công môn thuộc khoa (ưu tiên) / ngành mình
 		if (isScopedDeptHead(actor)) {
 			const ok = await canDeptHeadAccessSubject(actor, {
-				majorId: subj.majorId,
+				majorId: cls.majorId,
 				facultyCode: subj.facultyCode
 			})
 			if (!ok) {
@@ -770,7 +788,6 @@ export const CreateExamAssignment = api(
 
 		// Bắt buộc: đúng khoa (danh mục GV) + đúng lớp (ngành)
 		await assertTeacherMatchesFaculty(body.userId, subj.facultyCode)
-		const cls = await resolveClassForMajor(body.classId, subj.majorId)
 
 		// 1 GV nhiều môn/lớp OK; nhiều GV cùng môn+lớp OK.
 		// Chỉ chặn: cùng 1 GV + cùng môn + cùng lớp (trùng bản ghi).
@@ -1443,6 +1460,7 @@ export const DeleteExamAcademicTitle = api(
 
 export interface FacultyOption {
 	code: string
+	shortCode: string | null
 	name: string
 }
 
@@ -1462,18 +1480,19 @@ export const ListExamFacultyOptions = api(
 		const rows = await orm
 			.select({
 				code: examFaculties.code,
+				shortCode: examFaculties.shortCode,
 				name: examFaculties.name
 			})
 			.from(examFaculties)
 			.orderBy(examFaculties.code)
 
-		const map = new Map<string, string>()
+		const map = new Map<string, FacultyOption>()
 		for (const r of rows) {
 			if (!r.code) continue
-			if (!map.has(r.code)) map.set(r.code, r.name)
+			if (!map.has(r.code)) map.set(r.code, r)
 		}
 
-		let list = [...map.entries()].map(([code, name]) => ({ code, name }))
+		let list = [...map.values()]
 		const scope = await getScopedFacultyCodes(actor)
 		if (scope !== null) {
 			if (!scope.length) return { data: [] }

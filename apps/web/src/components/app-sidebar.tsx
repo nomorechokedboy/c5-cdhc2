@@ -700,7 +700,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 	/**
 	 * GV soạn đề thuần (exam_lecturer, vd. gv.cntt):
-	 * Không quản lý vật tư / học viên — chỉ đề thi của mình.
+	 * Không quản lý vật tư / học viên. Các mục đề thi được lọc theo
+	 * permission thực tế, không khóa cứng chỉ còn Tổng quan + Đề của tôi.
 	 */
 	const examLecturerNav: typeof data.navMain = [
 		{
@@ -722,10 +723,58 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					examKey: 'overview' as const
 				},
 				{
+					title: 'Danh mục đào tạo',
+					url: '/de-thi/danh-muc',
+					icon: Layers,
+					examKey: 'catalog' as const
+				},
+				{
+					title: 'Danh mục lớp',
+					url: '/de-thi/lop',
+					icon: GraduationCap,
+					examKey: 'classes' as const
+				},
+				{
+					title: 'Danh mục khoa',
+					url: '/de-thi/khoa',
+					icon: Layers,
+					examKey: 'faculties' as const
+				},
+				{
+					title: 'Danh mục giáo viên',
+					url: '/de-thi/giao-vien',
+					icon: UsersRound,
+					examKey: 'teachers' as const
+				},
+				{
+					title: 'Phân công môn học',
+					url: '/de-thi/phan-cong',
+					icon: ClipboardCheck,
+					examKey: 'assign' as const
+				},
+				{
 					title: 'Đề của tôi',
 					url: '/de-thi/cua-toi',
 					icon: FileText,
 					examKey: 'mine' as const
+				},
+				{
+					title: 'Duyệt đề',
+					url: '/de-thi/duyet',
+					icon: ClipboardCheck,
+					examKey: 'approve' as const
+				},
+				{
+					title: 'Ngân hàng đề',
+					url: '/de-thi/ngan-hang',
+					icon: FileStack,
+					examKey: 'bank' as const
+				},
+				{
+					title: 'Rút đề (Ban KT)',
+					url: '/de-thi/rut-de',
+					icon: Shuffle,
+					examKey: 'draw' as const
 				}
 			]
 		}

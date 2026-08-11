@@ -5,7 +5,15 @@
  */
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Plus, Trash2, Pencil, Users } from 'lucide-react'
+import {
+	Download,
+	Loader2,
+	Plus,
+	Trash2,
+	Pencil,
+	Upload,
+	Users
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
 	CreateExamAcademicTitle,
@@ -58,6 +66,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { parseCatalogImportFile } from '@/lib/parse-catalog-import'
 
 function personName(displayName?: string | null, username?: string | null) {
 	let s = (displayName || '').trim()
@@ -77,6 +86,22 @@ function suggestUsername(fullName: string): string {
 	return slug ? `gv.${slug}` : ''
 }
 
+function importKey(value: unknown) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, '')
+}
+
+function importValue(row: Record<string, unknown>, names: string[]) {
+	const wanted = new Set(names.map(importKey))
+	const entry = Object.entries(row).find(([key]) =>
+		wanted.has(importKey(key))
+	)
+	return String(entry?.[1] ?? '').trim()
+}
+
 export default function ExamTeachersPage() {
 	const qc = useQueryClient()
 	const canView = canViewTeachingAssignments()
@@ -86,6 +111,7 @@ export default function ExamTeachersPage() {
 	const [keyword, setKeyword] = useState('')
 	const [open, setOpen] = useState(false)
 	const [titlesOpen, setTitlesOpen] = useState(false)
+	const [importBusy, setImportBusy] = useState(false)
 	const [titleEditId, setTitleEditId] = useState<number | null>(null)
 	const [titleForm, setTitleForm] = useState({ name: '', percentage: '100' })
 	const [editId, setEditId] = useState<number | null>(null)
@@ -260,6 +286,84 @@ export default function ExamTeachersPage() {
 		onError: (e: Error) => toast.error(e.message)
 	})
 
+	async function importTeachers(file: File) {
+		setImportBusy(true)
+		try {
+			const rows = await parseCatalogImportFile(file, 'GV')
+			if (!rows.length) throw new Error('File không có dòng dữ liệu')
+
+			let created = 0
+			const errors: string[] = []
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]!
+				const name = importValue(row, [
+					'ho ten',
+					'họ và tên',
+					'ten giao vien',
+					'giáo viên',
+					'name'
+				])
+				const facultyRaw = importValue(row, [
+					'ma khoa',
+					'khoa',
+					'faculty code',
+					'faculty'
+				])
+				const titleRaw = importValue(row, [
+					'chuc danh',
+					'chức danh',
+					'chuc vu',
+					'position',
+					'academic title'
+				])
+				const faculty = faculties.find(
+					(item) =>
+						item.code.toUpperCase() === facultyRaw.toUpperCase() ||
+						item.name.trim().toLowerCase() ===
+							facultyRaw.toLowerCase()
+				)
+				const title = titles.find(
+					(item) =>
+						item.name.trim().toLowerCase() ===
+						titleRaw.toLowerCase()
+				)
+				if (!name || !faculty || !title) {
+					errors.push(
+						`Dòng ${index + 2}: thiếu họ tên, khoa hoặc chức danh hợp lệ`
+					)
+					continue
+				}
+				try {
+					await CreateExamTeacherCatalog({
+						username:
+							importValue(row, ['username', 'tài khoản']) ||
+							suggestUsername(name),
+						password:
+							importValue(row, ['password', 'mật khẩu']) ||
+							'User@123',
+						displayName: name,
+						facultyCode: faculty.code,
+						academicTitleId: title.id,
+						note: importValue(row, ['ghi chú', 'note']) || undefined
+					})
+					created++
+				} catch (error) {
+					errors.push(
+						`Dòng ${index + 2}: ${(error as Error).message}`
+					)
+				}
+			}
+			toast.success(`Đã import ${created}/${rows.length} giáo viên`)
+			if (errors.length) toast.error(errors.slice(0, 5).join('\n'))
+			void qc.invalidateQueries({ queryKey: ['exam-teacher-catalog'] })
+			void qc.invalidateQueries({ queryKey: ['exam-teacher-candidates'] })
+		} catch (error) {
+			toast.error((error as Error).message)
+		} finally {
+			setImportBusy(false)
+		}
+	}
+
 	const delMut = useMutation({
 		mutationFn: (id: number) => DeleteExamTeacherCatalog(id),
 		onSuccess: () => {
@@ -296,6 +400,39 @@ export default function ExamTeachersPage() {
 					</p>
 				</div>
 				<div className='flex gap-2'>
+					{canManage && (
+						<div className='flex flex-wrap gap-2'>
+							<a
+								href='/mau-import-giao-vien-k4.docx'
+								download
+								className='inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted'
+							>
+								<Download className='mr-2 h-4 w-4' /> File mẫu
+								GV
+							</a>
+							<label className='inline-flex cursor-pointer items-center'>
+								<input
+									className='hidden'
+									type='file'
+									accept='.xlsx,.xls,.csv,.docx'
+									disabled={importBusy}
+									onChange={(event) => {
+										const file = event.target.files?.[0]
+										if (file) void importTeachers(file)
+										event.currentTarget.value = ''
+									}}
+								/>
+								<Button type='button' variant='outline' asChild>
+									<span>
+										<Upload className='mr-2 h-4 w-4' />
+										{importBusy
+											? 'Đang import…'
+											: 'Import giáo viên'}
+									</span>
+								</Button>
+							</label>
+						</div>
+					)}
 					{isSuperAdmin() && (
 						<Button
 							variant='outline'
@@ -411,9 +548,7 @@ export default function ExamTeachersPage() {
 											{t.facultyName || t.facultyCode}
 										</TableCell>
 										<TableCell className='text-xs'>
-											{t.academicTitleName
-												? `${t.academicTitleName} (${t.academicTitlePercentage}%)`
-												: '—'}
+											{t.academicTitleName || '—'}
 										</TableCell>
 										<TableCell className='text-muted-foreground text-xs'>
 											{t.note || '—'}
@@ -578,7 +713,7 @@ export default function ExamTeachersPage() {
 											key={title.id}
 											value={String(title.id)}
 										>
-											{title.name} ({title.percentage}%)
+											{title.name}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -735,7 +870,7 @@ export default function ExamTeachersPage() {
 					<DialogHeader>
 						<DialogTitle>Danh mục chức danh</DialogTitle>
 					</DialogHeader>
-					<div className='grid gap-2 sm:grid-cols-[1fr_8rem_auto]'>
+					<div className='grid gap-2 sm:grid-cols-[1fr_auto]'>
 						<Input
 							placeholder='Tên chức danh'
 							value={titleForm.name}
@@ -743,19 +878,6 @@ export default function ExamTeachersPage() {
 								setTitleForm((f) => ({
 									...f,
 									name: e.target.value
-								}))
-							}
-						/>
-						<Input
-							type='number'
-							min={0}
-							max={100}
-							placeholder='Tỷ lệ %'
-							value={titleForm.percentage}
-							onChange={(e) =>
-								setTitleForm((f) => ({
-									...f,
-									percentage: e.target.value
 								}))
 							}
 						/>
@@ -775,9 +897,6 @@ export default function ExamTeachersPage() {
 								<div className='min-w-0 flex-1 text-sm'>
 									{title.name}
 								</div>
-								<Badge variant='outline'>
-									{title.percentage}%
-								</Badge>
 								<Button
 									size='icon'
 									variant='ghost'

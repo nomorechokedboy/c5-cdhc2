@@ -50,15 +50,18 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { canManageExamCatalog } from '@/lib/exam-roles'
+import { parseCatalogImportFile } from '@/lib/parse-catalog-import'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	BookOpen,
 	ChevronRight,
+	Download,
 	Loader2,
 	Pencil,
 	Plus,
 	Search,
-	Trash2
+	Trash2,
+	Upload
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -66,9 +69,26 @@ import { toast } from 'sonner'
 const QUALIFICATION_OPTIONS = ['Sơ cấp', 'Trung cấp', 'Cao đẳng']
 const TRAINING_FORM_OPTIONS = ['Chính quy', 'Liên thông', 'Chuyển loại']
 
+function importKey(value: unknown) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, '')
+}
+
+function importValue(row: Record<string, unknown>, names: string[]) {
+	const wanted = new Set(names.map(importKey))
+	const entry = Object.entries(row).find(([key]) =>
+		wanted.has(importKey(key))
+	)
+	return String(entry?.[1] ?? '').trim()
+}
+
 export default function ExamTrainingCatalogPage() {
 	const qc = useQueryClient()
 	const canManage = canManageExamCatalog()
+	const canImportSubjects = canManageExamCatalog('exam-subjects')
 	const [systemOpen, setSystemOpen] = useState(false)
 	const [editingSystemId, setEditingSystemId] = useState<number | null>(null)
 	const [majorOpen, setMajorOpen] = useState(false)
@@ -78,6 +98,7 @@ export default function ExamTrainingCatalogPage() {
 		null
 	)
 	const [subjectMajorId, setSubjectMajorId] = useState<number | null>(null)
+	const [subjectImportBusy, setSubjectImportBusy] = useState(false)
 	const [majorSearch, setMajorSearch] = useState('')
 	const [systemForm, setSystemForm] = useState({
 		code: 'QS',
@@ -383,15 +404,167 @@ export default function ExamTrainingCatalogPage() {
 		onError: (error: Error) => toast.error(error.message)
 	})
 
+	async function importSubjects(file: File) {
+		setSubjectImportBusy(true)
+		try {
+			const rows = await parseCatalogImportFile(file, 'MonHoc')
+			if (!rows.length) throw new Error('File không có dòng dữ liệu')
+
+			const known = [...subjects]
+			let created = 0
+			const errors: string[] = []
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]!
+				const baseCode = importValue(row, [
+					'ma mon',
+					'mã môn',
+					'ma goc',
+					'code',
+					'base code'
+				])
+				const name = importValue(row, ['ten mon', 'tên môn', 'name'])
+				const facultyRaw = importValue(row, [
+					'ma khoa',
+					'khoa',
+					'faculty code',
+					'faculty'
+				])
+				const majorRaw = importValue(row, [
+					'ma nganh',
+					'mã ngành',
+					'ma so nganh',
+					'mã số ngành',
+					'nganh',
+					'major code',
+					'major'
+				])
+				const faculty = faculties.find(
+					(item) =>
+						item.code.toUpperCase() === facultyRaw.toUpperCase() ||
+						item.name.trim().toLowerCase() ===
+							facultyRaw.toLowerCase()
+				)
+				const major = majors.find((item) =>
+					[
+						item.catalogNumber,
+						item.nationalMajorCode,
+						item.code,
+						item.name
+					].some(
+						(value) =>
+							(value || '').trim().toLowerCase() ===
+							majorRaw.toLowerCase()
+					)
+				)
+				if (!baseCode || !name || !faculty || !major) {
+					errors.push(
+						`Dòng ${index + 2}: thiếu mã môn, tên, khoa hoặc ngành`
+					)
+					continue
+				}
+				try {
+					const creditHours = Number(
+						importValue(row, [
+							'so tin chi',
+							'tín chỉ',
+							'credit hours'
+						]) || 0
+					)
+					const lessonHours = Number(
+						importValue(row, ['so tiet', 'tiết', 'lesson hours']) ||
+							0
+					)
+					const existing = known.find(
+						(item) =>
+							(
+								item.baseCode ||
+								item.code.split('_').pop() ||
+								''
+							).toUpperCase() === baseCode.toUpperCase() &&
+							item.facultyCode?.toUpperCase() ===
+								faculty.code.toUpperCase()
+					)
+					const result = await CreateExamSubject({
+						name,
+						facultyId: faculty.id,
+						baseCode: baseCode.toUpperCase(),
+						creditHours: Number.isFinite(creditHours)
+							? creditHours
+							: 0,
+						lessonHours: Number.isFinite(lessonHours)
+							? lessonHours
+							: 0,
+						majorId: major.id,
+						sourceSubjectId: existing?.id
+					})
+					known.push(result)
+					created++
+				} catch (error) {
+					errors.push(
+						`Dòng ${index + 2}: ${(error as Error).message}`
+					)
+				}
+			}
+			toast.success(`Đã import ${created}/${rows.length} môn/ngành`)
+			if (errors.length) toast.error(errors.slice(0, 5).join('\n'))
+			void qc.invalidateQueries({ queryKey: ['exam-subjects'] })
+		} catch (error) {
+			toast.error((error as Error).message)
+		} finally {
+			setSubjectImportBusy(false)
+		}
+	}
+
 	return (
 		<div className='space-y-6 p-4 md:p-6'>
-			<div>
-				<h1 className='text-2xl font-semibold tracking-tight'>
-					Danh mục đào tạo
-				</h1>
-				<p className='text-muted-foreground text-sm'>
-					Cấu trúc: Hệ đào tạo → Ngành đào tạo → Môn học trong ngành.
-				</p>
+			<div className='flex flex-wrap items-start justify-between gap-3'>
+				<div>
+					<h1 className='text-2xl font-semibold tracking-tight'>
+						Danh mục đào tạo
+					</h1>
+					<p className='text-muted-foreground text-sm'>
+						Cấu trúc: Hệ đào tạo → Ngành đào tạo → Môn học trong
+						ngành.
+					</p>
+				</div>
+				{canImportSubjects && (
+					<div className='flex flex-wrap gap-2'>
+						<a
+							href='/mau-import-mon-hoc-k4.docx'
+							download
+							className='inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted'
+						>
+							<Download className='mr-2 h-4 w-4' /> File mẫu môn
+							học
+						</a>
+						<label className='inline-flex cursor-pointer items-center'>
+							<input
+								className='hidden'
+								type='file'
+								accept='.xlsx,.xls,.csv,.docx'
+								disabled={subjectImportBusy}
+								onChange={(event) => {
+									const file = event.target.files?.[0]
+									if (file) void importSubjects(file)
+									event.currentTarget.value = ''
+								}}
+							/>
+							<Button type='button' variant='outline' asChild>
+								<span>
+									<Upload className='mr-2 h-4 w-4' />
+									{subjectImportBusy
+										? 'Đang import…'
+										: 'Import môn theo khoa/ngành'}
+								</span>
+							</Button>
+						</label>
+					</div>
+				)}
+				{canManage && !canImportSubjects && (
+					<p className='text-muted-foreground max-w-xs text-right text-xs'>
+						Cần quyền Môn học (tạo/cập nhật) để import môn.
+					</p>
+				)}
 			</div>
 			{error && (
 				<div className='rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive'>
@@ -675,8 +848,12 @@ export default function ExamTrainingCatalogPage() {
 											const majorSubjects =
 												subjects.filter(
 													(subject) =>
+														(
+															subject.majorIds ||
+															[]
+														).includes(major.id) ||
 														subject.majorId ===
-														major.id
+															major.id
 												)
 											return (
 												<details

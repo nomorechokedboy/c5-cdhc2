@@ -115,6 +115,7 @@ export interface ExamSubject {
 	facultyCode?: string | null
 	facultyName?: string | null
 	majorId: number
+	majorIds?: number[]
 	majorCode?: string | null
 	majorName?: string | null
 	/** Hệ đào tạo — cố định khi GV import theo phân công */
@@ -328,6 +329,7 @@ export interface ExamAcademicTitle {
 
 export interface ExamFacultyOption {
 	code: string
+	shortCode?: string | null
 	name: string
 }
 

@@ -4,7 +4,15 @@
  */
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GraduationCap, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import {
+	Download,
+	GraduationCap,
+	Loader2,
+	Pencil,
+	Plus,
+	Trash2,
+	Upload
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
 	CreateExamClass,
@@ -16,6 +24,7 @@ import {
 	type ExamClassCatalog
 } from '@/api/exam'
 import { canManageExamCatalog } from '@/lib/exam-roles'
+import { parseCatalogImportFile } from '@/lib/parse-catalog-import'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -132,9 +141,36 @@ function suggestCode(name: string): string {
 	return slug || ''
 }
 
+function importKey(value: unknown) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, '')
+}
+
+function importValue(row: Record<string, unknown>, names: string[]) {
+	const wanted = new Set(names.map(importKey))
+	const entry = Object.entries(row).find(([key]) =>
+		wanted.has(importKey(key))
+	)
+	return String(entry?.[1] ?? '').trim()
+}
+
+function matchesImportLabel(value: unknown, raw: string) {
+	const left = importKey(value)
+	const right = importKey(raw)
+	return Boolean(
+		left &&
+			right &&
+			(left === right || left.includes(right) || right.includes(left))
+	)
+}
+
 export default function ExamClassesPage() {
 	const qc = useQueryClient()
 	const canManage = canManageExamCatalog('exam-classes')
+	const [importBusy, setImportBusy] = useState(false)
 
 	const [filterSystem, setFilterSystem] = useState<string>('all')
 	const [filterMajor, setFilterMajor] = useState<string>('all')
@@ -176,6 +212,179 @@ export default function ExamClassesPage() {
 	const systems = systemsQ.data || []
 	const majors = majorsQ.data || []
 	const classes = classesQ.data || []
+
+	async function importClasses(file: File) {
+		setImportBusy(true)
+		try {
+			const rows = await parseCatalogImportFile(file, 'Lop')
+			if (!rows.length) throw new Error('File không có dòng dữ liệu')
+			let saved = 0
+			const errors: string[] = []
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]!
+				const code = importValue(row, [
+					'mã lớp',
+					'ma lop',
+					'code'
+				]).toUpperCase()
+				const name = importValue(row, ['tên lớp', 'ten lop', 'name'])
+				const systemRaw = importValue(row, [
+					'mã hệ',
+					'ma he',
+					'hệ đào tạo',
+					'he dao tao',
+					'hệ',
+					'he',
+					'system'
+				])
+				const majorRaw = importValue(row, [
+					'mã ngành',
+					'ma nganh',
+					'ngành đào tạo',
+					'nganh dao tao',
+					'ngành',
+					'nganh',
+					'major'
+				])
+				const startRaw = importValue(row, [
+					'khóa bắt đầu',
+					'khoa bat dau',
+					'niên khóa bắt đầu',
+					'nien khoa bat dau',
+					'begin',
+					'bắt đầu'
+				])
+				const endRaw = importValue(row, [
+					'khóa kết thúc',
+					'khoa ket thuc',
+					'niên khóa kết thúc',
+					'nien khoa ket thuc',
+					'end',
+					'kết thúc'
+				])
+				const startMonth = importValue(row, [
+					'bắt đầu (tháng)',
+					'bat dau thang',
+					'start month'
+				])
+				const startYear = importValue(row, [
+					'bắt đầu (năm)',
+					'bat dau nam',
+					'start year'
+				])
+				const endMonth = importValue(row, [
+					'kết thúc (tháng)',
+					'ket thuc thang',
+					'end month'
+				])
+				const endYear = importValue(row, [
+					'kết thúc (năm)',
+					'ket thuc nam',
+					'end year'
+				])
+				const cohortRaw = importValue(row, [
+					'niên khóa',
+					'nien khoa',
+					'cohort'
+				])
+				const major = majors.find((item) =>
+					[
+						item.catalogNumber,
+						item.nationalMajorCode,
+						item.code,
+						item.name
+					].some((value) => matchesImportLabel(value, majorRaw))
+				)
+				const system = systems.find(
+					(item) =>
+						matchesImportLabel(item.code, systemRaw) ||
+						matchesImportLabel(item.name, systemRaw)
+				)
+				const start = startRaw
+					? parseCohortToMonths(startRaw).start
+					: startMonth && startYear
+						? parseCohortToMonths(`${startMonth}/${startYear}`)
+								.start
+						: ''
+				const end = endRaw
+					? parseCohortToMonths(endRaw).end
+					: endMonth && endYear
+						? parseCohortToMonths(`${endMonth}/${endYear}`).end
+						: ''
+				const cohort = cohortRaw
+					? (() => {
+							const parsed = parseCohortToMonths(cohortRaw)
+							return formatCohort(parsed.start, parsed.end)
+						})()
+					: formatCohort(start, end)
+				if (!code || !name || !major || !cohort) {
+					const missing = [
+						!code && 'Mã lớp',
+						!name && 'Tên lớp',
+						!major && `Ngành (${majorRaw || 'trống'})`,
+						!cohort && 'Niên khóa'
+					]
+						.filter(Boolean)
+						.join(', ')
+					errors.push(`Dòng ${index + 2}: không tìm thấy ${missing}`)
+					continue
+				}
+				if (system && system.id !== major.systemId) {
+					errors.push(`Dòng ${index + 2}: hệ không khớp với ngành`)
+					continue
+				}
+				try {
+					const existing = classes.find(
+						(item) => item.code.toUpperCase() === code
+					)
+					if (existing) {
+						await UpdateExamClass(existing.id, {
+							code,
+							name,
+							majorId: major.id,
+							cohort,
+							description:
+								importValue(row, [
+									'mô tả',
+									'mo ta',
+									'ghi chú',
+									'ghi chu',
+									'description'
+								]) || null
+						})
+					} else {
+						await CreateExamClass({
+							code,
+							name,
+							majorId: major.id,
+							cohort,
+							description:
+								importValue(row, [
+									'mô tả',
+									'mo ta',
+									'ghi chú',
+									'ghi chu',
+									'description'
+								]) || undefined
+						})
+					}
+					saved++
+				} catch (error) {
+					errors.push(
+						`Dòng ${index + 2}: ${(error as Error).message}`
+					)
+				}
+			}
+			toast.success(`Đã import ${saved}/${rows.length} lớp`)
+			if (errors.length) toast.error(errors.slice(0, 5).join('\n'))
+			void qc.invalidateQueries({ queryKey: ['exam-classes-catalog'] })
+			void qc.invalidateQueries({ queryKey: ['exam-classes'] })
+		} catch (error) {
+			toast.error((error as Error).message)
+		} finally {
+			setImportBusy(false)
+		}
+	}
 
 	const majorsForFilter = useMemo(() => {
 		if (filterSystem === 'all') return majors
@@ -357,10 +566,37 @@ export default function ExamClassesPage() {
 					</p>
 				</div>
 				{canManage ? (
-					<Button onClick={openCreate}>
-						<Plus className='mr-2 h-4 w-4' />
-						Thêm lớp
-					</Button>
+					<div className='flex flex-wrap gap-2'>
+						<a
+							href='/mau-import-lop-nz.docx'
+							download
+							className='inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted'
+						>
+							<Download className='mr-2 h-4 w-4' /> File mẫu lớp
+						</a>
+						<label className='inline-flex cursor-pointer items-center'>
+							<input
+								className='hidden'
+								type='file'
+								accept='.xlsx,.xls,.csv,.docx'
+								disabled={importBusy}
+								onChange={(event) => {
+									const file = event.target.files?.[0]
+									if (file) void importClasses(file)
+									event.currentTarget.value = ''
+								}}
+							/>
+							<Button type='button' variant='outline' asChild>
+								<span>
+									<Upload className='mr-2 h-4 w-4' />
+									{importBusy ? 'Đang import…' : 'Import lớp'}
+								</span>
+							</Button>
+						</label>
+						<Button onClick={openCreate}>
+							<Plus className='mr-2 h-4 w-4' /> Thêm lớp
+						</Button>
+					</div>
 				) : (
 					<Badge variant='secondary'>Chỉ xem</Badge>
 				)}

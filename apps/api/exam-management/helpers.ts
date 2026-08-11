@@ -24,6 +24,7 @@ import {
 	examMajorSubjects,
 	examMajors,
 	examSubjects,
+	examTeachers,
 	type ExamStatus
 } from '../schema/exam-bank'
 
@@ -101,6 +102,39 @@ export function isLecturer(actor: Actor) {
 	// CNK soạn/đôn đốc đề ngành mình (vẫn trong phạm vi kho đề)
 	if (isNganhOperator(actor)) return true
 	return hasPerm(actor, 'exams:create')
+}
+
+/**
+ * Khoa phụ trách của GV thuần. null nghĩa là actor không bị giới hạn theo
+ * khoa (super/CNK/KT/BGH); [] nghĩa là GV chưa được gắn vào khoa.
+ */
+export async function getLecturerFacultyCodes(
+	actor: Actor
+): Promise<string[] | null> {
+	if (
+		actor.isSuperAdmin ||
+		isNganhOperator(actor) ||
+		isExamOffice(actor) ||
+		isBgh(actor)
+	) {
+		return null
+	}
+	if (!isLecturer(actor)) return null
+	const rows = await orm
+		.select({ code: examTeachers.facultyCode })
+		.from(examTeachers)
+		.where(eq(examTeachers.userId, actor.userId))
+	return [
+		...new Set(
+			rows
+				.map((r) =>
+					String(r.code || '')
+						.trim()
+						.toUpperCase()
+				)
+				.filter(Boolean)
+		)
+	]
 }
 
 /** CNK — duyệt PENDING_DEPT */

@@ -48,19 +48,38 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { canManageExamCatalog } from '@/lib/exam-roles'
+import { parseCatalogImportFile } from '@/lib/parse-catalog-import'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
 	BookOpen,
+	Download,
 	Loader2,
 	Pencil,
 	Plus,
 	ShieldCheck,
 	Trash2,
+	Upload,
 	Users
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+
+function importKey(value: unknown) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, '')
+}
+
+function importValue(row: Record<string, unknown>, names: string[]) {
+	const wanted = new Set(names.map(importKey))
+	const entry = Object.entries(row).find(([key]) =>
+		wanted.has(importKey(key))
+	)
+	return String(entry?.[1] ?? '').trim()
+}
 
 export default function ExamFacultiesPage() {
 	const qc = useQueryClient()
@@ -72,10 +91,16 @@ export default function ExamFacultiesPage() {
 	>('edit')
 	const [managingCode, setManagingCode] = useState<string | null>(null)
 	const [subjectEditorOpen, setSubjectEditorOpen] = useState(false)
+	const [facultyImportBusy, setFacultyImportBusy] = useState(false)
 	const [editingSubjectId, setEditingSubjectId] = useState<number | null>(
 		null
 	)
-	const [form, setForm] = useState({ code: '', name: '', headUserId: 'none' })
+	const [form, setForm] = useState({
+		code: '',
+		shortCode: '',
+		name: '',
+		headUserId: 'none'
+	})
 	const [subjectForm, setSubjectForm] = useState({
 		baseCode: '',
 		name: '',
@@ -145,6 +170,7 @@ export default function ExamFacultiesPage() {
 				records.map((faculty) =>
 					UpdateExamFaculty(faculty.id, {
 						code: form.code,
+						shortCode: form.shortCode || null,
 						name: form.name
 					})
 				)
@@ -182,6 +208,7 @@ export default function ExamFacultiesPage() {
 		mutationFn: () =>
 			CreateExamFaculty({
 				code: form.code.trim(),
+				shortCode: form.shortCode.trim() || null,
 				name: form.name.trim()
 			}),
 		onSuccess: () => {
@@ -206,6 +233,81 @@ export default function ExamFacultiesPage() {
 		},
 		onError: (error: Error) => toast.error(error.message)
 	})
+
+	async function importFaculties(file: File) {
+		setFacultyImportBusy(true)
+		try {
+			const rows = await parseCatalogImportFile(file, 'Khoa')
+			if (!rows.length) throw new Error('Sheet Khoa không có dữ liệu')
+			const headers = new Set(Object.keys(rows[0] || {}).map(importKey))
+			if (headers.has('mamon') || headers.has('tenmon')) {
+				throw new Error(
+					'Đây là file môn học. Hãy vào «Danh mục đào tạo» và chọn «Import môn theo khoa/ngành».'
+				)
+			}
+			let saved = 0
+			const errors: string[] = []
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]!
+				const code = importValue(row, [
+					'mã khoa',
+					'ma khoa',
+					'code'
+				]).toUpperCase()
+				const name = importValue(row, ['tên khoa', 'ten khoa', 'name'])
+				const shortCode = importValue(row, [
+					'viết tắt khoa',
+					'viet tat khoa',
+					'short code',
+					'shortcode'
+				]).toUpperCase()
+				const description = importValue(row, [
+					'mô tả',
+					'mo ta',
+					'description'
+				])
+				if (!code || !name) {
+					errors.push(
+						`Dòng ${index + 2}: thiếu Mã khoa hoặc Tên khoa`
+					)
+					continue
+				}
+				try {
+					const existing = (facultiesQ.data || []).find(
+						(item) => item.code.toUpperCase() === code
+					)
+					if (existing) {
+						await UpdateExamFaculty(existing.id, {
+							code,
+							shortCode: shortCode || null,
+							name,
+							description: description || null
+						})
+					} else {
+						await CreateExamFaculty({
+							code,
+							shortCode: shortCode || null,
+							name,
+							description: description || undefined
+						})
+					}
+					saved++
+				} catch (error) {
+					errors.push(
+						`Dòng ${index + 2}: ${(error as Error).message}`
+					)
+				}
+			}
+			toast.success(`Đã import ${saved}/${rows.length} khoa`)
+			if (errors.length) toast.error(errors.slice(0, 5).join('\n'))
+			void qc.invalidateQueries({ queryKey: ['exam-faculties'] })
+			void qc.invalidateQueries({ queryKey: ['exam-faculty-options'] })
+		} catch (error) {
+			toast.error((error as Error).message)
+		} finally {
+			setFacultyImportBusy(false)
+		}
+	}
 
 	const managedFaculty = rows.find((faculty) => faculty.code === managingCode)
 	const managedRecords = (facultiesQ.data || []).filter(
@@ -297,15 +399,50 @@ export default function ExamFacultiesPage() {
 					</p>
 				</div>
 				{canManage && (
-					<Button
-						onClick={() => {
-							setFacultyEditorMode('create')
-							setForm({ code: '', name: '', headUserId: 'none' })
-							setFacultyEditorOpen(true)
-						}}
-					>
-						<Plus className='mr-2 h-4 w-4' /> Thêm khoa
-					</Button>
+					<div className='flex flex-wrap gap-2'>
+						<a
+							href='/mau-import-khoa.docx'
+							download
+							className='inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted'
+						>
+							<Download className='mr-2 h-4 w-4' /> Tải file mẫu
+						</a>
+						<label className='inline-flex cursor-pointer items-center'>
+							<input
+								className='hidden'
+								type='file'
+								accept='.xlsx,.xls,.csv,.docx'
+								disabled={facultyImportBusy}
+								onChange={(event) => {
+									const file = event.target.files?.[0]
+									if (file) void importFaculties(file)
+									event.currentTarget.value = ''
+								}}
+							/>
+							<Button type='button' variant='outline' asChild>
+								<span>
+									<Upload className='mr-2 h-4 w-4' />
+									{facultyImportBusy
+										? 'Đang import…'
+										: 'Import khoa'}
+								</span>
+							</Button>
+						</label>
+						<Button
+							onClick={() => {
+								setFacultyEditorMode('create')
+								setForm({
+									code: '',
+									shortCode: '',
+									name: '',
+									headUserId: 'none'
+								})
+								setFacultyEditorOpen(true)
+							}}
+						>
+							<Plus className='mr-2 h-4 w-4' /> Thêm khoa
+						</Button>
+					</div>
 				)}
 			</div>
 			{error && (
@@ -329,6 +466,9 @@ export default function ExamFacultiesPage() {
 												{faculty.code}
 											</Badge>
 											{faculty.name}
+											{faculty.shortCode
+												? ` (${faculty.shortCode})`
+												: ''}
 										</CardTitle>
 										<CardDescription className='mt-1'>
 											{faculty.subjects.length} môn ·{' '}
@@ -345,6 +485,9 @@ export default function ExamFacultiesPage() {
 													setEditingCode(faculty.code)
 													setForm({
 														code: faculty.code,
+														shortCode:
+															faculty.shortCode ||
+															'',
 														name: faculty.name,
 														headUserId: faculty.head
 															? String(
@@ -645,6 +788,19 @@ export default function ExamFacultiesPage() {
 								}
 							/>
 						</div>
+						<div>
+							<Label>Viết tắt khoa</Label>
+							<Input
+								value={form.shortCode}
+								onChange={(e) =>
+									setForm((o) => ({
+										...o,
+										shortCode: e.target.value.toUpperCase()
+									}))
+								}
+								placeholder='VD: CNTT'
+							/>
+						</div>
 					</div>
 					<DialogFooter>
 						<Button
@@ -797,6 +953,18 @@ export default function ExamFacultiesPage() {
 									setForm((old) => ({
 										...old,
 										name: e.target.value
+									}))
+								}
+							/>
+						</div>
+						<div>
+							<Label>Viết tắt khoa</Label>
+							<Input
+								value={form.shortCode}
+								onChange={(e) =>
+									setForm((old) => ({
+										...old,
+										shortCode: e.target.value.toUpperCase()
 									}))
 								}
 							/>

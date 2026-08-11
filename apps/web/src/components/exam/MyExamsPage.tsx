@@ -81,11 +81,12 @@ export default function MyExamsPage() {
 	const superAdmin = isSuperAdmin()
 	const [open, setOpen] = useState(false)
 	const [title, setTitle] = useState('')
-	/** Cascade GV: Hệ → Ngành → Lớp → Môn (khoa cố định theo phân công) */
+	/** Cascade GV: Hệ → Ngành → Lớp → Môn; khoa lấy từ môn */
 	const [systemId, setSystemId] = useState('')
 	const [majorId, setMajorId] = useState('')
 	const [classId, setClassId] = useState('')
 	const [subjectId, setSubjectId] = useState('')
+	const [assignmentId, setAssignmentId] = useState('')
 	const [durationMinutes, setDurationMinutes] = useState('60')
 	const [note, setNote] = useState('')
 	const [qFile, setQFile] = useState<ExamAttachedFile | null>(null)
@@ -204,11 +205,43 @@ export default function MyExamsPage() {
 		() =>
 			myAssigns.filter(
 				(a) =>
-					a.teachingStatus === 'ACTIVE' ||
-					(!a.teachingStatus && !a.teachingEnd)
+					a.teachingStatus !== 'EXPIRED' &&
+					(!a.teachingEnd ||
+						a.teachingEnd >= new Date().toISOString().slice(0, 10))
 			),
 		[myAssigns]
 	)
+	const assignmentOptions = useMemo(() => {
+		const seen = new Set<string>()
+		return activeAssigns.filter((a) => {
+			if (a.classId == null || a.subjectId == null) return false
+			const key = `${a.classId}:${a.subjectId}`
+			if (seen.has(key)) return false
+			seen.add(key)
+			return true
+		})
+	}, [activeAssigns])
+	useEffect(() => {
+		if (superAdmin || assignmentId || assignmentOptions.length !== 1) return
+		const only = assignmentOptions[0]!
+		setAssignmentId(String(only.id))
+		setSystemId(only.systemId != null ? String(only.systemId) : '')
+		setMajorId(only.majorId != null ? String(only.majorId) : '')
+		setClassId(String(only.classId))
+		setSubjectId(String(only.subjectId))
+	}, [superAdmin, assignmentId, assignmentOptions])
+
+	function onAssignmentChange(value: string) {
+		const assignment = assignmentOptions.find((a) => String(a.id) === value)
+		if (!assignment) return
+		setAssignmentId(value)
+		setSystemId(
+			assignment.systemId != null ? String(assignment.systemId) : ''
+		)
+		setMajorId(assignment.majorId != null ? String(assignment.majorId) : '')
+		setClassId(String(assignment.classId))
+		setSubjectId(String(assignment.subjectId))
+	}
 
 	/**
 	 * Khoa cố định theo phân công GV (không cho chọn).
@@ -257,8 +290,7 @@ export default function MyExamsPage() {
 			{ id: number; code: string; name: string }
 		>()
 		// Ưu tiên phân công (đúng hệ/ngành được gán dạy)
-		const source = activeAssigns.length > 0 ? activeAssigns : myAssigns
-		for (const a of source) {
+		for (const a of activeAssigns) {
 			const id = a.systemId != null ? Number(a.systemId) : NaN
 			if (!Number.isFinite(id) || id <= 0) continue
 			if (!map.has(id)) {
@@ -271,19 +303,6 @@ export default function MyExamsPage() {
 						`Hệ #${id}`
 				})
 			}
-		}
-		// Bổ sung từ môn (nếu phân công thiếu denorm hệ)
-		for (const s of allSubjects) {
-			const id = s.systemId != null ? Number(s.systemId) : NaN
-			if (!Number.isFinite(id) || id <= 0 || map.has(id)) continue
-			map.set(id, {
-				id,
-				code: (s.systemCode || '').trim(),
-				name:
-					(s.systemName || '').trim() ||
-					(s.systemCode || '').trim() ||
-					`Hệ #${id}`
-			})
 		}
 		return [...map.values()].sort((a, b) =>
 			a.name.localeCompare(b.name, 'vi')
@@ -306,8 +325,7 @@ export default function MyExamsPage() {
 			number,
 			{ id: number; code: string; name: string }
 		>()
-		const source = activeAssigns.length > 0 ? activeAssigns : myAssigns
-		for (const a of source) {
+		for (const a of activeAssigns) {
 			const aSys = a.systemId != null ? Number(a.systemId) : NaN
 			const mid = a.majorId != null ? Number(a.majorId) : NaN
 			if (aSys !== sid || !Number.isFinite(mid) || mid <= 0) continue
@@ -318,21 +336,6 @@ export default function MyExamsPage() {
 					name:
 						(a.majorName || '').trim() ||
 						(a.majorCode || '').trim() ||
-						`Ngành #${mid}`
-				})
-			}
-		}
-		for (const s of allSubjects) {
-			const sSys = s.systemId != null ? Number(s.systemId) : NaN
-			const mid = Number(s.majorId)
-			if (sSys !== sid || !Number.isFinite(mid) || mid <= 0) continue
-			if (!map.has(mid)) {
-				map.set(mid, {
-					id: mid,
-					code: (s.majorCode || '').trim(),
-					name:
-						(s.majorName || '').trim() ||
-						(s.majorCode || '').trim() ||
 						`Ngành #${mid}`
 				})
 			}
@@ -397,7 +400,13 @@ export default function MyExamsPage() {
 		const sid = Number(systemId)
 		const mid = Number(majorId)
 		let list = allSubjects.filter((s) => {
-			if (Number(s.majorId) !== mid) return false
+			const subjectMajorIds =
+				s.majorIds && s.majorIds.length > 0
+					? s.majorIds
+					: s.majorId != null
+						? [s.majorId]
+						: []
+			if (!subjectMajorIds.some((id) => Number(id) === mid)) return false
 			if (s.systemId != null && Number(s.systemId) !== sid) return false
 			return true
 		})
@@ -957,6 +966,7 @@ export default function MyExamsPage() {
 
 	function resetForm() {
 		setTitle('')
+		setAssignmentId('')
 		setSystemId('')
 		setMajorId('')
 		setSubjectId('')
@@ -1256,7 +1266,7 @@ export default function MyExamsPage() {
 		() => allSubjects.find((s) => String(s.id) === subjectId) || null,
 		[allSubjects, subjectId]
 	)
-	/** GV: chọn Hệ → Ngành → Lớp → Môn; khoa cố định theo phân công */
+	/** GV: chọn Hệ → Ngành → Lớp → Môn; khoa lấy từ môn */
 	const lockCatalog = !superAdmin
 
 	return (
@@ -1707,7 +1717,7 @@ export default function MyExamsPage() {
 							nhiều đề nháp.
 						</p>
 
-						{/* GV: Hệ → Ngành → Lớp → Môn (khoa cố định theo phân công) */}
+						{/* GV: Hệ → Ngành → Lớp → Môn; khoa lấy từ môn */}
 						<div className='space-y-3 rounded-md border bg-muted/30 p-3'>
 							<p className='text-sm font-medium'>
 								Phạm vi giảng dạy
@@ -1715,10 +1725,7 @@ export default function MyExamsPage() {
 									<span className='text-muted-foreground font-normal'>
 										{' '}
 										— chọn{' '}
-										<strong>
-											Hệ → Ngành → Lớp → Môn
-										</strong>{' '}
-										(khoa cố định theo phân công)
+										<strong>Lớp → Môn đã phân công</strong>
 									</span>
 								) : (
 									<span className='text-muted-foreground font-normal'>
@@ -1727,13 +1734,55 @@ export default function MyExamsPage() {
 									</span>
 								)}
 							</p>
-							<div className='grid gap-3 sm:grid-cols-2'>
+							{lockCatalog && (
 								<div>
+									<Label>Lớp / môn được phân công *</Label>
+									<Select
+										value={assignmentId}
+										onValueChange={onAssignmentChange}
+										disabled={!assignmentOptions.length}
+									>
+										<SelectTrigger className='mt-1'>
+											<SelectValue
+												placeholder={
+													myAssignQ.isLoading
+														? 'Đang tải phân công…'
+														: 'Chưa được phân công môn/lớp'
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											{assignmentOptions.map((a) => (
+												<SelectItem
+													key={a.id}
+													value={String(a.id)}
+												>
+													{a.className ||
+														a.classCode ||
+														'Lớp'}{' '}
+													—{' '}
+													{a.subjectName ||
+														a.subjectCode ||
+														'Môn'}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							)}
+							<div className='grid gap-3 sm:grid-cols-2'>
+								<div
+									className={
+										lockCatalog ? 'hidden' : undefined
+									}
+								>
 									<Label>Hệ đào tạo *</Label>
 									<Select
 										value={systemId}
 										onValueChange={onSystemChange}
-										disabled={!systemOptions.length}
+										disabled={
+											lockCatalog || !systemOptions.length
+										}
 									>
 										<SelectTrigger className='mt-1'>
 											<SelectValue placeholder='Chọn hệ đào tạo' />
@@ -1753,7 +1802,11 @@ export default function MyExamsPage() {
 										</SelectContent>
 									</Select>
 								</div>
-								<div>
+								<div
+									className={
+										lockCatalog ? 'hidden' : undefined
+									}
+								>
 									<Label>Ngành *</Label>
 									<Select
 										value={majorId}
@@ -1786,7 +1839,11 @@ export default function MyExamsPage() {
 										</SelectContent>
 									</Select>
 								</div>
-								<div>
+								<div
+									className={
+										lockCatalog ? 'hidden' : undefined
+									}
+								>
 									<Label>Lớp thi *</Label>
 									<Select
 										value={classId}
@@ -1826,7 +1883,11 @@ export default function MyExamsPage() {
 										</SelectContent>
 									</Select>
 								</div>
-								<div>
+								<div
+									className={
+										lockCatalog ? 'hidden' : undefined
+									}
+								>
 									<Label>Môn học *</Label>
 									<Select
 										value={subjectId}
@@ -1871,7 +1932,7 @@ export default function MyExamsPage() {
 								{lockCatalog && (
 									<div className='sm:col-span-2'>
 										<Label className='text-muted-foreground text-xs'>
-											Khoa (cố định theo phân công)
+											Khoa phụ trách (lấy từ môn)
 										</Label>
 										<Input
 											readOnly

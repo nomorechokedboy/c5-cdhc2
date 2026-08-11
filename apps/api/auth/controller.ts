@@ -255,23 +255,9 @@ class controller {
 				.findOne({ id: userId } as UserDB)
 				.catch(AppError.handleAppErr)
 
-			const permissions = await authzController.getUserPermissions(userId)
-
-			const accessToken = await this.genToken(
-				{
-					userId,
-					permissions,
-					type: 'access',
-					isSuperUser,
-					status: user.status
-				},
-				appConfig.JWT_PRIVATE_KEY,
-				{
-					expiresIn: '30m'
-				}
-			)
-
-			return { accessToken, refreshToken: req.token }
+			// Rebuild both tokens so role names, permissions and assigned
+			// departments are refreshed after an RBAC change.
+			return this.genTokens({ ...user, isSuperUser: !!isSuperUser })
 		} catch (err) {
 			log.error('AuthController.refreshToken err', { err })
 			AppError.handleAppErr(err)

@@ -27,14 +27,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	ChevronDown,
 	ChevronRight,
+	Download,
 	History,
 	Loader2,
 	Pencil,
 	Plus,
 	Trash2,
-	UserPlus
+	UserPlus,
+	Upload
 } from 'lucide-react'
 import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 import {
 	CreateExamAssignment,
 	DeleteExamAssignment,
@@ -87,6 +90,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { parseCatalogImportFile } from '@/lib/parse-catalog-import'
 
 type FormState = {
 	systemId: string
@@ -100,6 +104,41 @@ type FormState = {
 	/** YYYY-MM-DD */
 	teachingEnd: string
 	note: string
+}
+
+function importKey(value: unknown) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, '')
+}
+
+function importValue(row: Record<string, unknown>, names: string[]) {
+	const wanted = new Set(names.map(importKey))
+	const entry = Object.entries(row).find(([key]) =>
+		wanted.has(importKey(key))
+	)
+	return String(entry?.[1] ?? '').trim()
+}
+
+function importDate(value: string) {
+	const raw = value.trim()
+	if (!raw) return ''
+	if (/^\d{4}-\d{1,2}-\d{1,2}/.test(raw)) {
+		const [year, month, day] = raw.split(/[-T ]/)
+		return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+	}
+	const slash = raw.match(/^(\d{1,2})(-|\/)(\d{1,2})(-|\/)(\d{4})$/)
+	if (slash)
+		return `${slash[3]}-${slash[2].padStart(2, '0')}-${slash[1].padStart(2, '0')}`
+	if (/^\d+(\.\d+)?$/.test(raw)) {
+		const date = XLSX.SSF.parse_date_code(Number(raw))
+		if (date) {
+			return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+		}
+	}
+	return raw
 }
 
 const emptyForm = (): FormState => ({
@@ -125,7 +164,8 @@ export default function ExamAssignmentPage() {
 	const [assignOpen, setAssignOpen] = useState(false)
 	const [editId, setEditId] = useState<number | null>(null)
 	const [form, setForm] = useState<FormState>(emptyForm)
-	/** Cây: mở Hệ / Ngành / Khoa / Môn */
+	const [assignmentImportBusy, setAssignmentImportBusy] = useState(false)
+	/** Cây: mở Hệ / Ngành / Môn */
 	const [openSystems, setOpenSystems] = useState<Set<number>>(() => new Set())
 	const [openMajors, setOpenMajors] = useState<Set<number>>(() => new Set())
 	const [openFaculties, setOpenFaculties] = useState<Set<string>>(
@@ -206,6 +246,136 @@ export default function ExamAssignmentPage() {
 	const logs = logsQ.data || []
 	const teachers = teachersQ.data || []
 
+	async function importAssignments(file: File) {
+		setAssignmentImportBusy(true)
+		try {
+			const rows = await parseCatalogImportFile(file, 'PhanCong')
+			if (!rows.length) throw new Error('File không có dòng dữ liệu')
+
+			const allTeachers = await ListExamTeachers()
+			let created = 0
+			const errors: string[] = []
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]!
+				const subjectRaw = importValue(row, [
+					'ma mon',
+					'mã môn',
+					'code mon',
+					'ten mon',
+					'tên môn',
+					'subject',
+					'subject code'
+				])
+				const teacherRaw = importValue(row, [
+					'giáo viên',
+					'ho ten giao vien',
+					'họ tên giáo viên',
+					'username',
+					'teacher'
+				])
+				const classRaw = importValue(row, [
+					'ma lop',
+					'mã lớp',
+					'ten lop',
+					'tên lớp',
+					'class'
+				])
+				const majorRaw = importValue(row, [
+					'ma nganh',
+					'mã ngành',
+					'nganh',
+					'major'
+				])
+				const subject = subjects.find((item) => {
+					const matchesSubject = [
+						item.code,
+						item.baseCode,
+						item.name
+					].some(
+						(value) =>
+							(value || '').trim().toLowerCase() ===
+							subjectRaw.toLowerCase()
+					)
+					if (!matchesSubject || !majorRaw) return matchesSubject
+					const major = majors.find((m) =>
+						[
+							m.catalogNumber,
+							m.nationalMajorCode,
+							m.code,
+							m.name
+						].some(
+							(value) =>
+								(value || '').trim().toLowerCase() ===
+								majorRaw.toLowerCase()
+						)
+					)
+					return (
+						!!major &&
+						(item.majorId === major.id ||
+							(item.majorIds || []).includes(major.id))
+					)
+				})
+				const teacher = allTeachers.find(
+					(item) =>
+						(item.username || '').toLowerCase() ===
+							teacherRaw.toLowerCase() ||
+						(item.displayName || '').trim().toLowerCase() ===
+							teacherRaw.toLowerCase()
+				)
+				const cls = classes.find(
+					(item) =>
+						item.code.toLowerCase() === classRaw.toLowerCase() ||
+						item.name.trim().toLowerCase() ===
+							classRaw.toLowerCase()
+				)
+				if (!subject || !teacher || !cls) {
+					errors.push(
+						`Dòng ${index + 2}: không tìm thấy môn, giáo viên hoặc lớp`
+					)
+					continue
+				}
+				try {
+					await CreateExamAssignment({
+						subjectId: subject.id,
+						userId: teacher.id,
+						classId: cls.id,
+						teachingStart:
+							importDate(
+								importValue(row, [
+									'ngay bat dau',
+									'ngày bắt đầu',
+									'teaching start'
+								])
+							) || null,
+						teachingEnd: importDate(
+							importValue(row, [
+								'ngay ket thuc',
+								'ngày kết thúc',
+								'teaching end'
+							])
+						),
+						note:
+							importValue(row, ['ghi chu', 'ghi chú', 'note']) ||
+							undefined
+					})
+					created++
+				} catch (error) {
+					errors.push(
+						`Dòng ${index + 2}: ${(error as Error).message}`
+					)
+				}
+			}
+			toast.success(`Đã import ${created}/${rows.length} phân công`)
+			if (errors.length) toast.error(errors.slice(0, 5).join('\n'))
+			void qc.invalidateQueries({ queryKey: ['exam-assignments'] })
+			void qc.invalidateQueries({ queryKey: ['exam-assignment-logs'] })
+		} catch (error) {
+			toast.error((error as Error).message)
+		} finally {
+			setAssignmentImportBusy(false)
+		}
+	}
+
 	const majorsFiltered = useMemo(() => {
 		if (filterSystem === 'all') return majors
 		const sid = Number(filterSystem)
@@ -217,29 +387,19 @@ export default function ExamAssignmentPage() {
 		return majors.filter((m) => m.systemId === Number(form.systemId))
 	}, [majors, form.systemId])
 
-	const formFaculties = useMemo(() => {
-		if (!form.majorId) return [] as Array<{ code: string; name: string }>
-		const mid = Number(form.majorId)
-		const map = new Map<string, string>()
-		for (const s of subjects) {
-			if (s.majorId !== mid || !s.facultyCode) continue
-			if (!map.has(s.facultyCode)) {
-				map.set(s.facultyCode, s.facultyName || s.facultyCode)
-			}
-		}
-		return [...map.entries()]
-			.map(([code, name]) => ({ code, name }))
-			.sort((a, b) => a.name.localeCompare(b.name, 'vi'))
-	}, [subjects, form.majorId])
-
 	const formSubjects = useMemo(() => {
 		if (!form.majorId) return []
-		let list = subjects.filter((s) => s.majorId === Number(form.majorId))
-		if (form.facultyCode) {
-			list = list.filter((s) => s.facultyCode === form.facultyCode)
-		}
+		const list = subjects.filter(
+			(s) =>
+				s.majorId === Number(form.majorId) ||
+				(s.majorIds || []).includes(Number(form.majorId))
+		)
 		return list
-	}, [subjects, form.majorId, form.facultyCode])
+	}, [subjects, form.majorId])
+
+	const selectedFormSubject = formSubjects.find(
+		(s) => String(s.id) === form.subjectId
+	)
 
 	const formClasses = useMemo(() => {
 		if (!form.majorId) return []
@@ -357,7 +517,7 @@ export default function ExamAssignmentPage() {
 	}, [assignments])
 
 	/**
-	 * Cây: Hệ → Ngành → Khoa → Môn → (GV + thời gian + trạng thái theo lớp)
+	 * Cây: Hệ → Ngành → Môn → (khoa lấy từ môn; GV + thời gian + trạng thái theo lớp)
 	 * Dựa trên danh mục môn + phân công.
 	 */
 	const assignTree = useMemo(() => {
@@ -384,7 +544,9 @@ export default function ExamAssignmentPage() {
 				const majorsNode = majList
 					.map((maj) => {
 						const majSubjects = subjects.filter(
-							(s) => s.majorId === maj.id
+							(s) =>
+								s.majorId === maj.id ||
+								(s.majorIds || []).includes(maj.id)
 						)
 						const facMap = new Map<
 							string,
@@ -724,16 +886,46 @@ export default function ExamAssignmentPage() {
 						Phân công môn học
 					</h1>
 					<p className='text-muted-foreground text-sm'>
-						Xem dạng cây: bấm{' '}
-						<strong>Hệ → Ngành → Khoa → Môn</strong> để xem giáo
-						viên, thời gian giảng dạy và trạng thái. Hết hạn → GV
-						không import đề lớp đó.
+						Xem dạng cây: bấm <strong>Hệ → Ngành → Môn</strong> để
+						xem khoa phụ trách, giáo viên, thời gian giảng dạy và
+						trạng thái. Hết hạn → GV không import đề lớp đó.
 					</p>
 				</div>
 				{canManage ? (
-					<Button onClick={() => openCreate()}>
-						<UserPlus className='mr-2 h-4 w-4' /> Phân công
-					</Button>
+					<div className='flex flex-wrap gap-2'>
+						<a
+							href='/mau-import-phan-cong-k4.docx'
+							download
+							className='inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted'
+						>
+							<Download className='mr-2 h-4 w-4' /> File mẫu phân
+							công
+						</a>
+						<label className='inline-flex cursor-pointer items-center'>
+							<input
+								className='hidden'
+								type='file'
+								accept='.xlsx,.xls,.csv,.docx'
+								disabled={assignmentImportBusy}
+								onChange={(event) => {
+									const file = event.target.files?.[0]
+									if (file) void importAssignments(file)
+									event.currentTarget.value = ''
+								}}
+							/>
+							<Button type='button' variant='outline' asChild>
+								<span>
+									<Upload className='mr-2 h-4 w-4' />
+									{assignmentImportBusy
+										? 'Đang import…'
+										: 'Import phân công'}
+								</span>
+							</Button>
+						</label>
+						<Button onClick={() => openCreate()}>
+							<UserPlus className='mr-2 h-4 w-4' /> Phân công
+						</Button>
+					</div>
 				) : (
 					<Badge variant='secondary'>Chế độ chỉ xem (BGH)</Badge>
 				)}
@@ -810,7 +1002,7 @@ export default function ExamAssignmentPage() {
 					</TabsTrigger>
 				</TabsList>
 
-				{/* Cây: Hệ → Ngành → Khoa → Môn → GV / thời gian / trạng thái */}
+				{/* Cây: Hệ → Ngành → Môn → GV / thời gian / trạng thái */}
 				<TabsContent value='tree' className='mt-4'>
 					<Card>
 						<CardHeader className='pb-2'>
@@ -915,17 +1107,6 @@ export default function ExamAssignmentPage() {
 																					}
 																				</span>
 																				<Badge
-																					variant='secondary'
-																					className='text-[10px]'
-																				>
-																					{
-																						maj
-																							.faculties
-																							.length
-																					}{' '}
-																					khoa
-																				</Badge>
-																				<Badge
 																					variant='outline'
 																					className='text-[10px]'
 																				>
@@ -942,10 +1123,7 @@ export default function ExamAssignmentPage() {
 																					(
 																						fac
 																					) => {
-																						const fOpen =
-																							openFaculties.has(
-																								fac.key
-																							)
+																						const fOpen = true
 																						return (
 																							<div
 																								key={
@@ -953,7 +1131,7 @@ export default function ExamAssignmentPage() {
 																								}
 																								className='border-t border-dashed'
 																							>
-																								<div className='flex flex-wrap items-center gap-2 px-3 py-1.5 pl-14'>
+																								<div className='hidden'>
 																									<button
 																										type='button'
 																										className='hover:bg-muted flex min-w-0 flex-1 items-center gap-2 rounded px-1 py-1 text-left text-sm'
@@ -991,7 +1169,7 @@ export default function ExamAssignmentPage() {
 																									</button>
 																								</div>
 																								{fOpen && (
-																									<div className='pb-2 pl-20 pr-3'>
+																									<div className='pb-2 pl-14 pr-3'>
 																										{fac.subjects.map(
 																											(
 																												sub
@@ -1025,6 +1203,10 @@ export default function ExamAssignmentPage() {
 																																)}
 																																<span className='text-muted-foreground text-xs'>
 																																	Môn
+																																	·{' '}
+																																	{
+																																		fac.name
+																																	}
 																																</span>
 																																<span className='font-medium'>
 																																	{
@@ -1715,8 +1897,7 @@ export default function ExamAssignmentPage() {
 								: 'Phân công giáo viên dạy môn'}
 						</DialogTitle>
 						<p className='text-muted-foreground text-xs'>
-							Hệ → Ngành → Khoa → Môn → Lớp → GV + thời gian giảng
-							dạy
+							Hệ → Ngành → Lớp → Môn → GV + thời gian giảng dạy
 						</p>
 					</DialogHeader>
 
@@ -1801,55 +1982,39 @@ export default function ExamAssignmentPage() {
 						</div>
 
 						<div className='space-y-1'>
-							<Label className='text-xs'>Khoa *</Label>
+							<Label className='text-xs'>Khoa phụ trách</Label>
+							<div className='bg-muted/40 text-muted-foreground flex h-9 items-center rounded-md border px-3 text-xs'>
+								{selectedFormSubject?.facultyName ||
+									selectedFormSubject?.facultyCode ||
+									'Khoa được xác định từ môn học'}
+							</div>
+						</div>
+
+						<div className='space-y-1'>
+							<Label className='text-xs'>Môn học *</Label>
 							{!form.majorId ? (
 								<p className='text-muted-foreground flex h-9 items-center text-xs'>
 									Chọn ngành trước
 								</p>
 							) : (
 								<Select
-									value={form.facultyCode || undefined}
-									onValueChange={(v) =>
-										setForm((f) => ({
-											...f,
-											facultyCode: v,
-											subjectId: '',
-											userId:
-												editId != null ? f.userId : ''
-										}))
-									}
-								>
-									<SelectTrigger className='h-9'>
-										<SelectValue placeholder='Chọn khoa' />
-									</SelectTrigger>
-									<SelectContent>
-										{formFaculties.map((f) => (
-											<SelectItem
-												key={f.code}
-												value={f.code}
-											>
-												{f.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							)}
-						</div>
-
-						<div className='space-y-1'>
-							<Label className='text-xs'>Môn học *</Label>
-							{!form.facultyCode ? (
-								<p className='text-muted-foreground flex h-9 items-center text-xs'>
-									Chọn khoa trước
-								</p>
-							) : (
-								<Select
 									value={form.subjectId || undefined}
 									onValueChange={(v) =>
-										setForm((f) => ({
-											...f,
-											subjectId: v
-										}))
+										setForm((f) => {
+											const subject = formSubjects.find(
+												(s) => String(s.id) === v
+											)
+											return {
+												...f,
+												subjectId: v,
+												facultyCode:
+													subject?.facultyCode || '',
+												userId:
+													editId != null
+														? f.userId
+														: ''
+											}
+										})
 									}
 								>
 									<SelectTrigger className='h-9'>
@@ -1861,7 +2026,9 @@ export default function ExamAssignmentPage() {
 												key={s.id}
 												value={String(s.id)}
 											>
-												{s.name}
+												{(s.facultyCode
+													? `${s.facultyCode} — `
+													: '') + s.name}
 											</SelectItem>
 										))}
 									</SelectContent>

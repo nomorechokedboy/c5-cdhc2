@@ -2,6 +2,7 @@ import { api, APIError, Gateway, Header } from 'encore.dev/api'
 import { authHandler } from 'encore.dev/auth'
 import log from 'encore.dev/log'
 import authController from './controller'
+import authzController from '../authz/controller'
 import { AppError } from '../errors'
 import { getAuthData } from '~encore/auth'
 import userController from '../users/controller'
@@ -31,10 +32,16 @@ export const auth = authHandler<AuthParams, AuthData>(async (params) => {
 			throw new Error('Invalid token type')
 		}
 
+		// Quyền có thể thay đổi sau khi access token được phát hành. Đọc lại
+		// quyền hiện tại từ DB để cấp/thu hồi quyền có hiệu lực ngay.
+		const permissions = await authzController.getUserPermissions(
+			Number(payload.userId)
+		)
+
 		// Return simplified auth data - validClassIds and validUnitIds computed in middleware
 		return {
 			userID: payload.userId.toString(),
-			permissions: payload.permissions || [],
+			permissions,
 			isSuperAdmin: payload.isSuperUser
 		}
 	} catch (err) {
