@@ -660,8 +660,7 @@ export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 														key={title.id}
 														value={String(title.id)}
 													>
-														{title.name} (
-														{title.percentage}%)
+														{title.name}
 													</SelectItem>
 												)
 											)}
