@@ -4019,9 +4019,6 @@ export namespace exam_management {
 		updatedAt: string
 		code: string
 		name: string
-		majorId: number | null
-		majorCode?: string | null
-		majorName?: string | null
 		description: string | null
 	}
 
@@ -4453,7 +4450,6 @@ export namespace exam_management {
 		public async CreateExamFaculty(params: {
 			code: string
 			name: string
-			majorId?: number | null
 			description?: string
 		}): Promise<{
 			data: FacultyResponse
@@ -5441,20 +5437,11 @@ export namespace exam_management {
 			}
 		}
 
-		public async ListExamFaculties(params: {
-			q?: string
-			majorId?: number
-		}): Promise<{
+		public async ListExamFaculties(params: { q?: string }): Promise<{
 			data: FacultyResponse[]
 		}> {
 			// Convert our params into the objects we need for the request
-			const query = makeRecord<string, string | string[]>({
-				majorId:
-					params.majorId === undefined
-						? undefined
-						: String(params.majorId),
-				q: params.q
-			})
+			const query = makeRecord<string, string | string[]>({ q: params.q })
 
 			// Now make the actual call to the API
 			const resp = await this.baseClient.callTypedAPI(
@@ -5978,7 +5965,6 @@ export namespace exam_management {
 			params: {
 				code?: string
 				name?: string
-				majorId?: number
 				description?: string | null
 			}
 		): Promise<{

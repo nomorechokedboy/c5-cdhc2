@@ -71,9 +71,6 @@ export interface ExamFaculty {
 	code: string
 	shortCode: string | null
 	name: string
-	majorId: number | null
-	majorCode: string | null
-	majorName: string | null
 	description: string | null
 }
 
@@ -473,7 +470,6 @@ export async function CreateExamFaculty(body: {
 	code: string
 	shortCode?: string | null
 	name: string
-	majorId?: number | null
 	description?: string
 }) {
 	// Encore không nhận `null` cho field optional. Bỏ hẳn các field rỗng
