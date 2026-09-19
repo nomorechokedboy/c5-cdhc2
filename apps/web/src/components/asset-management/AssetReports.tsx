@@ -141,7 +141,9 @@ export default function AssetReports() {
 	/** BGH: chỉ thống kê + kho — không nhật ký / lịch sử SC */
 	const bghOnly = isBghOnlyUser()
 	const { data: buildings = [] } = useBuildings()
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 	const [buildingId, setBuildingId] = useState<string>('all')
 	const [floorId, setFloorId] = useState<string>('all')
 	const [category, setCategory] = useState('')

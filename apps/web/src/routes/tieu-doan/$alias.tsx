@@ -41,7 +41,7 @@ function RouteComponent() {
 		refetchStudents()
 	}
 	const unitClasses = unit?.children.map((c) => ({
-		classes: c.classes,
+		classes: c.children,
 		unit: c
 	}))
 	const actionColumn = useActionColumn(() => {

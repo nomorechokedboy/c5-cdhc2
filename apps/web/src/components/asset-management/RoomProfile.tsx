@@ -112,7 +112,9 @@ export default function RoomProfile({ roomId }: { roomId: number }) {
 	const [assignUnitPick, setAssignUnitPick] = useState('')
 	const [assignOtherUnitId, setAssignOtherUnitId] = useState('')
 	const [assignPending, setAssignPending] = useState(false)
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 
 	const allUnits = useMemo(() => {
 		const list: { id: number; alias: string; name: string }[] = []

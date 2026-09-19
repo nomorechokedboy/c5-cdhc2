@@ -229,31 +229,27 @@ export function transformPoliticsQualityData(
 		const classesReport: UnitPoliticsQualitySummary[] = []
 		const childrenReport: UnitPoliticsQualitySummary[] = []
 
-		// collect class reports
-		if (unitNode.classes && unitNode.classes.length > 0) {
-			for (const cls of unitNode.classes) {
-				const clsReport = data[cls.id] ?? null
+		// lớp (level = 'class') là lá; các đơn vị con khác đi đệ quy
+		for (const child of unitNode.children ?? []) {
+			if (child.level === 'class') {
+				const clsReport = data[child.id] ?? null
 				classesReport.push({
-					name: cls.name,
+					name: child.name,
 					politicsQualityReport: clsReport
 				})
 				if (clsReport) {
 					unitReport = mergeReports(unitReport, clsReport)
 				}
+				continue
 			}
-		}
 
-		// collect children reports recursively
-		if (unitNode.children && unitNode.children.length > 0) {
-			for (const child of unitNode.children) {
-				const childSummary = traverse(child)
-				childrenReport.push(childSummary)
-				if (childSummary.politicsQualityReport) {
-					unitReport = mergeReports(
-						unitReport,
-						childSummary.politicsQualityReport
-					)
-				}
+			const childSummary = traverse(child)
+			childrenReport.push(childSummary)
+			if (childSummary.politicsQualityReport) {
+				unitReport = mergeReports(
+					unitReport,
+					childSummary.politicsQualityReport
+				)
 			}
 		}
 

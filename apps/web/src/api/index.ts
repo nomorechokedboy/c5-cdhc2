@@ -3,8 +3,6 @@ import {
 	Role,
 	type AppNotification,
 	type AppNotificationQuery,
-	type Class,
-	type ClassBody,
 	type DeleteStudentsBody,
 	type ExportData,
 	type ExportPoliticsQualityReport,
@@ -20,15 +18,11 @@ import {
 	type UpdateUserBody,
 	type UserBody,
 	type AssignRoleRequest,
+	type CreateUnitBody,
 	type GetUserRolesResponse
 } from '@/types'
 import { appFetcher } from '@/lib/axios'
-import Client, {
-	type auth,
-	type classes,
-	type students,
-	type units
-} from './client'
+import Client, { type auth, type students, type units } from './client'
 import { ApiUrl } from '@/lib/const'
 
 export const requestClient = new Client(ApiUrl, {
@@ -37,44 +31,22 @@ export const requestClient = new Client(ApiUrl, {
 
 // ... (omitting middle parts, better to target specific blocks)
 
-export function CreateClass(body: ClassBody) {
-	return requestClient.classes.CreateClass(body).then((resp) => resp.data)
-}
-
 export function ListMoodleCourses(unitId?: number) {
-	return requestClient.classes.ListMoodleCourses({ unitId })
+	return requestClient.moodle.ListMoodleCourses({ unitId })
 }
 
 export function ImportMoodleClasses(unitId: number, courseIds: number[]) {
-	return requestClient.classes.ImportMoodleClasses({ unitId, courseIds })
+	return requestClient.moodle.ImportMoodleClasses({ unitId, courseIds })
 }
 
 export function MoodleDbStatus() {
-	return requestClient.classes.MoodleDbStatus()
+	return requestClient.moodle.MoodleDbStatus()
 }
 
-export function DeleteClasses(ids: number[]) {
-	return requestClient.classes.DeleteClasss({ ids }).then((resp) => resp.data)
-}
-
-export function UpdateClasses(data: Class[]) {
-	return requestClient.classes.UpdateClasss({ data }).then((resp) => resp)
-}
-
-export async function GetClasses(
-	params: classes.GetClassesRequest = {}
-): Promise<Class[]> {
-	return requestClient.classes
-		.GetClasses(params)
-		.then((resp) => resp.data.map((d) => ({ ...d }) as unknown as Class))
-}
-
-export function GetClassById(id: number): Promise<Class | undefined> {
-	return requestClient.classes
-		.GetClassById(id)
-		.then((resp) =>
-			resp === undefined ? resp : ({ ...resp.data } as Class)
-		)
+/** Lấy 1 đơn vị theo id (kèm cha và con) */
+export async function GetUnitById(id: number): Promise<Unit | undefined> {
+	const units = await GetUnits({ id })
+	return units[0]
 }
 
 export function CreateStudent(body: StudentBody) {
@@ -145,12 +117,7 @@ export function GetUnit({
 	return requestClient.units.GetUnit(alias, params).then((resp) => resp.data)
 }
 
-export type CreateUnitBody = {
-	alias: string
-	name: string
-	level: 'battalion' | 'company'
-	parentId?: number | null
-}
+export type { CreateUnitBody }
 
 /** Thêm đơn vị (dùng cho «Đơn vị sử dụng» / holding unit) */
 export async function CreateUnit(

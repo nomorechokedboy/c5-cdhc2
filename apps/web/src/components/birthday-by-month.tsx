@@ -73,7 +73,7 @@ export default function BirthdayByMonth() {
 	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const studentQueryParams: StudentQueryParams = {
 		birthdayInMonth: month,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const {
 		data: students = [],

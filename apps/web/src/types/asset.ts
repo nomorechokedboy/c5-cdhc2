@@ -39,7 +39,7 @@ export interface Room {
 	status: string
 	description: string | null
 	/** Lớp học gắn phòng dạy */
-	classId?: number | null
+	unitId?: number | null
 	/** Tổng SL vật tư trong phòng (từ cây tòa nhà) */
 	totalQuantity?: number
 }
@@ -112,7 +112,7 @@ export interface UpdateRoomBody {
 	capacity?: number
 	status?: string
 	description?: string
-	classId?: number | null
+	unitId?: number | null
 }
 
 export type RoomAssetStatus = 'NORMAL' | 'BROKEN' | 'REPAIRING' | 'DISPOSED'

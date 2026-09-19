@@ -17,5 +17,5 @@ export interface Repository {
 		ids: number[],
 		status: 'pending' | 'confirmed'
 	): Promise<StudentDB[]>
-	politicsQualityReport(classIds: number[]): Promise<PoliticsQualityRow[]>
+	politicsQualityReport(unitIds: number[]): Promise<PoliticsQualityRow[]>
 }

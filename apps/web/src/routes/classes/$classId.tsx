@@ -12,7 +12,7 @@ import useOnConfirmStudents from '@/hooks/useOnConfirmStudents'
 import TableSkeleton from '@/components/table-skeleton'
 import StudentTable from '@/components/student-table/new-student-table'
 import { useQuery } from '@tanstack/react-query'
-import { GetClassById } from '@/api'
+import { GetUnitById } from '@/api'
 
 export const Route = createFileRoute('/classes/$classId')({
 	component: RouteComponent
@@ -25,10 +25,10 @@ function RouteComponent() {
 		data: students = [],
 		isLoading: isLoadingStudents,
 		refetch: refetchStudents
-	} = useStudentData({ classId: Number(classId) })
+	} = useStudentData({ unitId: Number(classId) })
 	const { data: thisClass } = useQuery({
 		queryKey: ['classById', classId],
-		queryFn: () => GetClassById(Number(classId)),
+		queryFn: () => GetUnitById(Number(classId)),
 		enabled: !!classId
 	})
 	const { createFacetedFilter } = useDataTableToolbarConfig()
@@ -88,7 +88,11 @@ function RouteComponent() {
 					<div className='flex items-center justify-between space-y-2'>
 						<div>
 							<h2 className='text-2xl font-bold tracking-tight'>
-								Danh sách học viên lớp {thisClass?.name} ( {thisClass?.status == 'graduated' ? "Đã tốt nghiệp" : "Đang diễn ra"} )
+								Danh sách học viên lớp {thisClass?.name} ({' '}
+								{thisClass?.status == 'graduated'
+									? 'Đã tốt nghiệp'
+									: 'Đang diễn ra'}{' '}
+								)
 							</h2>
 							<p className='text-muted-foreground'>
 								Đây là danh sách học viên của đại đội
@@ -123,15 +127,17 @@ function RouteComponent() {
 							educationLevel: false
 						}}
 						columns={[
-							...columnsWithoutAction.filter((col => col.id !== 'action'),
-							actionColumn)
+							...columnsWithoutAction.filter(
+								(col) => col.id !== 'action',
+								actionColumn
+							)
 						]}
 						facetedFilters={facetedFilters}
 						exportConfig={{
 							filename,
 							defaultExportValues: {
 								underUnitName: `LỚP ${thisClass?.name}`,
-								unitName: thisClass?.unit.name.toUpperCase()
+								unitName: thisClass?.parent?.name.toUpperCase()
 							}
 						}}
 						onDeleteRows={handleDeleteRows}

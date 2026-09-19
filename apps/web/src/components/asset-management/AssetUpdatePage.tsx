@@ -136,7 +136,9 @@ export default function AssetUpdatePage() {
 		error: treeError,
 		refetch: refetchTree
 	} = useBuildingTree()
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 
 	const [mode, setMode] = useState<MovementMode>('increase-decrease')
 	const [dir, setDir] = useState<'INCREASE' | 'DECREASE'>('INCREASE')

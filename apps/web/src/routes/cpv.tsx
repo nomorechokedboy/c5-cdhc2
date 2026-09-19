@@ -32,7 +32,7 @@ function RouteComponent() {
 	const companies = selectedBattalion ? selectedBattalion.children : []
 	const selectedCompany =
 		companies.find((c) => c.id === selectedCompanyId) || null
-	const classes = selectedCompany ? selectedCompany.classes : []
+	const classes = selectedCompany ? selectedCompany.children : []
 	const selectedClass =
 		classes?.find((cls) => cls.id === selectedClassId) || null
 
@@ -60,7 +60,7 @@ function RouteComponent() {
 		if (selectedBattalion && selectedCompany && selectedClass) {
 			setStudentParams({
 				politicalOrg: 'cpv',
-				classId: selectedClass.id
+				unitId: selectedClass.id
 			})
 			return
 		}

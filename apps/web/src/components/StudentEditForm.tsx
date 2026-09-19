@@ -50,7 +50,7 @@ export default function StudentEditForm({
 		() =>
 			classes.map((c) => ({
 				value: c.id.toString(),
-				label: `${c.name} - ${c.unit.name}`
+				label: `${c.name} - ${c.parent?.name}`
 			})),
 		[classes]
 	)
@@ -64,7 +64,7 @@ export default function StudentEditForm({
 			avatar: student.avatar || (null as File | null),
 			relatedDocumentations: student.relatedDocumentations || '',
 			studentId: student.studentId || '',
-			classId: Number(student.classId),
+			unitId: Number(student.unit?.id),
 			contactPerson: student.contactPerson || {
 				name: '',
 				phoneNumber: '',
@@ -81,8 +81,8 @@ export default function StudentEditForm({
 					value.avatar = resp.uris[0]
 				}
 
-				if (typeof value.classId === 'string') {
-					value.classId = Number(value.classId)
+				if (typeof value.unitId === 'string') {
+					value.unitId = Number(value.unitId)
 				}
 				value.familySize = Number(value.familySize)
 				await handlePatchStudentInfo({ ...value })
@@ -236,7 +236,7 @@ export default function StudentEditForm({
 						<p className='text-gray-600'>
 							Lớp:{' '}
 							{classOptions.find(
-								(c) => c.value === student.class?.id.toString()
+								(c) => c.value === student.unit?.id.toString()
 							)?.label || 'Chưa có lớp'}
 						</p>
 					</div>
@@ -343,7 +343,7 @@ export default function StudentEditForm({
 											label='Chức vụ'
 										/>
 										<Field
-											name='classId'
+											name='unitId'
 											label='Lớp'
 											options={classOptions}
 										/>

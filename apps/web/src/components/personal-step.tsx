@@ -9,7 +9,7 @@ export default function PersonalStep({ form }: { form: any }) {
 		() =>
 			classes.map((c) => ({
 				value: c.id.toString(),
-				label: `${c.name} - ${c.unit.name}`
+				label: `${c.name} - ${c.parent?.name}`
 			})),
 		[classes]
 	)
@@ -40,7 +40,7 @@ export default function PersonalStep({ form }: { form: any }) {
 					{(field: any) => <field.TextField label='Mã số học viên' />}
 				</form.AppField>
 
-				<form.AppField name='classId'>
+				<form.AppField name='unitId'>
 					{(field: any) => (
 						<field.Select
 							values={classOptions}

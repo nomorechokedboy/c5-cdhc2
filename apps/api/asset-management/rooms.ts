@@ -30,7 +30,7 @@ export interface RoomResponse {
 	status: string
 	description: string | null
 	/** Lớp gắn phòng dạy (null = chưa gán) */
-	classId: number | null
+	unitId: number | null
 }
 
 interface RoomBody {
@@ -45,7 +45,7 @@ interface RoomBody {
 	capacity?: number
 	status?: string
 	description?: string
-	classId?: number | null
+	unitId?: number | null
 }
 
 interface UpdateRoomBody {
@@ -61,7 +61,7 @@ interface UpdateRoomBody {
 	capacity?: number
 	status?: string
 	description?: string
-	classId?: number | null
+	unitId?: number | null
 }
 
 interface DeleteRoomsBody {
@@ -92,7 +92,7 @@ function toRoomResponse(r: RoomDB): RoomResponse {
 		capacity: r.capacity ?? 0,
 		status: r.status ?? 'ACTIVE',
 		description: r.description ?? null,
-		classId: r.classId ?? null
+		unitId: r.unitId ?? null
 	}
 }
 

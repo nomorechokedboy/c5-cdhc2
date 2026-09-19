@@ -41,7 +41,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 		() =>
 			classes.map((c) => ({
 				value: c.id.toString(),
-				label: `${c.name} - ${c.unit.name}`
+				label: `${c.name} - ${c.parent?.name}`
 			})),
 		[classes]
 	)
@@ -58,7 +58,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 					{
 						id: student.id,
 						status: 'confirmed',
-						classId: student.class?.id
+						unitId: student.unit?.id
 					}
 				]
 			})
@@ -179,7 +179,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 										{classOptions.find(
 											(c) =>
 												c.value ===
-												student?.class?.id.toString()
+												student?.unit?.id.toString()
 										)?.label || 'Chưa có lớp'}
 									</p>
 								</div>
@@ -384,7 +384,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 											classOptions.find(
 												(c) =>
 													c.value ===
-													student?.class?.id.toString()
+													student?.unit?.id.toString()
 											)?.label
 										}
 									/>

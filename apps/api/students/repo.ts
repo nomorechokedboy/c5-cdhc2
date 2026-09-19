@@ -25,8 +25,8 @@ type DateFieldInMonthParams = { month?: Month; field: DateField }
 
 type DateFieldInQuarterParams = { quarter: Quarter; field: DateField }
 
-type ClassStudentSumaryParams = {
-	classIds: number[]
+type UnitStudentSummaryParams = {
+	unitIds: number[]
 	category: string
 	value: SQLiteColumn
 	groupBy?: SQLiteColumn[]
@@ -131,9 +131,9 @@ class StudentSqliteRepo implements Repository {
 
 		const whereConds = []
 
-		const isClassIdExist = q.classIds !== undefined
-		if (isClassIdExist) {
-			whereConds.push(inArray(students.classId, q.classIds!))
+		const isUnitIdExist = q.unitIds !== undefined
+		if (isUnitIdExist) {
+			whereConds.push(inArray(students.unitId, q.unitIds!))
 		}
 
 		const isPolicicalOrgExist = q.politicalOrg !== undefined
@@ -209,7 +209,7 @@ class StudentSqliteRepo implements Repository {
 		const isIdsExist = q.ids !== undefined
 		if (isIdsExist) {
 			// Note: This condition now applies to student IDs since we're querying students directly
-			// If you meant class IDs, you might want to use classIds instead
+			// If you meant unit IDs, you might want to use unitIds instead
 			whereConds.push(inArray(students.id, q.ids!))
 		}
 
@@ -242,8 +242,8 @@ class StudentSqliteRepo implements Repository {
 			.findMany({
 				where: whereCondition,
 				with: {
-					class: {
-						with: { unit: true }
+					unit: {
+						with: { parent: { with: { parent: true } } }
 					}
 				}
 			})
@@ -313,71 +313,71 @@ class StudentSqliteRepo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	private baseClassStudentSummary({
-		classIds,
+	private baseUnitStudentSummary({
+		unitIds,
 		value,
 		category,
 		groupBy
-	}: ClassStudentSumaryParams) {
+	}: UnitStudentSummaryParams) {
 		return this.db
 			.select({
 				category: sql<string>`${category}`,
-				classId: students.classId,
+				unitId: students.unitId,
 				value,
 				count: count()
 			})
 			.from(students)
-			.where(inArray(students.classId, classIds))
-			.groupBy(students.classId, ...(groupBy ?? []))
+			.where(inArray(students.unitId, unitIds))
+			.groupBy(students.unitId, ...(groupBy ?? []))
 	}
 
-	private classStudentCountSumary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
-			category: 'classId',
-			value: students.classId
+	private unitStudentCountSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
+			category: 'unitId',
+			value: students.unitId
 		})
 	}
 
-	private classEthnicSummary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
+	private unitEthnicSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
 			category: 'ethnic',
 			value: students.ethnic,
 			groupBy: [students.ethnic]
 		})
 	}
 
-	private classReligionSummary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
+	private unitReligionSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
 			category: 'religion',
 			value: students.religion,
 			groupBy: [students.religion]
 		})
 	}
 
-	private classEducationLevelSummary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
+	private unitEducationLevelSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
 			category: 'educationLevel',
 			value: students.educationLevel,
 			groupBy: [students.educationLevel]
 		})
 	}
 
-	private classPoliticalOrgSummary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
+	private unitPoliticalOrgSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
 			category: 'politicalOrg',
 			value: students.politicalOrg,
 			groupBy: [students.politicalOrg]
 		})
 	}
 
-	private classPreviousUnitSummary(classIds: number[]) {
-		return this.baseClassStudentSummary({
-			classIds,
+	private unitPreviousUnitSummary(unitIds: number[]) {
+		return this.baseUnitStudentSummary({
+			unitIds,
 			category: 'previousUnit',
 			value: students.previousUnit,
 			groupBy: [students.previousUnit]
@@ -385,17 +385,17 @@ class StudentSqliteRepo implements Repository {
 	}
 
 	async politicsQualityReport(
-		classIds: number[]
+		unitIds: number[]
 	): Promise<PoliticsQualityRow[]> {
-		log.trace('students.politicsQualityReport params: ', { classIds })
+		log.trace('students.politicsQualityReport params: ', { unitIds })
 
 		return unionAll(
-			this.classStudentCountSumary(classIds),
-			this.classEthnicSummary(classIds),
-			this.classReligionSummary(classIds),
-			this.classEducationLevelSummary(classIds),
-			this.classPoliticalOrgSummary(classIds),
-			this.classPreviousUnitSummary(classIds)
+			this.unitStudentCountSummary(unitIds),
+			this.unitEthnicSummary(unitIds),
+			this.unitReligionSummary(unitIds),
+			this.unitEducationLevelSummary(unitIds),
+			this.unitPoliticalOrgSummary(unitIds),
+			this.unitPreviousUnitSummary(unitIds)
 		).catch(handleDatabaseErr)
 	}
 }

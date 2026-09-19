@@ -22,6 +22,7 @@ import { Repository as UnitRepository } from '../units'
 import studentRepo from './repo'
 import { ExportStudentDataRequest, GetStudentsQuery } from './students'
 import unitRepo from '../units/repo'
+import { collectUnitIds } from '../units/tree'
 import log from 'encore.dev/log'
 import dayjs from 'dayjs'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear.js'
@@ -50,24 +51,50 @@ export class Controller {
 		private readonly imageStorage: ImageProvider
 	) {}
 
-	create(params: StudentParam[], classIds: number[]): Promise<StudentDB[]> {
-		const checkCLassIds = params.every((c) => classIds.includes(c.classId))
-		if (checkCLassIds === false) {
+	/** Học viên chỉ được thuộc đơn vị cấp lớp (units.level = 'class') */
+	private async assertClassUnits(unitIds: number[]) {
+		const ids = [...new Set(unitIds)]
+		if (ids.length === 0) return
+
+		const found = await this.unitRepo
+			.find({ ids, with: { parent: false, children: false } })
+			.catch(AppError.handleAppErr)
+		const isAllClass =
+			found.length === ids.length &&
+			found.every((u) => u.level === 'class')
+		if (!isAllClass) {
 			throw AppError.handleAppErr(
-				AppError.unauthorized(
-					'You are not authorized create with this classid'
+				AppError.invalidArgument(
+					'Học viên chỉ được thuộc đơn vị cấp lớp'
 				)
 			)
 		}
+	}
+
+	async create(
+		params: StudentParam[],
+		validUnitIds: number[]
+	): Promise<StudentDB[]> {
+		const checkUnitIds = params.every((c) =>
+			validUnitIds.includes(c.unitId)
+		)
+		if (checkUnitIds === false) {
+			throw AppError.handleAppErr(
+				AppError.unauthorized(
+					'You are not authorized create with this unitId'
+				)
+			)
+		}
+		await this.assertClassUnits(params.map((c) => c.unitId))
 		return this.repo.create(params).catch(AppError.handleAppErr)
 	}
 
-	async delete(studentsTodelete: StudentDB[], validClassIds: number[]) {
+	async delete(studentsTodelete: StudentDB[], validUnitIds: number[]) {
 		const ids = studentsTodelete.map((student) => student.id)
 		const students = await this.repo.find({ ids })
-		const studentsClassIds = students.map((student) => student.class.id)
-		const hasPermission = studentsClassIds.every((id) =>
-			validClassIds.includes(id)
+		const studentsUnitIds = students.map((student) => student.unit.id)
+		const hasPermission = studentsUnitIds.every((id) =>
+			validUnitIds.includes(id)
 		)
 		if (!hasPermission) {
 			throw AppError.handleAppErr(
@@ -81,8 +108,8 @@ export class Controller {
 	}
 
 	async find(
-		{ unitAlias, unitLevel, classId, classIds, ...q }: GetStudentsQuery,
-		validClassIds: number[]
+		{ unitAlias, unitLevel, unitId, unitIds, ...q }: GetStudentsQuery,
+		validUnitIds: number[]
 	): Promise<Student[]> {
 		const isUnitAliasExist = unitAlias !== undefined
 		const isUnitLevelExist = unitLevel !== undefined
@@ -107,77 +134,49 @@ export class Controller {
 				)
 			}
 
-			if (u.level === 'battalion') {
-				const classIds = u.children
-					.map((c) => c.classes.map((cl) => cl.id))
-					.flat()
-				log.trace('studentRepo.find battalion case classIds', {
-					classIds,
-					query: q
-				})
+			// Học viên thuộc đơn vị cấp lớp: gom lớp con cháu của đơn vị được chọn
+			const classUnitIds = collectUnitIds(u, 'class')
+			log.trace('studentRepo.find unit case classUnitIds', {
+				classUnitIds,
+				query: q
+			})
 
-				const classIdCheck = classIds?.every((id) =>
-					validClassIds.includes(id)
-				)
-
-				if (classIdCheck === false) {
-					AppError.handleAppErr(
-						AppError.unauthorized(
-							"You don't have permission to read one of those studentId"
-						)
+			const isValidUnitIds = classUnitIds.every((id) =>
+				validUnitIds.includes(id)
+			)
+			if (isValidUnitIds === false) {
+				throw AppError.handleAppErr(
+					AppError.unauthorized(
+						"You don't have permission to read one of those studentId"
 					)
-				}
-
-				return this.repo
-					.find({ ...q, classIds })
-					.catch(AppError.handleAppErr)
+				)
 			}
 
-			if (u.level === 'company') {
-				const classIds = u.classes.map((c) => c.id)
-				log.trace('studentRepo.find company case classIds', {
-					classIds,
-					query: q
-				})
-
-				const classIdCheck = classIds?.every((id) =>
-					validClassIds.includes(id)
-				)
-
-				if (classIdCheck === false) {
-					AppError.handleAppErr(
-						AppError.unauthorized(
-							"You don't have permission to read one of those studentId"
-						)
-					)
-				}
-
-				return this.repo
-					.find({ ...q, classIds })
-					.catch(AppError.handleAppErr)
-			}
+			return this.repo
+				.find({ ...q, unitIds: classUnitIds })
+				.catch(AppError.handleAppErr)
 		}
 
 		const cIds: number[] = []
-		if (classIds !== undefined) {
-			cIds.push(...classIds)
+		if (unitIds !== undefined) {
+			cIds.push(...unitIds)
 		}
 
-		if (classId !== undefined) {
-			cIds.push(classId)
+		if (unitId !== undefined) {
+			cIds.push(unitId)
 		}
 		if (cIds.length === 0) {
-			cIds.push(...validClassIds)
+			cIds.push(...validUnitIds)
 		}
 
 		return this.repo
-			.find({ ...q, classIds: cIds.length !== 0 ? cIds : undefined })
+			.find({ ...q, unitIds: cIds.length !== 0 ? cIds : undefined })
 			.catch(AppError.handleAppErr)
 	}
 
 	async update(
 		params: StudentDB[],
-		validClassIds: number[]
+		validUnitIds: number[]
 	): Promise<StudentDB[]> {
 		const ids = params.map((s) => s.id)
 		const isIdsEmpty = ids.length === 0
@@ -187,16 +186,27 @@ export class Controller {
 				AppError.invalidArgument('No record IDs provided')
 			)
 		}
-		const checkCLassIds = params.every((c) =>
-			validClassIds.includes(c.classId)
-		)
-		if (checkCLassIds === false) {
+		// Học viên hiện tại phải nằm trong phạm vi đơn vị của người dùng
+		const existing = await this.repo
+			.find({ ids })
+			.catch(AppError.handleAppErr)
+		// unitId là tuỳ chọn khi cập nhật; nếu chuyển lớp thì lớp mới cũng phải hợp lệ
+		const changedUnitIds = params
+			.map((c) => c.unitId)
+			.filter((id): id is number => id !== undefined)
+		const checkUnitIds =
+			existing.every((student) =>
+				validUnitIds.includes(student.unit.id)
+			) && changedUnitIds.every((id) => validUnitIds.includes(id))
+		if (checkUnitIds === false) {
 			throw AppError.handleAppErr(
 				AppError.unauthorized(
 					"You don't have permission update this student"
 				)
 			)
 		}
+
+		await this.assertClassUnits(changedUnitIds)
 
 		const updateMap: UpdateStudentMap = params.map(
 			({ id, ...updatePayload }) => {
@@ -225,12 +235,12 @@ export class Controller {
 	async updateStatus(
 		ids: number[],
 		status: 'pending' | 'confirmed',
-		validClassIds: number[]
+		validUnitIds: number[]
 	): Promise<StudentDB[]> {
 		log.info('StudentController.updateStatus params: ', {
 			ids,
 			status,
-			validClassIds
+			validUnitIds
 		})
 
 		if (!ids || ids.length === 0) {
@@ -239,7 +249,7 @@ export class Controller {
 			)
 		}
 
-		// get students to check their classIds
+		// get students to check their unitIds
 		const students = await this.repo
 			.find({ ids })
 			.catch(AppError.handleAppErr)
@@ -251,11 +261,11 @@ export class Controller {
 		}
 
 		// auth check
-		const checkClassIds = students.every((student) =>
-			validClassIds.includes(student.class.id)
+		const checkUnitIds = students.every((student) =>
+			validUnitIds.includes(student.unit.id)
 		)
 
-		if (!checkClassIds) {
+		if (!checkUnitIds) {
 			throw AppError.handleAppErr(
 				AppError.unauthorized(
 					"You don't have permission to update status of these students"
@@ -323,15 +333,9 @@ export class Controller {
 			)
 		}
 
-		const classIds = units.flatMap((unit) => {
-			if (unit.level === 'battalion') {
-				return unit.children.flatMap((child) =>
-					child.classes.map((c) => c.id)
-				)
-			}
-
-			return unit.classes.map((c) => c.id)
-		})
+		const classUnitIds = [
+			...new Set(units.flatMap((unit) => collectUnitIds(unit, 'class')))
+		]
 
 		const educationLevelMap = {
 			'7/12': 'Cấp II',
@@ -346,17 +350,17 @@ export class Controller {
 			'Sau đại học': 'Sau ĐH'
 		}
 		const data: Record<number, Record<string, any>> = {}
-		const rows = await this.repo.politicsQualityReport(classIds)
-		for (const { count, value, classId, category } of rows) {
-			if (!data[classId]) {
-				data[classId] = {}
+		const rows = await this.repo.politicsQualityReport(classUnitIds)
+		for (const { count, value, unitId, category } of rows) {
+			if (!data[unitId]) {
+				data[unitId] = {}
 			}
 
-			if (category === 'classId') {
-				data[classId].total = count
+			if (category === 'unitId') {
+				data[unitId].total = count
 			} else {
-				if (!data[classId][category]) {
-					data[classId][category] = {}
+				if (!data[unitId][category]) {
+					data[unitId][category] = {}
 				}
 
 				const educationLevelMapKey = String(
@@ -366,15 +370,15 @@ export class Controller {
 				if (educationLevelMap[educationLevelMapKey] !== undefined) {
 					const valueLabel = educationLevelMap[educationLevelMapKey]
 					if (
-						data[classId][category][valueLabel] === undefined ||
-						data[classId][category][valueLabel] === null
+						data[unitId][category][valueLabel] === undefined ||
+						data[unitId][category][valueLabel] === null
 					) {
-						data[classId][category][valueLabel] = 0
+						data[unitId][category][valueLabel] = 0
 					}
 
-					data[classId][category][valueLabel] += count
+					data[unitId][category][valueLabel] += count
 				} else {
-					data[classId][category][String(value)] = count
+					data[unitId][category][String(value)] = count
 				}
 			}
 		}
@@ -472,14 +476,20 @@ export class Controller {
 					)
 				}
 
-				const parentUnit = await this.unitRepo
-					.getOne({ id: stu.class.unit.parentId })
-					.catch(AppError.handleAppErr)
+				// stu.unit là lớp; parent = đại đội; parent.parent = tiểu đoàn
+				const company = stu.unit?.parent
+				const parentUnit =
+					company?.parentId != null
+						? await this.unitRepo
+								.findOne({ id: company.parentId })
+								.catch(AppError.handleAppErr)
+						: undefined
 
 				const { rows: _, ...templateDataWithoutRows } = templateData
 				templData = {
-					stu,
-					companyName: stu.class.unit.name,
+					// Template docx cũ dùng {stu.class.name}
+					stu: { ...stu, class: stu.unit },
+					companyName: company?.name,
 					batalionName: parentUnit?.name,
 					...templateDataWithoutRows
 				}

@@ -145,7 +145,8 @@ function UnitBlock({
 export function PoliticalQualityDashboard() {
 	const { user } = useAuth()
 	const { data: unitsRaw = [] } = useUnitsData(
-		user?.isSuperUser === true ? { level: 'battalion' } : undefined
+		user?.isSuperUser === true ? { level: 'battalion' } : undefined,
+		{ excludeClasses: true }
 	)
 	// Chỉ TD1 + TD2 (D1–D3 / D4–D5)
 	const units = filterStudentUnitTree(unitsRaw)

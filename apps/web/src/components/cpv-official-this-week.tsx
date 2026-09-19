@@ -13,7 +13,7 @@ export default function CpvOfficialThisWeek() {
 	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const studentQueryParams: StudentQueryParams = {
 		isCpvOfficialThisWeek: true,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const {
 		data: students = [],

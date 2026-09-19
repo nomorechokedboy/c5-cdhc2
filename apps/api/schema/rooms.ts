@@ -4,7 +4,7 @@ import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { Base, baseSchema } from './base'
 import { floors } from './floors'
 import type { FloorDB } from './floors'
-import { classes } from './classes'
+import { units } from './units'
 
 import { roomAssets } from './room-assets'
 import { roomImages } from './room-images'
@@ -43,7 +43,7 @@ export const rooms = sqliteTable('rooms', {
 	description: text('description'),
 
 	/** Lớp học gắn với phòng dạy (tuỳ chọn) — user chọn phòng → xem HV + thiết bị */
-	classId: int('class_id').references(() => classes.id, {
+	unitId: int('unit_id').references(() => units.id, {
 		onDelete: 'set null'
 	})
 })
@@ -54,9 +54,9 @@ export const roomsRelations = relations(rooms, ({ one, many }) => ({
 		references: [floors.id]
 	}),
 
-	class: one(classes, {
-		fields: [rooms.classId],
-		references: [classes.id]
+	unit: one(units, {
+		fields: [rooms.unitId],
+		references: [units.id]
 	}),
 
 	assets: many(roomAssets),
@@ -76,7 +76,7 @@ export interface RoomDB extends Base {
 	capacity?: number | null
 	status?: string | null
 	description?: string | null
-	classId?: number | null
+	unitId?: number | null
 	/** Client-only flag sau khi strip hash */
 	hasAccountPassword?: boolean
 }
@@ -99,7 +99,7 @@ export interface CreateRoomRequest {
 	capacity?: number
 	status?: string
 	description?: string
-	classId?: number | null
+	unitId?: number | null
 }
 
 export interface UpdateRoomRequest {
@@ -115,5 +115,5 @@ export interface UpdateRoomRequest {
 	capacity?: number
 	status?: string
 	description?: string
-	classId?: number | null
+	unitId?: number | null
 }

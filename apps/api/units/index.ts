@@ -4,18 +4,8 @@ export interface Repository {
 	create(params: UnitParams[]): Promise<UnitDB[]>
 	delete(units: UnitDB[]): Promise<UnitDB[]>
 	update(id: number, params: Partial<UnitParams>): Promise<UnitDB[]>
-	find(query: UnitQuery): Promise<Unit[]>
-	findAll(): Promise<Unit[]>
-	findOne(params: {
-		alias: string
-		level: 'battalion' | 'company'
-	}): Promise<Unit | undefined>
-	findByIds(ids: number[]): Promise<UnitDB[]>
-	findById(
-		id: number,
-		opts?: {
-			with: { children?: boolean; classes?: boolean; parent?: boolean }
-		}
-	): Promise<UnitDB | undefined>
-	getOne(params: Partial<UnitDB>): Promise<Unit | undefined>
+	/** Tìm nhiều đơn vị: lọc (ids/level/parentId/alias), search, phân trang */
+	find(query?: UnitQuery): Promise<Unit[]>
+	/** Tìm 1 đơn vị theo các field của bản ghi (undefined bị bỏ qua, null → IS NULL) */
+	findOne(params: Partial<UnitDB>): Promise<Unit | undefined>
 }

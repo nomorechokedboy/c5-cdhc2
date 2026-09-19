@@ -1,10 +1,17 @@
-import { GetClasses } from '@/api'
-import type { classes } from '@/api/client'
+import { GetUnits } from '@/api'
 import { useQuery } from '@tanstack/react-query'
 
-export default function useClassData(params?: classes.GetClassesRequest) {
+/** Lớp = đơn vị cấp `class`; `parentId` là id đại đội */
+export default function useClassData(params?: {
+	parentId?: number
+	search?: string
+	enabled?: boolean
+}) {
+	const { enabled = true, ...query } = params ?? {}
 	return useQuery({
-		queryKey: ['classes', params],
-		queryFn: () => GetClasses(params)
+		queryKey: ['classes', query],
+		queryFn: () =>
+			GetUnits({ ...query, level: 'class', withStudentCount: true }),
+		enabled
 	})
 }

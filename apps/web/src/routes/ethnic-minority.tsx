@@ -70,7 +70,7 @@ function RouteComponent() {
 		() => companies.find((c) => c.id === selectedCompanyId) || null,
 		[companies, selectedCompanyId]
 	)
-	const classes = selectedCompany?.classes ?? []
+	const classes = selectedCompany?.children ?? []
 	const selectedClass = React.useMemo(
 		() => classes.find((cls) => cls.id === selectedClassId) || null,
 		[classes, selectedClassId]
@@ -94,7 +94,7 @@ function RouteComponent() {
 		if (selectedBattalion && selectedCompany && selectedClass) {
 			return {
 				isEthnicMinority: true,
-				classId: selectedClass.id
+				unitId: selectedClass.id
 			}
 		}
 		return { isEthnicMinority: true }

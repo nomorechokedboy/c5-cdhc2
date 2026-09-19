@@ -5,7 +5,7 @@ import {
 	CardFooter,
 	CardDescription
 } from '@/components/ui/card'
-import type { Class } from '@/types'
+import type { Unit } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { EllipsisText } from '@/components/data-table/ellipsis-text'
 import { useNavigate } from '@tanstack/react-router'
@@ -19,9 +19,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
 interface ClassCardProps {
-	data: Class
-	onEdit?: (data: Class) => void
-	onDelete?: (data: Class) => void
+	data: Unit
+	onEdit?: (data: Unit) => void
+	onDelete?: (data: Unit) => void
 }
 
 export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
@@ -76,7 +76,9 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 							)}
 						</CardTitle>
 						<CardDescription>
-							<EllipsisText>{data.description}</EllipsisText>
+							<EllipsisText>
+								{data.description ?? ''}
+							</EllipsisText>
 						</CardDescription>
 					</div>
 					<div
@@ -114,7 +116,7 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 				</CardHeader>
 				<CardFooter className='flex-col items-start gap-1.5 text-sm'>
 					<div className='line-clamp-1 flex gap-2 font-medium'>
-						Tổng số học viên: {data.studentCount}
+						Tổng số học viên: {data.studentCount ?? 0}
 					</div>
 					<div className='text-muted-foreground'>
 						Tạo ngày: {toVNTz(data.createdAt)}
@@ -130,7 +132,7 @@ export default function ClassCard({ data, onEdit, onDelete }: ClassCardProps) {
 					<ClassEditForm
 						classData={data}
 						onUpdate={(updated) => {
-							onEdit?.({ ...data, ...updated }) // truyền nguyên data kiểu Class
+							onEdit?.({ ...data, ...updated }) // truyền nguyên data kiểu Unit
 							setOpenEdit(false)
 						}}
 						onClose={() => setOpenEdit(false)}

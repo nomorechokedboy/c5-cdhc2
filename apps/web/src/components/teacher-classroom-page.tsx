@@ -17,7 +17,7 @@ import {
 	X
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { GetClasses } from '@/api'
+import { GetUnits } from '@/api'
 import {
 	GetBuildingTree,
 	GetRoomAssets,
@@ -121,12 +121,14 @@ export default function TeacherClassroomPage() {
 		enabled: !!roomId
 	})
 
-	const classId = selected?.classId ?? null
-	const studentsQ = useStudentData(classId != null ? { classId } : undefined)
+	const roomUnitId = selected?.unitId ?? null
+	const studentsQ = useStudentData(
+		roomUnitId != null ? { unitId: roomUnitId } : undefined
+	)
 
 	const classesQ = useQuery({
 		queryKey: ['classes-for-link'],
-		queryFn: () => GetClasses({}),
+		queryFn: () => GetUnits({ level: 'class' }),
 		staleTime: 60_000
 	})
 
@@ -145,7 +147,7 @@ export default function TeacherClassroomPage() {
 			linkClassId === 'none' || !linkClassId ? null : Number(linkClassId)
 		setLinking(true)
 		try {
-			await UpdateRoom(selected.id, { classId: cid })
+			await UpdateRoom(selected.id, { unitId: cid })
 			toast.success(
 				cid
 					? 'Đã gắn lớp vào phòng dạy'
@@ -259,8 +261,8 @@ export default function TeacherClassroomPage() {
 								</p>
 								<p>
 									Lớp gắn:{' '}
-									{selected.classId
-										? `ID ${selected.classId}`
+									{selected.unitId
+										? `ID ${selected.unitId}`
 										: 'Chưa gán'}
 								</p>
 							</div>
@@ -280,8 +282,8 @@ export default function TeacherClassroomPage() {
 									<SearchableSelect
 										value={
 											linkClassId ||
-											(selected.classId
-												? String(selected.classId)
+											(selected.unitId
+												? String(selected.unitId)
 												: 'none')
 										}
 										onValueChange={setLinkClassId}
@@ -298,11 +300,11 @@ export default function TeacherClassroomPage() {
 												(c) => {
 													const unitName = (
 														c as {
-															unit?: {
+															parent?: {
 																name?: string
-															}
+															} | null
 														}
-													).unit?.name
+													).parent?.name
 													return {
 														value: String(c.id),
 														label: unitName
@@ -345,7 +347,7 @@ export default function TeacherClassroomPage() {
 							<TabsTrigger value='students' className='gap-1.5'>
 								<Users className='h-4 w-4' />
 								Học viên
-								{classId != null && (
+								{roomUnitId != null && (
 									<Badge variant='secondary' className='ml-1'>
 										{students.length}
 									</Badge>
@@ -385,7 +387,7 @@ export default function TeacherClassroomPage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								{classId == null ? (
+								{roomUnitId == null ? (
 									<p className='text-sm text-muted-foreground py-6 text-center'>
 										Phòng chưa gắn lớp. Dùng mục «Gắn lớp
 										học viên với phòng» phía trên (hoặc

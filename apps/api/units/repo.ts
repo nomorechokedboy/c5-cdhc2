@@ -2,8 +2,20 @@ import log from 'encore.dev/log'
 import { Repository } from '.'
 import orm, { DrizzleDatabase } from '../database'
 import { UnitParams, UnitDB, Unit, units, UnitQuery } from '../schema/units'
+import { students } from '../schema/student'
 import { handleDatabaseErr } from '../utils'
-import { and, eq, inArray, SQL } from 'drizzle-orm'
+import {
+	and,
+	asc,
+	count,
+	eq,
+	inArray,
+	isNull,
+	like,
+	or,
+	SQL,
+	sql
+} from 'drizzle-orm'
 
 class repo implements Repository {
 	constructor(private readonly db: DrizzleDatabase) {}
@@ -37,148 +49,100 @@ class repo implements Repository {
 			.catch(handleDatabaseErr)
 	}
 
-	async find(query: UnitQuery): Promise<Unit[]> {
-		const baseQuery = this.db.query.units
+	async find(query: UnitQuery = {}): Promise<Unit[]> {
 		const conditions: SQL[] = []
+
 		if (query.level !== undefined) {
 			conditions.push(eq(units.level, query.level))
 		}
 
-		if (query.ids !== undefined && query.ids.length > 0) {
-			conditions.push(inArray(units.id, query.ids))
+		if (query.ids !== undefined) {
+			// ids rỗng => không khớp đơn vị nào
+			conditions.push(
+				query.ids.length > 0 ? inArray(units.id, query.ids) : sql`1 = 0`
+			)
 		}
 
-		return baseQuery
+		if (query.parentId !== undefined) {
+			conditions.push(eq(units.parentId, query.parentId))
+		}
+
+		if (query.alias !== undefined) {
+			conditions.push(eq(units.alias, query.alias))
+		}
+
+		const search = query.search?.trim()
+		if (search) {
+			const pattern = `%${search}%`
+			conditions.push(
+				or(like(units.name, pattern), like(units.alias, pattern))!
+			)
+		}
+
+		const rows = (await this.db.query.units
 			.findMany({
-				where:
-					conditions.length === 1
-						? conditions[0]
-						: and(...conditions),
-				with: {
-					children: { with: { classes: true } },
-					classes: true,
-					parent: true
-				}
+				where: conditions.length > 0 ? and(...conditions) : undefined,
+				with: this.buildWith(query.with),
+				orderBy: asc(units.id),
+				// SQLite không cho OFFSET nếu thiếu LIMIT
+				limit:
+					query.limit ??
+					(query.offset !== undefined ? -1 : undefined),
+				offset: query.offset
 			})
-			.catch(handleDatabaseErr) as unknown as Array<Unit>
+			.catch(handleDatabaseErr)) as unknown as Unit[]
+
+		if (!query.withStudentCount || rows.length === 0) return rows
+
+		const counts = await this.db
+			.select({ unitId: students.unitId, total: count() })
+			.from(students)
+			.where(
+				inArray(
+					students.unitId,
+					rows.map((u) => u.id)
+				)
+			)
+			.groupBy(students.unitId)
+			.catch(handleDatabaseErr)
+		const byUnit = new Map(counts.map((c) => [c.unitId, c.total]))
+
+		return rows.map((u) => ({ ...u, studentCount: byUnit.get(u.id) ?? 0 }))
 	}
-	async findAll(): Promise<Unit[]> {
-		return this.db.query.units
-			.findMany({
-				with: {
-					children: { with: { classes: true } },
-					classes: true,
-					parent: true
-				}
+
+	findOne(params: Partial<UnitDB>): Promise<Unit | undefined> {
+		const conditions = Object.entries(params)
+			.filter(([, value]) => value !== undefined)
+			.map(([key, value]) => {
+				const column = units[key as keyof UnitDB]
+				return value === null ? isNull(column) : eq(column, value)
 			})
-			.catch(handleDatabaseErr)
-	}
 
-	async findOne(params: {
-		alias: string
-		level: 'battalion' | 'company'
-	}): Promise<Unit | undefined> {
-		const baseQuery = this.db.query.units
-
-		switch (params.level) {
-			case 'battalion':
-				return baseQuery
-					.findFirst({
-						where: and(
-							eq(units.alias, params.alias),
-							eq(units.level, params.level)
-						),
-						with: {
-							children: { with: { classes: true } }
-						}
-					})
-					.catch(handleDatabaseErr) as unknown as Unit
-
-			case 'company':
-				return baseQuery
-					.findFirst({
-						where: and(
-							eq(units.alias, params.alias),
-							eq(units.level, params.level)
-						),
-						with: {
-							classes: true
-						}
-					})
-					.catch(handleDatabaseErr) as unknown as Unit
-
-			default:
-				return undefined
-		}
-	}
-
-	findByIds(ids: number[]): Promise<UnitDB[]> {
-		return this.db.query.units
-			.findMany({ where: inArray(units.id, ids) })
-			.catch(handleDatabaseErr)
-	}
-
-	findById(
-		id: number,
-		opts?: {
-			with: { children?: boolean; classes?: boolean; parent?: boolean }
-		}
-	): Promise<UnitDB | undefined> {
-		const withClause: Record<string, boolean> = {}
-
-		if (opts?.with?.children) {
-			withClause.children = true
-		}
-
-		if (opts?.with?.classes) {
-			withClause.classes = true
-		}
-
-		if (opts?.with?.parent) {
-			withClause.parent = true
-		}
-
-		return this.db.query.units
-			.findFirst({
-				where: eq(units.id, id),
-				with: withClause
-			})
-			.catch(handleDatabaseErr)
-	}
-
-	getOne(params: Partial<Unit>): Promise<Unit | undefined> {
-		// Check if params is empty or has no valid fields
-		if (!params || Object.keys(params).length === 0) {
+		if (conditions.length === 0) {
 			throw new Error(
 				'Invalid parameters: at least one field must be provided'
 			)
 		}
 
-		// Dynamically build where conditions based on provided fields
-		const conditions = Object.entries(params)
-			.filter(([_, value]) => value !== undefined && value !== null)
-			.map(([key, value]) => eq(units[key as keyof typeof units], value))
-
-		// If no valid conditions were built, throw error
-		if (conditions.length === 0) {
-			throw new Error('Invalid parameters: no valid fields provided')
-		}
-
-		const baseQuery = this.db.query.units
-
-		return baseQuery
+		return this.db.query.units
 			.findFirst({
-				where:
-					conditions.length === 1
-						? conditions[0]
-						: and(...conditions),
-				with: {
-					children: { with: { classes: true } },
-					classes: true,
-					parent: true
-				}
+				where: and(...conditions),
+				with: this.buildWith()
 			})
-			.catch(handleDatabaseErr)
+			.catch(handleDatabaseErr) as unknown as Promise<Unit | undefined>
+	}
+
+	private buildWith(opts: UnitQuery['with'] = {}) {
+		const { parent = true, children = true, grandchildren = true } = opts
+
+		return {
+			...(parent && { parent: true as const }),
+			...(children && {
+				children: grandchildren
+					? { with: { children: true as const } }
+					: (true as const)
+			})
+		}
 	}
 }
 

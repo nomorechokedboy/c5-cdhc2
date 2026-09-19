@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
-import { DeleteClasses } from '@/api'
+import { DeleteUnit } from '@/api'
 
 export function useDeleteClasses() {
-  return useMutation({
-    mutationFn: (ids: number[]) => DeleteClasses(ids)
-  })
+	return useMutation({
+		mutationFn: (ids: number[]) =>
+			Promise.all(ids.map((id) => DeleteUnit(id)))
+	})
 }

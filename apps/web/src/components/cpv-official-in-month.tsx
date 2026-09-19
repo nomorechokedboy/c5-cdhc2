@@ -73,7 +73,7 @@ export default function CpvOfficialInMonth() {
 	const [month, setMonth] = useState<Month>(dayjs().format('MM') as Month)
 	const studentQueryParams: StudentQueryParams = {
 		cpvOfficialInMonth: month,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const { data: students = [], refetch: refetchStudents } =
 		useStudentData(studentQueryParams)

@@ -13,7 +13,7 @@ export default function BirthdayByWeek() {
 	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const studentQueryParams: StudentQueryParams = {
 		birthdayInWeek: true,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const {
 		data: students = [],

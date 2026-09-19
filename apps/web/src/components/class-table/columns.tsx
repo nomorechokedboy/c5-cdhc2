@@ -1,10 +1,10 @@
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import type { Class } from '@/types'
+import type { Unit } from '@/types'
 import type { ColumnDef } from '@tanstack/react-table'
 
-export const columns: ColumnDef<Class>[] = [
+export const columns: ColumnDef<Unit>[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -36,7 +36,12 @@ export const columns: ColumnDef<Class>[] = [
 		header: 'Tên lớp',
 		cell: ({ row }) => {
 			const status = row.getValue('status') as 'ongoing' | 'graduated'
-			const statusLabel = status === 'ongoing' ? 'Đang diễn ra' : status === 'graduated' ? 'Đã tốt nghiệp' : ''
+			const statusLabel =
+				status === 'ongoing'
+					? 'Đang diễn ra'
+					: status === 'graduated'
+						? 'Đã tốt nghiệp'
+						: ''
 			const statusVariant = status === 'ongoing' ? 'default' : 'secondary'
 			return (
 				<div className='flex items-center gap-2'>

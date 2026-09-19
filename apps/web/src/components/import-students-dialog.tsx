@@ -41,7 +41,7 @@ export function ImportStudentsDialog({
 		() =>
 			classes.map((c) => ({
 				value: c.id.toString(),
-				label: `${c.name} - ${c.unit.name}`
+				label: `${c.name} - ${c.parent?.name}`
 			})),
 		[classes]
 	)
@@ -106,7 +106,7 @@ export function ImportStudentsDialog({
 				'disciplinaryHistory',
 				'childrenInfos',
 				'phone',
-				'classId'
+				'unitId'
 			]
 
 			const vietnameseHeaders = [
@@ -197,8 +197,6 @@ export function ImportStudentsDialog({
 				classOptions.length ? classOptions[0].value : '1'
 			]
 
-			
-
 			// ===== Sheet Mẫu Import =====
 			const sheet = workbook.addWorksheet('Mẫu Import')
 			const headerRowVN = sheet.addRow(vietnameseHeaders)
@@ -288,8 +286,8 @@ export function ImportStudentsDialog({
 				}
 			})
 
-			// Dropdown cho classId
-			const classCol = headers.indexOf('classId')
+			// Dropdown cho unitId
+			const classCol = headers.indexOf('unitId')
 			if (
 				classCol >= 0 &&
 				Array.isArray(classOptions) &&
@@ -428,7 +426,6 @@ export function ImportStudentsDialog({
 						defval: '',
 						header: 1
 					})
-					debugger
 					const dataRows = jsonData
 						.slice(2)
 						.filter((row) =>
@@ -501,8 +498,6 @@ export function ImportStudentsDialog({
 								if (typeof value === 'string') {
 									const parsed = parseInt(value, 10)
 									value = isNaN(parsed) ? 0 : parsed
-								} else if (typeof value === 'number') {
-									value = value
 								} else {
 									value = 0
 								}
@@ -513,8 +508,8 @@ export function ImportStudentsDialog({
 								value = value != null ? String(value) : ''
 							}
 
-							// ✅ classId → number
-							if (header === 'classId') {
+							// ✅ unitId → number
+							if (header === 'unitId') {
 								if (typeof value === 'string') {
 									const parsed = parseInt(value)
 									value = isNaN(parsed) ? null : parsed

@@ -37,7 +37,6 @@ type UnitLike = {
 	alias: string
 	name?: string
 	children?: UnitLike[]
-	classes?: unknown[]
 	[key: string]: unknown
 }
 

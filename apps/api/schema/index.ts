@@ -13,7 +13,6 @@ export * from './users'
 export * from './units'
 
 // Học viên
-export * from './classes'
 export * from './student'
 
 // Cơ sở vật chất

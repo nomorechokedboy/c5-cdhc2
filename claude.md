@@ -3,7 +3,7 @@
 **Application:** Student Management System API
 **Database:** SQLite (LibSQL)
 **ORM:** Drizzle ORM
-**Last Updated:** 2025-11-28
+**Last Updated:** 2026-09-19
 
 ---
 
@@ -25,10 +25,10 @@
 ```mermaid
 erDiagram
     %% Core Domain Tables
-    units ||--o{ units : "parent-child"
-    units ||--o{ classes : "contains"
+    units ||--o{ units : "parent-child (battalion > company > class)"
     units ||--o{ users : "commands"
-    classes ||--o{ students : "enrolls"
+    units ||--o{ students : "enrolls (class-level unit)"
+    units ||--o{ rooms : "teaching room of a class"
 
     %% User Authorization
     users ||--o{ user_roles : "has"
@@ -90,7 +90,7 @@ erDiagram
         text achievement "Default: Không"
         text disciplinaryHistory "Default: Không"
         text phone
-        int classId FK "NOT NULL"
+        int unitId FK "NOT NULL, class-level unit"
         text cpvOfficialAt
         text avatar
         json siblings "Default: []"
@@ -100,25 +100,17 @@ erDiagram
         text status "pending | confirmed, Default: pending"
     }
 
-    classes {
-        int id PK "Auto-increment"
-        text createdAt
-        text updatedAt
-        text name "NOT NULL, Unique with unitId"
-        text description "Default: empty"
-        text graduatedAt
-        text status "ongoing | graduated, Default: ongoing"
-        int unitId FK "NOT NULL, Default: 7"
-    }
-
     units {
         int id PK "Auto-increment"
         text createdAt
         text updatedAt
-        text alias "UNIQUE, NOT NULL"
-        text name "UNIQUE, NOT NULL"
-        int level "battalion(0) | company(1), NOT NULL"
+        text alias "NOT NULL, indexed, NOT unique"
+        text name "NOT NULL, NOT unique"
+        int level "battalion(0) | company(1) | class(2), NOT NULL"
         int parentId FK "Self-reference"
+        text description "class level only"
+        text graduatedAt "class level only"
+        text status "ongoing | graduated, class level only"
     }
 
     users {
@@ -200,7 +192,7 @@ erDiagram
         int id PK "Auto-increment"
         text createdAt
         text updatedAt
-        text notifiableType "classes | students, NOT NULL"
+        text notifiableType "units | students, NOT NULL"
         int notifiableId "NOT NULL"
         text notificationId FK "NOT NULL"
     }
@@ -213,14 +205,13 @@ erDiagram
 | Table | Purpose | Record Count Type |
 |-------|---------|------------------|
 | `students` | Student records with personal, family, and educational info | High volume |
-| `classes` | Class/course information | Medium volume |
-| `units` | Organizational units (battalion/company hierarchy) | Low volume |
+| `units` | Organizational units (battalion/company/class hierarchy) | Low-Medium volume |
 | `users` | System users with authentication | Low-Medium volume |
 | `roles` | User roles for RBAC | Low volume |
 | `user_roles` | Many-to-many: Users ↔ Roles | Medium volume |
 | `permissions` | System permissions (resource:action pairs) | Low-Medium volume |
 | `role_permissions` | Many-to-many: Roles ↔ Permissions | Medium volume |
-| `resources` | Protected resources (e.g., students, classes) | Very low volume |
+| `resources` | Protected resources (e.g., students, units) | Very low volume |
 | `actions` | CRUD operations (create, read, update, delete) | Very low volume |
 | `notifications` | User notifications | High volume |
 | `notification_items` | Items referenced by batch notifications | High volume |
@@ -242,10 +233,10 @@ erDiagram
 - Status: `status` (pending/confirmed)
 
 **Relationships:**
-- **Many-to-One** → `classes` (via `classId`)
+- **Many-to-One** → `units` (via `unitId`, must be a class-level unit)
 
 **Constraints:**
-- `classId` NOT NULL (every student must belong to a class)
+- `unitId` NOT NULL (every student must belong to a class-level unit)
 - `politicalOrg` must be 'hcyu' or 'cpv'
 - `status` must be 'pending' or 'confirmed'
 
@@ -256,58 +247,41 @@ erDiagram
 
 ---
 
-### 2. classes
+### 2. units
 
-**Purpose:** Represent classes/courses within organizational units.
-
-**Key Fields:**
-- `name`: Class name (unique per unit)
-- `description`: Class description
-- `status`: 'ongoing' or 'graduated'
-- `graduatedAt`: Graduation date
-- `unitId`: Parent unit (company level)
-
-**Relationships:**
-- **Many-to-One** → `units` (via `unitId`)
-- **One-to-Many** → `students`
-- **One-to-Many** → `users` (class instructors/commanders)
-
-**Constraints:**
-- UNIQUE constraint on (`name`, `unitId`) - no duplicate class names within a unit
-- `unitId` defaults to 7
-- Unit must be at 'company' level (not 'battalion')
-
----
-
-### 3. units
-
-**Purpose:** Hierarchical organizational structure (battalion → company).
+**Purpose:** Hierarchical organizational structure: battalion → company → class. Classes are units with `level = 'class'` (there is no separate `classes` table).
 
 **Key Fields:**
-- `alias`: Short unique identifier
-- `name`: Full unit name
-- `level`: 0 (battalion) or 1 (company)
+- `alias`: Short identifier (indexed, **not** unique)
+- `name`: Full unit name (**not** unique)
+- `level`: 0 (battalion), 1 (company) or 2 (class)
 - `parentId`: Reference to parent unit (self-referencing)
+- `description`, `graduatedAt`, `status` (`ongoing` | `graduated`): only used by class-level units
 
 **Relationships:**
 - **Self-referencing**: `parentId` → `id` (parent-child hierarchy)
-- **One-to-Many** → `classes` (companies have classes)
+- **One-to-Many** → `students` (via `students.unitId`, class-level units)
+- **One-to-Many** → `rooms` (via `rooms.unit_id`, class-level units)
 - **One-to-Many** → `users` (unit commanders)
 
 **Constraints:**
-- `alias` and `name` must be UNIQUE
-- Hierarchy: Battalion (level 0) contains Companies (level 1)
-- Custom enum type stores level as integer (0/1) but presents as string (battalion/company)
+- No unique constraint on `alias` or `name` (duplicates are allowed, e.g. the same class name under different companies)
+- Each level sits directly under the previous one: class → company → battalion (validated in `units/controller.ts`)
+- Custom enum type stores level as integer (0/1/2) but presents as string (battalion/company/class)
 
 **Hierarchy Example:**
 ```
 Battalion (level 0, parentId: NULL)
   └─ Company A (level 1, parentId: battalion.id)
-      └─ Class 1
-      └─ Class 2
+      └─ Class 1 (level 2, parentId: company.id)
+      └─ Class 2 (level 2, parentId: company.id)
   └─ Company B (level 1, parentId: battalion.id)
-      └─ Class 3
+      └─ Class 3 (level 2, parentId: company.id)
 ```
+
+**Repository (`apps/api/units/repo.ts`):** only two read methods.
+- `find(query?)`: filter by `ids`, `level`, `parentId`, `alias`, `search` (LIKE on name/alias), paginate with `limit`/`offset`.
+- `findOne(partialUnitDb)`: first unit matching every defined field (`null` → `IS NULL`).
 
 ---
 
@@ -406,7 +380,7 @@ Users → Roles → Permissions → (Resources + Actions)
 **Permission Examples:**
 - `students:read` - View student records
 - `students:create` - Create new students
-- `classes:update` - Modify class information
+- `units:update` - Modify unit (battalion/company/class) information
 - `users:delete` - Delete user accounts
 
 ---
@@ -441,7 +415,6 @@ Users → Roles → Permissions → (Resources + Actions)
 
 **Examples:**
 - students - Student Records
-- classes - Class Information
 - units - Organizational Units
 - users - User Accounts
 
@@ -498,11 +471,11 @@ Users → Roles → Permissions → (Resources + Actions)
 
 ### 12. notification_items
 
-**Purpose:** Store individual items (students/classes) referenced in batch notifications.
+**Purpose:** Store individual items (students/units) referenced in batch notifications.
 
 **Key Fields:**
-- `notifiableType`: 'students' or 'classes'
-- `notifiableId`: ID of the student or class
+- `notifiableType`: 'students' or 'units'
+- `notifiableId`: ID of the student or unit
 - `notificationId`: FK to parent notification
 
 **Relationships:**
@@ -532,9 +505,8 @@ Notification (id: "uuid-123", title: "5 students have birthdays this week")
 | Parent Table | Child Table | Foreign Key | Relationship |
 |-------------|-------------|-------------|--------------|
 | `units` | `units` | `parentId` | Self-referencing hierarchy |
-| `units` | `classes` | `unitId` | Unit contains classes |
 | `units` | `users` | `unitId` | Unit has commanders |
-| `classes` | `students` | `classId` | Class enrolls students |
+| `units` | `students` | `unitId` | Class-level unit enrolls students |
 | `resources` | `permissions` | `resourceId` | Resource has permissions |
 | `actions` | `permissions` | `actionId` | Action defines permissions |
 | `users` | `notifications` | `recipientId` | User receives notifications |
@@ -551,13 +523,11 @@ Notification (id: "uuid-123", title: "5 students have birthdays this week")
 ### Relationship Cardinality
 
 ```
-units (1) ──────< (N) classes
-  │
-  └──────< (N) units (self-reference)
+units (1) ──────< (N) units (self-reference: battalion > company > class)
   │
   └──────< (N) users
-
-classes (1) ──────< (N) students
+  │
+  └──────< (N) students (class-level units)
 
 users (N) >────< (N) roles
       (via user_roles)
@@ -600,9 +570,6 @@ All tables have primary key indexes on `id` except:
 
 | Table | Columns | Constraint Name |
 |-------|---------|----------------|
-| `units` | `alias` | Unique |
-| `units` | `name` | Unique |
-| `classes` | `name`, `unitId` | `class_unit_unique_constraint` |
 | `users` | `username` | Unique |
 | `roles` | `name` | Unique |
 | `permissions` | `name` | Unique |
@@ -627,8 +594,7 @@ All tables have primary key indexes on `id` except:
 | Child Table | Parent Table | FK Column | Notes |
 |------------|-------------|-----------|-------|
 | `units` | `units` | `parentId` | Self-reference |
-| `classes` | `units` | `unitId` | Required |
-| `students` | `classes` | `classId` | Required |
+| `students` | `units` | `unitId` | Required |
 | `users` | `units` | `unitId` | Optional |
 | `notifications` | `users` | `recipientId` | Optional |
 | `notifications` | `users` | `actorId` | Optional |
@@ -640,11 +606,11 @@ All tables have primary key indexes on `id` except:
 |-------|--------|--------------|
 | `students` | `politicalOrg` | 'hcyu', 'cpv' |
 | `students` | `status` | 'pending', 'confirmed' |
-| `classes` | `status` | 'ongoing', 'graduated' |
-| `units` | `level` | 0 (battalion), 1 (company) |
+| `units` | `status` | 'ongoing', 'graduated' (class level) |
+| `units` | `level` | 0 (battalion), 1 (company), 2 (class) |
 | `users` | `status` | 'pending', 'approved' |
 | `notifications` | `notificationType` | 'birthday', 'officialCpv' |
-| `notification_items` | `notifiableType` | 'classes', 'students' |
+| `notification_items` | `notifiableType` | 'units', 'students' |
 
 ---
 
@@ -683,13 +649,13 @@ All tables (except junction tables) inherit from a base schema:
 
 | Table | Column | Storage | Runtime Type |
 |-------|--------|---------|--------------|
-| `units` | `level` | INTEGER (0/1) | 'battalion' \| 'company' |
+| `units` | `level` | INTEGER (0/1/2) | 'battalion' \| 'company' \| 'class' |
 | `students` | `politicalOrg` | TEXT | 'hcyu' \| 'cpv' |
 | `students` | `status` | TEXT | 'pending' \| 'confirmed' |
-| `classes` | `status` | TEXT | 'ongoing' \| 'graduated' |
+| `units` | `status` | TEXT | 'ongoing' \| 'graduated' |
 | `users` | `status` | TEXT | 'pending' \| 'approved' |
 | `notifications` | `notificationType` | TEXT | 'birthday' \| 'officialCpv' |
-| `notification_items` | `notifiableType` | TEXT | 'classes' \| 'students' |
+| `notification_items` | `notifiableType` | TEXT | 'units' \| 'students' |
 
 ---
 
@@ -697,12 +663,12 @@ All tables (except junction tables) inherit from a base schema:
 
 ### Common Joins
 
-#### Get students with class and unit info
+#### Get students with class, company and battalion
 ```typescript
 db.query.students.findMany({
   with: {
-    class: {
-      with: { unit: true }
+    unit: {
+      with: { parent: { with: { parent: true } } }
     }
   }
 })
@@ -711,12 +677,13 @@ db.query.students.findMany({
 #### Get classes with student count
 ```typescript
 db.select({
-  ...getTableColumns(classes),
-  studentCount: count(students.classId)
+  ...getTableColumns(units),
+  studentCount: count(students.unitId)
 })
-.from(classes)
-.leftJoin(students, eq(classes.id, students.classId))
-.groupBy(classes.id)
+.from(units)
+.leftJoin(students, eq(units.id, students.unitId))
+.where(eq(units.level, 'class'))
+.groupBy(units.id)
 ```
 
 #### Get user permissions
@@ -741,7 +708,7 @@ db.select({
 db.query.units.findMany({
   with: {
     children: {
-      with: { classes: true }
+      with: { children: true } // company -> classes
     },
     parent: true
   }
@@ -767,8 +734,7 @@ All schema definitions are located in `apps/api/schema/`:
 |------|----------------|
 | `base.ts` | Base schema pattern (id, createdAt, updatedAt) |
 | `student.ts` | `students` table and types |
-| `classes.ts` | `classes` table and types |
-| `units.ts` | `units` table and types |
+| `units.ts` | `units` table (battalion / company / class) and types |
 | `users.ts` | `users` table and types |
 | `roles.ts` | `roles` table and types |
 | `user-roles.ts` | `user_roles` junction table |
@@ -782,6 +748,20 @@ All schema definitions are located in `apps/api/schema/`:
 
 ---
 
+
+## Commands
+
+Run these from `apps/api`.
+
+| Task | Command |
+|------|---------|
+| Generate the web API client (`apps/web/src/api/client.ts`) | `pnpm gen` |
+| Generate Drizzle migrations from schema changes | `encore exec -- pnpm generate` |
+| Apply migrations | `encore exec -- pnpm migrate` |
+
+**Never run `tsc` (`npx tsc`, `pnpm tsc`, `tsc --noEmit`, ...) in this project.** It freezes the shell / agent. Do not type-check that way; rely on the editor, the dev server, or tests.
+
+After changing any Encore endpoint (path, request or response type), run `pnpm gen` so `apps/web` stays in sync. Do not hand-edit `client.ts`.
 
 ## Generate Migrations
 ```bash

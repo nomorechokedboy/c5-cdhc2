@@ -1,15 +1,6 @@
 import type { QueryObserverResult } from '@tanstack/react-query'
 export * from './authz'
 
-export interface Class extends Base {
-	name: string
-	description: string
-	status?: 'ongoing' | 'graduated'
-	studentCount: number
-	graduatedAt: string | null
-	unit: Unit
-}
-
 export interface UserFormData extends Base {
 	username: string
 	password: string
@@ -18,19 +9,15 @@ export interface UserFormData extends Base {
 	issuperuser: boolean
 }
 
-export interface ClassBody {
-	name: string
-	description?: string
-}
-
 export type PoliticalOrg = 'hcyu' | 'cpv'
 
 export type StudentBody = {
 	fullName?: string
 	birthPlace?: string
 	address?: string
-	class?: Class
-	classId?: number
+	/** Lớp của học viên (đơn vị cấp lớp) kèm đại đội / tiểu đoàn cha */
+	unit?: StudentUnit
+	unitId?: number
 	cpvId?: string
 	dob?: string
 	educationLevel?: string
@@ -134,8 +121,6 @@ export interface User extends Base, UserBody {
 	isNganhScoped?: boolean
 }
 
-export type ClassResponse = { data: Class[] }
-
 export type StudentResponse = { data: Student[] }
 
 export type UnitResponse = { data: Unit[] }
@@ -181,7 +166,7 @@ export interface StudentQueryParams {
 	birthdayInMonth?: Month
 	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
-	classId?: number
+	unitId?: number
 	isMarried?: boolean
 	politicalOrg?: PoliticalOrg
 	isEthnicMinority?: boolean
@@ -191,7 +176,7 @@ export interface StudentQueryParams {
 	isCpvOfficialThisWeek?: boolean
 	cpvOfficialInMonth?: Month
 	cpvOfficialInQuarter?: Quarter
-	classIds?: number[]
+	unitIds?: number[]
 	withAdversity?: boolean
 }
 
@@ -216,7 +201,7 @@ export type UpdateStudentsBody = {
 	data: UpdateStudentBody[]
 }
 
-export type UnitLevel = 'battalion' | 'company'
+export type UnitLevel = 'battalion' | 'company' | 'class'
 
 export const defaultStudentColumnVisibility = {
 	dob: false,
@@ -245,8 +230,8 @@ export const defaultStudentColumnVisibility = {
 
 export interface AppNotificationItem extends Base {
 	notifiableId: number
-	notifiableType: 'classes' | 'students'
-	relatedData: Student | Class
+	notifiableType: 'units' | 'students'
+	relatedData: Student | Unit
 }
 
 export type AppNotificationType =
@@ -282,17 +267,55 @@ export interface MarkAsReadNotificationParams {
 }
 
 export interface GetUnitQuery {
-	level: UnitLevel
+	id?: number
+	level?: UnitLevel
+	/** Tìm theo tên hoặc alias */
+	search?: string
+	parentId?: number
+	limit?: number
+	offset?: number
+	withStudentCount?: boolean
 }
 
 export interface Unit extends Base {
 	alias: string
 	name: string
 	level: UnitLevel
+	parentId?: number | null
+
+	// Chỉ dùng cho đơn vị cấp lớp (level = 'class')
+	description?: string | null
+	graduatedAt?: string | null
+	status?: 'ongoing' | 'graduated' | null
 
 	parent?: Unit | null
+	/** Tiểu đoàn → đại đội; đại đội → lớp */
 	children: Unit[]
-	classes?: Class[]
+	/** Chỉ có khi truy vấn với withStudentCount */
+	studentCount?: number
+}
+
+export interface UnitRef extends Base {
+	alias: string
+	name: string
+	level: UnitLevel
+	parentId?: number | null
+}
+
+/** Lớp của học viên, kèm đại đội (parent) và tiểu đoàn (parent.parent) */
+export interface StudentUnit extends UnitRef {
+	description?: string | null
+	parent?: (UnitRef & { parent?: UnitRef | null }) | null
+}
+
+export type CreateUnitBody = {
+	alias: string
+	name: string
+	level: UnitLevel
+	parentId?: number | null
+	description?: string | null
+	graduatedAt?: string | null
+	status?: 'ongoing' | 'graduated' | null
 }
 
 export interface GetUnitResponse {

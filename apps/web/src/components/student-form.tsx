@@ -125,7 +125,7 @@ export default function StudentForm({
 			achievement: '',
 			disciplinaryHistory: '',
 			phone: '',
-			classId: 0,
+			unitId: 0,
 			cpvOfficialAt: null,
 			avatar: null as File | null,
 			siblings: [],
@@ -143,8 +143,8 @@ export default function StudentForm({
 					return
 				}
 
-				const classId = value.classId
-				value.classId = Number(classId)
+				const unitId = value.unitId
+				value.unitId = Number(unitId)
 
 				const familySize = value.familySize
 				value.familySize = Number(familySize)

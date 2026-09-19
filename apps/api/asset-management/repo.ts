@@ -393,7 +393,7 @@ class RoomSqliteRepo implements RoomRepository {
 				capacity: params.capacity ?? 0,
 				status: params.status ?? 'ACTIVE',
 				description: params.description,
-				classId: params.classId ?? null
+				unitId: params.unitId ?? null
 			})
 			.returning()
 			.then((rows) => rows[0])

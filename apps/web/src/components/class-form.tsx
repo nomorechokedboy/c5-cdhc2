@@ -11,10 +11,9 @@ import {
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { CreateClass } from '@/api'
+import { CreateUnit } from '@/api'
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import type { Class, ClassBody } from '@/types'
 import { toast } from 'sonner'
 
 const schema = z.object({
@@ -22,18 +21,29 @@ const schema = z.object({
 	description: z.string()
 })
 
+type ClassFormValue = { name: string; description: string }
+
 export interface ClassFormProps {
 	onSuccess: (
-		data: Class[],
-		variables: ClassBody,
+		data: Awaited<ReturnType<typeof CreateUnit>>,
+		variables: ClassFormValue,
 		context: unknown
 	) => unknown
+	/** Id đại đội chứa lớp */
 	unitId: number | undefined
 }
 
 export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 	const { mutateAsync } = useMutation({
-		mutationFn: CreateClass,
+		mutationFn: (value: ClassFormValue & { parentId: number }) =>
+			CreateUnit({
+				alias: value.name,
+				name: value.name,
+				level: 'class',
+				parentId: value.parentId,
+				description: value.description,
+				status: 'ongoing'
+			}),
 		onError: (error) => {
 			console.error('Failed to create class:', error)
 		}
@@ -42,8 +52,7 @@ export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 	const form = useAppForm({
 		defaultValues: {
 			name: '',
-			description: '',
-			unitId
+			description: ''
 		},
 		onSubmit: async ({ value, formApi }: { value: any; formApi: any }) => {
 			if (unitId === undefined) {
@@ -54,7 +63,11 @@ export default function ClassForm({ onSuccess, unitId }: ClassFormProps) {
 			}
 
 			try {
-				const result = await mutateAsync(value)
+				const result = await mutateAsync({
+					name: value.name,
+					description: value.description,
+					parentId: unitId
+				})
 				onSuccess(result, value, undefined)
 
 				toast.success('Thêm mới lớp thành công')

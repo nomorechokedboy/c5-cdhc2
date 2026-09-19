@@ -117,7 +117,7 @@ export default function UnitUsagePanel({
 		isLoading: unitsLoading,
 		error: unitsError,
 		refetch: refetchUnits
-	} = useUnitsData()
+	} = useUnitsData(undefined, { excludeClasses: true })
 
 	const assetsQ = useQuery({
 		queryKey: ['room-assets', 'all-for-units'],

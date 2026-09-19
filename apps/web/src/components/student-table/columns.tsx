@@ -10,13 +10,13 @@ import { toDdMmYyyy } from '@/common'
 
 function isoToDdMmYyyy(isoDate: string): string {
 	const [year, month, day] = isoDate.split('-')
-	return `${day}/${month}/${year}`.replace("undefined/undefined/", "");
+	return `${day}/${month}/${year}`.replace('undefined/undefined/', '')
 }
 
 export const baseStudentsColumns: ColumnDef<Student>[] = [
 	{
 		id: 'class.name',
-		accessorFn: (row) => row.class?.name,
+		accessorFn: (row) => row.unit?.name,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
@@ -485,7 +485,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 	},
 	{
 		id: 'class.name',
-		accessorFn: (row) => `${row.class?.name} - ${row.class?.unit.alias}`,
+		accessorFn: (row) => `${row.unit?.name} - ${row.unit?.parent?.alias}`,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
@@ -920,7 +920,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 	},
 	{
 		id: 'class.name',
-		accessorFn: (row) => `${row.class?.name} - ${row.class?.unit.alias}`,
+		accessorFn: (row) => `${row.unit?.name} - ${row.unit?.parent?.alias}`,
 		header: 'Lớp',
 		cell: ({ row }) => (
 			<div className='w-20'>
