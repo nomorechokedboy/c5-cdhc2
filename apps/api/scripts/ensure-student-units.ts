@@ -72,7 +72,7 @@ async function upsertUnit(
 
 async function ensureDefaultClass(unitId: number, companyName: string) {
 	const cnt = await db.execute({
-		sql: `SELECT COUNT(*) AS c FROM classes WHERE unitId = ?`,
+		sql: `SELECT COUNT(*) AS c FROM units WHERE parentId = ? AND level = 2`,
 		args: [unitId]
 	})
 	const n = Number(cnt.rows[0]?.c ?? 0)
@@ -82,8 +82,13 @@ async function ensureDefaultClass(unitId: number, companyName: string) {
 	}
 	const className = `HV ${companyName}`
 	await db.execute({
-		sql: `INSERT INTO classes (name, description, status, unitId) VALUES (?, ?, 'ongoing', ?)`,
-		args: [className, 'Lớp mặc định (không lấy từ Moodle)', unitId]
+		sql: `INSERT INTO units (alias, name, level, parentId, description, status) VALUES (?, ?, 2, ?, ?, 'ongoing')`,
+		args: [
+			className,
+			className,
+			unitId,
+			'Lớp mặc định (không lấy từ Moodle)'
+		]
 	})
 	console.log(`  created default class «${className}» for unit ${unitId}`)
 }

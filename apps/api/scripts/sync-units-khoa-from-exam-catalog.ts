@@ -172,15 +172,11 @@ async function mergeUnitInto(fromId: number, toId: number) {
 		sql: 'UPDATE users SET unitId = ? WHERE unitId = ?',
 		args: [toId, fromId]
 	})
-	// classes.unitId nếu có
-	try {
-		await client.execute({
-			sql: 'UPDATE classes SET unitId = ? WHERE unitId = ?',
-			args: [toId, fromId]
-		})
-	} catch {
-		/* ignore */
-	}
+	// đơn vị con (đại đội / lớp) chuyển sang đơn vị đích
+	await client.execute({
+		sql: 'UPDATE units SET parentId = ? WHERE parentId = ?',
+		args: [toId, fromId]
+	})
 	const ha = await client.execute({
 		sql: 'SELECT count(*) c FROM room_assets WHERE holding_unit_id = ?',
 		args: [fromId]

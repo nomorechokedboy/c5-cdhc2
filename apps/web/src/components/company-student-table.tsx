@@ -37,7 +37,7 @@ export default function CompanyStudentTable({
 		return refetchStudents()
 	})
 
-	const unitClasses = unit?.classes
+	const unitClasses = unit?.children
 
 	if (isLoadingStudents) {
 		return <TableSkeleton />

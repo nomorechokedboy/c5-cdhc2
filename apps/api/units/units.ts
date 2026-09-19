@@ -1,16 +1,22 @@
 import { api, Query } from 'encore.dev/api'
 import { UnitParams } from '../schema'
 import unitController from './controller'
-import { ClassResponse } from '../classes/classes'
 import { getAuthData } from '~encore/auth'
 import { APICallMeta, currentRequest } from 'encore.dev'
+
+type UnitLevel = 'battalion' | 'company' | 'class'
 
 type UnitBody = {
 	alias: string
 	name: string
-	level: 'battalion' | 'company'
+	level: UnitLevel
 
 	parentId?: number | null
+
+	// Chỉ dùng cho đơn vị cấp lớp (level = 'class')
+	description?: string | null
+	graduatedAt?: string | null
+	status?: 'ongoing' | 'graduated' | null
 }
 
 export type UnitDB = UnitBody & {
@@ -34,7 +40,13 @@ export const CreateUnit = api(
 			...u
 		}))
 
-		const createdUnits = await unitController.create(unitParams)
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+
+		const createdUnits = await unitController.create(
+			unitParams,
+			validUnitIds
+		)
 
 		const resp = createdUnits.map((u) => ({ ...u }) as UnitDB)
 
@@ -52,15 +64,24 @@ export const UpdateUnit = api(
 		alias?: string
 		name?: string
 		parentId?: number | null
-	}): Promise<{ data: UnitDB }> => ({
-		data: await unitController.update(id, body)
-	})
+		description?: string | null
+		graduatedAt?: string | null
+		status?: 'ongoing' | 'graduated' | null
+	}): Promise<{ data: UnitDB }> => {
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+
+		return { data: await unitController.update(id, body, validUnitIds) }
+	}
 )
 
 export const DeleteUnit = api(
 	{ auth: true, expose: true, method: 'DELETE', path: '/units/:id' },
 	async (params: { id: number }): Promise<{ ok: boolean }> => {
-		await unitController.delete(params.id)
+		const callMeta = currentRequest() as APICallMeta
+		const validUnitIds = callMeta.middlewareData?.validUnitIds || []
+
+		await unitController.delete(params.id, validUnitIds)
 		return { ok: true }
 	}
 )
@@ -70,11 +91,20 @@ type unit = Omit<UnitDB, 'parentId'>
 export type Unit = unit & {
 	parent: unit | null
 	children: Unit[]
-	classes: ClassResponse[]
+	/** Chỉ có khi truy vấn với withStudentCount */
+	studentCount?: number
 }
 
 export interface GetUnitsQuery {
-	level?: 'battalion' | 'company'
+	id?: Query<number>
+	level?: Query<UnitLevel>
+	/** Tìm theo tên hoặc alias */
+	search?: Query<string>
+	parentId?: Query<number>
+	limit?: Query<number>
+	offset?: Query<number>
+	/** Kèm số học viên trực tiếp của từng đơn vị (dùng cho lớp) */
+	withStudentCount?: Query<boolean>
 }
 
 interface GetUnitsResponse {
@@ -103,28 +133,9 @@ export const GetUnits = api(
 			!perms.includes('buildings:create') &&
 			!perms.includes('buildings:update')
 
-		if (!unitIds.length || needFullUnitCatalog) {
-			const all = await unitController.findAll()
-			let list = all
-			if (q.level !== undefined) {
-				// level trên Unit có thể là number (0/1) hoặc string sau map
-				list = all.filter((u) => {
-					const lv = u.level as unknown
-					if (lv === q.level) return true
-					if (
-						q.level === 'battalion' &&
-						(lv === 0 || lv === 'battalion')
-					)
-						return true
-					if (q.level === 'company' && (lv === 1 || lv === 'company'))
-						return true
-					return false
-				})
-			}
-			return { data: list.map((u) => ({ ...u }) as Unit) }
-		}
-
-		const resp = await unitController.find(q, unitIds)
+		const scope =
+			!unitIds.length || needFullUnitCatalog ? undefined : unitIds
+		const resp = await unitController.find(q, scope)
 		const data = resp.map((u) => ({ ...u }) as Unit)
 
 		return { data }
@@ -136,7 +147,7 @@ interface GetUnitRequest {
 
 	alias: string
 	name?: Query<string>
-	level?: Query<'battalion' | 'company'>
+	level?: Query<UnitLevel>
 
 	parentId?: Query<number> | null
 }
@@ -154,7 +165,7 @@ export const GetUnit = api(
 		const data = await unitController
 			.findOne({
 				...params,
-				level: level as 'battalion' | 'company' | undefined,
+				level: level as UnitLevel | undefined,
 				validUnitIds
 			})
 			.then((resp) => (resp === undefined ? resp : ({ ...resp } as Unit)))

@@ -11,15 +11,15 @@ import {
 import { Repository } from './index'
 import { GetNotificationsQuery } from './notifications'
 import notificationRepo from './repo'
-import { Repository as ClassRepo } from '../classes'
+import { Repository as UnitRepo } from '../units'
 import { Repository as StudentRepo } from '../students'
 import studentRepo from '../students/repo'
-import classRepo from '../classes/repo'
+import unitRepo from '../units/repo'
 
 export class Controller {
 	constructor(
 		private readonly repo: Repository,
-		private readonly classRepo: ClassRepo,
+		private readonly unitRepo: UnitRepo,
 		private readonly studentRepo: StudentRepo
 	) {}
 
@@ -128,11 +128,11 @@ export class Controller {
 
 				try {
 					switch (type) {
-						case 'classes': {
-							const classData = await this.classRepo.find({ ids })
+						case 'units': {
+							const unitData = await this.unitRepo.find({ ids })
 							return {
 								type,
-								data: classData || []
+								data: unitData || []
 							}
 						}
 						case 'students': {
@@ -196,7 +196,7 @@ export class Controller {
 
 const notificationController = new Controller(
 	notificationRepo,
-	classRepo,
+	unitRepo,
 	studentRepo
 )
 

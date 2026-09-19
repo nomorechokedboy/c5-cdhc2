@@ -63,7 +63,9 @@ type AccountKind =
 
 export default function UserForm({ onSuccess, open, setOpen }: UserFormProps) {
 	const qc = useQueryClient()
-	const { data: unitsData = [] } = useUnitsData()
+	const { data: unitsData = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 	const rolesQ = useQuery({ queryKey: ['roles'], queryFn: GetRoles })
 	const catalogQ = useQuery({
 		queryKey: ['asset-catalog', 'user-form-nganh'],

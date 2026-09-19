@@ -632,8 +632,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					level: 'battalion'
 				}
 			: undefined
-	const { data: units, isLoading: isLoadingUnits } =
-		useUnitsData(getUnitsQuery)
+	const { data: units, isLoading: isLoadingUnits } = useUnitsData(
+		getUnitsQuery,
+		{ excludeClasses: true }
+	)
 	const pendingRoomAccounts = usePendingRoomAccounts()
 	const pendingPerm = usePendingPermissions()
 	/** Ưu tiên user chờ cấp quyền; fallback tài khoản phòng */

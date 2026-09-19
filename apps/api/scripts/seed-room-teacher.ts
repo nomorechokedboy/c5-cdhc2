@@ -145,9 +145,9 @@ async function main() {
 	})
 
 	await client.execute({
-		sql: `UPDATE rooms SET class_id = (
-      SELECT id FROM classes ORDER BY id LIMIT 1
-    ) WHERE room_code = 'A-101' AND class_id IS NULL`
+		sql: `UPDATE rooms SET unit_id = (
+      SELECT id FROM units WHERE level = 2 ORDER BY id LIMIT 1
+    ) WHERE room_code = 'A-101' AND unit_id IS NULL`
 	})
 
 	client.close()

@@ -157,7 +157,7 @@ export default function TransferRecallPage() {
 	})
 
 	const treeQ = useBuildingTree()
-	const unitsQ = useUnitsData()
+	const unitsQ = useUnitsData(undefined, { excludeClasses: true })
 	/** Kho hệ thống — đích mặc định khi thu hồi */
 	const warehouseQ = useQuery({
 		queryKey: ['rooms', 'warehouse'],

@@ -3,7 +3,7 @@ import * as sqlite from 'drizzle-orm/sqlite-core'
 import { customType } from 'drizzle-orm/sqlite-core'
 import { AppError } from '../errors/index'
 import { baseSchema } from './base'
-import { Class, classes } from './classes'
+import { UnitDB, units } from './units'
 
 const PoliticalOrgEnum = customType<{ data: string; driverData: string }>({
 	dataType() {
@@ -66,10 +66,10 @@ export const students = sqlite.sqliteTable('students', {
 	achievement: sqlite.text().default('Không'),
 	disciplinaryHistory: sqlite.text().default('Không'),
 	phone: sqlite.text().default(''),
-	classId: sqlite
+	unitId: sqlite
 		.integer()
 		.notNull()
-		.references(() => classes.id),
+		.references(() => units.id),
 	cpvOfficialAt: sqlite.text(),
 	avatar: sqlite.text(),
 	siblings: sqlite.text({ mode: 'json' }).default(sql`'[]'`),
@@ -84,16 +84,21 @@ export const students = sqlite.sqliteTable('students', {
 })
 
 export const studentsRelations = relations(students, ({ one }) => ({
-	class: one(classes, {
-		fields: [students.classId],
-		references: [classes.id]
+	unit: one(units, {
+		fields: [students.unitId],
+		references: [units.id]
 	})
 }))
 
 export type StudentDB = InferSelectModel<typeof students>
 
-export type Student = Omit<StudentDB, 'classId'> & {
-	class: Omit<Class, 'studentCount'>
+/** Đơn vị cấp lớp của học viên, kèm chuỗi đơn vị cha (đại đội → tiểu đoàn) */
+export type StudentUnit = UnitDB & {
+	parent: (UnitDB & { parent: UnitDB | null }) | null
+}
+
+export type Student = Omit<StudentDB, 'unitId'> & {
+	unit: StudentUnit
 }
 
 export type StudentParam = InferInsertModel<typeof students>
@@ -118,7 +123,7 @@ export type StudentQuery = {
 	birthdayInMonth?: Month
 	birthdayInQuarter?: Quarter
 	birthdayInWeek?: boolean
-	classIds?: Array<number>
+	unitIds?: Array<number>
 	hasReligion?: boolean
 	ids?: Array<number>
 	isEthnicMinority?: boolean
@@ -197,7 +202,7 @@ export type StudentCronEvent =
 
 export type PoliticsQualityRow = {
 	category: string
-	classId: number
+	unitId: number
 	value: string | number
 	count: number
 }

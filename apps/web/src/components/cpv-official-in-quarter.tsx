@@ -31,7 +31,7 @@ export default function CpvOfficialInQuarter() {
 	const filteredClassIds = useFilteredClassIds(selectedUnits)
 	const studentQueryParams: StudentQueryParams = {
 		cpvOfficialInQuarter: quarter,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const { data: students = [], refetch: refetchStudents } =
 		useStudentData(studentQueryParams)

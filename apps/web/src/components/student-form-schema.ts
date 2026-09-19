@@ -33,7 +33,7 @@ export const personalInfoSchema = z.object({
 		.max(2_000_000)
 		.nullable(),
 	fullName: z.string().nonempty('Họ và tên không được bỏ trống'),
-	classId: z.preprocess(
+	unitId: z.preprocess(
 		(val) => {
 			if (typeof val === 'string') {
 				return Number.parseInt(val)

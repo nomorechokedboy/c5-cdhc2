@@ -148,7 +148,9 @@ export default function AssetUpdateBatchForm() {
 	const { user } = useAuth()
 	const nganhUser = useIsNganhUser()
 	const { data: tree = [], isLoading: treeLoading } = useBuildingTree()
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 
 	const [dir, setDir] = useState<Dir>('INCREASE')
 	const [reasonCode, setReasonCode] = useState('')

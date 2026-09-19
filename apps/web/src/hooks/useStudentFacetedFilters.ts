@@ -20,8 +20,8 @@ export function useStudentFacetedFilters(students: Student[]) {
 	// Class Options
 	const classOptions = classes
 		? classes.map((c) => ({
-				label: `${c.name} - ${c.unit.alias}`,
-				value: `${c.name} - ${c.unit.alias}`
+				label: `${c.name} - ${c.parent?.alias}`,
+				value: `${c.name} - ${c.parent?.alias}`
 			}))
 		: []
 

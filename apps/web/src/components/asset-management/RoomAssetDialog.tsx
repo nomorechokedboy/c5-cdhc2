@@ -103,7 +103,9 @@ export default function RoomAssetDialog({
 	onUpdate
 }: Props) {
 	const isEdit = !!asset
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 	const catalogQ = useQuery({
 		queryKey: ['asset-catalog', 'room-asset-picker'],
 		queryFn: () => GetAssetCatalog(),

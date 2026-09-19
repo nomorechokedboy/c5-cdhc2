@@ -658,7 +658,9 @@ export default function AssetImportPanel() {
 		error: treeError,
 		refetch
 	} = useBuildingTree()
-	const { data: unitsTree = [] } = useUnitsData()
+	const { data: unitsTree = [] } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 
 	const allUnits: UnitFlat[] = useMemo(() => {
 		const list: UnitFlat[] = []

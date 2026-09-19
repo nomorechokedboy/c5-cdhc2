@@ -21,7 +21,8 @@ export default function CompanyClassesTable({
 		alias: companyAlias
 	})
 	const { data: classes, refetch: refetchClasses } = useClassData({
-		unitIds: company?.id !== undefined ? [company?.id] : []
+		parentId: company?.id,
+		enabled: company?.id !== undefined
 	})
 	const handleFormSuccess = () => {
 		refetchUnits()

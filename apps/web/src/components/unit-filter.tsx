@@ -94,6 +94,6 @@ export function useFilteredClassIds(
 	return units?.flatMap((unit) =>
 		unit.children
 			?.filter((child) => selectedUnits.includes(child.id))
-			.flatMap((child) => child.classes?.map((cls) => cls.id) ?? [])
+			.flatMap((child) => child.children?.map((cls) => cls.id) ?? [])
 	)
 }

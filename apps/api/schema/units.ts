@@ -2,14 +2,19 @@ import * as sqlite from 'drizzle-orm/sqlite-core'
 import { baseSchema } from './base'
 import { AppError } from '../errors'
 import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm'
-import { Class, classes } from './classes'
 import { users } from './users'
+import { students } from './student'
 
 export class UnitLevel {
 	static readonly BATTALION = new UnitLevel(0, 'battalion')
 	static readonly COMPANY = new UnitLevel(1, 'company')
+	static readonly CLASS = new UnitLevel(2, 'class')
 
-	private static readonly values = [UnitLevel.BATTALION, UnitLevel.COMPANY]
+	private static readonly values = [
+		UnitLevel.BATTALION,
+		UnitLevel.COMPANY,
+		UnitLevel.CLASS
+	]
 
 	private constructor(
 		public readonly value: number,
@@ -60,25 +65,49 @@ const UnitLevelEnum = sqlite.customType<{
 	}
 })
 
+const UnitStatusEnum = sqlite.customType<{
+	data: 'ongoing' | 'graduated'
+	driverData: string
+}>({
+	dataType() {
+		return 'text'
+	},
+	toDriver(val) {
+		if (!['ongoing', 'graduated'].includes(val)) {
+			throw AppError.invalidArgument(
+				'status can be only ongoing | graduated'
+			)
+		}
+		return val
+	}
+})
+
+export type UnitLevelName = 'battalion' | 'company' | 'class'
+
 export const units = sqlite.sqliteTable(
 	'units',
 	{
 		...baseSchema,
 
-		alias: sqlite.text().unique().notNull(),
-		name: sqlite.text().unique().notNull(),
-		level: UnitLevelEnum('level')
-			.$type<'battalion' | 'company'>()
-			.notNull(),
+		alias: sqlite.text().notNull(),
+		name: sqlite.text().notNull(),
+		level: UnitLevelEnum('level').$type<UnitLevelName>().notNull(),
 
-		parentId: sqlite.int()
+		parentId: sqlite.int(),
+
+		// Chỉ dùng cho đơn vị cấp lớp (level = 'class')
+		description: sqlite.text(),
+		graduatedAt: sqlite.text(),
+		status: UnitStatusEnum('status')
 	},
 	(t) => [
 		sqlite.foreignKey({
 			columns: [t.parentId],
 			foreignColumns: [t.id],
 			name: 'parent_id_fk'
-		})
+		}),
+		sqlite.index('units_alias_idx').on(t.alias),
+		sqlite.index('units_parent_id_idx').on(t.parentId)
 	]
 )
 
@@ -91,7 +120,7 @@ export const unitsRelations = relations(units, ({ one, many }) => ({
 	children: many(units, {
 		relationName: 'parentChild'
 	}),
-	classes: many(classes),
+	students: many(students),
 	commanders: many(users)
 }))
 
@@ -99,15 +128,27 @@ export type UnitDB = InferSelectModel<typeof units>
 
 export type UnitParams = InferInsertModel<typeof units>
 
-type unit = Omit<UnitDB, 'parentId'>
-
-export type Unit = unit & {
+export type Unit = UnitDB & {
 	parent?: Unit | null
 	children: Unit[]
-	classes: Class[]
+	studentCount?: number
 }
 
 export type UnitQuery = {
-	level?: 'battalion' | 'company'
 	ids?: number[]
+	level?: UnitLevelName
+	parentId?: number
+	alias?: string
+	/** LIKE trên name và alias */
+	search?: string
+	limit?: number
+	offset?: number
+	/** Gắn `studentCount` (số học viên trực tiếp) vào từng đơn vị */
+	withStudentCount?: boolean
+	/** Mặc định: parent + children (kèm children của children) */
+	with?: {
+		parent?: boolean
+		children?: boolean
+		grandchildren?: boolean
+	}
 }

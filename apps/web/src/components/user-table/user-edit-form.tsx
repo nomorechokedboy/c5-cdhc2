@@ -85,7 +85,9 @@ export default function UserEditForm({
 	onClose,
 	editingUser
 }: UserFormProps) {
-	const { data: unitsData } = useUnitsData()
+	const { data: unitsData } = useUnitsData(undefined, {
+		excludeClasses: true
+	})
 	const skipUnit = positionSkipsUnit(editingUser?.position)
 
 	const { mutateAsync } = useMutation({

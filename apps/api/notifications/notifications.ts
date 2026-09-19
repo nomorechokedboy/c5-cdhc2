@@ -16,7 +16,7 @@ interface NotificationItemResponse {
 	createdAt: string
 	updatedAt: string
 
-	notifiableType: 'classes' | 'students'
+	notifiableType: 'units' | 'students'
 	notifiableId: number
 
 	notificationId: string

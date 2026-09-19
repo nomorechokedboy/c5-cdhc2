@@ -10,9 +10,9 @@ const ResourcesEnum = sqlite.customType<{ data: string; driverData: string }>({
 		return 'text'
 	},
 	toDriver(val: string) {
-		if (!['classes', 'students'].includes(val)) {
+		if (!['units', 'students'].includes(val)) {
 			throw AppError.invalidArgument(
-				'resourceType can only be classes | students'
+				'resourceType can only be units | students'
 			)
 		}
 		return val
@@ -25,7 +25,7 @@ export const notificationItems = sqlite.sqliteTable(
 		...baseSchema,
 
 		notifiableType: ResourcesEnum('notifiableType')
-			.$type<'classes' | 'students'>()
+			.$type<'units' | 'students'>()
 			.notNull(),
 		notifiableId: sqlite.int().notNull(),
 

@@ -43,7 +43,7 @@ export default function BirthdayByQuarter() {
 	)
 	const studentQueryParams: StudentQueryParams = {
 		birthdayInQuarter: quarter,
-		classIds: filteredClassIds
+		unitIds: filteredClassIds
 	}
 	const filename = `danh-sach-sinh-nhat-dong-doi-${quarter}`
 	const {

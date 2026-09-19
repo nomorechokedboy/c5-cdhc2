@@ -46,7 +46,7 @@ export default function RoomDialog({
 }: Props) {
 	const isEdit = !!room
 	const { create, update } = useRoomMutations()
-	const unitsQ = useUnitsData()
+	const unitsQ = useUnitsData(undefined, { excludeClasses: true })
 	const [roomCode, setRoomCode] = useState('')
 	const [roomName, setRoomName] = useState('')
 	const [roomType, setRoomType] = useState('')
