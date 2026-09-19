@@ -46,8 +46,10 @@ class course_export_helper
      */
     public function get_export_bytes(?string $templatePath): array
     {
-        $data = $this->prepare_export_data();
+        $data     = $this->prepare_export_data();
         $category = \core_course_category::get($this->course->category);
+        $manager  = $this->get_course_role_user('manager');
+        $teacher  = $this->get_course_role_user('editingteacher');
 
         $variables = array_merge(
             [
@@ -56,6 +58,9 @@ class course_export_helper
                 'courseshortname' => $this->course->shortname,
                 'exportdate'      => userdate(time(), '%d/%m/%Y'),
                 'exporttime'      => userdate(time(), '%H:%M:%S'),
+                'teacher_name'    => $teacher ? fullname($teacher)           : '',
+                'manager_name'    => $manager ? fullname($manager)           : '',
+                'department'      => $manager ? ($manager->department ?? '') : '',
             ],
             $data['stats']
         );
@@ -142,7 +147,7 @@ class course_export_helper
         require_capability('moodle/grade:viewall', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
-        $data = $this->prepare_export_data();
+        $data     = $this->prepare_export_data();
         $filename = clean_filename($this->course->shortname . '_course_grades.docx');
 
         if ($templatePath && file_exists($templatePath)) {
@@ -160,17 +165,61 @@ class course_export_helper
     // ────────────────────────────────────────────────────────────────────────
 
     /**
+     * Return the first user record (with department) for a given role archetype
+     * assigned at the course context.
+     *
+     * Returns null if no such assignment exists.
+     *
+     * @param  string        $archetype  e.g. 'editingteacher', 'manager'
+     * @return \stdClass|null
+     */
+    protected function get_course_role_user(string $archetype): ?\stdClass
+    {
+        global $DB;
+
+        $roleids = $DB->get_fieldset_select('role', 'id', 'archetype = :arch', ['arch' => $archetype]);
+
+        if (empty($roleids)) {
+            return null;
+        }
+
+        list($rolesql, $roleparams) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'rid');
+
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.department
+                  FROM {user} u
+                  JOIN {role_assignments} ra ON ra.userid = u.id
+                 WHERE ra.contextid = :contextid
+                   AND ra.roleid    $rolesql
+                   AND u.deleted    = 0
+                   AND u.suspended  = 0
+              ORDER BY u.lastname, u.firstname
+                 LIMIT 1";
+
+        $params = array_merge(['contextid' => $this->context->id], $roleparams);
+        $user   = $DB->get_record_sql($sql, $params);
+
+        return $user ?: null;
+    }
+
+    /**
      * Build the $variables array including classname and all classification stats.
      */
     protected function build_variables(array $data): array
     {
+        $category = \core_course_category::get($this->course->category);
+        $manager  = $this->get_course_role_user('manager');
+        $teacher  = $this->get_course_role_user('editingteacher');
+
         return array_merge(
             [
                 'coursename'      => $this->course->fullname,
-                'classname'       => $this->course->shortname,
+                'classname'       => $category->idnumber,
                 'courseshortname' => $this->course->shortname,
                 'exportdate'      => userdate(time(), '%d/%m/%Y'),
                 'exporttime'      => userdate(time(), '%H:%M:%S'),
+                'teacher_name'    => $teacher ? fullname($teacher)           : '',
+                'manager_name'    => $manager ? fullname($manager)           : '',
+                'department'      => $manager ? ($manager->department ?? '') : '',
             ],
             $data['stats']
         );
@@ -211,9 +260,23 @@ class course_export_helper
             $grades1T  = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_1T]);
             $gradesThi = $this->get_student_grades($student->id, $gradeItems[self::EXAM_TYPE_THI]);
 
-            $tkmh    = $this->calculate_tkmh($grades15P, $grades1T, $gradesThi);
-            $tkmh = $tkmh !== null ? round($tkmh, 1) : null;
-            $xepLoai = $this->get_classification($tkmh);
+            $tbkt        = $this->calculate_tbkt($grades15P, $grades1T);
+            $tbktRounded = round($tbkt, 1);
+
+            // tkmh_1 — calculated from thi_01 (index 0)
+            $thi1  = isset($gradesThi[0]) ? (float) $gradesThi[0] : null;
+            $tkmh1 = $thi1 !== null ? round($this->calculate_tkmh($tbkt, $thi1), 1) : null;
+
+            // tkmh_2 — calculated from thi_02 (index 1); null if no second attempt
+            $thi2  = isset($gradesThi[1]) ? (float) $gradesThi[1] : null;
+            $tkmh2 = $thi2 !== null ? round($this->calculate_tkmh($tbkt, $thi2), 1) : null;
+
+            // tkmh — authoritative: tkmh_2 if it exists, otherwise tkmh_1
+            $tkmh = $tkmh2 !== null ? $tkmh2 : $tkmh1;
+
+            // xep_loai — based on authoritative tkmh; xep_loai_2 only when tkmh_2 exists
+            $xepLoai  = $this->get_classification($tkmh);
+            $xepLoai2 = $tkmh2 !== null ? $this->get_classification($tkmh2) : '';
 
             // Numeric row (Excel)
             $row = [$rowNum, fullname($student), $student->idnumber ?: ''];
@@ -223,23 +286,30 @@ class course_export_helper
             for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_1T])); $i++) {
                 $row[] = isset($grades1T[$i]) ? round($grades1T[$i], 1) : '';
             }
-            $row[] = isset($gradesThi[0]) ? round($gradesThi[0], 1) : '';
-            $row[] = isset($gradesThi[1]) ? round($gradesThi[1], 1) : '';
-            $row[] = $tkmh !== null ? $tkmh : '';
+            $row[] = $thi1  !== null ? round($thi1, 1)  : '';
+            $row[] = $thi2  !== null ? round($thi2, 1)  : '';
+            $row[] = $tkmh1 !== null ? $tkmh1           : '';
+            $row[] = $tkmh2 !== null ? $tkmh2           : '';
+            $row[] = $tkmh  !== null ? $tkmh            : '';
             $row[] = $xepLoai;
+            $row[] = $xepLoai2;
             $row[] = '';
             $rows[] = $row;
 
             // Associative row (DOCX template)
             $kv = [
-                'stt'       => $rowNum,
-                'fullname'  => fullname($student),
-                'firstname' => $student->firstname,
-                'lastname'  => $student->lastname,
-                'idnumber'  => $student->idnumber ?: '',
-                'tkmh'      => $tkmh !== null ? $tkmh : '',
-                'xep_loai'  => $xepLoai,
-                'ghi_chu'   => '',
+                'stt'        => $rowNum,
+                'fullname'   => fullname($student),
+                'firstname'  => $student->firstname,
+                'lastname'   => $student->lastname,
+                'idnumber'   => $student->idnumber ?: '',
+                'tbkt_grade' => $tbktRounded,
+                'tkmh_1'     => $tkmh1 !== null ? $tkmh1 : '',
+                'tkmh_2'     => $tkmh2 !== null ? $tkmh2 : '',
+                'tkmh'       => $tkmh  !== null ? $tkmh  : '',
+                'xep_loai'   => $xepLoai,
+                'xep_loai_2' => $xepLoai2,
+                'ghi_chu'    => '',
             ];
             for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_15P])); $i++) {
                 $kv['15p_' . sprintf('%02d', $i + 1)] = isset($grades15P[$i]) ? round($grades15P[$i], 1) : '';
@@ -247,21 +317,15 @@ class course_export_helper
             for ($i = 0; $i < max(3, count($gradeItems[self::EXAM_TYPE_1T])); $i++) {
                 $kv['1t_' . sprintf('%02d', $i + 1)] = isset($grades1T[$i]) ? round($grades1T[$i], 1) : '';
             }
-            $kv['thi_01'] = isset($gradesThi[0]) ? round($gradesThi[0], 1) : '';
-            $kv['thi_02'] = isset($gradesThi[1]) ? round($gradesThi[1], 1) : '';
+            $kv['thi_01'] = $thi1 !== null ? round($thi1, 1) : '';
+            $kv['thi_02'] = $thi2 !== null ? round($thi2, 1) : '';
             $rows_kv[] = $kv;
 
             $rowNum++;
         }
 
         // ── Classification statistics ────────────────────────────────────
-        // Counts based on the final tkmh value of each student.
-        // Thresholds:
-        //   XS (Xuất sắc) : tkmh >= 9
-        //   G  (Giỏi)     : 8  <= tkmh < 9
-        //   Khá           : 7  <= tkmh < 8
-        //   Đạt           : 5  <= tkmh < 7
-        //   Không đạt     : tkmh < 5
+        // Uses the authoritative grade per student: tkmh_2 when present, else tkmh.
         $counts = [
             'xuat_sac'  => 0,
             'gioi'      => 0,
@@ -272,43 +336,38 @@ class course_export_helper
         $totalWithGrade = 0;
 
         foreach ($rows_kv as $kv) {
-            $raw = $kv['tkmh'];
+            $raw = ($kv['tkmh'] !== '') ? $kv['tkmh'] : null;
             if ($raw === '' || $raw === null) {
                 continue;
             }
             $t = (float) $raw;
             $totalWithGrade++;
             if ($t >= 9)      $counts['xuat_sac']++;
-            if ($t >= 8)  $counts['gioi']++;
-            if ($t >= 7)  $counts['kha']++;
-            if ($t >= 5)  $counts['dat']++;
-            if ($t < 5) $counts['khong_dat']++;
+            elseif ($t >= 8)  $counts['gioi']++;
+            elseif ($t >= 7)  $counts['kha']++;
+            elseif ($t >= 5)  $counts['dat']++;
+            else              $counts['khong_dat']++;
         }
 
-        // Format percentage: one decimal place, no trailing zero (e.g. 33.3 or 100)
         $pct = static function (int $count) use ($totalWithGrade): string {
             if ($totalWithGrade === 0) {
                 return '0';
             }
             $p = round($count / $totalWithGrade * 100, 1);
-            // Strip unnecessary trailing ".0"
             return rtrim(rtrim(number_format($p, 1, '.', ''), '0'), '.');
         };
 
         $stats = [
-            // Counts
             'xuat_sac_count'  => $counts['xuat_sac'],
             'gioi_count'      => $counts['gioi'],
             'kha_count'       => $counts['kha'],
             'dat_count'       => $counts['dat'],
             'khong_dat_count' => $counts['khong_dat'],
-            // Percentages
             'xuat_sac_pct'    => $pct($counts['xuat_sac']),
             'gioi_pct'        => $pct($counts['gioi']),
             'kha_pct'         => $pct($counts['kha']),
             'dat_pct'         => $pct($counts['dat']),
             'khong_dat_pct'   => $pct($counts['khong_dat']),
-            // Total
             'total_students'  => $totalWithGrade,
         ];
 
@@ -343,7 +402,7 @@ class course_export_helper
                     $item->courseid
                 );
                 if ($cm) {
-                    $cmids[]        = $cm->id;
+                    $cmids[]          = $cm->id;
                     $itemmap[$cm->id] = $item;
                 }
             }
@@ -447,8 +506,11 @@ class course_export_helper
         }
         $headers[] = 'Thi-01';
         $headers[] = 'Thi-02';
+        $headers[] = 'TKMH-1';
+        $headers[] = 'TKMH-2';
         $headers[] = 'TKMH';
         $headers[] = 'Xếp loại';
+        $headers[] = 'Xếp loại 2';
         $headers[] = 'Ghi chú';
 
         return $headers;
@@ -458,7 +520,7 @@ class course_export_helper
     {
         global $DB;
 
-        $context       = \context_course::instance($this->course->id);
+        $context        = \context_course::instance($this->course->id);
         $studentroleids = $DB->get_fieldset_select('role', 'id', 'archetype = :arch', ['arch' => 'student']);
 
         if (empty($studentroleids)) {
@@ -473,13 +535,13 @@ class course_export_helper
                   JOIN {user_enrolments} ue ON ue.userid = u.id
                   JOIN {enrol} e ON e.id = ue.enrolid
                   JOIN {role_assignments} ra ON ra.userid = u.id
-                 WHERE e.courseid = :courseid
-                   AND ra.contextid = :contextid
-                   AND ra.roleid $rolesql
-                   AND ue.status = 0
-                   AND e.status  = 0
-                   AND u.deleted   = 0
-                   AND u.suspended = 0
+                 WHERE e.courseid    = :courseid
+                   AND ra.contextid  = :contextid
+                   AND ra.roleid     $rolesql
+                   AND ue.status     = 0
+                   AND e.status      = 0
+                   AND u.deleted     = 0
+                   AND u.suspended   = 0
               ORDER BY u.lastname, u.firstname";
 
         return $DB->get_records_sql(
@@ -501,24 +563,42 @@ class course_export_helper
         return $grades;
     }
 
-    protected function calculate_tkmh(array $g15P, array $g1T, array $gThi): ?float
+    /**
+     * Calculate TBKT (Trung bình kiểm tra):
+     *   (avg(15P) + avg(1T) × 2) / 3
+     *
+     * Returns 0.0 when both arrays are empty.
+     *
+     * @param  float[] $g15P
+     * @param  float[] $g1T
+     * @return float
+     */
+    protected function calculate_tbkt(array $g15P, array $g1T): float
     {
-        $avg15P = !empty($g15P) ? array_sum($g15P) / count($g15P) : 0;
-        $avg1T  = !empty($g1T)  ? array_sum($g1T)  / count($g1T)  : 0;
-        $avgThi = !empty($gThi) ? array_sum($gThi) / count($gThi) : 0;
+        $avg15P = !empty($g15P) ? array_sum($g15P) / count($g15P) : 0.0;
+        $avg1T  = !empty($g1T)  ? array_sum($g1T)  / count($g1T)  : 0.0;
 
-        return (($avg15P + $avg1T * 2) / 3) * 0.4 + $avgThi * 0.6;
+        return ($avg15P + $avg1T * 2) / 3;
+    }
+
+    /**
+     * Calculate TKMH for a single thi attempt:
+     *   tbkt × 0.4 + thiGrade × 0.6
+     *
+     * Called once per thi attempt at the call site. The caller is responsible
+     * for checking array bounds before passing a thi grade in.
+     *
+     * @param  float $tbkt      Pre-calculated TBKT value
+     * @param  float $thiGrade  The specific thi grade to use (thi_01 or thi_02)
+     * @return float
+     */
+    protected function calculate_tkmh(float $tbkt, float $thiGrade): float
+    {
+        return $tbkt * 0.4 + $thiGrade * 0.6;
     }
 
     /**
      * Returns the display label for a given TKMH score.
-     *
-     * Thresholds match the classification stats computed in prepare_export_data():
-     *   >= 9  → XS
-     *   >= 8  → G
-     *   >= 7  → Khá
-     *   >= 5  → Đạt   (previously "TB")
-     *   < 5   → Không đạt  (previously "Yếu")
      */
     protected function get_classification(?float $tkmh): string
     {

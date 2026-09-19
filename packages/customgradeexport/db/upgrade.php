@@ -35,7 +35,7 @@ function xmldb_local_customgradeexport_upgrade($oldversion)
     }
 
     // ── 2026040201 : add s3key, ext, filesize ─────────────────────────────
-    if ($oldversion < 2026040201) {
+    if ($oldversion < 2026040202) {
         $table = new xmldb_table('local_customgradeexport_tpl');
 
         $field = new xmldb_field('s3key', XMLDB_TYPE_CHAR, '500', null, XMLDB_NOTNULL, null, '');
@@ -53,7 +53,7 @@ function xmldb_local_customgradeexport_upgrade($oldversion)
             $dbman->add_field($table, $field);
         }
 
-        upgrade_plugin_savepoint(true, 2026040201, 'local', 'customgradeexport');
+        upgrade_plugin_savepoint(true, 2026040202, 'local', 'customgradeexport');
     }
 
     // ── 2026040202 : add status, migration_started; index on status ───────

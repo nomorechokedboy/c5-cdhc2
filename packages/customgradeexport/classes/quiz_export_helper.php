@@ -12,6 +12,7 @@ namespace local_customgradeexport;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/excellib.class.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
@@ -48,7 +49,7 @@ class quiz_export_helper
         $this->context = \context_module::instance($cm->id);
     }
 
-    // ── public export methods (unchanged signatures) ──────────────────────
+    // ── public export methods ─────────────────────────────────────────────
 
     public function export_grades($templatePath = null): void
     {
@@ -88,28 +89,62 @@ class quiz_export_helper
         }
     }
 
-    // ── core: one row per student ─────────────────────────────────────────
+    // ── role helper ───────────────────────────────────────────────────────
 
     /**
-     * Return exactly one attempt record per enrolled student, chosen
-     * according to $this->quiz->grademethod:
+     * Return the first user record (with department) for a given role archetype
+     * assigned at the course context.
      *
-     *   QUIZ_GRADEHIGHEST (1) — attempt with the highest rescaled grade
-     *   QUIZ_GRADEAVERAGE  (2) — virtual row whose grade is the average
-     *   QUIZ_ATTEMPTFIRST  (3) — chronologically first *finished* attempt
-     *   QUIZ_ATTEMPTLAST   (4) — chronologically last  *finished* attempt
+     * @param  string        $archetype  e.g. 'editingteacher', 'manager'
+     * @return \stdClass|null
+     */
+    protected function get_course_role_user(string $archetype): ?\stdClass
+    {
+        global $DB;
+
+        $courseContext = \context_course::instance($this->course->id);
+
+        $roleids = $DB->get_fieldset_select('role', 'id', 'archetype = :arch', ['arch' => $archetype]);
+
+        if (empty($roleids)) {
+            return null;
+        }
+
+        list($rolesql, $roleparams) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'rid');
+
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.department
+                  FROM {user} u
+                  JOIN {role_assignments} ra ON ra.userid = u.id
+                 WHERE ra.contextid = :contextid
+                   AND ra.roleid    $rolesql
+                   AND u.deleted    = 0
+                   AND u.suspended  = 0
+              ORDER BY u.lastname, u.firstname
+                 LIMIT 1";
+
+        $params = array_merge(['contextid' => $courseContext->id], $roleparams);
+        $user   = $DB->get_record_sql($sql, $params);
+
+        return $user ?: null;
+    }
+
+    // ── core: one row per student ─────────────────────────────────────────
+
+      /**
+     * Return exactly one attempt record per enrolled student, for display
+     * purposes only (timestart/timefinish/attempt count/state).
      *
-     * Students who have never attempted are included with null grades so
-     * the roster is always complete.
+     * The grade itself is NEVER computed here — it always comes from
+     * {grade_grades} via get_final_grades_by_user(), so it's guaranteed
+     * to match the Gradebook (and therefore course_export_helper)
+     * regardless of grademethod, manual overrides, or regrades.
      *
-     * @return array  Keyed by userid; each value is a \stdClass attempt row
-     *                augmented with a `computed_grade` float|null field.
+     * @return array  Keyed by userid
      */
     protected function get_best_attempt_per_student(): array
     {
         global $DB;
 
-        // ── 1. All finished attempts for this quiz ────────────────────────
         $sql = "
             SELECT qa.*,
                    u.id        AS userid,
@@ -128,104 +163,100 @@ class quiz_export_helper
 
         $allAttempts = $DB->get_records_sql($sql, ['quizid' => $this->quiz->id]);
 
-        // ── 2. Group by userid ────────────────────────────────────────────
-        $byUser = [];   // userid => attempt[]
+        $byUser = [];
         foreach ($allAttempts as $attempt) {
             $byUser[$attempt->userid][] = $attempt;
         }
 
-        // ── 3. Also collect every enrolled student (roster completeness) ──
-        $enrolled = $this->get_enrolled_student_stubs();
-
-        // ── 4. Pick / synthesise the representative attempt ───────────────
-        $result = [];
+        $enrolled    = $this->get_enrolled_student_stubs();
+        $finalGrades = $this->get_final_grades_by_user();
+        $result      = [];
+        $grademethod = (int) ($this->quiz->grademethod ?? QUIZ_GRADEHIGHEST);
 
         foreach ($enrolled as $userid => $stub) {
             $attempts = $byUser[$userid] ?? [];
 
             if (empty($attempts)) {
-                // Student has never attempted — include a blank row.
-                $stub->computed_grade = null;
-                $result[$userid]      = $stub;
-                continue;
+                $rep = $stub;
+            } else {
+                $rep = match ($grademethod) {
+                    QUIZ_ATTEMPTFIRST => $attempts[0],
+                    QUIZ_ATTEMPTLAST, QUIZ_GRADEAVERAGE => end($attempts),
+                    default => $this->pick_attempt_with_highest_sumgrades($attempts),
+                };
             }
 
-            $grademethod = (int) ($this->quiz->grademethod ?? QUIZ_GRADEHIGHEST);
+            // Grade always comes from the gradebook — never recomputed here.
+            $rep->computed_grade = $finalGrades[$userid] ?? null;
 
-            switch ($grademethod) {
-
-                case QUIZ_ATTEMPTFIRST:
-                    // Already sorted ASC by attempt number above.
-                    $best = $attempts[0];
-                    $best->computed_grade = $this->rescale($best->sumgrades);
-                    break;
-
-                case QUIZ_ATTEMPTLAST:
-                    $best = end($attempts);
-                    $best->computed_grade = $this->rescale($best->sumgrades);
-                    break;
-
-                case QUIZ_GRADEAVERAGE:
-                    // Synthesise a virtual row from the last attempt but
-                    // override the grade with the true average.
-                    $best = end($attempts);
-                    $grades = array_map(
-                        fn($a) => $this->rescale($a->sumgrades),
-                        $attempts
-                    );
-                    $validGrades = array_filter(
-                        $grades,
-                        fn($g) => $g !== null
-                    );
-                    $best->computed_grade = $validGrades
-                        ? array_sum($validGrades) / count($validGrades)
-                        : null;
-                    break;
-
-                case QUIZ_GRADEHIGHEST:
-                default:
-                    // Pick the attempt whose rescaled grade is highest.
-                    // On a tie, prefer the later attempt (more recent).
-                    $best      = null;
-                    $bestGrade = PHP_INT_MIN;
-
-                    foreach ($attempts as $attempt) {
-                        $g = $this->rescale($attempt->sumgrades);
-                        if ($g !== null && $g >= $bestGrade) {
-                            $bestGrade = $g;
-                            $best      = $attempt;
-                        }
-                    }
-
-                    // Safety: if no attempt had a numeric grade, use the last.
-                    if ($best === null) {
-                        $best = end($attempts);
-                    }
-                    $best->computed_grade = $this->rescale($best->sumgrades);
-                    break;
-            }
-
-            $result[$userid] = $best;
+            $result[$userid] = $rep;
         }
 
         return $result;
     }
 
     /**
-     * Rescale raw sumgrades to the quiz's configured grade scale.
-     * Returns null if sumgrades is null or quiz.grade is 0.
+     * Pick the attempt with the highest raw sumgrades, for display-metadata
+     * purposes when grademethod is QUIZ_GRADEHIGHEST. On a tie, prefers the
+     * later attempt. This does NOT determine the exported grade value.
      */
-    protected function rescale(?float $sumgrades): ?float
+    protected function pick_attempt_with_highest_sumgrades(array $attempts)
     {
-        if ($sumgrades === null || (float) $this->quiz->grade === 0.0) {
-            return null;
+        $best = $attempts[0];
+        foreach ($attempts as $a) {
+            if (
+                $a->sumgrades !== null
+                && ($best->sumgrades === null || $a->sumgrades >= $best->sumgrades)
+            ) {
+                $best = $a;
+            }
         }
-        return quiz_rescale_grade($sumgrades, $this->quiz, false);
+        return $best;
     }
 
     /**
-     * Return a lightweight stub for every student currently enrolled,
-     * so the export roster matches the gradebook even for non-attempters.
+     * Fetch the grade_item row for this quiz activity.
+     */
+    protected function get_quiz_grade_item(): ?\grade_item
+    {
+        return \grade_item::fetch([
+            'itemtype'     => 'mod',
+            'itemmodule'   => 'quiz',
+            'iteminstance' => $this->quiz->id,
+            'courseid'     => $this->course->id,
+        ]) ?: null;
+    }
+
+    /**
+     * Authoritative final grades from the Gradebook, keyed by userid.
+     * Mirrors course_export_helper::get_student_grades() so both exports
+     * are guaranteed to agree, regardless of grademethod, overrides, or
+     * regrades.
+     *
+     * @return float[] userid => finalgrade (already on the quiz's grade scale)
+     */
+    protected function get_final_grades_by_user(): array
+    {
+        global $DB;
+
+        $item = $this->get_quiz_grade_item();
+        if (!$item) {
+            return [];
+        }
+
+        $records = $DB->get_records('grade_grades', ['itemid' => $item->id], '', 'userid, finalgrade');
+
+        $out = [];
+        foreach ($records as $r) {
+            if ($r->finalgrade !== null) {
+                $out[(int) $r->userid] = (float) $r->finalgrade;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Return a lightweight stub for every enrolled student.
      *
      * @return \stdClass[]  Keyed by userid
      */
@@ -233,13 +264,9 @@ class quiz_export_helper
     {
         global $DB;
 
-        $context        = $this->context;
         $courseContext  = \context_course::instance($this->course->id);
         $studentRoleIds = $DB->get_fieldset_select(
-            'role',
-            'id',
-            'archetype = :arch',
-            ['arch' => 'student']
+            'role', 'id', 'archetype = :arch', ['arch' => 'student']
         );
 
         if (empty($studentRoleIds)) {
@@ -247,9 +274,7 @@ class quiz_export_helper
         }
 
         list($rolesql, $roleparams) = $DB->get_in_or_equal(
-            $studentRoleIds,
-            SQL_PARAMS_NAMED,
-            'rid'
+            $studentRoleIds, SQL_PARAMS_NAMED, 'rid'
         );
 
         $sql = "
@@ -280,7 +305,6 @@ class quiz_export_helper
 
         $stubs = [];
         foreach ($DB->get_records_sql($sql, $params) as $row) {
-            // Minimal fields needed so a "no attempt" row renders cleanly.
             $stub              = new \stdClass();
             $stub->userid      = $row->userid;
             $stub->firstname   = $row->firstname;
@@ -289,7 +313,6 @@ class quiz_export_helper
             $stub->email       = $row->email;
             $stub->institution = $row->institution ?? '';
             $stub->department  = $row->department  ?? '';
-            // Attempt-specific fields default to "no attempt" values.
             $stub->attempt     = null;
             $stub->state       = null;
             $stub->sumgrades   = null;
@@ -301,7 +324,7 @@ class quiz_export_helper
         return $stubs;
     }
 
-    // ── data preparation (one row per student) ────────────────────────────
+    // ── data preparation ──────────────────────────────────────────────────
 
     protected function prepare_export_data(): array
     {
@@ -322,14 +345,12 @@ class quiz_export_helper
             'Thời gian làm bài',
         ];
 
-        $bestAttempts = $this->get_best_attempt_per_student();
+        $bestAttempts  = $this->get_best_attempt_per_student();
+        $attemptCounts = $this->count_attempts_per_student();
 
         $rows    = [];
         $rows_kv = [];
         $rowNum  = 1;
-
-        // Count how many finished attempts each student has (for "Số lần thi").
-        $attemptCounts = $this->count_attempts_per_student();
 
         foreach ($bestAttempts as $userid => $attempt) {
             $grade      = $attempt->computed_grade ?? null;
@@ -344,7 +365,6 @@ class quiz_export_helper
             }
 
             $attemptCount = $attemptCounts[$userid] ?? 0;
-            $stateLabel   = $attempt->state ? $this->get_state_display($attempt->state) : '-';
 
             $row = [
                 $rowNum,
@@ -416,26 +436,30 @@ class quiz_export_helper
         return $counts;
     }
 
-    // ── template / streaming helpers (unchanged) ──────────────────────────
+    // ── template / streaming helpers ──────────────────────────────────────
 
     protected function export_with_excel_template(array $data, string $templatePath): void
     {
         $category = \core_course_category::get($this->course->category);
+        $manager  = $this->get_course_role_user('manager');
+        $teacher  = $this->get_course_role_user('editingteacher');
+
         $variables = [
             'coursename'   => $this->course->fullname,
             'classname'    => $category->idnumber,
             'activityname' => $this->quiz->name,
             'exportdate'   => userdate(time(), '%d/%m/%Y'),
             'exporttime'   => userdate(time(), '%H:%M:%S'),
+            'teacher_name' => $teacher ? fullname($teacher)          : '',
+            'manager_name' => $manager ? fullname($manager)          : '',
+            'department'   => $manager ? ($manager->department ?? '') : '',
         ];
+
         $filename = clean_filename(
             $this->course->shortname . '_' . $this->quiz->name . '_grades.xlsx'
         );
         excel_template_processor::export_from_template(
-            $templatePath,
-            $variables,
-            $data,
-            $filename
+            $templatePath, $variables, $data, $filename
         );
     }
 
@@ -445,13 +469,20 @@ class quiz_export_helper
         string $filename
     ): void {
         $category = \core_course_category::get($this->course->category);
+        $manager  = $this->get_course_role_user('manager');
+        $teacher  = $this->get_course_role_user('editingteacher');
+
         $variables = [
             'coursename'   => $this->course->fullname,
             'classname'    => $category->idnumber,
             'activityname' => $this->quiz->name,
             'exportdate'   => userdate(time(), '%d/%m/%Y'),
             'exporttime'   => userdate(time(), '%H:%M:%S'),
+            'teacher_name' => $teacher ? fullname($teacher)          : '',
+            'manager_name' => $manager ? fullname($manager)          : '',
+            'department'   => $manager ? ($manager->department ?? '') : '',
         ];
+
         docx_exporter::export_from_template($templatePath, $variables, $data, $filename);
     }
 
@@ -487,3 +518,4 @@ class quiz_export_helper
         exit;
     }
 }
+

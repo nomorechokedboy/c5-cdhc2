@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Assignment export helper class - Enhanced with DOCX and template support
+ * Assignment export helper class
  *
  * @package    local_customgradeexport
  * @copyright  2024 Your Name
@@ -15,222 +15,277 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/excellib.class.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-/**
- * Helper class for exporting assignment grades
- */
 class assign_export_helper
 {
 
-    /** @var stdClass Assignment instance */
+    /** @var \stdClass Assignment instance */
     protected $assignment;
 
-    /** @var stdClass Course module */
+    /** @var \stdClass Course module */
     protected $cm;
 
-    /** @var stdClass Course */
+    /** @var \stdClass Course */
     protected $course;
 
-    /** @var context_module Context */
+    /** @var \context_module Context */
     protected $context;
 
-    /**
-     * Constructor
-     *
-     * @param stdClass $assignment Assignment instance
-     * @param stdClass $cm Course module
-     * @param stdClass $course Course
-     */
     public function __construct($assignment, $cm, $course)
     {
         $this->assignment = $assignment;
-        $this->cm = $cm;
-        $this->course = $course;
-        $this->context = \context_module::instance($cm->id);
+        $this->cm         = $cm;
+        $this->course     = $course;
+        $this->context    = \context_module::instance($cm->id);
     }
 
+    // ── role helper ───────────────────────────────────────────────────────
+
     /**
-     * Export assignment grades to Excel
+     * Return the first user record (with department) for a given role archetype
+     * assigned at the course context.
      *
-     * @param string|null $templatePath Optional path to template file
+     * @param  string        $archetype  e.g. 'editingteacher', 'manager'
+     * @return \stdClass|null
      */
+    protected function get_course_role_user(string $archetype): ?\stdClass
+    {
+        global $DB;
+
+        $courseContext = \context_course::instance($this->course->id);
+        $roleids       = $DB->get_fieldset_select('role', 'id', 'archetype = :arch', ['arch' => $archetype]);
+
+        if (empty($roleids)) {
+            return null;
+        }
+
+        list($rolesql, $roleparams) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'rid');
+
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.department
+                  FROM {user} u
+                  JOIN {role_assignments} ra ON ra.userid = u.id
+                 WHERE ra.contextid = :contextid
+                   AND ra.roleid    $rolesql
+                   AND u.deleted    = 0
+                   AND u.suspended  = 0
+              ORDER BY u.lastname, u.firstname
+                 LIMIT 1";
+
+        $params = array_merge(['contextid' => $courseContext->id], $roleparams);
+        $user   = $DB->get_record_sql($sql, $params);
+
+        return $user ?: null;
+    }
+
+    // ── public export methods ─────────────────────────────────────────────
+
     public function export_grades($templatePath = null)
     {
-        global $CFG;
-
         require_capability('mod/assign:grade', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
-        // Get assignment instance
         $assign = new \assign($this->context, $this->cm, $this->course);
-
-        // Get submissions and grades
-        $data = $this->prepare_export_data($assign);
+        $data   = $this->prepare_export_data($assign);
 
         if ($templatePath && file_exists($templatePath)) {
-            // Export with template
             $this->export_with_excel_template($data, $templatePath);
         } else {
-            // Send standard download
             $this->send_excel_download($data);
         }
     }
 
-    /**
-     * Export assignment grades to Excel with template
-     *
-     * @param string $templatePath Path to template file
-     */
     public function export_grades_excel($templatePath)
     {
         $this->export_grades($templatePath);
     }
 
-    /**
-     * Export assignment grades to DOCX
-     *
-     * @param string|null $templatePath Optional path to template file
-     */
     public function export_grades_docx($templatePath = null)
     {
-        global $CFG;
-
         require_capability('mod/assign:grade', $this->context);
         require_capability('local/customgradeexport:export', $this->context);
 
-        // Get assignment instance
-        $assign = new \assign($this->context, $this->cm, $this->course);
-
-        // Get submissions and grades
-        $data = $this->prepare_export_data($assign);
-
-        $filename = clean_filename($this->course->shortname . '_' .
-            $this->assignment->name . '_grades.docx');
+        $assign   = new \assign($this->context, $this->cm, $this->course);
+        $data     = $this->prepare_export_data($assign);
+        $filename = clean_filename(
+            $this->course->shortname . '_' . $this->assignment->name . '_grades.docx'
+        );
 
         if ($templatePath && file_exists($templatePath)) {
-            // Use provided template
             $this->export_with_template($data, $templatePath, $filename);
         } else {
-            // Use default table format
-            docx_exporter::export_table($data, $filename);
+            docx_exporter::export_table(
+                array_merge([$data['headers']], $data['rows']),
+                $filename
+            );
         }
     }
 
+    // ── template helpers ──────────────────────────────────────────────────
+
     /**
-     * Export using Excel template
-     *
-     * @param array $data Export data
-     * @param string $templatePath Template file path
+     * Build the shared variables array used by both Excel and DOCX template exports.
      */
-    protected function export_with_excel_template($data, $templatePath)
+    protected function build_variables(): array
     {
-        // Prepare variables for template
         $category = \core_course_category::get($this->course->category);
-        $variables = [
+        $manager  = $this->get_course_role_user('manager');
+        $teacher  = $this->get_course_role_user('editingteacher');
+
+        return [
             'coursename'   => $this->course->fullname,
             'classname'    => $category->idnumber,
             'activityname' => $this->assignment->name,
             'exportdate'   => userdate(time(), '%d/%m/%Y'),
             'exporttime'   => userdate(time(), '%H:%M:%S'),
+            'teacher_name' => $teacher ? fullname($teacher)           : '',
+            'manager_name' => $manager ? fullname($manager)           : '',
+            'department'   => $manager ? ($manager->department ?? '') : '',
         ];
-
-        $filename = clean_filename($this->course->shortname . '_' .
-            $this->assignment->name . '_grades.xlsx');
-
-        // Use Excel template processor
-        excel_template_processor::export_from_template($templatePath, $variables, $data, $filename);
     }
 
-    /**
-     * Export using DOCX template
-     *
-     * @param array $data Export data
-     * @param string $templatePath Template file path
-     * @param string $filename Output filename
-     */
-    protected function export_with_template($data, $templatePath, $filename)
+    protected function export_with_excel_template(array $data, string $templatePath): void
     {
-        // Prepare variables for template
-        $category = \core_course_category::get($this->course->category);
-        $variables = [
-            'coursename'   => $this->course->fullname,
-            'classname'    => $category->idnumber,
-            'activityname' => $this->assignment->name,
-            'exportdate'   => userdate(time(), '%d/%m/%Y'),
-            'exporttime'   => userdate(time(), '%H:%M:%S'),
-        ];
-
-        // Export
-        docx_exporter::export_from_template($templatePath, $variables, $data, $filename);
+        $filename = clean_filename(
+            $this->course->shortname . '_' . $this->assignment->name . '_grades.xlsx'
+        );
+        excel_template_processor::export_from_template(
+            $templatePath,
+            $this->build_variables(),
+            $data,
+            $filename
+        );
     }
 
+    protected function export_with_template(array $data, string $templatePath, string $filename): void
+    {
+        docx_exporter::export_from_template(
+            $templatePath,
+            $this->build_variables(),
+            $data,
+            $filename
+        );
+    }
+
+    // ── data preparation ──────────────────────────────────────────────────
+
     /**
-     * Prepare data for export
+     * Return every enrolled student as a stub with all display fields populated.
+     * Mirrors the same method in quiz_export_helper.
      *
-     * @param assign $assign Assignment instance
-     * @return array 2D array of export data
+     * @return \stdClass[]  Keyed by userid
      */
-    protected function prepare_export_data($assign)
+    protected function get_enrolled_student_stubs(): array
     {
         global $DB;
 
-        // Headers
-        $headers = [
-            'No',
-            'First name',
-            'Last name',
-            'ID number',
-            'Institution',
-            'Department',
-            'Email',
-            'Status',
-            'Grade',
-            'Out of',
-            'Percentage',
-            'Time submitted',
-            'Time marked',
-            'Grader',
-            'Feedback comments',
-        ];
+        $courseContext  = \context_course::instance($this->course->id);
+        $studentRoleIds = $DB->get_fieldset_select(
+            'role', 'id', 'archetype = :arch', ['arch' => 'student']
+        );
 
-        $data = [];
-        $data[] = $headers;
-
-        // Get all participants with their org data
-        $participants = $assign->list_participants(null, true);
-
-        if (empty($participants)) {
-            return $data; // Return just headers if no participants
+        if (empty($studentRoleIds)) {
+            return [];
         }
 
-        // Get user org data in bulk for efficiency
-        $userids = array_keys($participants);
-        list($insql, $params) = $DB->get_in_or_equal($userids);
-        $userorgdata = $DB->get_records_select('user', "id $insql", $params, '', 'id, institution, department');
+        list($rolesql, $roleparams) = $DB->get_in_or_equal(
+            $studentRoleIds, SQL_PARAMS_NAMED, 'rid'
+        );
+
+        $sql = "
+            SELECT DISTINCT u.id   AS userid,
+                   u.firstname,
+                   u.lastname,
+                   u.idnumber,
+                   u.email,
+                   u.institution,
+                   u.department
+              FROM {user} u
+              JOIN {user_enrolments} ue ON ue.userid  = u.id
+              JOIN {enrol}            e  ON e.id       = ue.enrolid
+              JOIN {role_assignments} ra ON ra.userid  = u.id
+             WHERE e.courseid      = :courseid
+               AND ra.contextid   = :contextid
+               AND ra.roleid      $rolesql
+               AND ue.status      = 0
+               AND e.status       = 0
+               AND u.deleted      = 0
+               AND u.suspended    = 0
+          ORDER BY u.lastname, u.firstname";
+
+        $params = array_merge(
+            ['courseid' => $this->course->id, 'contextid' => $courseContext->id],
+            $roleparams
+        );
+
+        $stubs = [];
+        foreach ($DB->get_records_sql($sql, $params) as $row) {
+            $stub              = new \stdClass();
+            $stub->userid      = $row->userid;
+            $stub->firstname   = $row->firstname;
+            $stub->lastname    = $row->lastname;
+            $stub->idnumber    = $row->idnumber  ?? '';
+            $stub->email       = $row->email     ?? '';
+            $stub->institution = $row->institution ?? '';
+            $stub->department  = $row->department  ?? '';
+            $stubs[$row->userid] = $stub;
+        }
+
+        return $stubs;
+    }
+
+    /**
+     * Prepare data for export.
+     *
+     * Returns an array with keys:
+     *   'headers'  => string[]   — column header labels
+     *   'rows'     => array[]    — numeric rows for flat Excel export
+     *   'rows_kv'  => array[]    — associative rows for DOCX template cloning
+     *
+     * @param  \assign $assign Assignment instance
+     * @return array
+     */
+    protected function prepare_export_data(\assign $assign): array
+    {
+        global $DB;
+
+        $headers = [
+            'TT',
+            'Họ',
+            'Tên',
+            'Mã số',
+            'Cơ quan',
+            'Đơn vị',
+            'Email',
+            'Trạng thái',
+            'Điểm',
+            'Thang điểm',
+            'Tỉ lệ',
+            'Thời gian nộp',
+            'Thời gian chấm',
+            'Người chấm',
+            'Nhận xét',
+        ];
+
+        $rows    = [];
+        $rows_kv = [];
+        $students = $this->get_enrolled_student_stubs();
+
+        if (empty($students)) {
+            return ['headers' => $headers, 'rows' => $rows, 'rows_kv' => $rows_kv];
+        }
 
         $rowNum = 1;
-        foreach ($participants as $user) {
-            // Get submission
-            $submission = $assign->get_user_submission($user->id, false);
+        foreach ($students as $userid => $student) {
+            $submission = $assign->get_user_submission($userid, false);
+            $grade      = $assign->get_user_grade($userid, false);
 
-            // Get grade
-            $grade = $assign->get_user_grade($user->id, false);
-
-            // Get org data
-            $orgdata = isset($userorgdata[$user->id]) ? $userorgdata[$user->id] : null;
-            $institution = $orgdata && !empty($orgdata->institution) ? $orgdata->institution : '';
-            $department = $orgdata && !empty($orgdata->department) ? $orgdata->department : '';
-
-            // Get status
             $status = $this->get_submission_status($submission);
 
-            // Calculate percentage
-            $gradevalue = $grade ? $grade->grade : null;
+            $gradevalue = ($grade && $grade->grade >= 0) ? $grade->grade : null;
             $percentage = '';
             if ($gradevalue !== null && $this->assignment->grade > 0) {
                 $percentage = round(($gradevalue / $this->assignment->grade) * 100, 2) . '%';
             }
 
-            // Get grader name
             $gradername = '';
             if ($grade && $grade->grader > 0) {
                 $grader = $DB->get_record('user', ['id' => $grade->grader], 'firstname, lastname');
@@ -239,67 +294,78 @@ class assign_export_helper
                 }
             }
 
-            // Get feedback comments
-            $feedback = $this->get_feedback_comments($grade);
+            $feedback      = $this->get_feedback_comments($grade);
+            $timesubmitted = $submission ? userdate($submission->timemodified, '%d/%m/%Y') : '-';
+            $timemarked    = $grade      ? userdate($grade->timemodified,      '%d/%m/%Y') : '-';
+            $gradeDisplay  = $gradevalue !== null ? round($gradevalue, 2) : '-';
 
-            $row = [
+            // Flat numeric row (Excel / default export)
+            $rows[] = [
                 $rowNum,
-                $user->firstname,
-                $user->lastname,
-                $user->idnumber ?: '',
-                $institution,
-                $department,
-                $user->email,
+                $student->firstname,
+                $student->lastname,
+                $student->idnumber,
+                $student->institution,
+                $student->department,
+                $student->email,
                 $status,
-                $gradevalue !== null ? round($gradevalue, 2) : '-',
+                $gradeDisplay,
                 round($this->assignment->grade, 2),
                 $percentage,
-                $submission ? userdate($submission->timemodified,  '%d/%m/%Y') : '-',
-                $grade ? userdate($grade->timemodified,  '%d/%m/%Y') : '-',
+                $timesubmitted,
+                $timemarked,
                 $gradername,
                 $feedback,
             ];
 
-            $data[] = $row;
+            // Associative row (DOCX template cloning)
+            $rows_kv[] = [
+                'stt'           => $rowNum,
+                'firstname'     => $student->firstname,
+                'lastname'      => $student->lastname,
+                'fullname'      => fullname($student),
+                'idnumber'      => $student->idnumber,
+                'institution'   => $student->institution,
+                'department'    => $student->department,
+                'email'         => $student->email,
+                'status'        => $status,
+                'grade'         => (string) $gradeDisplay,
+                'outof'         => (string) round($this->assignment->grade, 2),
+                'percentage'    => $percentage,
+                'timesubmitted' => $timesubmitted,
+                'timemarked'    => $timemarked,
+                'grader'        => $gradername,
+                'feedback'      => $feedback,
+            ];
+
             $rowNum++;
         }
 
-        return $data;
+        return ['headers' => $headers, 'rows' => $rows, 'rows_kv' => $rows_kv];
     }
 
-    /**
-     * Get submission status
-     *
-     * @param stdClass|null $submission Submission record
-     * @return string Status string
-     */
-    protected function get_submission_status($submission)
+    // ── status / feedback helpers ─────────────────────────────────────────
+
+    protected function get_submission_status($submission): string
     {
         if (!$submission) {
-            return 'No submission';
+            return 'Chưa nộp';
         }
-
         switch ($submission->status) {
             case ASSIGN_SUBMISSION_STATUS_SUBMITTED:
-                return 'Submitted';
+                return 'Đã nộp';
             case ASSIGN_SUBMISSION_STATUS_DRAFT:
-                return 'Draft';
+                return 'Nháp';
             case ASSIGN_SUBMISSION_STATUS_NEW:
-                return 'No submission';
+                return 'Chưa nộp';
             case ASSIGN_SUBMISSION_STATUS_REOPENED:
-                return 'Reopened';
+                return 'Mở lại';
             default:
                 return $submission->status;
         }
     }
 
-    /**
-     * Get feedback comments
-     *
-     * @param stdClass|null $grade Grade record
-     * @return string Feedback text
-     */
-    protected function get_feedback_comments($grade)
+    protected function get_feedback_comments($grade): string
     {
         global $DB;
 
@@ -309,38 +375,30 @@ class assign_export_helper
 
         $feedback = $DB->get_record('assignfeedback_comments', [
             'assignment' => $this->assignment->id,
-            'grade' => $grade->id
+            'grade'      => $grade->id,
         ]);
 
-        if ($feedback) {
-            return strip_tags($feedback->commenttext);
-        }
-
-        return '';
+        return $feedback ? strip_tags($feedback->commenttext) : '';
     }
 
-    /**
-     * Send Excel file download
-     *
-     * @param array $data 2D array of export data
-     */
-    protected function send_excel_download($data)
+    // ── Excel download ────────────────────────────────────────────────────
+
+    protected function send_excel_download(array $data): void
     {
-        $filename = clean_filename($this->course->shortname . '_' .
-            $this->assignment->name . '_grades.xls');
-
-        $workbook = new \MoodleExcelWorkbook('-');
+        $filename  = clean_filename(
+            $this->course->shortname . '_' . $this->assignment->name . '_grades.xls'
+        );
+        $workbook  = new \MoodleExcelWorkbook('-');
         $workbook->send($filename);
-
         $worksheet = $workbook->add_worksheet('Grades');
 
-        // Write data
+        // Write header row first, then data rows
+        $allRows = array_merge([$data['headers']], $data['rows']);
         $row = 0;
-        foreach ($data as $rowdata) {
+        foreach ($allRows as $rowdata) {
             $col = 0;
             foreach ($rowdata as $cell) {
-                $worksheet->write_string($row, $col, $cell);
-                $col++;
+                $worksheet->write_string($row, $col++, (string) $cell);
             }
             $row++;
         }
