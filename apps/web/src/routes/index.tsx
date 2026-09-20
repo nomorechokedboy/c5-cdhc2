@@ -24,7 +24,7 @@ function RouteComponent() {
 		<ProtectedRoute>
 			<SidebarInset>
 				{/* Gradient background */}
-				<div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 animate-fadeIn'>
+				<div className='min-h-screen p-6 animate-fadeIn'>
 					{/* Hero */}
 					<div className='flex flex-col items-center text-center space-y-4'>
 						<img
@@ -32,10 +32,10 @@ function RouteComponent() {
 							alt='Logo'
 							className='w-35 h-35 drop-shadow-md animate-fadeInUp'
 						/>
-						<h1 className='text-4xl font-extrabold text-gray-800 animate-fadeInUp delay-100'>
+						<h1 className='text-4xl font-bold tracking-wide text-foreground animate-fadeInUp delay-100'>
 							Hệ thống quản lý đào tạo
 						</h1>
-						<p className='text-gray-600 max-w-2xl animate-fadeInUp delay-200'>
+						<p className='text-muted-foreground max-w-2xl animate-fadeInUp delay-200'>
 							Nền tảng quản lý đào tạo Trường Cao đẳng Hậu cần 2 —
 							danh mục, đề thi, phân công giảng dạy, học viên và
 							vật tư.

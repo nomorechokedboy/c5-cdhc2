@@ -365,20 +365,7 @@ export type PoliticsQualityReport = {
 	total: number
 }
 
-export type AppTheme =
-	| 'light'
-	| 'dark'
-	| 'system'
-	| 'blue'
-	| 'green'
-	| 'purple'
-	| 'orange'
-	| 'red'
-	| 'stone'
-	| 'zinc'
-	| 'gray'
-	| 'slate'
-	| 'none'
+export type AppTheme = 'light' | 'dark' | 'system'
 
 export interface ExportPoliticsQualitySummary {
 	idx: number
