@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import StudentEditForm from './StudentEditForm'
 import type { Student } from '@/types'
 import { politicalOptions } from '@/data/ethnics'
-import useClassData from '@/hooks/useClasses'
 import { getMediaUri, isSuperAdmin } from '@/lib/utils'
 import {
 	FileDown,
@@ -35,16 +34,12 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 	const { mutateAsync: updateStudent, isPending: isUpdating } =
 		useUpdateStudent()
 
-	const { data: classes = [] } = useClassData()
-	// options cho select lớp
-	const classOptions = useMemo(
-		() =>
-			classes.map((c) => ({
-				value: c.id.toString(),
-				label: `${c.name} - ${c.parent?.name}`
-			})),
-		[classes]
-	)
+	// Nhãn lớp lấy từ unit của học viên, không cần tải toàn bộ danh sách lớp
+	const classLabel = student?.unit
+		? [student.unit.name, student.unit.parent?.name]
+				.filter(Boolean)
+				.join(' - ')
+		: undefined
 
 	const handleConfirmStudent = async () => {
 		const confirmed = confirm(
@@ -176,11 +171,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								<div>
 									<p className='text-xs text-gray-500'>Lớp</p>
 									<p className='font-semibold text-gray-900'>
-										{classOptions.find(
-											(c) =>
-												c.value ===
-												student?.unit?.id.toString()
-										)?.label || 'Chưa có lớp'}
+										{classLabel || 'Chưa có lớp'}
 									</p>
 								</div>
 							</div>
@@ -380,13 +371,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 									/>
 									<Field
 										label='Đơn vị (Lớp)'
-										value={
-											classOptions.find(
-												(c) =>
-													c.value ===
-													student?.unit?.id.toString()
-											)?.label
-										}
+										value={classLabel}
 									/>
 									<Field
 										label='Ngày nhập ngũ'
