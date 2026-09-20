@@ -138,6 +138,29 @@ function segmentBoundaries(d: string, m: string, y: string) {
 	}
 }
 
+// Whole-date input (paste, autofill, drag-drop, or typing over a selection
+// that spans separators). Unlike a single keystroke it carries its own
+// structure, so it is reformatted from scratch instead of being spliced into
+// one segment of the previous value.
+function parseBulkDate(input: string): { d: string; m: string; y: string } {
+	if (/\D/.test(input)) {
+		const [d = '', m = '', y = ''] = input.split(/\D+/)
+		const nd = d.slice(0, 2)
+		const nm = m.slice(0, 2)
+		const ny = y.slice(0, 4)
+		// Fully entered date: pad "5/2/2001" to "05/02/2001"
+		if (nd && nm && ny.length === 4) {
+			return { d: nd.padStart(2, '0'), m: nm.padStart(2, '0'), y: ny }
+		}
+		return { d: nd, m: nm, y: ny }
+	}
+	return {
+		d: input.slice(0, 2),
+		m: input.slice(2, 4),
+		y: input.slice(4, 8)
+	}
+}
+
 // Reformats an edited dd/mm/yyyy string without letting the edit bleed into
 // unrelated segments, and reports where the caret should end up.
 function applyDateEdit(
@@ -151,8 +174,16 @@ function applyDateEdit(
 	const { d, m, y } = parseSegments(prevValue)
 	const { joined, mRange, yRange } = segmentBoundaries(d, m, y)
 	const { start, endPrev, endNext } = diffRange(joined, inputValue)
-	const replacement = inputValue.slice(start, endNext).replace(/\D/g, '')
+	const inserted = inputValue.slice(start, endNext)
+	const replacement = inserted.replace(/\D/g, '')
 	const isDeletion = inputValue.length < joined.length
+
+	const spansSeparator = joined.slice(start, endPrev).includes('/')
+	if (inserted.length > 1 || (inserted.length > 0 && spansSeparator)) {
+		const bulk = parseBulkDate(inputValue)
+		const value = joinSegments(bulk.d, bulk.m, bulk.y)
+		return { value, cursor: value.length }
+	}
 
 	let seg: 'd' | 'm' | 'y' = 'd'
 	if (mRange && start >= mRange[0]) seg = 'm'
@@ -258,6 +289,7 @@ export interface DatePickerProps {
 	/** Nhãn nhỏ, gọn — dùng trong form sửa */
 	compact?: boolean
 	className?: string
+	id?: string
 }
 
 const currentYear = dayjs().year()
@@ -268,7 +300,8 @@ export default function DatePicker({
 	placeholder,
 	optional = false,
 	compact = false,
-	className
+	className,
+	id
 }: DatePickerProps) {
 	const field = useFieldContext<string>()
 	const errors = useStore(field.store, (state) => state.meta.errors)
@@ -397,10 +430,10 @@ export default function DatePicker({
 				<Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
 						<Button
-							id='date-picker'
+							id={id}
 							type='button'
 							variant='ghost'
-							className='absolute top-1 right-2 size-6'
+							className='absolute top-1/2 right-2 size-6 -translate-y-1/2'
 						>
 							<CalendarIcon className='size-3.5' />
 							<span className='sr-only'>Select date</span>

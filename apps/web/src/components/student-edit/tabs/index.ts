@@ -1,0 +1,5 @@
+export { PersonalTab } from './PersonalTab'
+export { MilitaryTab } from './MilitaryTab'
+export { EducationTab } from './EducationTab'
+export { FamilyTab } from './FamilyTab'
+export { HistoryTab } from './HistoryTab'
