@@ -1,85 +1,63 @@
-import { Moon, Sun, Monitor } from 'lucide-react'
+import { Check, Monitor, Moon, Sun } from 'lucide-react'
+import type { ComponentType } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger,
-	DropdownMenuSeparator,
-	DropdownMenuLabel
+	DropdownMenuLabel,
+	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 import type { AppTheme } from '@/types'
 
-export function applyTheme(currentTheme: AppTheme) {
-	const root = document.documentElement
-	const themes: AppTheme[] = [
-		'light',
-		'dark',
-		'red',
-		'blue',
-		'green',
-		'purple',
-		'orange',
-		'stone',
-		'zinc',
-		'gray',
-		'slate'
-	]
-	root.classList.remove(...themes)
+const STORAGE_KEY = 'qlhvTheme'
 
-	let themeToApply = currentTheme
+const OPTIONS: Array<{
+	name: AppTheme
+	label: string
+	icon: ComponentType<{ className?: string }>
+}> = [
+	{ name: 'light', label: 'Sáng', icon: Sun },
+	{ name: 'dark', label: 'Tối', icon: Moon },
+	{ name: 'system', label: 'Theo thiết bị', icon: Monitor }
+]
 
-	if (currentTheme === 'system') {
-		themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches
-			? 'dark'
-			: 'light'
-	}
-
-	root.classList.add(themeToApply)
+export function applyTheme(theme: AppTheme) {
+	const dark =
+		theme === 'dark' ||
+		(theme === 'system' &&
+			window.matchMedia('(prefers-color-scheme: dark)').matches)
+	document.documentElement.classList.toggle('dark', dark)
 }
 
-type ThemeOption = { name: AppTheme; label: string; icon?: any; color?: string }
+function readStoredTheme(): AppTheme {
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY)
+		return stored === 'light' || stored === 'dark' ? stored : 'system'
+	} catch {
+		return 'system'
+	}
+}
 
-export function ThemeToggle() {
-	const [theme, setTheme] = useState<AppTheme>('none')
+export function ThemeToggle({ className }: { className?: string }) {
+	const [theme, setTheme] = useState<AppTheme>(readStoredTheme)
 
-	const themes: ThemeOption[] = [
-		{ name: 'light', label: 'Light', icon: Sun },
-		{ name: 'dark', label: 'Dark', icon: Moon },
-		{ name: 'system', label: 'System', icon: Monitor }
-	]
-
-	const colorThemes: ThemeOption[] = [
-		{ name: 'blue', label: 'Blue', color: 'bg-blue-500' },
-		{ name: 'green', label: 'Green', color: 'bg-green-500' },
-		{ name: 'purple', label: 'Purple', color: 'bg-purple-500' },
-		{ name: 'orange', label: 'Orange', color: 'bg-orange-500' },
-		{ name: 'red', label: 'Red', color: 'bg-red-500' },
-		{ name: 'zinc', label: 'Zinc', color: 'bg-zinc-500' },
-		{ name: 'gray', label: 'Gray', color: 'bg-gray-500' },
-		{ name: 'stone', label: 'Stone', color: 'bg-stone-500' },
-		{ name: 'slate', label: 'Slate', color: 'bg-slate-500' }
-	]
-
-	const updateTheme = (newTheme: AppTheme) => {
-		setTheme(newTheme)
-		localStorage.setItem('qlhvTheme', newTheme)
-		applyTheme(newTheme)
+	const updateTheme = (next: AppTheme) => {
+		setTheme(next)
+		try {
+			localStorage.setItem(STORAGE_KEY, next)
+		} catch {
+			// bỏ qua: chế độ riêng tư có thể chặn localStorage
+		}
+		applyTheme(next)
 	}
 
 	useEffect(() => {
-		const loadedTheme = localStorage.getItem('qlhvTheme') || 'os'
-		setTheme(loadedTheme as AppTheme)
-	}, [])
-
-	useEffect(() => {
+		if (theme !== 'system') return
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-		const handleChange = () => {
-			if (theme === 'system') {
-				applyTheme('system')
-			}
-		}
+		const handleChange = () => applyTheme('system')
 		mediaQuery.addEventListener('change', handleChange)
 		return () => mediaQuery.removeEventListener('change', handleChange)
 	}, [theme])
@@ -87,45 +65,28 @@ export function ThemeToggle() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant='outline' size='icon'>
+				<Button
+					variant='outline'
+					size='icon'
+					className={cn('relative', className)}
+				>
 					<Sun className='h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0' />
 					<Moon className='absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100' />
-					<span className='sr-only'>Toggle theme</span>
+					<span className='sr-only'>Chế độ hiển thị</span>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align='end' className='w-48'>
-				<DropdownMenuLabel>Theme Mode</DropdownMenuLabel>
-				{themes.map((themeOption) => {
-					const Icon = themeOption.icon
-					return (
-						<DropdownMenuItem
-							key={themeOption.name}
-							onClick={() => updateTheme(themeOption.name)}
-							className='flex items-center gap-2'
-						>
-							<Icon className='h-4 w-4' />
-							{themeOption.label}
-							{theme === themeOption.name && (
-								<span className='ml-auto'>✓</span>
-							)}
-						</DropdownMenuItem>
-					)
-				})}
-
-				<DropdownMenuSeparator />
-				<DropdownMenuLabel>Color Themes</DropdownMenuLabel>
-				{colorThemes.map((colorTheme) => (
+				<DropdownMenuLabel>Chế độ hiển thị</DropdownMenuLabel>
+				{OPTIONS.map(({ name, label, icon: Icon }) => (
 					<DropdownMenuItem
-						key={colorTheme.name}
-						onClick={() => updateTheme(colorTheme.name)}
+						key={name}
+						onClick={() => updateTheme(name)}
 						className='flex items-center gap-2'
 					>
-						<div
-							className={`h-4 w-4 rounded-full ${colorTheme.color}`}
-						/>
-						{colorTheme.label}
-						{theme === colorTheme.name && (
-							<span className='ml-auto'>✓</span>
+						<Icon className='h-4 w-4' />
+						{label}
+						{theme === name && (
+							<Check className='ml-auto h-4 w-4' />
 						)}
 					</DropdownMenuItem>
 				))}

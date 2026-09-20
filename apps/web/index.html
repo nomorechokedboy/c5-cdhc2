@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 	<head>
 		<meta charset="UTF-8" />
 		<meta
@@ -8,7 +8,7 @@
 		/>
 		<meta
 			name="description"
-			content="Web site created using create-tsrouter-app"
+			content="Phần mềm quản lý học viên — Trường Cao đẳng Hậu cần 2"
 		/>
 		<link
 			rel="apple-touch-icon"
@@ -80,23 +80,21 @@
 			href="/favicon-16x16.png"
 		/>
 		<link rel="manifest" href="/manifest.json" />
-		<meta name="msapplication-TileColor" content="#ffffff" />
+		<meta name="msapplication-TileColor" content="#14352D" />
 		<meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
-		<meta name="theme-color" content="#ffffff" />
+		<meta name="theme-color" content="#14352D" />
 		<title>Hệ thống quản lý đào tạo — Trường Cao Đẳng Hậu Cần 2</title>
 		<script>
 			;(function () {
-				const theme = localStorage.getItem('qlhvTheme') || 'system'
-				if (
-					theme === 'dark' ||
-					(theme === 'system' &&
-						window.matchMedia('(prefers-color-scheme: dark)')
-							.matches)
-				) {
-					document.documentElement.classList.add('dark')
-				} else {
-					document.documentElement.classList.add(theme)
-				}
+				try {
+					const theme = localStorage.getItem('qlhvTheme')
+					const dark =
+						theme === 'dark' ||
+						(theme !== 'light' &&
+							window.matchMedia('(prefers-color-scheme: dark)')
+								.matches)
+					document.documentElement.classList.toggle('dark', dark)
+				} catch (_) {}
 			})()
 		</script>
 	</head>

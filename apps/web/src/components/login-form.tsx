@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import cdhc2Logo from '@/assets/cdhc2.png'
 import { useAppForm } from '@/hooks/demo.form'
 import useAuth from '@/hooks/useAuth'
+
+const APP_VERSION = '1.0'
 
 export function LoginForm() {
 	const { login } = useAuth()
@@ -18,45 +19,75 @@ export function LoginForm() {
 	})
 
 	return (
-		<div className='w-screen h-screen flex flex-col items-center bg-gray-100 overflow-auto'>
-			{/* Pattern chấm mờ */}
-			<div className='absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.15),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.15),transparent_50%)]'></div>
-
-			{/* Nội dung chính */}
-			<div className='z-10 w-full max-w-md px-4 animate-fadeInUp'>
-				{/* Logo + tiêu đề */}
-				<div className='flex flex-col items-center mb-8 pt-3'>
+		<main className='grid h-dvh grid-cols-[minmax(0,1fr)] overflow-auto lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]'>
+			<aside
+				className='relative isolate flex min-h-72 flex-col justify-between overflow-hidden p-6 text-sidebar-foreground lg:min-h-full lg:p-12'
+				style={{
+					backgroundColor: 'var(--sidebar)',
+					backgroundImage:
+						'var(--stamp-side), var(--sidebar-gradient)',
+					backgroundRepeat: 'no-repeat, no-repeat',
+					backgroundPosition: 'right -24% top -16%, 0 0',
+					backgroundSize: 'min(120vw, 720px), 100% 100%'
+				}}
+			>
+				<div className='flex items-center gap-3'>
 					<img
 						src={cdhc2Logo}
-						alt='Logo'
-						className='h-28 mb-3 drop-shadow-md'
+						alt='Huy hiệu Trường Cao đẳng Hậu cần 2'
+						className='size-11 shrink-0 drop-shadow-md'
 					/>
-					<h1 className='text-2xl font-extrabold text-gray-800 text-center'>
-						TRƯỜNG CAO ĐẲNG HẬU CẦN 2
-					</h1>
-					<p className='text-gray-600 font-medium'>
-						PHẦN MỀM QUẢN LÝ HỌC VIÊN
-					</p>
+					<span className='font-display text-sm font-medium tracking-wide text-sidebar-foreground/80'>
+						Trường Cao đẳng Hậu cần 2
+					</span>
 				</div>
 
-				{/* Form login */}
-				<Card className='shadow-xl border backdrop-blur bg-white/90'>
-					<CardHeader>
-						<CardTitle className='text-center text-blue-900'>
-							Đăng nhập hệ thống
-						</CardTitle>
-						<p className='text-center text-gray-500 text-sm'>
-							Phiên bản 1.0
+				<div className='max-w-md'>
+					<svg
+						viewBox='0 0 600 80'
+						className='mb-6 h-14 w-full max-w-sm text-sidebar-primary lg:h-20'
+						fill='none'
+						stroke='currentColor'
+						strokeWidth='2.5'
+						strokeLinecap='round'
+						strokeLinejoin='round'
+						aria-hidden
+					>
+						<path
+							className='pulse-draw'
+							pathLength={1}
+							d='M0 42 H170 l14 -9 l12 9 H232 l10 8 l16 -44 l16 62 l11 -26 H322 l14 -11 l16 11 H600'
+						/>
+					</svg>
+					<h2 className='font-display text-4xl font-bold leading-[1.05] tracking-wide lg:text-6xl'>
+						Quản lý
+						<br />
+						học viên
+					</h2>
+					<p className='mt-4 max-w-sm text-sm leading-relaxed text-sidebar-foreground/75 lg:text-base'>
+						Hồ sơ, đơn vị và kết quả rèn luyện của học viên trong
+						một hệ thống.
+					</p>
+				</div>
+			</aside>
+
+			<section className='flex flex-col'>
+				<div className='flex flex-1 items-center justify-center px-6 py-12'>
+					<div className='w-full max-w-sm rounded-xl border bg-card p-8 shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-500'>
+						<h1 className='font-display text-4xl font-bold tracking-wide text-foreground'>
+							Đăng nhập
+						</h1>
+						<p className='mt-2 text-muted-foreground'>
+							Dùng tài khoản do nhà trường cấp.
 						</p>
-					</CardHeader>
-					<CardContent>
+
 						<form
 							onSubmit={(e) => {
 								e.preventDefault()
 								e.stopPropagation()
 								form.handleSubmit()
 							}}
-							className='space-y-4'
+							className='mt-8 space-y-5'
 						>
 							<form.AppField
 								name='username'
@@ -89,7 +120,7 @@ export function LoginForm() {
 								)}
 							</form.AppField>
 
-							<div className='text-sm text-blue-600 hover:underline cursor-pointer'>
+							<div className='text-sm text-info hover:underline cursor-pointer'>
 								Quên mật khẩu?
 							</div>
 
@@ -102,7 +133,8 @@ export function LoginForm() {
 									<Button
 										type='submit'
 										disabled={!canSubmit}
-										className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-md disabled:opacity-50'
+										size='lg'
+										className='w-full font-semibold'
 									>
 										{isSubmitting
 											? 'Đang đăng nhập...'
@@ -111,25 +143,12 @@ export function LoginForm() {
 								)}
 							/>
 						</form>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Wave bottom */}
-			<div className='absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180'>
-				<svg
-					className='relative block w-full h-20'
-					xmlns='http://www.w3.org/2000/svg'
-					preserveAspectRatio='none'
-					viewBox='0 0 1200 120'
-				>
-					<path
-						d='M0,0V46.29c47.79,22,103.24,29,158,17,72.47-15.71,136.9-57.45,209-66,71.13-8.38,142.3,15.88,213,35.34,66.24,18.24,132.57,27.45,198,13,61.47-13.48,113-53.84,172-61,66-8.07,130,20.36,196,32V0Z'
-						fill='#6366f1'
-						fillOpacity='0.25'
-					></path>
-				</svg>
-			</div>
-		</div>
+					</div>
+				</div>
+				<p className='px-6 pb-6 text-center text-xs text-muted-foreground'>
+					Phiên bản {APP_VERSION}
+				</p>
+			</section>
+		</main>
 	)
 }

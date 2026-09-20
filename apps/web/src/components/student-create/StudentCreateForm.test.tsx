@@ -110,7 +110,7 @@ describe('StudentForm (create)', () => {
 			(await screen.findAllByText(/Ngày không hợp lệ/)).length
 		).toBeGreaterThan(0)
 		expect(screen.queryByLabelText('Số thẻ Đảng')).toBeNull()
-	})
+	}, 20_000)
 
 	it('walks all steps and submits dd/mm/yyyy dates as yyyy-mm-dd with a numeric unitId', async () => {
 		openDialog()

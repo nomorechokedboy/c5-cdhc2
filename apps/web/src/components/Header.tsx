@@ -9,12 +9,14 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { NotificationBell } from './notification-bell'
-import React from 'react'
+import React, { useRef } from 'react'
 import { useLocation } from '@tanstack/react-router'
 import { UserNav } from './data-table/user-nav'
+import { HeaderTrace } from './header-trace'
 
 export default function Header() {
 	const location = useLocation()
+	const anchorRef = useRef<HTMLLIElement>(null)
 	const path = location.pathname
 	const segments = path.split('/').filter(Boolean)
 
@@ -27,7 +29,8 @@ export default function Header() {
 	]
 
 	return (
-		<header className='flex flex-row items-center justify-between h-16 shrink-0 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20 border-b min-w-0'>
+		<header className='relative flex flex-row items-center justify-between h-14 shrink-0 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 sticky top-0 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/70 z-20 border-b min-w-0'>
+			<HeaderTrace anchorRef={anchorRef} routeKey={path} />
 			<div className='flex items-center gap-2 px-4'>
 				<SidebarTrigger className='-ml-1' />
 				<Separator
@@ -38,7 +41,13 @@ export default function Header() {
 					<BreadcrumbList>
 						{breadcrumbItems.map((item, idx) => (
 							<React.Fragment key={item.href}>
-								<BreadcrumbItem>
+								<BreadcrumbItem
+									ref={
+										idx === breadcrumbItems.length - 1
+											? anchorRef
+											: undefined
+									}
+								>
 									{idx === 0 ? (
 										<BreadcrumbLink href={item.href}>
 											{item.label}
@@ -48,7 +57,7 @@ export default function Header() {
 											{item.label}
 										</span>
 									) : (
-										<BreadcrumbPage>
+										<BreadcrumbPage className='font-display text-lg font-semibold tracking-wide'>
 											{item.label}
 										</BreadcrumbPage>
 									)}

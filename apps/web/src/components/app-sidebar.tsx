@@ -55,7 +55,8 @@ import {
 	SidebarMenuSubItem,
 	SidebarRail
 } from '@/components/ui/sidebar'
-import { Link } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
+import { findActiveNavItem, navContainsKey, navItemKey } from '@/lib/nav-active'
 import StudentForm from '@/components/student-form'
 import usePendingRoomAccounts from '@/hooks/usePendingRoomAccounts'
 import usePendingProposals from '@/hooks/usePendingProposals'
@@ -67,12 +68,12 @@ import {
 	CollapsibleTrigger
 } from '@/components/ui/collapsible'
 import useUnitsData from '@/hooks/useUnitsData'
-import Cdhc2Logo from '@/assets/cdhc2.png'
 import { AppSidebarSkeleton } from './app-sidebar-skeleton'
 import { ThemeToggle } from './theme-toggle'
 import useAuth from '@/hooks/useAuth'
 import type { GetUnitQuery } from '@/types'
 import {
+	cn,
 	isBghOnlyUser,
 	isDonViUser,
 	isRoomTeacherUser,
@@ -500,10 +501,23 @@ function NavMenuItems({
 	}
 }
 
+// Nút menu dùng token của thanh bên: hover/active/focus do primitive `SidebarMenuButton` xử lý
+const NAV_BUTTON_CLASS =
+	'flex items-center gap-3 rounded-md py-2 pl-6 pr-3 font-medium cursor-pointer group-data-[collapsible=icon]:pl-2'
+
+const BADGE_CLASS =
+	'ml-auto text-xs font-bold px-1.5 min-w-[1.5rem] justify-center tabular-nums'
+
+// Khoá của mục đang mở theo đường dẫn hiện tại (chỉ một mục được đánh dấu)
+const ActiveNavContext = React.createContext<string | undefined>(undefined)
+
 // Individual menu item component
 function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 	const { state } = useSidebar()
 	const isCollapsed = state === 'collapsed'
+	const activeKey = React.useContext(ActiveNavContext)
+	const isActive = navItemKey(item) === activeKey
+	const opensActive = navContainsKey(item, activeKey)
 
 	const hasChildren = item.items && item.items.length > 0
 	const Icon = item.icon
@@ -515,10 +529,10 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 				<SidebarMenuItem>
 					<Collapsible
 						className='group/collapsible'
-						defaultOpen={false}
+						defaultOpen={opensActive}
 					>
 						<CollapsibleTrigger asChild>
-							<SidebarMenuButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+							<SidebarMenuButton className={NAV_BUTTON_CLASS}>
 								{Icon && <Icon className='w-5 h-5' />}
 								{!isCollapsed && <span>{item.title}</span>}
 								{!isCollapsed && (
@@ -542,8 +556,8 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 				<SidebarMenuItem>
 					<SidebarMenuButton
 						asChild
-						isActive={item.isActive}
-						className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'
+						isActive={isActive}
+						className={NAV_BUTTON_CLASS}
 					>
 						<Link
 							to={item.url}
@@ -561,9 +575,12 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 	return (
 		<SidebarMenuSubItem>
 			{hasChildren ? (
-				<Collapsible className='group/collapsible'>
+				<Collapsible
+					className='group/collapsible'
+					defaultOpen={opensActive}
+				>
 					<CollapsibleTrigger asChild>
-						<SidebarMenuSubButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+						<SidebarMenuSubButton className={NAV_BUTTON_CLASS}>
 							{Icon && <Icon className='w-5 h-5  ' />}
 							{!isCollapsed && <span>{item.title}</span>}
 							{!isCollapsed && (
@@ -583,8 +600,8 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 			) : (
 				<SidebarMenuSubButton
 					asChild
-					isActive={item.isActive}
-					className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors  hover:bg-gray-200  focus:bg-blue-100 '
+					isActive={isActive}
+					className={NAV_BUTTON_CLASS}
 				>
 					<Link
 						to={item.url}
@@ -601,8 +618,8 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 								<Badge
 									className={
 										item.url === '/list-user'
-											? 'ml-auto bg-red-600 hover:bg-red-600 text-white text-xs font-bold px-1.5 min-w-[1.5rem] justify-center'
-											: 'ml-auto bg-amber-500 hover:bg-amber-500 text-white text-xs font-bold px-1.5 min-w-[1.5rem] justify-center'
+											? `${BADGE_CLASS} bg-destructive text-destructive-foreground hover:bg-destructive`
+											: `${BADGE_CLASS} bg-gold text-gold-foreground hover:bg-gold`
 									}
 								>
 									+{item.badgeCount}
@@ -1389,93 +1406,117 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 										},
 										...navWithBadge
 									]
+	const location = useLocation()
 	const newData = {
 		version: data.versions,
 		navMain: withExamFilter(
 			allNavItems.filter((item) => !item.superAdminOnly || isSuperAdmin())
 		)
 	}
+	const activeItem = findActiveNavItem(newData.navMain, {
+		pathname: location.pathname,
+		search: location.search as Record<string, unknown>
+	})
+	const activeKey = activeItem ? navItemKey(activeItem) : undefined
 
 	return (
-		<Sidebar {...props}>
-			<SidebarHeader>
-				<div className='flex items-center gap-2 px-4 py-2'>
-					<div className='flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary-foreground'>
-						<img
-							src={Cdhc2Logo}
-							alt='Logo Trường Cao đẳng hậu cần 2'
-							className='h-6 w-6'
-						/>
-					</div>
-					{!isCollapsed && (
-						<div className='flex flex-col'>
-							<span className='text-sm font-semibold'>
-								Hệ thống quản lý đào tạo
-							</span>
-							<span className='text-xs text-muted-foreground'>
-								Trường Cao đẳng hậu cần 2
-							</span>
-						</div>
-					)}
-				</div>
-			</SidebarHeader>
-
-			<SidebarContent>
-				{!isCollapsed &&
-					!roomTeacher &&
-					!pureExamLecturer &&
-					!nganhUser &&
-					!donViUser &&
-					!bghOnly && (
-						<div className='p-4 w-full'>
-							<StudentForm
-								buttonProps={{ className: 'w-full' }}
-								onSuccess={() => {}}
-							/>
-						</div>
-					)}
-
-				{newData.navMain.map((item) => (
-					<Collapsible
-						key={item.title}
-						className='group/collapsible'
-						defaultOpen={false}
+		<ActiveNavContext.Provider value={activeKey}>
+			<Sidebar {...props}>
+				<SidebarHeader className='border-b border-sidebar-border p-0'>
+					<div
+						className={cn(
+							'flex flex-col justify-center px-4 py-4 leading-tight',
+							isCollapsed && 'items-center px-0'
+						)}
 					>
-						<SidebarGroup>
-							{!isCollapsed && (
-								<SidebarGroupLabel asChild>
-									<CollapsibleTrigger>
-										{item.title}
-										<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
-									</CollapsibleTrigger>
-								</SidebarGroupLabel>
-							)}
-							{isCollapsed ? (
-								<SidebarGroupContent>
-									<NavMenuItems items={item.items || []} />
-								</SidebarGroupContent>
-							) : (
-								<CollapsibleContent>
+						{isCollapsed ? (
+							<span className='font-display text-xl font-bold tracking-wider text-sidebar-primary'>
+								QL
+							</span>
+						) : (
+							<>
+								<span className='font-display text-xl font-semibold tracking-wide text-sidebar-foreground'>
+									Hệ thống quản lý đào tạo
+								</span>
+								<span className='mt-1 flex items-center gap-2 text-xs text-sidebar-foreground/75'>
+									<span
+										aria-hidden
+										className='h-px w-6 bg-sidebar-primary'
+									/>
+									Trường Cao đẳng Hậu cần 2
+								</span>
+							</>
+						)}
+					</div>
+				</SidebarHeader>
+
+				<SidebarContent>
+					{!isCollapsed &&
+						!roomTeacher &&
+						!pureExamLecturer &&
+						!nganhUser &&
+						!donViUser &&
+						!bghOnly && (
+							<div className='p-4 w-full'>
+								<StudentForm
+									buttonProps={{
+										className:
+											'w-full bg-sidebar-primary text-sidebar-primary-foreground shadow-none hover:bg-sidebar-primary/90'
+									}}
+									onSuccess={() => {}}
+								/>
+							</div>
+						)}
+
+					{newData.navMain.map((item) => (
+						<Collapsible
+							key={item.title}
+							className='group/collapsible'
+							defaultOpen={navContainsKey(item, activeKey)}
+						>
+							<SidebarGroup>
+								{!isCollapsed && (
+									<SidebarGroupLabel
+										asChild
+										className='font-display text-sm font-semibold tracking-wide text-sidebar-foreground/80 hover:text-sidebar-foreground'
+									>
+										<CollapsibleTrigger>
+											{item.title}
+											<ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
+										</CollapsibleTrigger>
+									</SidebarGroupLabel>
+								)}
+								{isCollapsed ? (
 									<SidebarGroupContent>
 										<NavMenuItems
 											items={item.items || []}
 										/>
 									</SidebarGroupContent>
-								</CollapsibleContent>
-							)}
-						</SidebarGroup>
-					</Collapsible>
-				))}
-			</SidebarContent>
-			<SidebarRail />
-			<SidebarFooter>
-				<div className='w-full flex items-center justify-between'>
-					<div></div>
-					<div className=''>
-						<ThemeToggle />
+								) : (
+									<CollapsibleContent>
+										<SidebarGroupContent>
+											<NavMenuItems
+												items={item.items || []}
+											/>
+										</SidebarGroupContent>
+									</CollapsibleContent>
+								)}
+							</SidebarGroup>
+						</Collapsible>
+					))}
+				</SidebarContent>
+				<SidebarRail />
+				<SidebarFooter className='border-t border-sidebar-border'>
+					<div
+						className={cn(
+							'flex w-full items-center',
+							isCollapsed ? 'justify-center' : 'justify-end'
+						)}
+					>
+						<ThemeToggle className='border-sidebar-border bg-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:border-sidebar-border dark:bg-transparent' />
 					</div>
-				</div>
-			</SidebarFooter>
-		</Sidebar>
+				</SidebarFooter>
+			</Sidebar>
+		</ActiveNavContext.Provider>
 	)
 }
