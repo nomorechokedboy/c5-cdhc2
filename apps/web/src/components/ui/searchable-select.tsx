@@ -5,7 +5,7 @@
  * - ↑ ↓: di chuyển trong danh sách; Enter: chọn; Esc: đóng
  * - ← →: khi đóng, Tab tự nhiên; khi mở, di chuyển highlight (cùng ↑↓)
  */
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronsUpDown, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +20,8 @@ export type SearchableOption = {
 	label: string
 	/** Text phụ để tìm (mã phòng, alias đơn vị…) */
 	keywords?: string
+	/** Nhóm hiển thị (tiêu đề nhóm); các option cùng nhóm được xếp liền nhau */
+	group?: string
 }
 
 /** lower-case + bỏ dấu + đ→d (để "tai" khớp "Tài", không khớp lung tung) */
@@ -85,6 +87,27 @@ function filterOptions(
 	return hit.map((x) => x.o)
 }
 
+/**
+ * Gom các option cùng `group` liền nhau, giữ thứ tự xuất hiện đầu tiên của nhóm
+ * (nhóm chứa kết quả khớp tốt nhất đứng trước khi đang tìm kiếm).
+ */
+function groupContiguous(options: SearchableOption[]): SearchableOption[] {
+	if (!options.some((o) => o.group)) return options
+	const order = new Map<string, number>()
+	for (const o of options) {
+		const g = o.group ?? ''
+		if (!order.has(g)) order.set(g, order.size)
+	}
+	return options
+		.map((o, i) => ({ o, i }))
+		.sort(
+			(a, b) =>
+				order.get(a.o.group ?? '')! - order.get(b.o.group ?? '')! ||
+				a.i - b.i
+		)
+		.map((x) => x.o)
+}
+
 type Props = {
 	options: SearchableOption[]
 	value: string
@@ -93,6 +116,8 @@ type Props = {
 	searchPlaceholder?: string
 	emptyText?: string
 	disabled?: boolean
+	/** Trigger thấp, chữ nhỏ — cho form dày đặc */
+	compact?: boolean
 	className?: string
 	contentClassName?: string
 }
@@ -105,6 +130,7 @@ export function SearchableSelect({
 	searchPlaceholder = 'Gõ để tìm…',
 	emptyText = 'Không có kết quả',
 	disabled = false,
+	compact = false,
 	className,
 	contentClassName
 }: Props) {
@@ -119,7 +145,7 @@ export function SearchableSelect({
 	const selected = options.find((o) => o.value === value)
 
 	const filtered = useMemo(
-		() => filterOptions(options, query),
+		() => groupContiguous(filterOptions(options, query)),
 		[options, query]
 	)
 
@@ -235,13 +261,19 @@ export function SearchableSelect({
 					disabled={disabled}
 					onKeyDown={onTriggerKeyDown}
 					className={cn(
-						'w-full justify-between font-normal h-12 text-lg px-3',
+						'w-full justify-between font-normal px-3',
+						compact ? 'h-9 text-sm' : 'h-12 text-lg',
 						!selected && 'text-muted-foreground',
 						className
 					)}
 					title={selected?.label ?? placeholder}
 				>
-					<span className='min-w-0 flex-1 truncate text-left text-base sm:text-lg'>
+					<span
+						className={cn(
+							'min-w-0 flex-1 truncate text-left',
+							!compact && 'text-base sm:text-lg'
+						)}
+					>
 						{selected?.label ?? placeholder}
 					</span>
 					<ChevronsUpDown className='ml-2 h-5 w-5 shrink-0 opacity-50' />
@@ -303,42 +335,54 @@ export function SearchableSelect({
 						filtered.map((item, i) => {
 							const isSelected = item.value === value
 							const isHi = i === highlight
+							const showGroup =
+								item.group !== undefined &&
+								item.group !== filtered[i - 1]?.group
 							return (
-								<button
-									key={item.value}
-									id={`searchable-opt-${item.value}`}
-									ref={(el) => {
-										optionRefs.current[i] = el
-									}}
-									type='button'
-									role='option'
-									aria-selected={isSelected}
-									className={cn(
-										'flex w-full cursor-default items-start gap-2 rounded-md px-3 py-2.5 text-left text-base sm:text-lg outline-none',
-										'hover:bg-accent hover:text-accent-foreground',
-										isSelected && 'bg-accent/50',
-										isHi &&
-											'bg-accent text-accent-foreground ring-1 ring-ring'
+								<Fragment key={item.value}>
+									{showGroup && (
+										<div
+											role='presentation'
+											className='text-muted-foreground px-3 pt-2 pb-1 text-sm font-semibold uppercase tracking-wide'
+										>
+											{item.group}
+										</div>
 									)}
-									onMouseEnter={() => setHighlight(i)}
-									onMouseDown={(e) => {
-										e.preventDefault()
-										e.stopPropagation()
-										pick(item.value)
-									}}
-								>
-									<Check
+									<button
+										id={`searchable-opt-${item.value}`}
+										ref={(el) => {
+											optionRefs.current[i] = el
+										}}
+										type='button'
+										role='option'
+										aria-selected={isSelected}
 										className={cn(
-											'mt-0.5 h-5 w-5 shrink-0',
-											isSelected
-												? 'opacity-100'
-												: 'opacity-0'
+											'flex w-full cursor-default items-start gap-2 rounded-md px-3 py-2.5 text-left text-base sm:text-lg outline-none',
+											'hover:bg-accent hover:text-accent-foreground',
+											isSelected && 'bg-accent/50',
+											isHi &&
+												'bg-accent text-accent-foreground ring-1 ring-ring'
 										)}
-									/>
-									<span className='min-w-0 flex-1 whitespace-normal break-words leading-snug'>
-										{item.label}
-									</span>
-								</button>
+										onMouseEnter={() => setHighlight(i)}
+										onMouseDown={(e) => {
+											e.preventDefault()
+											e.stopPropagation()
+											pick(item.value)
+										}}
+									>
+										<Check
+											className={cn(
+												'mt-0.5 h-5 w-5 shrink-0',
+												isSelected
+													? 'opacity-100'
+													: 'opacity-0'
+											)}
+										/>
+										<span className='min-w-0 flex-1 whitespace-normal break-words leading-snug'>
+											{item.label}
+										</span>
+									</button>
+								</Fragment>
 							)
 						})
 					)}
