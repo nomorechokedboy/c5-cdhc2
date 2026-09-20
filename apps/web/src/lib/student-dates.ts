@@ -43,3 +43,9 @@ export function isDisplayDate(value?: string | null): boolean {
 	const raw = value?.trim()
 	return !!raw && dayjs(raw, DISPLAY_FORMAT, true).isValid()
 }
+
+/** yyyy-mm-dd hợp lệ (dạng lưu trữ) */
+export function isStoredDate(value?: string | null): boolean {
+	const raw = value?.trim()
+	return !!raw && dayjs(raw, STORED_FORMAT, true).isValid()
+}

@@ -25,7 +25,7 @@ export type SearchableOption = {
 }
 
 /** lower-case + bỏ dấu + đ→d (để "tai" khớp "Tài", không khớp lung tung) */
-function normalize(s: string): string {
+export function normalize(s: string): string {
 	return s
 		.normalize('NFD')
 		.replace(/\p{M}/gu, '')
