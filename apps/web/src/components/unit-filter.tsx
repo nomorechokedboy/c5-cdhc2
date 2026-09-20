@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useUnitsData from '@/hooks/useUnitsData'
+import useUnitOptions, { type UnitOption } from '@/hooks/useUnitOptions'
 import FacetedFilter, {
 	type GroupedOption,
 	type Option
@@ -7,6 +8,23 @@ import FacetedFilter, {
 import type { UnitLevel } from '@/types'
 import FacetedFilterSkeleton from './faceted-filter-skeleton'
 import FacetedFilterError from './facted-filter-error'
+
+/** Option có `group` → GroupedOption (giữ thứ tự nhóm xuất hiện đầu tiên) */
+function groupFacetedOptions(
+	options: UnitOption[]
+): (Option | GroupedOption)[] {
+	const grouped = new Map<string, Option[]>()
+	const ungrouped: Option[] = []
+	for (const o of options) {
+		const opt: Option = { label: o.label, value: o.value, key: o.value }
+		if (o.group === undefined) ungrouped.push(opt)
+		else grouped.set(o.group, [...(grouped.get(o.group) ?? []), opt])
+	}
+	return [
+		...ungrouped,
+		...Array.from(grouped, ([label, opts]) => ({ label, options: opts }))
+	]
+}
 
 interface UnitFacetedFilterProps {
 	level?: UnitLevel
@@ -30,12 +48,15 @@ export default function UnitFacetedFilter({
 		: internalFilterValues
 	const setFilterValues = onSelectionChange || setInternalFilterValues
 
+	// `level` là cấp gốc của cây: gốc tiểu đoàn → chọn đại đội; gốc đại đội → chọn lớp
+	const selectableLevel: UnitLevel =
+		level === 'battalion' ? 'company' : 'class'
 	const {
-		data: units,
+		options,
 		isLoading: isLoadingUnits,
 		isError,
 		refetch: refetchUnits
-	} = useUnitsData({ level })
+	} = useUnitOptions(selectableLevel)
 	const handleRetry = () => {
 		refetchUnits()
 	}
@@ -47,19 +68,7 @@ export default function UnitFacetedFilter({
 		return <FacetedFilterError title={title} onRetry={handleRetry} />
 	}
 
-	const unitOptions: (Option | GroupedOption)[] =
-		units?.map((unit) => {
-			if (unit.children !== undefined) {
-				const childrenOpts: Option[] = unit.children.map((child) => ({
-					label: child.name,
-					value: child.id.toString(),
-					key: child.id
-				}))
-				return { label: unit.name, options: childrenOpts }
-			}
-
-			return { label: unit.name, value: unit.alias }
-		}) ?? []
+	const unitOptions = groupFacetedOptions(options)
 
 	const selectedValues = new Set(filterValues.map(String))
 

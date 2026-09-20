@@ -9,10 +9,11 @@ import {
 	PopoverContent,
 	PopoverTrigger
 } from '@/components/ui/popover'
-import { useFieldContext } from '@/hooks/demo.form-context'
 import { useStore } from '@tanstack/react-form'
-import { ErrorMessages } from './demo.FormComponents'
 import dayjs from 'dayjs'
+import { cn } from '@/lib/utils'
+import { useFieldContext } from '@/hooks/demo.form-context'
+import { ErrorMessages } from './demo.FormComponents'
 
 function formatDate(date: Date | undefined) {
 	if (!date) {
@@ -85,60 +86,155 @@ function parseDate(dateString: string): Date | undefined {
 	return isValidDate(date) ? date : undefined
 }
 
-// Function to apply date mask formatting
-function applyDateMask(value: string, previousValue: string = ''): string {
-	// Remove all non-digit characters
-	const digitsOnly = value.replace(/\D/g, '')
-
-	// Don't allow more than 8 digits
-	const truncated = digitsOnly.slice(0, 8)
-
-	// Apply formatting based on length
-	if (truncated.length === 0) return ''
-	if (truncated.length <= 2) return truncated
-	if (truncated.length <= 4)
-		return `${truncated.slice(0, 2)}/${truncated.slice(2)}`
-	return `${truncated.slice(0, 2)}/${truncated.slice(2, 4)}/${truncated.slice(4)}`
+// The day/month/year segments are edited independently so that changing one
+// (typing, backspacing, or selecting-and-replacing) never reflows the digits
+// of the other segments -- e.g. deleting the "3" in "12/03/1990" must produce
+// "12/0/1990", not corrupt the year into "12/01/990" by re-splitting the
+// whole digit stream from scratch.
+function parseSegments(value: string): { d: string; m: string; y: string } {
+	const [d = '', m = '', y = ''] = value.split('/')
+	return { d, m, y }
 }
 
-// Function to get cursor position after mask is applied
-function getCursorPosition(
-	inputValue: string,
-	maskedValue: string,
-	currentCursor: number
-): number {
-	// Count digits before cursor position in input
-	const digitsBeforeCursor = inputValue
-		.slice(0, currentCursor)
-		.replace(/\D/g, '').length
+function joinSegments(d: string, m: string, y: string): string {
+	let out = d
+	const needSlash1 = m.length > 0 || y.length > 0 || d.length === 2
+	if (needSlash1) out += `/${m}`
+	const needSlash2 = needSlash1 && (m.length === 2 || y.length > 0)
+	if (needSlash2) out += `/${y}`
+	return out
+}
 
-	// Find position in masked value that corresponds to the same number of digits
-	let digitCount = 0
-	let position = 0
+// Smallest [start, end) range in `prev` that differs from `next`, found by
+// trimming the common prefix and suffix -- works for any single contiguous
+// edit: typing, backspace, delete, paste, or select-and-type-over.
+function diffRange(prev: string, next: string) {
+	let i = 0
+	while (i < prev.length && i < next.length && prev[i] === next[i]) i++
+	let j = 0
+	while (
+		j < prev.length - i &&
+		j < next.length - i &&
+		prev[prev.length - 1 - j] === next[next.length - 1 - j]
+	)
+		j++
+	return { start: i, endPrev: prev.length - j, endNext: next.length - j }
+}
 
-	for (let i = 0; i < maskedValue.length; i++) {
-		if (/\d/.test(maskedValue[i])) {
-			digitCount++
-			if (digitCount === digitsBeforeCursor) {
-				position = i + 1
-				break
-			}
-		}
-		if (digitCount === 0) {
-			position = i
-		}
+function segmentBoundaries(d: string, m: string, y: string) {
+	const joined = joinSegments(d, m, y)
+	const firstSlash = joined.indexOf('/')
+	const hasSlash1 = firstSlash >= 0
+	const secondSlash = hasSlash1 ? joined.indexOf('/', firstSlash + 1) : -1
+	return {
+		joined,
+		mRange: hasSlash1
+			? ([firstSlash + 1, firstSlash + 1 + m.length] as const)
+			: null,
+		yRange:
+			secondSlash >= 0
+				? ([secondSlash + 1, secondSlash + 1 + y.length] as const)
+				: null
+	}
+}
+
+// Reformats an edited dd/mm/yyyy string without letting the edit bleed into
+// unrelated segments, and reports where the caret should end up.
+function applyDateEdit(
+	prevValue: string,
+	inputValue: string
+): { value: string; cursor: number } {
+	// Select-all + delete spans every segment, which the per-segment editing
+	// below would only partly clear.
+	if (inputValue === '') return { value: '', cursor: 0 }
+
+	const { d, m, y } = parseSegments(prevValue)
+	const { joined, mRange, yRange } = segmentBoundaries(d, m, y)
+	const { start, endPrev, endNext } = diffRange(joined, inputValue)
+	const replacement = inputValue.slice(start, endNext).replace(/\D/g, '')
+	const isDeletion = inputValue.length < joined.length
+
+	let seg: 'd' | 'm' | 'y' = 'd'
+	if (mRange && start >= mRange[0]) seg = 'm'
+	if (yRange && start >= yRange[0]) seg = 'y'
+	// Backspacing right after a slash removes the separator itself, which
+	// really means "delete the last digit of the segment before it".
+	if (isDeletion && mRange && start === mRange[0] && endPrev <= mRange[0])
+		seg = 'd'
+	if (isDeletion && yRange && start === yRange[0] && endPrev <= yRange[0])
+		seg = 'm'
+
+	const removedOnlySlash =
+		isDeletion && joined.slice(start, endPrev) === '/' && replacement === ''
+
+	let nd = d
+	let nm = m
+	let ny = y
+	let localCursor = 0
+
+	function spliceSegment(
+		orig: string,
+		range: readonly [number, number],
+		maxLen: number
+	) {
+		const localStart = Math.max(0, Math.min(orig.length, start - range[0]))
+		const localEnd = Math.max(0, Math.min(orig.length, endPrev - range[0]))
+		const next = (
+			orig.slice(0, localStart) +
+			replacement +
+			orig.slice(localEnd)
+		).slice(0, maxLen)
+		localCursor = Math.min(localStart + replacement.length, next.length)
+		return next
 	}
 
-	// If we're at the end, place cursor at the end
-	if (digitCount < digitsBeforeCursor) {
-		position = maskedValue.length
+	if (removedOnlySlash) {
+		if (seg === 'd') {
+			nd = d.slice(0, -1)
+			localCursor = nd.length
+		} else if (seg === 'm') {
+			nm = m.slice(0, -1)
+			localCursor = nm.length
+		}
+	} else if (seg === 'd') {
+		nd = spliceSegment(d, [0, d.length], 2)
+	} else if (seg === 'm') {
+		nm = spliceSegment(m, mRange!, 2)
+	} else {
+		ny = spliceSegment(y, yRange!, 4)
 	}
 
-	return position
+	const value = joinSegments(nd, nm, ny)
+	const newBounds = segmentBoundaries(nd, nm, ny)
+	const segStart =
+		seg === 'd'
+			? 0
+			: seg === 'm'
+				? newBounds.mRange![0]
+				: newBounds.yRange![0]
+
+	let cursor = segStart + localCursor
+	// Typing forward past a segment that just completed lands the cursor
+	// right before the auto-inserted "/" -- hop over it so the next
+	// keystroke lands in the next segment instead of pushing the slash
+	// further right (this is what let users type through the whole date
+	// without clicking into each segment).
+	if (!isDeletion && replacement.length > 0) {
+		while (value[cursor] === '/') cursor++
+	}
+
+	return { value, cursor }
 }
 
 // Function to validate if date format is complete and valid
-function validateDateFormat(value: string, label: string): string | null {
+function validateDateFormat(
+	value: string,
+	label: string,
+	optional = false
+): string | null {
+	// Trường không bắt buộc: để trống là hợp lệ
+	if (optional && value.trim() === '') return null
+
 	// Check if format is complete (should be exactly dd/mm/yyyy)
 	const ddmmyyyyRegex = /^\d{2}\/\d{2}\/\d{4}$/
 	if (!ddmmyyyyRegex.test(value)) {
@@ -157,12 +253,23 @@ function validateDateFormat(value: string, label: string): string | null {
 export interface DatePickerProps {
 	label: string
 	placeholder?: string
+	/** Cho phép để trống (không báo lỗi định dạng khi trống) */
+	optional?: boolean
+	/** Nhãn nhỏ, gọn — dùng trong form sửa */
+	compact?: boolean
+	className?: string
 }
 
 const currentYear = dayjs().year()
 const endMonth = new Date(currentYear + 10, 11)
 
-export default function DatePicker({ label, placeholder }: DatePickerProps) {
+export default function DatePicker({
+	label,
+	placeholder,
+	optional = false,
+	compact = false,
+	className
+}: DatePickerProps) {
 	const field = useFieldContext<string>()
 	const errors = useStore(field.store, (state) => state.meta.errors)
 	const [open, setOpen] = React.useState(false)
@@ -186,19 +293,23 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
 	}, [currentDate])
 
 	// Validate on blur or value change
-	const validateInput = React.useCallback((value: string) => {
-		const error = validateDateFormat(value, label)
-		setLocalError(error)
-		return error
-	}, [])
+	const validateInput = React.useCallback(
+		(value: string) => {
+			const error = validateDateFormat(value, label, optional)
+			setLocalError(error)
+			return error
+		},
+		[label, optional]
+	)
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const inputValue = e.target.value
-		const currentCursor = e.target.selectionStart || 0
 		const previousValue = field.state.value
 
-		// Apply mask formatting
-		const maskedValue = applyDateMask(inputValue, previousValue)
+		const { value: maskedValue, cursor } = applyDateEdit(
+			previousValue,
+			inputValue
+		)
 
 		// Update field value
 		field.handleChange(maskedValue)
@@ -213,21 +324,11 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
 		}
 
 		// Set cursor position after mask is applied
-		React.startTransition(() => {
-			const newCursorPosition = getCursorPosition(
-				inputValue,
-				maskedValue,
-				currentCursor
-			)
-			setTimeout(() => {
-				if (inputRef.current) {
-					inputRef.current.setSelectionRange(
-						newCursorPosition,
-						newCursorPosition
-					)
-				}
-			}, 0)
-		})
+		setTimeout(() => {
+			if (inputRef.current) {
+				inputRef.current.setSelectionRange(cursor, cursor)
+			}
+		}, 0)
 	}
 
 	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -240,32 +341,11 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault()
 			setOpen(true)
-			return
 		}
-
-		// Handle backspace to remove slashes properly
-		if (e.key === 'Backspace') {
-			const input = e.target as HTMLInputElement
-			const cursorPosition = input.selectionStart || 0
-			const value = input.value
-
-			// If cursor is right after a slash, move cursor back to delete the digit before slash
-			if (cursorPosition > 0 && value[cursorPosition - 1] === '/') {
-				e.preventDefault()
-				const newValue =
-					value.slice(0, cursorPosition - 2) +
-					value.slice(cursorPosition)
-				const maskedValue = applyDateMask(newValue)
-				field.handleChange(maskedValue)
-
-				setTimeout(() => {
-					if (inputRef.current) {
-						const newCursor = Math.max(0, cursorPosition - 2)
-						inputRef.current.setSelectionRange(newCursor, newCursor)
-					}
-				}, 0)
-			}
-		}
+		// Backspacing right after a slash is handled by applyDateEdit in
+		// handleInputChange (it treats removing the separator as deleting
+		// the last digit of the segment before it), so no special-casing
+		// is needed here.
 	}
 
 	const handleDateSelect = (date: Date | undefined) => {
@@ -287,14 +367,25 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
 	}, [errors, localError])
 
 	return (
-		<div className='flex flex-col gap-2'>
-			<Label htmlFor={label} className='text-xl font-bold'>
+		<div
+			className={cn(
+				'flex flex-col',
+				compact ? 'gap-1' : 'gap-2',
+				className
+			)}
+		>
+			<Label
+				htmlFor={field.name}
+				className={
+					compact ? 'text-sm font-medium' : 'text-xl font-bold'
+				}
+			>
 				{label}
 			</Label>
 			<div className='relative flex gap-2'>
 				<Input
 					ref={inputRef}
-					id={label}
+					id={field.name}
 					value={field.state.value}
 					placeholder={placeholder || 'Ngày/tháng/năm'}
 					className='bg-background pr-10'
@@ -307,8 +398,9 @@ export default function DatePicker({ label, placeholder }: DatePickerProps) {
 					<PopoverTrigger asChild>
 						<Button
 							id='date-picker'
+							type='button'
 							variant='ghost'
-							className='absolute top-1/2 right-2 size-6 -translate-y-1/2'
+							className='absolute top-1 right-2 size-6'
 						>
 							<CalendarIcon className='size-3.5' />
 							<span className='sr-only'>Select date</span>

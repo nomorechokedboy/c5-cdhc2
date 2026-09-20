@@ -7,7 +7,7 @@ import * as ShadcnSelect from '@/components/ui/select'
 import { Slider as ShadcnSlider } from '@/components/ui/slider'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { useRef, useState, type JSX } from 'react'
+import { useRef, useState, type JSX, type ReactNode } from 'react'
 import {
 	Command,
 	CommandEmpty,
@@ -35,6 +35,9 @@ import ToggleInput from './toggle-input'
 import PasswordInput from './password-input'
 import { EllipsisText } from './data-table/ellipsis-text'
 import { AvatarUpload, type AvatarUploadProps } from './avatar-upload'
+import { Checkbox } from '@/components/ui/checkbox'
+import { SearchableSelect } from '@/components/ui/searchable-select'
+import UnitSelect, { type UnitSelectProps } from './unit-select'
 
 export function SubscribeButton({
 	label,
@@ -76,17 +79,46 @@ export function ErrorMessages({
 
 export type TextFieldProps = JSX.IntrinsicElements['input'] & {
 	label: string
+	/** Nhãn nhỏ, gọn — dùng trong form sửa */
+	compact?: boolean
 }
 
-export function TextField({ label, className, ...inputProps }: TextFieldProps) {
+/** Nhãn dùng chung: to (form tạo) hoặc gọn (form sửa) */
+export function FieldLabel({
+	htmlFor,
+	compact,
+	children
+}: {
+	htmlFor?: string
+	compact?: boolean
+	children: ReactNode
+}) {
+	return (
+		<Label
+			htmlFor={htmlFor}
+			className={cn(
+				compact ? 'mb-1 text-sm font-medium' : 'mb-2 text-xl font-bold'
+			)}
+		>
+			{children}
+		</Label>
+	)
+}
+
+export function TextField({
+	label,
+	className,
+	compact,
+	...inputProps
+}: TextFieldProps) {
 	const field = useFieldContext<string>()
 	const errors = useStore(field.store, (state) => state.meta.errors)
 
 	return (
 		<div className={className}>
-			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+			<FieldLabel htmlFor={field.name} compact={compact}>
 				{label}
-			</Label>
+			</FieldLabel>
 			{inputProps.type === 'password' ? (
 				<PasswordInput
 					{...inputProps}
@@ -112,19 +144,23 @@ export function TextField({ label, className, ...inputProps }: TextFieldProps) {
 
 export function TextArea({
 	label,
-	rows = 3
+	rows = 3,
+	compact,
+	className
 }: {
 	label: string
 	rows?: number
+	compact?: boolean
+	className?: string
 }) {
 	const field = useFieldContext<string>()
 	const errors = useStore(field.store, (state) => state.meta.errors)
 
 	return (
-		<div>
-			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+		<div className={className}>
+			<FieldLabel htmlFor={label} compact={compact}>
 				{label}
-			</Label>
+			</FieldLabel>
 			<ShadcnTextarea
 				id={label}
 				value={field.state.value}
@@ -569,6 +605,168 @@ export function AvatarField({
 				enableUpload
 			/>
 			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+type FieldValue = string | number | boolean | null | undefined
+
+export type NumberFieldProps = {
+	label: string
+	compact?: boolean
+	className?: string
+	min?: number
+	max?: number
+}
+
+/** Ô số: giá trị trong form là number (rỗng → undefined), input luôn nhận string */
+export function NumberField({
+	label,
+	compact,
+	className,
+	min,
+	max
+}: NumberFieldProps) {
+	const field = useFieldContext<number | string | null | undefined>()
+	const errors = useStore(field.store, (state) => state.meta.errors)
+	const value = field.state.value
+
+	return (
+		<div className={className}>
+			<FieldLabel htmlFor={field.name} compact={compact}>
+				{label}
+			</FieldLabel>
+			<Input
+				id={field.name}
+				name={field.name}
+				type='number'
+				inputMode='numeric'
+				min={min}
+				max={max}
+				value={
+					value === null || value === undefined ? '' : String(value)
+				}
+				onBlur={field.handleBlur}
+				onChange={(e) => {
+					const raw = e.target.value
+					if (raw === '') return field.handleChange(undefined)
+					const n = Number(raw)
+					if (Number.isFinite(n)) field.handleChange(n)
+				}}
+			/>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+export type SelectFieldProps = {
+	label: string
+	options: Array<{ label: string; value: string; keywords?: string }>
+	placeholder?: string
+	compact?: boolean
+	className?: string
+	onChange?: (value: string) => void
+}
+
+/**
+ * Select có tìm kiếm. Giá trị field có thể là string / number / null:
+ * luôn so khớp theo String(value) nên không bị trống khi kiểu dữ liệu lệch.
+ */
+export function SelectField({
+	label,
+	options,
+	placeholder,
+	compact,
+	className,
+	onChange
+}: SelectFieldProps) {
+	const field = useFieldContext<FieldValue>()
+	const errors = useStore(field.store, (state) => state.meta.errors)
+	const current = field.state.value
+	const value =
+		current === null || current === undefined ? '' : String(current)
+
+	return (
+		<div className={className}>
+			<FieldLabel htmlFor={field.name} compact={compact}>
+				{label}
+			</FieldLabel>
+			<SearchableSelect
+				options={options}
+				value={value}
+				compact={compact}
+				placeholder={placeholder ?? `Chọn ${label.toLowerCase()}`}
+				onValueChange={(v) => {
+					field.handleChange(v)
+					onChange?.(v)
+				}}
+			/>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+export type UnitFieldProps = Pick<
+	UnitSelectProps,
+	'level' | 'parentId' | 'placeholder' | 'disabled'
+> & {
+	label: string
+	compact?: boolean
+	className?: string
+}
+
+/** Chọn đơn vị (lớp mặc định), field lưu id dạng number */
+export function UnitField({
+	label,
+	compact,
+	className,
+	...unitProps
+}: UnitFieldProps) {
+	const field = useFieldContext<number | string | null | undefined>()
+	const errors = useStore(field.store, (state) => state.meta.errors)
+
+	return (
+		<div className={className}>
+			<FieldLabel htmlFor={field.name} compact={compact}>
+				{label}
+			</FieldLabel>
+			<UnitSelect
+				{...unitProps}
+				compact={compact}
+				value={field.state.value}
+				onChange={(id) => field.handleChange(id)}
+			/>
+			{field.state.meta.isTouched && <ErrorMessages errors={errors} />}
+		</div>
+	)
+}
+
+export function CheckboxField({
+	label,
+	compact,
+	className
+}: {
+	label: string
+	compact?: boolean
+	className?: string
+}) {
+	const field = useFieldContext<boolean | null | undefined>()
+
+	return (
+		<div className={cn('flex items-center gap-2', className)}>
+			<Checkbox
+				id={field.name}
+				checked={!!field.state.value}
+				onCheckedChange={(val) => field.handleChange(val === true)}
+			/>
+			<Label
+				htmlFor={field.name}
+				className={
+					compact ? 'text-sm font-medium' : 'text-xl font-bold'
+				}
+			>
+				{label}
+			</Label>
 		</div>
 	)
 }
