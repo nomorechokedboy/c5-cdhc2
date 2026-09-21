@@ -261,7 +261,8 @@ export function SearchableSelect({
 					disabled={disabled}
 					onKeyDown={onTriggerKeyDown}
 					className={cn(
-						'w-full justify-between font-normal px-3',
+						// Là ô nhập liệu, không phải nút hành động: giữ góc gần vuông như Input
+						'w-full justify-between rounded-md font-normal px-3',
 						compact ? 'h-9 text-sm' : 'h-12 text-lg',
 						!selected && 'text-muted-foreground',
 						className

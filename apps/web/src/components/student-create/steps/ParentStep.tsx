@@ -82,7 +82,6 @@ export function ParentStep({ form }: StudentStepProps) {
 				title='Anh chị em ruột'
 				addLabel='Thêm thông tin anh/chị/em'
 				emptyText='Chưa có thông tin anh chị em'
-				accent='teal'
 			/>
 		</StepBody>
 	)

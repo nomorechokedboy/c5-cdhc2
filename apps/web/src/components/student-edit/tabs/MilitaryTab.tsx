@@ -8,7 +8,7 @@ export function MilitaryTab({ form }: StudentEditTabProps) {
 
 	return (
 		<div className='space-y-6'>
-			<FormSection title='Quân sự' icon={Shield} accent='green'>
+			<FormSection title='Quân sự' icon={Shield}>
 				<StudentField
 					{...f}
 					type='select'
@@ -36,7 +36,7 @@ export function MilitaryTab({ form }: StudentEditTabProps) {
 				/>
 			</FormSection>
 
-			<FormSection title='Chính trị' icon={Star} accent='yellow'>
+			<FormSection title='Chính trị' icon={Star}>
 				<StudentField
 					{...f}
 					type='select'

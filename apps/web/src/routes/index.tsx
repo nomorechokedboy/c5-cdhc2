@@ -1,13 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { UserPlus, Users } from 'lucide-react'
-import { useState } from 'react'
+import { Users } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { UnitBoard } from '@/components/home/unit-board'
 import StudentForm from '@/components/student-form'
 import { TraceLine } from '@/components/trace-line'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import useUnitBoard from '@/hooks/useUnitBoard'
@@ -42,7 +41,7 @@ function Vitals() {
 
 function RouteComponent() {
 	const navigate = useNavigate()
-	const [showStudentForm, setShowStudentForm] = useState(false)
+	const queryClient = useQueryClient()
 
 	return (
 		<ProtectedRoute>
@@ -60,14 +59,18 @@ function RouteComponent() {
 								</p>
 							</div>
 							<div className='flex flex-wrap gap-3'>
-								<Button
-									size='lg'
-									className='cursor-pointer'
-									onClick={() => setShowStudentForm(true)}
-								>
-									<UserPlus />
-									Thêm học viên
-								</Button>
+								<StudentForm
+									// Bảng giao ban đếm học viên theo đơn vị nên cần tải lại
+									onSuccess={() =>
+										queryClient.invalidateQueries({
+											queryKey: ['units']
+										})
+									}
+									buttonProps={{
+										size: 'lg',
+										className: 'cursor-pointer'
+									}}
+								/>
 								<Button
 									size='lg'
 									variant='outline'
@@ -89,21 +92,6 @@ function RouteComponent() {
 
 					<UnitBoard />
 				</div>
-
-				{showStudentForm && (
-					<Dialog
-						open
-						onOpenChange={(open) => {
-							if (!open) setShowStudentForm(false)
-						}}
-					>
-						<DialogContent className='max-w-7xl h-[90vh] overflow-y-auto p-6'>
-							<StudentForm
-								onSuccess={() => setShowStudentForm(false)}
-							/>
-						</DialogContent>
-					</Dialog>
-				)}
 			</SidebarInset>
 		</ProtectedRoute>
 	)

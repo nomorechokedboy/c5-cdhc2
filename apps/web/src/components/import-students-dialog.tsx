@@ -6,6 +6,7 @@ import {
 	Users,
 	X
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { FileDropzone } from './import-students/FileDropzone'
 import { ImportInstructions } from './import-students/ImportInstructions'
 import { ImportPreview } from './import-students/ImportPreview'
@@ -44,11 +45,11 @@ export function ImportStudentsDialog({
 
 	return (
 		<div className=' flex items-center justify-center z-50 p-4'>
-			<div className='bg-white rounded-xl w-[90vw] max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl'>
-				<div className='flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-xl'>
+			<div className='bg-card rounded-xl border w-[90vw] max-w-6xl max-h-[90vh] overflow-y-auto shadow-lg'>
+				<div className='flex items-center justify-between p-6 border-b border-sidebar-border bg-sidebar text-sidebar-foreground rounded-t-xl'>
 					<div className='flex items-center space-x-3'>
-						<Users className='h-6 w-6' />
-						<h2 className='text-xl font-semibold'>
+						<Users className='h-6 w-6 text-gold' />
+						<h2 className='font-display text-2xl font-semibold tracking-wide'>
 							Import danh sách học viên
 						</h2>
 					</div>
@@ -56,7 +57,7 @@ export function ImportStudentsDialog({
 						type='button'
 						onClick={handleClose}
 						aria-label='Đóng'
-						className='text-white hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-white hover:bg-opacity-20'
+						className='cursor-pointer rounded-full p-1.5 text-sidebar-foreground/80 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-ring'
 					>
 						<X className='h-5 w-5' />
 					</button>
@@ -75,13 +76,13 @@ export function ImportStudentsDialog({
 					/>
 
 					{imp.status === 'reading' && (
-						<div className='text-sm text-blue-700'>
+						<div className='text-sm text-info'>
 							Đang đọc file...
 						</div>
 					)}
 
 					{imp.status === 'error' && imp.message && (
-						<div className='flex items-center space-x-2 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200'>
+						<div className='flex items-center space-x-2 p-3 rounded-lg bg-destructive/10 text-destructive border border-destructive/30'>
 							<AlertCircle className='h-5 w-5 flex-shrink-0' />
 							<span>{imp.message}</span>
 						</div>
@@ -89,7 +90,7 @@ export function ImportStudentsDialog({
 
 					{done && imp.result && (
 						<>
-							<div className='flex items-center space-x-2 p-3 rounded-lg bg-green-50 text-green-700 border border-green-200'>
+							<div className='flex items-center space-x-2 p-3 rounded-lg bg-success/10 text-success border border-success/30'>
 								<CheckCircle className='h-5 w-5 flex-shrink-0' />
 								<span>
 									Import hoàn tất! Đã thêm{' '}
@@ -114,27 +115,26 @@ export function ImportStudentsDialog({
 					)}
 				</div>
 
-				<div className='flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl'>
-					<button
+				<div className='flex items-center justify-end space-x-3 p-6 border-t border-border bg-muted/40 rounded-b-xl'>
+					<Button
 						type='button'
+						variant='outline'
 						onClick={handleClose}
-						className='px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors'
 					>
 						{done ? 'Đóng' : 'Hủy'}
-					</button>
+					</Button>
 
 					{!done && (
-						<button
+						<Button
 							type='button'
 							onClick={imp.importValid}
 							disabled={
 								imp.validCount === 0 || busy || imp.unitsLoading
 							}
-							className='flex items-center space-x-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 						>
 							{importing ? (
 								<>
-									<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white' />
+									<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-current' />
 									<span>Đang import...</span>
 								</>
 							) : (
@@ -148,7 +148,7 @@ export function ImportStudentsDialog({
 									<ArrowRight className='h-4 w-4' />
 								</>
 							)}
-						</button>
+						</Button>
 					)}
 				</div>
 			</div>

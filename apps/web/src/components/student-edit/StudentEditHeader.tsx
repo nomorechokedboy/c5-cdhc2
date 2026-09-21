@@ -31,9 +31,11 @@ export function StudentEditHeader({
 			</form.AppField>
 			<div className='text-center sm:text-left'>
 				<CardTitle className='text-xl'>{student.fullName}</CardTitle>
-				<p className='text-gray-600'>Chức vụ: {student.position}</p>
-				<p className='text-gray-600'>Cấp bậc: {student.rank}</p>
-				<p className='text-gray-600'>Lớp: {unitLabel}</p>
+				<p className='text-muted-foreground'>
+					Chức vụ: {student.position}
+				</p>
+				<p className='text-muted-foreground'>Cấp bậc: {student.rank}</p>
+				<p className='text-muted-foreground'>Lớp: {unitLabel}</p>
 			</div>
 		</CardHeader>
 	)

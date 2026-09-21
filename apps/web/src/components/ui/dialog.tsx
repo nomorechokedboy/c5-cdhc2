@@ -38,7 +38,7 @@ function DialogOverlay({
 		<DialogPrimitive.Overlay
 			data-slot='dialog-overlay'
 			className={cn(
-				'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50',
+				'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-sidebar/70 backdrop-blur-[2px]',
 				className
 			)}
 			{...props}
@@ -59,16 +59,16 @@ function DialogContent({
 			<DialogOverlay />
 			<DialogPrimitive.Content
 				className={cn(
-					'bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-7xl h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 overflow-y-auto',
+					'bg-card text-card-foreground fixed top-[50%] left-[50%] z-50 grid w-full max-w-7xl h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-xl border p-6 shadow-lg duration-200 overflow-y-auto',
 					className
 				)}
 				{...props}
 			>
 				{children}
 				{showCloseButton && (
-					<DialogPrimitive.Close className='absolute top-4 right-4 opacity-70 transition-opacity hover:opacity-100'>
+					<DialogPrimitive.Close className='absolute top-4 right-4 cursor-pointer rounded-full p-1 opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring'>
 						<XIcon className='w-5 h-5' />
-						<span className='sr-only'>Close</span>
+						<span className='sr-only'>Đóng</span>
 					</DialogPrimitive.Close>
 				)}
 			</DialogPrimitive.Content>
@@ -109,7 +109,10 @@ function DialogTitle({
 	return (
 		<DialogPrimitive.Title
 			data-slot='dialog-title'
-			className={cn('text-xl leading-snug font-semibold', className)}
+			className={cn(
+				'font-display text-2xl leading-snug font-semibold tracking-wide',
+				className
+			)}
 			{...props}
 		/>
 	)

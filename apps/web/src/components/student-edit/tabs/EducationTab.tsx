@@ -8,7 +8,7 @@ export function EducationTab({ form }: StudentEditTabProps) {
 
 	return (
 		<div className='space-y-6'>
-			<FormSection title='Học vấn' icon={GraduationCap} accent='yellow'>
+			<FormSection title='Học vấn' icon={GraduationCap}>
 				<StudentField {...f} name='schoolName' label='Trường' />
 				<StudentField {...f} name='major' label='Chuyên ngành' />
 				<StudentField
@@ -26,11 +26,7 @@ export function EducationTab({ form }: StudentEditTabProps) {
 				/>
 			</FormSection>
 
-			<FormSection
-				title='Kỹ năng & Chính sách'
-				icon={Award}
-				accent='emerald'
-			>
+			<FormSection title='Kỹ năng & Chính sách' icon={Award}>
 				<StudentField {...f} name='talent' label='Sở trường' />
 				<StudentField {...f} name='shortcoming' label='Sở đoản' />
 				<StudentField

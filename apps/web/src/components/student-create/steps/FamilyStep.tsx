@@ -39,7 +39,6 @@ export function FamilyStep({ form }: StudentStepProps) {
 				title='Con'
 				addLabel='Thêm thông tin con cái'
 				emptyText='Chưa có thông tin con cái'
-				accent='cyan'
 			/>
 		</StepBody>
 	)
