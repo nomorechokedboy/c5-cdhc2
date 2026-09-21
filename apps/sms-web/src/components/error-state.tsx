@@ -8,6 +8,7 @@ import {
 } from '@repo/ui/components/ui/card'
 import { Button } from '@repo/ui/components/ui/button'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ErrorStateProps {
 	title?: string
@@ -18,43 +19,41 @@ interface ErrorStateProps {
 	error?: Error | string
 }
 
+/** Thông báo lỗi: gáy sổ đỏ như bút đỏ gạch, nói rõ lỗi gì và cho thử lại. */
 export default function ErrorState({
 	error,
-	title = 'Something went wrong',
-	description = 'We encountered an error loading your data. Please try again.',
+	title,
+	description,
 	showRetryButton = true,
 	informationText,
 	onRetry
 }: ErrorStateProps) {
+	const { t } = useTranslation()
 	const errorMessage =
 		typeof error === 'string'
 			? error
-			: error?.message || 'An unexpected error occurred'
+			: error?.message || t('error.unexpected')
 
 	return (
-		<div className='container mx-auto p-6 space-y-6 relative'>
-			<Card className='border-destructive/50 bg-destructive/5'>
+		<div className='container relative mx-auto space-y-6 p-6'>
+			<Card role='alert' className='border-l-destructive border-l-[6px]'>
 				<CardHeader>
 					<div className='flex items-start gap-3'>
-						<div className='rounded-full bg-red-100 dark:bg-red-900/20 p-3 flex-shrink-0'>
-							<AlertCircle className='h-6 w-6 text-red-600 dark:text-red-400' />
-						</div>
-						<div className='space-y-2'>
-							<div>
-								<CardTitle className='text-xl font-semibold text-foreground'>
-									{title}
-								</CardTitle>
-								<CardDescription className='text-muted-foreground mt-1'>
-									{description}
-								</CardDescription>
-							</div>
+						<AlertCircle className='text-destructive mt-1 h-6 w-6 shrink-0' />
+						<div>
+							<CardTitle className='text-xl'>
+								{title ?? t('error.genericTitle')}
+							</CardTitle>
+							<CardDescription className='mt-1'>
+								{description ?? t('error.genericDesc')}
+							</CardDescription>
 						</div>
 					</div>
 				</CardHeader>
 				{showRetryButton && onRetry && (
 					<CardContent className='space-y-4'>
-						<div className='rounded-lg bg-muted/50 p-4 border border-border'>
-							<p className='text-sm text-muted-foreground font-mono'>
+						<div className='bg-muted/50 border-border rounded-md border p-4'>
+							<p className='text-muted-foreground font-mono text-sm'>
 								{errorMessage}
 							</p>
 						</div>
@@ -62,9 +61,9 @@ export default function ErrorState({
 						<div className='flex items-center gap-3'>
 							<Button onClick={onRetry} className='gap-2'>
 								<RefreshCw className='h-4 w-4' />
-								Retry Loading
+								{t('error.retryButton')}
 							</Button>
-							<p className='text-sm text-muted-foreground'>
+							<p className='text-muted-foreground text-sm'>
 								{informationText}
 							</p>
 						</div>
@@ -76,16 +75,18 @@ export default function ErrorState({
 }
 
 export function FullPageErrorState({
-	title = 'Unable to Load',
-	description = "We couldn't load your courses. Please try refreshing the page.",
+	title,
+	description,
 	onRetry
 }: ErrorStateProps) {
+	const { t } = useTranslation()
+
 	return (
 		<div className='container mx-auto p-6'>
-			<div className='flex items-center justify-center min-h-96'>
+			<div className='flex min-h-96 items-center justify-center'>
 				<ErrorState
-					title={title}
-					description={description}
+					title={title ?? t('error.fullTitle')}
+					description={description ?? t('error.fullDesc')}
 					onRetry={onRetry}
 					showRetryButton={true}
 				/>

@@ -28,6 +28,7 @@
 			"outcome": "Kết quả",
 			"allOutcomes": "Tất cả kết quả",
 			"actorId": "ID người dùng",
+			"actorIdPlaceholder": "Nhập ID",
 			"from": "Từ ngày",
 			"to": "Đến ngày",
 			"apply": "Áp dụng",
@@ -231,7 +232,12 @@
 		"courseLoadDesc": "Đã xảy ra lỗi khi tải thông tin môn học",
 		"retryButton": "Thử lại",
 		"retryHint": "Nhấn để tải lại dữ liệu",
-		"unexpected": "Đã xảy ra lỗi không mong muốn"
+		"unexpected": "Đã xảy ra lỗi không mong muốn",
+		"genericTitle": "Đã xảy ra lỗi",
+		"genericDesc": "Không thể tải dữ liệu. Vui lòng thử lại.",
+		"fullTitle": "Không thể tải dữ liệu",
+		"fullDesc": "Không thể tải các khóa học của bạn. Vui lòng tải lại trang.",
+		"loading": "Đang tải"
 	},
 	"langpack": {
 		"title": "Tùy chỉnh giao diện",
