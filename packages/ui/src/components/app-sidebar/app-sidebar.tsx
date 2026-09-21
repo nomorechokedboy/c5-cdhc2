@@ -46,19 +46,19 @@ export function AppSidebar({
 		<Sidebar {...props}>
 			<SidebarHeader>
 				<div className='flex items-center gap-2 px-4 py-2'>
-					<div className='flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary-foreground'>
+					<div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white ring-2 ring-sidebar-primary'>
 						<img
 							src={config.logoSrc}
 							alt={config.title}
-							className='h-6 w-6'
+							className='h-7 w-7 object-contain'
 						/>
 					</div>
 					{!isCollapsed && (
 						<div className='flex flex-col'>
-							<span className='text-sm font-semibold'>
+							<span className='font-serif text-base leading-tight font-semibold'>
 								{config.title}
 							</span>
-							<span className='text-xs text-muted-foreground'>
+							<span className='text-xs text-sidebar-foreground/70'>
 								{config.subtitle}
 							</span>
 						</div>

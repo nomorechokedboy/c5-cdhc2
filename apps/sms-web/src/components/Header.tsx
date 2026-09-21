@@ -11,6 +11,7 @@ import { SidebarTrigger } from '@repo/ui/components/ui/sidebar'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Fragment } from 'react/jsx-runtime'
 import { UserNav } from '@repo/ui/components/user-nav'
+import { ThemeToggle } from '@/components/theme-toggle'
 import type { MenuItem } from '@repo/ui/components/user-nav'
 import useAuth from '@/hooks/useAuth'
 import { User } from 'lucide-react'
@@ -27,7 +28,9 @@ export default function Header() {
 	const breadcrumbItems = [
 		{ label: t('nav.home'), href: '/' },
 		...segments.map((seg, idx) => ({
-			label: decodeURIComponent(seg),
+			label: t(`breadcrumb.${seg}`, {
+				defaultValue: decodeURIComponent(seg)
+			}),
 			href: '/' + segments.slice(0, idx + 1).join('/')
 		}))
 	]
@@ -47,7 +50,7 @@ export default function Header() {
 	const roleLabel = t(`roles.${role}`, { defaultValue: role })
 
 	return (
-		<header className='flex flex-row items-center justify-between h-16 shrink-0 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20 border-b'>
+		<header className='flex flex-row items-center justify-between h-16 shrink-0 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 z-20 border-b-2 border-b-foreground/70'>
 			<div className='flex items-center gap-2 px-4'>
 				<SidebarTrigger className='-ml-1' />
 				<Separator
@@ -80,7 +83,8 @@ export default function Header() {
 				</Breadcrumb>
 			</div>
 
-			<div className='px-4 flex items-center gap-5'>
+			<div className='px-4 flex items-center gap-3'>
+				<ThemeToggle />
 				<UserNav
 					displayName={displayName}
 					username={`${user?.email ?? ''} · ${roleLabel}`}

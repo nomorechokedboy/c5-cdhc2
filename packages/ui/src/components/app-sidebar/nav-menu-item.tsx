@@ -65,7 +65,7 @@ export function NavMenuItem({
 						}
 					>
 						<CollapsibleTrigger asChild>
-							<SidebarMenuButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+							<SidebarMenuButton className='flex items-center gap-3 relative rounded-md px-4 py-2 font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:before:absolute data-[active=true]:before:inset-y-1.5 data-[active=true]:before:left-0 data-[active=true]:before:w-0.5 data-[active=true]:before:rounded-full data-[active=true]:before:bg-sidebar-primary cursor-pointer'>
 								{iconElement}
 								{!isCollapsed && <span>{item.title}</span>}
 								{!isCollapsed && (
@@ -96,7 +96,7 @@ export function NavMenuItem({
 					<SidebarMenuButton
 						asChild
 						isActive={item.isActive}
-						className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'
+						className='flex items-center gap-3 relative rounded-md px-4 py-2 font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:before:absolute data-[active=true]:before:inset-y-1.5 data-[active=true]:before:left-0 data-[active=true]:before:w-0.5 data-[active=true]:before:rounded-full data-[active=true]:before:bg-sidebar-primary cursor-pointer'
 					>
 						{renderLink(item)}
 					</SidebarMenuButton>
@@ -116,7 +116,7 @@ export function NavMenuItem({
 					}
 				>
 					<CollapsibleTrigger asChild>
-						<SidebarMenuSubButton className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100 cursor-pointer'>
+						<SidebarMenuSubButton className='flex items-center gap-3 relative rounded-md px-4 py-2 font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:before:absolute data-[active=true]:before:inset-y-1.5 data-[active=true]:before:left-0 data-[active=true]:before:w-0.5 data-[active=true]:before:rounded-full data-[active=true]:before:bg-sidebar-primary cursor-pointer'>
 							{iconElement}
 							{!isCollapsed && <span>{item.title}</span>}
 							{!isCollapsed && (
@@ -143,7 +143,7 @@ export function NavMenuItem({
 				<SidebarMenuSubButton
 					asChild
 					isActive={item.isActive}
-					className='flex items-center gap-3 rounded-xl px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:bg-blue-100'
+					className='flex items-center gap-3 relative rounded-md px-4 py-2 font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:before:absolute data-[active=true]:before:inset-y-1.5 data-[active=true]:before:left-0 data-[active=true]:before:w-0.5 data-[active=true]:before:rounded-full data-[active=true]:before:bg-sidebar-primary'
 				>
 					{renderLink(item)}
 				</SidebarMenuSubButton>

@@ -120,6 +120,12 @@ importers:
             '@faker-js/faker':
                 specifier: ^9.6.0
                 version: 9.9.0
+            '@fontsource/public-sans':
+                specifier: ^5.3.0
+                version: 5.3.0
+            '@fontsource/source-serif-4':
+                specifier: ^5.3.0
+                version: 5.3.0
             '@radix-ui/react-label':
                 specifier: ^2.1.7
                 version: 2.1.7(@types/react-dom@19.1.7(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1961,6 +1967,18 @@ packages:
         resolution:
             {
                 integrity: sha512-xhAQBGHDxP5BF8IJxedy5MoWUmc1DlPCcZbMLhvnPkf8TaYCbbUVs3LjpuJ4BYdTrdiCLaewNaY8z+owq/FqFw==
+            }
+
+    '@fontsource/public-sans@5.3.0':
+        resolution:
+            {
+                integrity: sha512-kjODI0S3zdv0mBYCIQ8TbBayaiqszpc2UbhJiO3bjIqVVXzcWfHSt2o3WBCLOY3juaGaQoy4MoWCcgmfI5hCuA==
+            }
+
+    '@fontsource/source-serif-4@5.3.0':
+        resolution:
+            {
+                integrity: sha512-yQz8xmIgMzks8zQbpuca3UYtjxK798XCyQAGdDXmzBgvV7sdoK6d0YvE9F9kiYxORCEMRBgGZDZsSYcXj5KvwA==
             }
 
     '@humanwhocodes/config-array@0.13.0':
@@ -9844,6 +9862,10 @@ snapshots:
     '@fontsource/barlow-semi-condensed@5.3.0': {}
 
     '@fontsource/be-vietnam-pro@5.3.0': {}
+
+    '@fontsource/public-sans@5.3.0': {}
+
+    '@fontsource/source-serif-4@5.3.0': {}
 
     '@humanwhocodes/config-array@0.13.0':
         dependencies:

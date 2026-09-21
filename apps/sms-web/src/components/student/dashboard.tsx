@@ -138,10 +138,10 @@ export function StudentDashboard() {
 								value={activeSemester}
 								onValueChange={setActiveSemester}
 							>
-								<div className='sticky top-20 z-30 bg-card shadow-sm'>
-									<ScrollArea className='w-full whitespace-nowrap rounded-md border bg-card'>
-										<div className='flex p-1'>
-											<TabsList className='inline-flex h-10 items-center bg-muted p-1 flex-1'>
+								<div className='sticky top-20 z-30 bg-background'>
+									<ScrollArea className='w-full whitespace-nowrap'>
+										<div className='flex'>
+											<TabsList className='inline-flex h-10 flex-1 items-end'>
 												{sortedSemesters.map(
 													(semester) => (
 														<TabsTrigger
