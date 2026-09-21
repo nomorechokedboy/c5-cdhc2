@@ -16,7 +16,7 @@ import {
 	DialogTitle,
 	DialogContent
 } from '@/components/ui/dialog'
-import StudentInfoTabs from '../student-info-tabs'
+import { StudentProfile } from '../student-profile'
 import { useState, type MouseEvent } from 'react'
 import useDeleteStudents from '@/hooks/useDeleteStudents'
 import { toast } from 'sonner'
@@ -101,7 +101,7 @@ export function DataTableRowActions<TData>({
 						<DialogTitle>Thông tin học viên</DialogTitle>
 					</DialogHeader>
 
-					<StudentInfoTabs student={student} />
+					<StudentProfile student={student} />
 				</DialogContent>
 			</Dialog>
 		</>

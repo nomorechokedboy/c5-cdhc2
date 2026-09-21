@@ -1,0 +1,6 @@
+export { EducationTab } from './EducationTab'
+export { FamilyTab } from './FamilyTab'
+export { HistoryTab } from './HistoryTab'
+export { MilitaryTab } from './MilitaryTab'
+export { PersonalTab } from './PersonalTab'
+export type { ProfileTabProps } from './types'
