@@ -10,16 +10,22 @@ const Stat = ({
 	className: string
 }) => (
 	<div className='text-center'>
-		<div className={`text-2xl font-bold ${className}`}>{value}</div>
-		<div className='text-muted-foreground'>{label}</div>
+		<div
+			className={`tabular font-display text-4xl font-semibold ${className}`}
+		>
+			{value}
+		</div>
+		<div className='text-sm text-muted-foreground'>{label}</div>
 	</div>
 )
 
 export function ImportResultSummary({ result }: { result: ImportResult }) {
 	return (
-		<div className='bg-muted/50 border border-border rounded-lg p-4 space-y-3'>
-			<h4 className='font-medium text-foreground'>Kết quả import:</h4>
-			<div className='grid grid-cols-3 gap-4 text-sm'>
+		<div className='space-y-5 rounded-lg border bg-card p-5'>
+			<h4 className='font-display text-lg font-semibold tracking-wide'>
+				Kết quả import:
+			</h4>
+			<div className='grid grid-cols-3 gap-4'>
 				<Stat
 					value={result.created}
 					label='Đã thêm'
@@ -42,11 +48,11 @@ export function ImportResultSummary({ result }: { result: ImportResult }) {
 					<h5 className='font-medium text-destructive'>
 						Các dòng đã bỏ qua:
 					</h5>
-					<div className='max-h-32 overflow-y-auto space-y-1'>
+					<div className='space-y-1'>
 						{result.skipped.map((s) => (
 							<div
 								key={s.row}
-								className='text-sm text-destructive bg-destructive/10 p-2 rounded'
+								className='rounded-sm bg-destructive/5 p-2 text-sm text-destructive shadow-[inset_3px_0_0_var(--destructive)] pl-3'
 							>
 								Dòng {s.row}: {s.message}
 							</div>
