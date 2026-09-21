@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import {
 	Table,
@@ -8,6 +9,7 @@ import {
 } from '@repo/ui/components/ui/table'
 import type { Course, Student } from '@/types'
 import StudentGrades from './student-grades'
+import { hasConditionalAfter } from './columns'
 import { useTranslation } from 'react-i18next'
 
 interface GradesTableProps {
@@ -21,6 +23,7 @@ interface GradesTableProps {
 	) => void
 }
 
+/** Sổ điểm của lớp: mỗi hàng một học viên, mỗi cột một bài kiểm tra, hai cột tổng ở cuối. */
 export default function GradesTable({
 	students,
 	gradeCategories,
@@ -32,19 +35,16 @@ export default function GradesTable({
 	const { t } = useTranslation()
 
 	return (
-		<div className='rounded-md border border-border overflow-hidden'>
+		<div className='border-border overflow-hidden rounded-md border'>
 			<Table>
 				<TableHeader>
-					<TableRow className='bg-muted/50'>
-						<TableHead className='font-semibold text-foreground'>
+					<TableRow className='hover:bg-transparent'>
+						<TableHead className='bg-card sticky left-0 z-10'>
 							{t('grades.studentName')}
 						</TableHead>
 						{gradeCategories.map((category, idx) => (
-							<>
-								<TableHead
-									key={category.value}
-									className='font-semibold text-foreground text-center'
-								>
+							<Fragment key={category.value}>
+								<TableHead className='text-center'>
 									<div className='flex items-center justify-center gap-2'>
 										{category.label}
 										{bulkEditMode === 'single-category' && (
@@ -59,7 +59,7 @@ export default function GradesTable({
 												onClick={() =>
 													onCategorySelect(category)
 												}
-												className='h-6 px-2 text-xs'
+												className='h-6 px-2 font-sans text-xs'
 											>
 												{bulkEditCategory?.value ===
 												category.value
@@ -69,15 +69,17 @@ export default function GradesTable({
 										)}
 									</div>
 								</TableHead>
-								{gradeCategories.length > 2 &&
-									idx === gradeCategories.length - 2 && (
-										<TableHead className='font-semibold text-foreground text-center'>
-											{t('grades.conditionalGrade')}
-										</TableHead>
-									)}
-							</>
+								{hasConditionalAfter(
+									idx,
+									gradeCategories.length
+								) && (
+									<TableHead className='border-rule border-l text-center'>
+										{t('grades.conditionalGrade')}
+									</TableHead>
+								)}
+							</Fragment>
 						))}
-						<TableHead className='font-semibold text-foreground text-center'>
+						<TableHead className='border-rule border-l text-center'>
 							{t('grades.finalGrade')}
 						</TableHead>
 					</TableRow>

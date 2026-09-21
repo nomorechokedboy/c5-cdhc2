@@ -11,6 +11,7 @@ import BulkEditControls from '@/components/grade-table/bulk-edit-controls'
 import GradesTable from '@/components/grade-table'
 import ExportButton from '@/components/course-details/export-button'
 import type { Course } from '@/types'
+import { cn } from '@/lib/utils'
 import CourseDetailsSkeleton from './skeleton'
 import CourseDetailsError from './error'
 import { useMutation } from '@tanstack/react-query'
@@ -95,23 +96,27 @@ function InnerCourseDetails({
 		: t('grades.editHint')
 
 	return (
-		<div className='container mx-auto p-6 space-y-6'>
+		<div className='container mx-auto min-w-0 space-y-6 p-6'>
 			<CourseHeader course={course} studentCount={students.length} />
 
-			<Card className='border-border'>
+			<Card className={cn('min-w-0', bulkEditMode && 'border-brass')}>
 				<CardHeader>
 					<div className='flex items-center justify-between gap-2 flex-wrap'>
 						<div>
-							<CardTitle className='text-xl font-semibold text-foreground'>
+							<CardTitle className='text-xl'>
 								{t('grades.studentGrades')}
 							</CardTitle>
-							<CardDescription className='text-muted-foreground'>
+							<CardDescription
+								className={
+									bulkEditMode ? 'text-foreground' : undefined
+								}
+							>
 								{editModeDescription}
 							</CardDescription>
 						</div>
 
 						{/* Right side: export button + bulk-edit controls */}
-						<div className='flex items-center gap-2'>
+						<div className='flex flex-wrap items-center gap-2'>
 							<ExportButton courseId={course.id} />
 							<BulkEditControls
 								bulkEditMode={bulkEditMode}
