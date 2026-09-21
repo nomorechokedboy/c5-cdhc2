@@ -1,146 +1,110 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import ProtectedRoute from '@/components/ProtectedRoute'
-import { SidebarInset } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, UserPlus, BarChart3 } from 'lucide-react'
-import StudentForm from '@/components/student-form'
+import dayjs from 'dayjs'
+import { UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { UnitBoard } from '@/components/home/unit-board'
+import StudentForm from '@/components/student-form'
+import { TraceLine } from '@/components/trace-line'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { SidebarInset } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
+import useUnitBoard from '@/hooks/useUnitBoard'
 
 export const Route = createFileRoute('/')({
 	component: RouteComponent
 })
 
+/** Một con số duy nhất của trang: tổng học viên, đứng cạnh nhịp tim. */
+function Vitals() {
+	const { data, isPending } = useUnitBoard()
+
+	return (
+		<div className='flex items-end gap-4'>
+			<div>
+				{isPending ? (
+					<Skeleton className='h-14 w-28' />
+				) : (
+					<p className='tabular font-display text-6xl leading-none font-semibold'>
+						{data?.totalStudents ?? '–'}
+					</p>
+				)}
+				<p className='mt-1 text-sm text-muted-foreground'>
+					học viên
+					{data ? `, ${data.totalClasses} lớp đang học` : ''}
+				</p>
+			</div>
+			<TraceLine variant='beat' className='mb-5 hidden w-40 sm:block' />
+		</div>
+	)
+}
+
 function RouteComponent() {
 	const navigate = useNavigate()
 	const [showStudentForm, setShowStudentForm] = useState(false)
-	const handleFormSuccess = () => {
-		setShowStudentForm(false)
-	}
-	const [urlSite, setUrlSite] = useState('')
 
 	return (
 		<ProtectedRoute>
 			<SidebarInset>
-				{/* Gradient background */}
-				<div className='min-h-screen p-6 animate-fadeIn'>
-					{/* Hero */}
-					<div className='flex flex-col items-center text-center space-y-4'>
-						<img
-							src='logo.png'
-							alt='Logo'
-							className='w-35 h-35 drop-shadow-md animate-fadeInUp'
-						/>
-						<h1 className='text-4xl font-bold tracking-wide text-foreground animate-fadeInUp delay-100'>
-							Hệ thống quản lý đào tạo
-						</h1>
-						<p className='text-muted-foreground max-w-2xl animate-fadeInUp delay-200'>
-							Nền tảng quản lý đào tạo Trường Cao đẳng Hậu cần 2 —
-							danh mục, đề thi, phân công giảng dạy, học viên và
-							vật tư.
-						</p>
-						<div className='flex gap-4 animate-fadeInUp delay-300'>
-							<Button
-								size='lg'
-								className='cursor-pointer flex items-center gap-2 shadow-md hover:shadow-lg transition-all'
-								onClick={() => setShowStudentForm(true)}
-							>
-								<UserPlus className='w-5 h-5' />
-								Thêm học viên mới
-							</Button>
-							<Button
-								size='lg'
-								variant='outline'
-								className='cursor-pointer not-first-of-type:flex items-center gap-2 shadow-sm hover:shadow-md transition-all'
-								// onclick redrect to /dai-doi/c5
-								onClick={() => {
-									setUrlSite('/dai-doi/c5')
-									navigate({ to: urlSite })
-								}}
-							>
-								<Users className='w-5 h-5' />
-								Xem danh sách học viên
-							</Button>
+				<div className='min-h-screen space-y-6 p-6'>
+					<div className='flex flex-wrap items-end justify-between gap-6'>
+						<div className='space-y-4'>
+							<div>
+								<h1 className='text-4xl font-semibold tracking-wide'>
+									Trang chủ
+								</h1>
+								<p className='text-muted-foreground'>
+									Trường Cao đẳng Hậu cần 2, ngày{' '}
+									{dayjs().format('DD/MM/YYYY')}
+								</p>
+							</div>
+							<div className='flex flex-wrap gap-3'>
+								<Button
+									size='lg'
+									className='cursor-pointer'
+									onClick={() => setShowStudentForm(true)}
+								>
+									<UserPlus />
+									Thêm học viên
+								</Button>
+								<Button
+									size='lg'
+									variant='outline'
+									className='cursor-pointer'
+									onClick={() =>
+										navigate({
+											to: '/dai-doi/$companyAlias',
+											params: { companyAlias: 'c5' }
+										})
+									}
+								>
+									<Users />
+									Danh sách học viên
+								</Button>
+							</div>
 						</div>
+						<Vitals />
 					</div>
 
-					{/* Thống kê */}
-					{/* <div className='cursor-pointer grid grid-cols-1 md:grid-cols-3 gap-6'>
-						<StatCard
-							icon={<Users className='w-6 h-6' />}
-							title='Tổng số học viên'
-							value='120'
-							color='blue'
-							delay={100}
-						/>
-						<StatCard
-							icon={<UserPlus className='w-6 h-6' />}
-							title='Học viên mới trong tháng'
-							value='8'
-							color='green'
-							delay={200}
-						/>
-						<StatCard
-							icon={<BarChart3 className='w-6 h-6' />}
-							title='Đã tốt nghiệp'
-							value='45'
-							color='purple'
-							delay={300}
-						/>
-					</div> */}
+					<UnitBoard />
 				</div>
-				{/* Student Form Dialog */}
+
 				{showStudentForm && (
 					<Dialog
-						open={!!showStudentForm}
+						open
 						onOpenChange={(open) => {
 							if (!open) setShowStudentForm(false)
 						}}
 					>
 						<DialogContent className='max-w-7xl h-[90vh] overflow-y-auto p-6'>
-							<StudentForm onSuccess={handleFormSuccess} />
+							<StudentForm
+								onSuccess={() => setShowStudentForm(false)}
+							/>
 						</DialogContent>
 					</Dialog>
 				)}
 			</SidebarInset>
 		</ProtectedRoute>
-	)
-}
-
-function StatCard({
-	icon,
-	title,
-	value,
-	color,
-	delay
-}: {
-	icon: React.ReactNode
-	title: string
-	value: string
-	color: 'blue' | 'green' | 'purple'
-	delay?: number
-}) {
-	const colorMap = {
-		blue: 'bg-blue-50 border-blue-200 text-blue-700',
-		green: 'bg-green-50 border-green-200 text-green-700',
-		purple: 'bg-purple-50 border-purple-200 text-purple-700'
-	}
-
-	return (
-		<Card
-			className={`${colorMap[color]} border shadow-sm hover:shadow-lg transition-all animate-fadeInUp`}
-			style={{ animationDelay: `${delay}ms` }}
-		>
-			<CardHeader>
-				<CardTitle className='flex items-center gap-2'>
-					{icon}
-					{title}
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className='text-3xl font-bold'>{value}</p>
-			</CardContent>
-		</Card>
 	)
 }

@@ -634,6 +634,8 @@ function NavMenuItem({ item, level }: { item: NavItem; level: number }) {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { state } = useSidebar()
+	// Mọi hook phải nằm trước lệnh return sớm khi đang tải đơn vị
+	const location = useLocation()
 	const isCollapsed = state === 'collapsed'
 	const { user } = useAuth()
 	const { data: leaveAccess } = useQuery({
@@ -1406,7 +1408,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 										},
 										...navWithBadge
 									]
-	const location = useLocation()
 	const newData = {
 		version: data.versions,
 		navMain: withExamFilter(
