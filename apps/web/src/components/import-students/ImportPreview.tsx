@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
-import UnitSelect from '@/components/unit-select'
-import { toDisplayDate } from '@/lib/student-dates'
+import { PreviewBar } from './PreviewBar'
+import { PreviewTable } from './PreviewTable'
 import type { EvaluatedRow } from './useStudentImport'
 
 export interface ImportPreviewProps {
@@ -14,7 +13,7 @@ export interface ImportPreviewProps {
 	disabled?: boolean
 }
 
-/** Bảng xem trước: trạng thái từng dòng, chọn lớp cho dòng thiếu/sai lớp */
+/** Xem trước: thanh đếm dính ở đầu và sổ kẻ dòng, chọn lớp cho dòng thiếu/sai lớp */
 export function ImportPreview({
 	rows,
 	validCount,
@@ -26,117 +25,24 @@ export function ImportPreview({
 }: ImportPreviewProps) {
 	const [onlyInvalid, setOnlyInvalid] = useState(false)
 	const shown = onlyInvalid ? rows.filter((r) => !r.valid) : rows
-	const hasEmptyUnit = rows.some((r) => r.row.unitText === '')
 
 	return (
-		<div className='space-y-3'>
-			<div className='flex flex-wrap items-center justify-between gap-3'>
-				<div className='flex items-center gap-4 text-sm'>
-					<span className='flex items-center gap-1 text-success'>
-						<CheckCircle2 className='h-4 w-4' />
-						{validCount} dòng hợp lệ
-					</span>
-					<span className='flex items-center gap-1 text-destructive'>
-						<AlertTriangle className='h-4 w-4' />
-						{invalidCount} dòng lỗi
-					</span>
-					{invalidCount > 0 && (
-						<label className='flex items-center gap-1 text-muted-foreground'>
-							<input
-								type='checkbox'
-								checked={onlyInvalid}
-								onChange={(e) =>
-									setOnlyInvalid(e.target.checked)
-								}
-							/>
-							Chỉ hiện dòng lỗi
-						</label>
-					)}
-				</div>
-
-				{hasEmptyUnit && (
-					<div className='flex items-center gap-2 text-sm'>
-						<span className='text-muted-foreground whitespace-nowrap'>
-							Lớp cho các dòng chưa có lớp:
-						</span>
-						<UnitSelect
-							compact
-							className='w-64'
-							value={defaultUnitId}
-							onChange={(id) => onDefaultUnitChange(id)}
-							disabled={disabled}
-						/>
-					</div>
-				)}
-			</div>
-
-			<div className='max-h-96 overflow-auto rounded-lg border'>
-				<table className='w-full text-sm'>
-					<thead className='sticky top-0 bg-muted/50 text-left text-muted-foreground'>
-						<tr>
-							<th className='px-3 py-2 w-16'>Dòng</th>
-							<th className='px-3 py-2'>Họ và tên</th>
-							<th className='px-3 py-2 w-28'>Ngày sinh</th>
-							<th className='px-3 py-2 w-72'>Lớp</th>
-							<th className='px-3 py-2'>Kiểm tra</th>
-						</tr>
-					</thead>
-					<tbody>
-						{shown.map(({ row, unit, issues, valid }) => (
-							<tr
-								key={row.rowNumber}
-								className={
-									valid
-										? 'border-t'
-										: 'border-t bg-destructive/5'
-								}
-							>
-								<td className='px-3 py-2 text-muted-foreground'>
-									{row.rowNumber}
-								</td>
-								<td className='px-3 py-2'>
-									{String(row.values.fullName)}
-								</td>
-								<td className='px-3 py-2'>
-									{toDisplayDate(String(row.values.dob))}
-								</td>
-								<td className='px-3 py-2'>
-									<UnitSelect
-										compact
-										value={unit.unitId}
-										onChange={(id) =>
-											onRowUnitChange(row.rowNumber, id)
-										}
-										disabled={disabled}
-									/>
-								</td>
-								<td className='px-3 py-2'>
-									{issues.length === 0 ? (
-										<span className='text-success'>
-											Hợp lệ
-										</span>
-									) : (
-										<ul className='space-y-0.5'>
-											{issues.map((issue) => (
-												<li
-													key={`${issue.field}-${issue.level}`}
-													className={
-														issue.level === 'error'
-															? 'text-destructive'
-															: 'text-warning'
-													}
-												>
-													{issue.message}
-												</li>
-											))}
-										</ul>
-									)}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+		<div>
+			<PreviewBar
+				validCount={validCount}
+				invalidCount={invalidCount}
+				onlyInvalid={onlyInvalid}
+				onOnlyInvalidChange={setOnlyInvalid}
+				showDefaultUnit={rows.some((r) => r.row.unitText === '')}
+				defaultUnitId={defaultUnitId}
+				onDefaultUnitChange={onDefaultUnitChange}
+				disabled={disabled}
+			/>
+			<PreviewTable
+				rows={shown}
+				onRowUnitChange={onRowUnitChange}
+				disabled={disabled}
+			/>
 		</div>
 	)
 }

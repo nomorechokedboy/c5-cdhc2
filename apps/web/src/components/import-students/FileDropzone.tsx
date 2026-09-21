@@ -31,78 +31,73 @@ export function FileDropzone({
 	const browse = () => inputRef.current?.click()
 
 	return (
-		<div className='space-y-4'>
-			<h3 className='font-medium text-foreground'>Chọn file để import</h3>
-			<div
-				className={cn(
-					'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
-					dragActive
-						? 'border-primary bg-primary/10'
-						: file
-							? 'border-success/50 bg-success/10'
-							: 'border-border hover:border-foreground/40'
-				)}
-				onDragEnter={handleDrag}
-				onDragLeave={handleDrag}
-				onDragOver={handleDrag}
-				onDrop={handleDrop}
-			>
-				<input
-					ref={inputRef}
-					type='file'
-					accept='.csv,.xlsx,.xls'
-					aria-label='Chọn file import'
-					className='hidden'
-					onChange={(e) => {
-						const picked = e.target.files?.[0]
-						if (picked) onSelect(picked)
-						// Cho phép chọn lại đúng file đó sau khi sửa
-						e.target.value = ''
-					}}
-				/>
+		<div
+			className={cn(
+				'rounded-lg border-2 border-dashed bg-card/80 p-8 text-center transition-colors',
+				dragActive
+					? 'border-primary bg-primary/10'
+					: file
+						? 'border-success/50 bg-success/10'
+						: 'border-border hover:border-foreground/40'
+			)}
+			onDragEnter={handleDrag}
+			onDragLeave={handleDrag}
+			onDragOver={handleDrag}
+			onDrop={handleDrop}
+		>
+			<input
+				ref={inputRef}
+				type='file'
+				accept='.csv,.xlsx,.xls'
+				aria-label='Chọn file import'
+				className='hidden'
+				onChange={(e) => {
+					const picked = e.target.files?.[0]
+					if (picked) onSelect(picked)
+					// Cho phép chọn lại đúng file đó sau khi sửa
+					e.target.value = ''
+				}}
+			/>
 
-				{file ? (
-					<div className='space-y-3'>
-						<CheckCircle className='h-12 w-12 text-success mx-auto' />
-						<div>
-							<p className='font-medium text-success'>
-								{file.name}
-							</p>
-							<p className='text-sm text-muted-foreground'>
-								{(file.size / 1024 / 1024).toFixed(2)} MB
-							</p>
-						</div>
-						<button
-							type='button'
-							onClick={browse}
-							disabled={disabled}
-							className='text-info hover:text-info/80 text-sm font-medium'
-						>
-							Chọn file khác
-						</button>
+			{file ? (
+				<div className='space-y-3'>
+					<CheckCircle className='mx-auto size-12 text-success' />
+					<div>
+						<p className='font-medium text-success'>{file.name}</p>
+						<p className='tabular text-sm text-muted-foreground'>
+							{(file.size / 1024 / 1024).toFixed(2)} MB
+						</p>
 					</div>
-				) : (
-					<div className='space-y-3'>
-						<FileUp className='h-12 w-12 text-muted-foreground mx-auto' />
-						<div>
-							<p className='text-muted-foreground'>
-								Kéo thả file vào đây hoặc{' '}
-								<button
-									type='button'
-									onClick={browse}
-									disabled={disabled}
-									className='text-info hover:text-info/80 font-medium'
-								>
-									chọn file
-								</button>
-							</p>
-							<p className='text-sm text-muted-foreground mt-1'>
-								Hỗ trợ file CSV, Excel (.xlsx, .xls)
-							</p>
-						</div>
+					<button
+						type='button'
+						onClick={browse}
+						disabled={disabled}
+						className='cursor-pointer text-sm font-medium text-info hover:text-info/80'
+					>
+						Chọn file khác
+					</button>
+				</div>
+			) : (
+				<div className='space-y-3'>
+					<FileUp className='mx-auto size-12 text-muted-foreground' />
+					<div>
+						<p className='text-muted-foreground'>
+							Kéo thả file vào đây hoặc{' '}
+							<button
+								type='button'
+								onClick={browse}
+								disabled={disabled}
+								className='cursor-pointer font-medium text-info hover:text-info/80'
+							>
+								chọn file
+							</button>
+						</p>
+						<p className='mt-1 text-sm text-muted-foreground'>
+							Hỗ trợ file CSV, Excel (.xlsx, .xls)
+						</p>
 					</div>
-				)}
-			</div>
+				</div>
+			)}
 		</div>
 	)
 }
