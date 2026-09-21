@@ -5,7 +5,6 @@ import {
 	CardHeader,
 	CardTitle
 } from '@repo/ui/components/ui/card'
-import { Badge } from '@repo/ui/components/ui/badge'
 import {
 	Table,
 	TableBody,
@@ -17,7 +16,8 @@ import {
 import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import type { Course, StudentGrades } from '@/types'
-import { getGradeColor } from '@/lib/utils'
+import { overallScore } from '@/lib/score'
+import { Score } from '@/components/score'
 import { useTranslation } from 'react-i18next'
 
 interface StudentFinalScoresProps {
@@ -26,60 +26,49 @@ interface StudentFinalScoresProps {
 	isLoading?: boolean
 }
 
+function ColumnHeads() {
+	const { t } = useTranslation()
+	return (
+		<TableRow className='hover:bg-transparent'>
+			<TableHead className='w-[40%]'>
+				{t('finalScores.courseColumn')}
+			</TableHead>
+			<TableHead>{t('finalScores.semesterColumn')}</TableHead>
+			<TableHead className='hidden xl:table-cell'>
+				{t('finalScores.teacherColumn')}
+			</TableHead>
+			<TableHead className='pr-4 text-right'>
+				{t('finalScores.gradeColumn')}
+			</TableHead>
+		</TableRow>
+	)
+}
+
+/** Trang «sổ điểm»: điểm tổng kết viết to có gạch đôi, dưới là từng môn theo kỳ. */
 export default function StudentFinalScores({
 	courses,
 	studentGrades,
 	isLoading = false
 }: StudentFinalScoresProps) {
 	const { t } = useTranslation()
-
-	const validCourses = courses.filter((c) => studentGrades[c.id])
-	const totalCredits = courses.reduce(
-		(accum, curr) => accum + (curr.credits ?? 0),
-		0
-	)
-	const overallGPA = (
-		validCourses.length > 0
-			? validCourses.reduce(
-					(sum, c) =>
-						sum + studentGrades[c.id].finalScore * (c.credits ?? 1),
-					0
-				) / totalCredits
-			: 0
-	).toFixed(2)
+	const overall = overallScore(courses, studentGrades)
 
 	if (isLoading) {
 		return (
-			<Card className='border-border'>
+			<Card>
 				<CardHeader>
 					<div className='flex items-center justify-between'>
 						<div className='flex-1'>
-							<Skeleton className='h-6 w-48 mb-2' />
+							<Skeleton className='mb-2 h-6 w-48' />
 							<Skeleton className='h-4 w-64' />
 						</div>
-						<div className='text-center ml-4'>
-							<Skeleton className='h-4 w-24 mb-2 mx-auto' />
-							<Skeleton className='h-8 w-20 rounded-full mx-auto' />
-						</div>
+						<Skeleton className='ml-4 h-10 w-20' />
 					</div>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
-							<TableRow>
-								<TableHead>
-									{t('finalScores.courseColumn')}
-								</TableHead>
-								<TableHead>
-									{t('finalScores.semesterColumn')}
-								</TableHead>
-								<TableHead>
-									{t('finalScores.teacherColumn')}
-								</TableHead>
-								<TableHead className='text-right'>
-									{t('finalScores.gradeColumn')}
-								</TableHead>
-							</TableRow>
+							<ColumnHeads />
 						</TableHeader>
 						<TableBody>
 							{[...Array(5)].map((_, idx) => (
@@ -88,13 +77,13 @@ export default function StudentFinalScores({
 										<Skeleton className='h-4 w-32' />
 									</TableCell>
 									<TableCell>
-										<Skeleton className='h-4 w-20' />
+										<Skeleton className='h-4 w-8' />
 									</TableCell>
-									<TableCell>
+									<TableCell className='hidden xl:table-cell'>
 										<Skeleton className='h-4 w-24' />
 									</TableCell>
 									<TableCell className='text-right'>
-										<Skeleton className='h-6 w-16 ml-auto rounded-full' />
+										<Skeleton className='ml-auto h-5 w-12' />
 									</TableCell>
 								</TableRow>
 							))}
@@ -105,10 +94,14 @@ export default function StudentFinalScores({
 		)
 	}
 
+	const bySemester = [...courses].sort(
+		(a, b) => (a.semester ?? 0) - (b.semester ?? 0)
+	)
+
 	return (
-		<Card className='border-border shadow-sm'>
+		<Card>
 			<CardHeader className='pb-4'>
-				<div className='flex items-center justify-between'>
+				<div className='flex items-center justify-between gap-4'>
 					<div>
 						<CardTitle className='text-xl'>
 							{t('finalScores.title')}
@@ -118,102 +111,75 @@ export default function StudentFinalScores({
 						</CardDescription>
 					</div>
 
-					<div className='text-center bg-muted/50 p-2 rounded-lg border'>
-						<p className='text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider'>
+					<div className='flex shrink-0 flex-col items-center gap-1.5'>
+						<Score
+							value={overall}
+							className='total-rule px-1 text-4xl'
+						/>
+						<p className='text-muted-foreground text-xs'>
 							{t('finalScores.overallGrade')}
 						</p>
-						<Badge
-							className={`${getGradeColor(Number.parseFloat(overallGPA))} text-lg px-3 py-1 shadow-sm`}
-						>
-							{overallGPA}
-						</Badge>
 					</div>
 				</div>
 			</CardHeader>
 
 			<CardContent className='p-0'>
-				<ScrollArea className='h-[calc(100vh-300px)] w-full'>
+				<ScrollArea className='w-full [&_[data-slot=scroll-area-viewport]]:max-h-[calc(100vh-300px)]'>
 					<div className='p-6 pt-0'>
 						<Table>
 							<TableHeader>
-								<TableRow className='hover:bg-transparent'>
-									<TableHead className='w-[40%]'>
-										{t('finalScores.courseColumn')}
-									</TableHead>
-									<TableHead>
-										{t('finalScores.semesterColumn')}
-									</TableHead>
-									<TableHead className='hidden xl:table-cell'>
-										{t('finalScores.teacherColumn')}
-									</TableHead>
-									<TableHead className='text-right'>
-										{t('finalScores.gradeColumn')}
-									</TableHead>
-								</TableRow>
+								<ColumnHeads />
 							</TableHeader>
 
 							<TableBody>
-								{courses
-									.sort(
-										(a, b) =>
-											(a.semester ?? 0) -
-											(b.semester ?? 0)
+								{bySemester.map((course) => {
+									const gradeInfo = studentGrades[course.id]
+									return (
+										<TableRow key={course.id}>
+											<TableCell className='font-medium'>
+												<div className='flex flex-col'>
+													<span
+														className='max-w-[150px] truncate lg:max-w-[200px]'
+														title={course.title}
+													>
+														{course.title}
+													</span>
+													<span className='text-muted-foreground max-w-[150px] truncate text-xs xl:hidden'>
+														{
+															course.teachers?.[0]
+																?.fullName
+														}
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className='text-muted-foreground text-xs whitespace-nowrap'>
+												{course.semester}
+											</TableCell>
+											<TableCell className='text-muted-foreground hidden max-w-[120px] truncate xl:table-cell'>
+												{course.teachers
+													?.map(
+														(teacher) =>
+															teacher.fullName
+													)
+													.join(', ')}
+											</TableCell>
+											<TableCell className='pr-4 text-right'>
+												{gradeInfo ? (
+													<Score
+														value={
+															gradeInfo.finalScore
+														}
+														className='text-base'
+													/>
+												) : (
+													<span className='text-muted-foreground text-sm'>
+														-
+													</span>
+												)}
+											</TableCell>
+										</TableRow>
 									)
-									.map((course) => {
-										const gradeInfo =
-											studentGrades[course.id]
-										return (
-											<TableRow
-												key={course.id}
-												className='group'
-											>
-												<TableCell className='font-medium'>
-													<div className='flex flex-col'>
-														<span
-															className='truncate max-w-[150px] lg:max-w-[200px]'
-															title={course.title}
-														>
-															{course.title}
-														</span>
-														<span className='text-xs text-muted-foreground xl:hidden truncate max-w-[150px]'>
-															{
-																course
-																	.teachers?.[0]
-																	.fullName
-															}
-														</span>
-													</div>
-												</TableCell>
-												<TableCell className='whitespace-nowrap text-xs text-muted-foreground'>
-													{course.semester}
-												</TableCell>
-												<TableCell className='hidden xl:table-cell text-muted-foreground truncate max-w-[120px]'>
-													{course.teachers
-														?.map(
-															(teacher) =>
-																teacher.fullName
-														)
-														.join(', ')}
-												</TableCell>
-												<TableCell className='text-right'>
-													{gradeInfo ? (
-														<Badge
-															variant='outline'
-															className={`${getGradeColor(gradeInfo.finalScore)} group-hover:shadow-sm transition-all`}
-														>
-															{gradeInfo.finalScore?.toFixed(
-																2
-															)}
-														</Badge>
-													) : (
-														<span className='text-muted-foreground text-sm'>
-															-
-														</span>
-													)}
-												</TableCell>
-											</TableRow>
-										)
-									})}
+								})}
 							</TableBody>
 						</Table>
 					</div>
