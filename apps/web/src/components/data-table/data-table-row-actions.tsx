@@ -18,6 +18,7 @@ import useDeleteStudents from '@/hooks/useDeleteStudents'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { isSuperAdmin } from '@/lib/utils'
+import { useConfirm } from '../confirm-dialog'
 
 interface DataTableRowActionsProps<TData> {
 	row: Row<TData>
@@ -33,6 +34,8 @@ export function DataTableRowActions<TData>({
 	const { mutateAsync: deleteStudentMutate, isPending: isDeletingStudent } =
 		useDeleteStudents()
 
+	const { confirm, confirmDialog } = useConfirm()
+
 	const canDelete = isSuperAdmin() || student.status !== 'confirmed'
 
 	function handleOpenDialog() {
@@ -41,13 +44,13 @@ export function DataTableRowActions<TData>({
 
 	async function handleDeleteRow(_: MouseEvent<HTMLDivElement>) {
 		try {
-			if (
-				!confirm(
-					'Bạn có chắc chắn muốn xóa học viên này không? Hành động này không thể hoàn tác.'
-				)
-			) {
-				return
-			}
+			const ok = await confirm({
+				title: 'Xóa học viên này?',
+				description: 'Hành động này không thể hoàn tác.',
+				confirmLabel: 'Xóa',
+				destructive: true
+			})
+			if (!ok) return
 			await deleteStudentMutate({ ids: [student.id] }).then(() =>
 				onDeleteRows?.([student.id])
 			)
@@ -91,6 +94,7 @@ export function DataTableRowActions<TData>({
 					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
+			{confirmDialog}
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 				<DialogContent className={RECORD_DIALOG_CLASS}>
 					<StudentProfile

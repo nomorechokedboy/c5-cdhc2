@@ -36,6 +36,7 @@ import { AxiosError } from 'axios'
 import { BaseSchema } from './data/schema'
 import { Button } from '../ui/button'
 import type { FacetedFilterConfig } from '@/types'
+import { useConfirm } from '../confirm-dialog'
 
 type ToolbarProps<TData> = Omit<DataTableToolbarProps<TData>, 'table'>
 
@@ -101,6 +102,7 @@ export function DataTable<TData, TValue>({
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const { confirm, confirmDialog } = useConfirm()
 
 	const table = useReactTable({
 		data,
@@ -149,9 +151,12 @@ export function DataTable<TData, TValue>({
 		try {
 			setIsDeleting(true)
 			if (
-				confirm(
-					'Bạn có chắc muốn xóa các mục đã chọn không? Hành động này không thể hoàn tác!'
-				)
+				await confirm({
+					title: 'Xóa các mục đã chọn?',
+					description: 'Hành động này không thể hoàn tác!',
+					confirmLabel: 'Xóa',
+					destructive: true
+				})
 			) {
 				await onDeleteRows(ids)
 				toast.success('Xóa dữ liệu thành công!')
@@ -180,9 +185,12 @@ export function DataTable<TData, TValue>({
 		try {
 			setIsDeleting(true)
 			if (
-				confirm(
-					'Bạn có chắc muốn xác nhận thông tin các mục đã chọn không? \nBạn không thể chỉnh sửa thông tin sau khi xác nhận!'
-				)
+				await confirm({
+					title: 'Xác nhận thông tin các mục đã chọn?',
+					description:
+						'Bạn không thể chỉnh sửa thông tin sau khi xác nhận!',
+					confirmLabel: 'Xác nhận'
+				})
 			) {
 				await onConfirmRows(ids)
 				toast.success('Xác nhận thành công!')
@@ -353,6 +361,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className='space-y-4'>
+			{confirmDialog}
 			{toolbarVisible && (
 				<DataTableToolbar
 					table={table}
