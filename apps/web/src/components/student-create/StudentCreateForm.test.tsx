@@ -197,7 +197,7 @@ describe('StudentForm (create)', () => {
 	it('builds the record card while typing and stamps it after the student is created', async () => {
 		openDialog()
 		const card = () =>
-			screen.getByRole('complementary', { name: 'Thẻ hồ sơ đang lập' })
+			screen.getByRole('complementary', { name: 'Thẻ hồ sơ' })
 		expect(within(card()).getByText('0/4')).toBeTruthy()
 
 		change(screen.getByLabelText('Họ và tên'), 'Nguyễn Văn A')
@@ -211,6 +211,7 @@ describe('StudentForm (create)', () => {
 		expect(within(card()).getByText('Nguyễn Văn A')).toBeTruthy()
 		expect(within(card()).getByText('HV001')).toBeTruthy()
 		expect(within(card()).getByText('06/05/2001')).toBeTruthy()
+		expect(await within(card()).findByText(/Lớp 1/)).toBeTruthy()
 
 		next()
 		await screen.findByLabelText('Số thẻ Đảng')

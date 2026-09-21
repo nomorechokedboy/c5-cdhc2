@@ -4,7 +4,8 @@ import {
 	fireEvent,
 	render,
 	screen,
-	waitFor
+	waitFor,
+	within
 } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Student } from '@/types'
@@ -147,40 +148,55 @@ describe('StudentEditForm', () => {
 		expect(updateStudents).not.toHaveBeenCalled()
 	})
 
-	it('shows one tab at a time even though every tab stays mounted', () => {
+	it('shows one group at a time even though every group stays mounted', () => {
 		renderForm()
-		const panels = screen.getAllByRole('tabpanel', { hidden: true })
+		const panels = [...document.querySelectorAll('[data-active]')]
 		expect(panels).toHaveLength(5)
-		const states = panels.map((p) => p.getAttribute('data-state'))
-		expect(states.filter((s) => s === 'active')).toHaveLength(1)
+		expect(
+			panels.filter((p) => p.getAttribute('data-active') === 'true')
+		).toHaveLength(1)
 		for (const p of panels.filter(
-			(p) => p.getAttribute('data-state') === 'inactive'
+			(p) => p.getAttribute('data-active') === 'false'
 		)) {
-			expect(p.className).toContain('data-[state=inactive]:hidden')
+			expect(p.className).toContain('hidden')
 		}
 	})
 
-	it('marks the tab holding an invalid date and jumps to it after saving', async () => {
+	it('marks the group holding an invalid date and jumps to it after saving', async () => {
 		renderForm()
-		// chuyển sang tab Gia đình rồi sửa ngày sinh cha sai, quay lại tab đầu
-		const tab = (name: RegExp) => screen.getByRole('tab', { name })
-		fireEvent.mouseDown(tab(/Gia đình/), { button: 0 })
+		// sửa ngày sinh cha sai (nằm ở nhóm Gia đình) rồi quay lại nhóm đầu
+		const tab = (name: RegExp) => screen.getByRole('button', { name })
+		fireEvent.click(tab(/Gia đình/))
 		const father = screen.getByDisplayValue(
 			'31/12/1975'
 		) as HTMLInputElement
 		fireEvent.change(father, { target: { value: '31/02/1975' } })
-		fireEvent.mouseDown(tab(/Thông tin cá nhân/), { button: 0 })
-		expect(tab(/Gia đình/).getAttribute('data-state')).toBe('inactive')
+		fireEvent.click(tab(/Thông tin cá nhân/))
+		expect(tab(/Gia đình/).getAttribute('aria-current')).toBeNull()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
 
 		await waitFor(() =>
-			expect(tab(/Gia đình/).getAttribute('data-state')).toBe('active')
+			expect(tab(/Gia đình/).getAttribute('aria-current')).toBe('step')
 		)
 		expect(tab(/Gia đình/).textContent).toContain('(có lỗi)')
 		expect(tab(/Thông tin cá nhân/).textContent).not.toContain('(có lỗi)')
+		expect(document.querySelectorAll('[data-drawn=error]')).toHaveLength(1)
 		expect(screen.getByRole('status').textContent).toContain('Gia đình')
 		expect(updateStudents).not.toHaveBeenCalled()
+	})
+
+	it('keeps the record card in step with what is being edited', () => {
+		renderForm()
+		const card = within(
+			screen.getByRole('complementary', { name: 'Thẻ hồ sơ' })
+		)
+		expect(card.getByText('Nguyễn Văn A')).toBeTruthy()
+		expect(card.getByText('Binh nhì')).toBeTruthy()
+		fireEvent.change(screen.getByDisplayValue('Nguyễn Văn A'), {
+			target: { value: 'Nguyễn Văn B' }
+		})
+		expect(card.getByText('Nguyễn Văn B')).toBeTruthy()
 	})
 
 	it('cancels through the footer button', () => {

@@ -4,12 +4,15 @@ interface PenTraceProps {
 	steps: ReadonlyArray<{ id: string; title: string }>
 	currentStep: number
 	completedSteps: readonly number[]
+	/** Bước có trường lỗi: đường đỏ có nhiễu thay cho nhịp bình thường */
+	errorSteps?: readonly number[]
 	onStepClick: (index: number) => void
 }
 
 // Mỗi bước là một cột 160×40, đường nền ở y=24 nên các cột nối liền nhau.
 // Bước hoàn thành có một nhịp QRS ở giữa cột.
 const BASELINE = 'M0 24 H160'
+const ERROR = 'M0 24 H40 l4 -9 l4 16 l4 -12 l4 5 H160'
 const BEAT =
 	'M0 24 H35 l5 -4 l5 4 H62 l4 5 l7 -24 l7 32 l4 -13 H105 l5 -5 l5 5 H160'
 
@@ -21,6 +24,7 @@ export function PenTrace({
 	steps,
 	currentStep,
 	completedSteps,
+	errorSteps = [],
 	onStepClick
 }: PenTraceProps) {
 	return (
@@ -32,7 +36,8 @@ export function PenTrace({
 				}}
 			>
 				{steps.map((step, i) => {
-					const done = completedSteps.includes(i)
+					const failed = errorSteps.includes(i)
+					const done = !failed && completedSteps.includes(i)
 					const current = i === currentStep
 					const passed = done || i < currentStep
 					return (
@@ -57,7 +62,13 @@ export function PenTrace({
 										d={BASELINE}
 										className='stroke-border'
 									/>
-									{done ? (
+									{failed ? (
+										<path
+											d={ERROR}
+											data-drawn='error'
+											className='stroke-destructive'
+										/>
+									) : done ? (
 										<path
 											key='beat'
 											d={BEAT}
@@ -94,6 +105,12 @@ export function PenTrace({
 									)}
 								>
 									{step.title}
+									{failed && (
+										<span className='sr-only'>
+											{' '}
+											(có lỗi)
+										</span>
+									)}
 								</span>
 							</button>
 						</li>

@@ -5,13 +5,15 @@ import {
 } from '../student-profile/profile-tabs'
 
 interface EditFooterProps {
+	formId: string
 	isPending: boolean
 	errorTabs: ReadonlySet<ProfileTabValue>
 	onCancel?: () => void
 }
 
-/** Thanh thao tác dính đáy hộp thoại: luôn thấy nút Lưu dù form dài */
+/** Thanh thao tác ở đáy: nói rõ tab nào còn lỗi, Hủy và Lưu thay đổi */
 export function EditFooter({
+	formId,
 	isPending,
 	errorTabs,
 	onCancel
@@ -21,7 +23,7 @@ export function EditFooter({
 	)
 
 	return (
-		<div className='sticky bottom-0 z-10 -mx-6 -mb-6 mt-auto flex items-center justify-between gap-4 border-t bg-card/95 px-6 py-3 backdrop-blur'>
+		<div className='flex items-center justify-between gap-4'>
 			<p role='status' className='text-sm text-destructive'>
 				{errorLabels.length > 0 &&
 					`Cần sửa lại ở: ${errorLabels.join(', ')}`}
@@ -30,7 +32,7 @@ export function EditFooter({
 				<Button type='button' variant='outline' onClick={onCancel}>
 					Hủy
 				</Button>
-				<Button type='submit' disabled={isPending}>
+				<Button type='submit' form={formId} disabled={isPending}>
 					{isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
 				</Button>
 			</div>

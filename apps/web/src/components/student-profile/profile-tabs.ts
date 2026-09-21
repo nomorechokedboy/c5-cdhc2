@@ -15,3 +15,9 @@ export const PROFILE_TABS = [
 }>
 
 export type ProfileTabValue = (typeof PROFILE_TABS)[number]['value']
+
+/** Năm nhóm dưới dạng các bước của dải mạch */
+export const PROFILE_STEPS = PROFILE_TABS.map((t) => ({
+	id: t.value,
+	title: t.label
+}))

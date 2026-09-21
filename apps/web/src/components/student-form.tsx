@@ -4,19 +4,22 @@ import type { VariantProps } from 'class-variance-authority'
 import {
 	Dialog,
 	DialogContent,
-	DialogHeader,
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Student, StudentBody } from '@/types'
+import {
+	RECORD_DIALOG_CLASS,
+	RECORD_TITLE_CLASS,
+	RecordMain,
+	SlideIn,
+	recordFromValues,
+	type RecordView
+} from './student-record'
 import { CreateFooter } from './student-create/CreateFooter'
 import { LiveRecordCard } from './student-create/LiveRecordCard'
-import { PaperStep } from './student-create/PaperStep'
-import { PenTrace } from './student-create/PenTrace'
-import { recordFromValues, type RecordView } from './student-create/record'
 import { ReviewSummary } from './student-create/ReviewSummary'
-import { useStepDirection } from './student-create/useStepDirection'
 import { useStudentCreateForm } from './student-create/useStudentCreateForm'
 
 /** Dấu «Đã lập hồ sơ» nằm lại trên thẻ chừng này rồi hộp thoại mới đóng */
@@ -67,8 +70,6 @@ export default function StudentForm({
 			}, STAMP_MS)
 		}
 	})
-	const direction = useStepDirection(currentStep)
-
 	const { Content } = steps[currentStep]
 
 	return (
@@ -79,48 +80,25 @@ export default function StudentForm({
 					Thêm học viên
 				</Button>
 			</DialogTrigger>
-			<DialogContent className='flex flex-col gap-0 overflow-hidden p-0 lg:grid lg:h-9/10 lg:max-w-5xl lg:grid-cols-[17rem_minmax(0,1fr)]'>
+			<DialogContent className={RECORD_DIALOG_CLASS}>
 				<LiveRecordCard
 					form={form}
 					frozen={frozen}
 					done={completedSteps.length}
 					total={steps.length}
 				/>
-
-				<div
-					className='flex min-h-0 flex-col data-[stamped=true]:pointer-events-none data-[stamped=true]:opacity-40'
-					data-stamped={!!frozen}
-				>
-					<DialogHeader className='px-6 pt-6 pb-2'>
-						<DialogTitle className='font-display text-2xl tracking-wide'>
+				<RecordMain
+					title={
+						<DialogTitle className={RECORD_TITLE_CLASS}>
 							Lập hồ sơ học viên
 						</DialogTitle>
-					</DialogHeader>
-					<div className='px-6 pb-3'>
-						<PenTrace
-							steps={steps}
-							completedSteps={completedSteps}
-							currentStep={currentStep}
-							onStepClick={goTo}
-						/>
-					</div>
-
-					<PaperStep step={currentStep} direction={direction}>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault()
-								e.stopPropagation()
-								// Enter ở các bước giữa không được gửi form
-								if (isLastStep) form.handleSubmit()
-							}}
-							id='studentForm'
-						>
-							<Content form={form} />
-							{isLastStep && <ReviewSummary form={form} />}
-						</form>
-					</PaperStep>
-
-					<div className='px-6 pb-5'>
+					}
+					steps={steps}
+					currentStep={currentStep}
+					completedSteps={completedSteps}
+					onStepClick={goTo}
+					dimmed={!!frozen}
+					footer={
 						<CreateFooter
 							form={form}
 							currentStep={currentStep}
@@ -129,8 +107,25 @@ export default function StudentForm({
 							onPrevious={previous}
 							onNext={next}
 						/>
-					</div>
-				</div>
+					}
+				>
+					{(direction) => (
+						<SlideIn step={currentStep} direction={direction}>
+							<form
+								onSubmit={(e) => {
+									e.preventDefault()
+									e.stopPropagation()
+									// Enter ở các bước giữa không được gửi form
+									if (isLastStep) form.handleSubmit()
+								}}
+								id='studentForm'
+							>
+								<Content form={form} />
+								{isLastStep && <ReviewSummary form={form} />}
+							</form>
+						</SlideIn>
+					)}
+				</RecordMain>
 			</DialogContent>
 		</Dialog>
 	)

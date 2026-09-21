@@ -1,96 +1,100 @@
-import * as Tabs from '@radix-ui/react-tabs'
-import { Card, CardContent } from '@/components/ui/card'
+import { useId, type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 import type { Student } from '@/types'
 import { EditFooter } from './student-edit/EditFooter'
+import { LiveEditCard } from './student-edit/LiveEditCard'
 import { EDIT_TAB_CONTENT } from './student-edit/tabs/content'
 import { useEditTabs } from './student-edit/useEditTabs'
 import { useStudentEditForm } from './student-edit/useStudentEditForm'
-import { ProfileHeader } from './student-profile/ProfileHeader'
+import { PROFILE_STEPS, PROFILE_TABS } from './student-profile/profile-tabs'
 import {
-	PROFILE_TABS,
-	type ProfileTabValue
-} from './student-profile/profile-tabs'
-import { ProfileTabList } from './student-profile/ProfileTabList'
-import { studentAvatarSrc, studentClassLabel } from './student-profile/utils'
+	RECORD_TITLE_CLASS,
+	RecordMain,
+	slideClass,
+	useVisitedSteps
+} from './student-record'
 
 interface StudentEditFormProps {
 	student: Student
 	onClose?: () => void
+	/** Tiêu đề của hộp thoại chứa form (DialogTitle) */
+	heading?: ReactNode
 }
 
-/** Form sửa học viên: cùng đầu hồ sơ với màn xem, ảnh đổi được ngay trên thẻ */
+/**
+ * Form sửa học viên, cùng khung với màn xem và form thêm: thẻ hồ sơ sống bên trái,
+ * năm nhóm trên giấy điện tim bên phải. Nhóm nào có lỗi thì dải mạch báo đỏ.
+ */
 export default function StudentEditForm({
 	student,
-	onClose
+	onClose,
+	heading
 }: StudentEditFormProps) {
+	const formId = useId()
 	const { form, isPending } = useStudentEditForm(student, onClose)
 	const { active, setActive, errorTabs } = useEditTabs(form)
+	const step = PROFILE_TABS.findIndex((t) => t.value === active)
+	const visited = useVisitedSteps(step)
+	const errorSteps = PROFILE_TABS.flatMap((t, i) =>
+		errorTabs.has(t.value) ? [i] : []
+	)
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				form.handleSubmit()
-			}}
-			className='flex w-full flex-col gap-4'
-		>
-			<Card className='gap-0 overflow-hidden py-0'>
-				<ProfileHeader
-					student={student}
-					classLabel={studentClassLabel(student)}
-					actions={
-						<p className='mt-auto text-sm text-muted-foreground'>
-							Bấm vào ảnh để đổi ảnh đại diện. Thay đổi chỉ được
-							lưu khi bạn bấm «Lưu thay đổi».
-						</p>
-					}
-					avatar={
-						<form.AppField name='avatarFile'>
-							{(field: any) => (
-								<field.AvatarField
-									alt={student.fullName}
-									className='size-36 rounded-lg'
-									src={studentAvatarSrc(student)}
-								/>
-							)}
-						</form.AppField>
-					}
-				/>
-			</Card>
-
-			<Tabs.Root
-				value={active}
-				onValueChange={(v) => setActive(v as ProfileTabValue)}
-				className='w-full'
-			>
-				<ProfileTabList errorTabs={errorTabs} />
-
-				{/* forceMount: giữ field của mọi tab luôn được mount để lỗi hiển thị đúng chỗ;
-				    Radix không tự ẩn tab đang tắt khi forceMount nên phải ẩn bằng class */}
-				{PROFILE_TABS.map(({ value }) => {
-					const Content = EDIT_TAB_CONTENT[value]
-					return (
-						<Tabs.Content
-							key={value}
-							value={value}
-							forceMount
-							className='data-[state=inactive]:hidden'
-						>
-							<Card>
-								<CardContent className='space-y-6 pt-6'>
-									<Content form={form} />
-								</CardContent>
-							</Card>
-						</Tabs.Content>
+		<>
+			<LiveEditCard form={form} student={student} />
+			<RecordMain
+				title={
+					heading ?? (
+						<h2 className={RECORD_TITLE_CLASS}>
+							Sửa thông tin học viên
+						</h2>
 					)
-				})}
-			</Tabs.Root>
-
-			<EditFooter
-				isPending={isPending}
-				errorTabs={errorTabs}
-				onCancel={onClose}
-			/>
-		</form>
+				}
+				steps={PROFILE_STEPS}
+				currentStep={step}
+				completedSteps={visited}
+				errorSteps={errorSteps}
+				onStepClick={(i) => setActive(PROFILE_TABS[i].value)}
+				footer={
+					<EditFooter
+						formId={formId}
+						isPending={isPending}
+						errorTabs={errorTabs}
+						onCancel={onClose}
+					/>
+				}
+			>
+				{(direction) => (
+					<form
+						id={formId}
+						onSubmit={(e) => {
+							e.preventDefault()
+							form.handleSubmit()
+						}}
+						className='px-6 py-4'
+					>
+						{/* Mọi nhóm luôn được mount để lỗi ở nhóm đang ẩn vẫn ghi nhận đúng chỗ;
+						    nhóm không mở chỉ bị ẩn, nhóm mở trượt vào theo chiều đi */}
+						{PROFILE_TABS.map(({ value }, i) => {
+							const Content = EDIT_TAB_CONTENT[value]
+							return (
+								<div
+									key={value}
+									data-active={i === step}
+									className={cn(
+										'space-y-6',
+										i === step
+											? slideClass(direction)
+											: 'hidden'
+									)}
+								>
+									<Content form={form} />
+								</div>
+							)
+						})}
+					</form>
+				)}
+			</RecordMain>
+		</>
 	)
 }
