@@ -462,3 +462,64 @@ code {
 		animation: none;
 	}
 }
+
+/* Giấy máy ghi điện tim của biểu mẫu thêm học viên: lưới nhỏ 10px, lưới lớn 50px,
+   cuộn ngang theo --paper-x khi chuyển bước và cuộn dọc cùng nội dung */
+.paper-grid {
+	background-color: var(--card);
+	background-image:
+		linear-gradient(var(--grid-major) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+		linear-gradient(var(--grid-minor) 1px, transparent 1px),
+		linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+	background-size:
+		50px 50px,
+		50px 50px,
+		10px 10px,
+		10px 10px;
+	background-position: var(--paper-x, 0) 0;
+	background-attachment: local;
+	transition: background-position 0.55s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+/* Giấy trượt vào từ phải (tiến) hoặc từ trái (lùi) khi đổi bước */
+@keyframes paper-in-next {
+	from {
+		opacity: 0;
+		transform: translateX(2.5rem);
+	}
+}
+
+@keyframes paper-in-prev {
+	from {
+		opacity: 0;
+		transform: translateX(-2.5rem);
+	}
+}
+
+.paper-in-next {
+	animation: paper-in-next 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.paper-in-prev {
+	animation: paper-in-prev 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+/* Nhịp vẽ nhanh cho đoạn mạch của một bước vừa hoàn thành */
+.pulse-draw-quick {
+	animation-duration: 0.7s;
+	animation-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.paper-grid {
+		transition: none;
+	}
+	.paper-in-next,
+	.paper-in-prev {
+		animation: none;
+	}
+	.pulse-draw-quick {
+		animation: none;
+	}
+}

@@ -158,4 +158,77 @@ describe('StudentForm (create)', () => {
 		expect(body.isMarried).toBe(false)
 		expect('avatar' in body).toBe(false)
 	}, 20_000)
+
+	it('shows a summary and a footer with the step count on the last step', async () => {
+		openDialog()
+		expect(screen.getByText('Bước 1/4')).toBeTruthy()
+		expect(screen.getByRole('button', { name: /Quay lại/ })).toHaveProperty(
+			'disabled',
+			true
+		)
+
+		change(screen.getByLabelText('Họ và tên'), 'Nguyễn Văn A')
+		typeDate('Ngày sinh', '06052001')
+		await pick(0, 'Lớp 1')
+		await pick(1, 'Kinh')
+		await pick(2, 'Không')
+		await pick(3, '12/12')
+		next()
+		await screen.findByLabelText('Số thẻ Đảng')
+		typeDate('Ngày nhập ngũ', '01092023')
+		next()
+		await screen.findByLabelText('Tên cha')
+		typeDate('Ngày sinh của cha', '31121975')
+		next()
+		await screen.findByLabelText('Tên vợ/chồng')
+
+		expect(screen.getByText('Bước 4/4')).toBeTruthy()
+		const summary = screen.getByRole('region', {
+			name: 'Kiểm tra lại trước khi thêm'
+		})
+		expect(within(summary).getByText('Nguyễn Văn A')).toBeTruthy()
+		expect(within(summary).getByText('06/05/2001')).toBeTruthy()
+		await waitFor(() =>
+			expect(within(summary).getByText(/Lớp 1/)).toBeTruthy()
+		)
+		expect(screen.queryByRole('button', { name: /Tiếp theo/ })).toBeNull()
+	}, 20_000)
+
+	it('builds the record card while typing and stamps it after the student is created', async () => {
+		openDialog()
+		const card = () =>
+			screen.getByRole('complementary', { name: 'Thẻ hồ sơ đang lập' })
+		expect(within(card()).getByText('0/4')).toBeTruthy()
+
+		change(screen.getByLabelText('Họ và tên'), 'Nguyễn Văn A')
+		change(screen.getByLabelText('Mã số học viên'), 'HV001')
+		typeDate('Ngày sinh', '06052001')
+		await pick(0, 'Lớp 1')
+		await pick(1, 'Kinh')
+		await pick(2, 'Không')
+		await pick(3, '12/12')
+
+		expect(within(card()).getByText('Nguyễn Văn A')).toBeTruthy()
+		expect(within(card()).getByText('HV001')).toBeTruthy()
+		expect(within(card()).getByText('06/05/2001')).toBeTruthy()
+
+		next()
+		await screen.findByLabelText('Số thẻ Đảng')
+		typeDate('Ngày nhập ngũ', '01092023')
+		next()
+		await screen.findByLabelText('Tên cha')
+		typeDate('Ngày sinh của cha', '31121975')
+		next()
+		await screen.findByLabelText('Tên vợ/chồng')
+		expect(within(card()).getByText('3/4')).toBeTruthy()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Thêm học viên' }))
+
+		await waitFor(() => expect(createStudent).toHaveBeenCalledTimes(1))
+		// Form đã xoá nhưng thẻ giữ nguyên dữ liệu và có dấu
+		expect(
+			await screen.findByRole('img', { name: 'Hồ sơ đã lập' })
+		).toBeTruthy()
+		expect(within(card()).getByText('Nguyễn Văn A')).toBeTruthy()
+	}, 20_000)
 })

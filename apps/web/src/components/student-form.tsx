@@ -1,7 +1,6 @@
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import type { VariantProps } from 'class-variance-authority'
-import StepIndicator from '@/components/form-indicator'
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +10,17 @@ import {
 } from '@/components/ui/dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Student, StudentBody } from '@/types'
+import { CreateFooter } from './student-create/CreateFooter'
+import { LiveRecordCard } from './student-create/LiveRecordCard'
+import { PaperStep } from './student-create/PaperStep'
+import { PenTrace } from './student-create/PenTrace'
+import { recordFromValues, type RecordView } from './student-create/record'
+import { ReviewSummary } from './student-create/ReviewSummary'
+import { useStepDirection } from './student-create/useStepDirection'
 import { useStudentCreateForm } from './student-create/useStudentCreateForm'
+
+/** Dấu «Đã lập hồ sơ» nằm lại trên thẻ chừng này rồi hộp thoại mới đóng */
+const STAMP_MS = 1200
 
 export interface StudentFormProps {
 	onSuccess: (
@@ -23,11 +32,20 @@ export interface StudentFormProps {
 		VariantProps<typeof buttonVariants> & { asChild?: boolean }
 }
 
+/**
+ * Nút «Thêm học viên» mở hộp thoại lập hồ sơ: thẻ hồ sơ bên trái được dựng dần
+ * theo dữ liệu nhập, bên phải là dải giấy điện tim trượt qua từng bước.
+ */
 export default function StudentForm({
 	onSuccess,
 	buttonProps
 }: StudentFormProps) {
 	const [open, setOpen] = useState(false)
+	// Bản chụp thẻ lúc tạo xong: form đã bị xoá nên thẻ phải giữ lại để đóng dấu
+	const [frozen, setFrozen] = useState<RecordView | null>(null)
+	const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+	useEffect(() => () => clearTimeout(closeTimer.current), [])
+
 	const {
 		form,
 		steps,
@@ -37,83 +55,81 @@ export default function StudentForm({
 		next,
 		previous,
 		goTo
-	} = useStudentCreateForm({ onSuccess, onCreated: () => setOpen(false) })
+	} = useStudentCreateForm({
+		onSuccess: (...args) => {
+			setFrozen(recordFromValues(form.state.values as any))
+			return onSuccess(...args)
+		},
+		onCreated: () => {
+			closeTimer.current = setTimeout(() => {
+				setOpen(false)
+				setFrozen(null)
+			}, STAMP_MS)
+		}
+	})
+	const direction = useStepDirection(currentStep)
 
 	const { Content } = steps[currentStep]
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={(o) => !frozen && setOpen(o)}>
 			<DialogTrigger asChild>
 				<Button {...buttonProps}>
 					<Plus className='w-4 h-4 mr-2' />
 					Thêm học viên
 				</Button>
 			</DialogTrigger>
-			<DialogContent className='grid-rows-[auto_auto_1fr] lg:max-w-3xl lg:h-9/10'>
-				<DialogHeader>
-					<DialogTitle className='text-center'>
-						Biểu mẫu thêm học viên
-					</DialogTitle>
-				</DialogHeader>
-				<StepIndicator
-					STEPS={steps}
-					completedSteps={completedSteps}
-					currentStep={currentStep}
-					handleStepClick={goTo}
+			<DialogContent className='flex flex-col gap-0 overflow-hidden p-0 lg:grid lg:h-9/10 lg:max-w-5xl lg:grid-cols-[17rem_minmax(0,1fr)]'>
+				<LiveRecordCard
+					form={form}
+					frozen={frozen}
+					done={completedSteps.length}
+					total={steps.length}
 				/>
-				<form
-					onSubmit={(e) => {
-						e.preventDefault()
-						e.stopPropagation()
-						// Enter ở các bước giữa không được gửi form
-						if (isLastStep) form.handleSubmit()
-					}}
-					className='flex flex-col flex-1 overflow-auto no-scrollbar'
-					id='studentForm'
+
+				<div
+					className='flex min-h-0 flex-col data-[stamped=true]:pointer-events-none data-[stamped=true]:opacity-40'
+					data-stamped={!!frozen}
 				>
-					<div className='mb-auto'>
-						<Content form={form} />
+					<DialogHeader className='px-6 pt-6 pb-2'>
+						<DialogTitle className='font-display text-2xl tracking-wide'>
+							Lập hồ sơ học viên
+						</DialogTitle>
+					</DialogHeader>
+					<div className='px-6 pb-3'>
+						<PenTrace
+							steps={steps}
+							completedSteps={completedSteps}
+							currentStep={currentStep}
+							onStepClick={goTo}
+						/>
 					</div>
-				</form>
-				<div className='flex justify-between items-center'>
-					<button
-						type='button'
-						onClick={previous}
-						disabled={currentStep === 0}
-						className='flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-					>
-						<ChevronLeft className='w-4 h-4 mr-1' />
-						Quay lại
-					</button>
-					{isLastStep ? (
-						<form.Subscribe
-							selector={(state: any) => [
-								state.canSubmit,
-								state.isSubmitting
-							]}
+
+					<PaperStep step={currentStep} direction={direction}>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								// Enter ở các bước giữa không được gửi form
+								if (isLastStep) form.handleSubmit()
+							}}
+							id='studentForm'
 						>
-							{([canSubmit, isSubmitting]: boolean[]) => (
-								<Button
-									type='submit'
-									form='studentForm'
-									disabled={!canSubmit || isSubmitting}
-								>
-									{isSubmitting
-										? 'Đang thêm học viên...'
-										: 'Thêm học viên'}
-								</Button>
-							)}
-						</form.Subscribe>
-					) : (
-						<button
-							type='button'
-							onClick={next}
-							className='flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors'
-						>
-							Tiếp theo
-							<ChevronRight className='w-4 h-4 ml-1' />
-						</button>
-					)}
+							<Content form={form} />
+							{isLastStep && <ReviewSummary form={form} />}
+						</form>
+					</PaperStep>
+
+					<div className='px-6 pb-5'>
+						<CreateFooter
+							form={form}
+							currentStep={currentStep}
+							stepCount={steps.length}
+							isLastStep={isLastStep}
+							onPrevious={previous}
+							onNext={next}
+						/>
+					</div>
 				</div>
 			</DialogContent>
 		</Dialog>
