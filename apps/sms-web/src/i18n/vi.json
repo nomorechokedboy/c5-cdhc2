@@ -147,7 +147,8 @@
 		"gradeSubtitle": "Điểm của bạn trong các bài kiểm tra",
 		"examColumn": "Kiểm tra",
 		"gradeColumn": "Điểm",
-		"finalGrade": "Điểm tổng kết môn"
+		"finalGrade": "Điểm tổng kết môn",
+		"noCourses": "Lớp này chưa có môn học nào."
 	},
 	"grades": {
 		"studentGrades": "Điểm số học viên",

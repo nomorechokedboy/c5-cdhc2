@@ -1,39 +1,17 @@
-import { CategoryApi, CourseApi } from '@/api'
+import { CategoryApi } from '@/api'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseCard, { type Course } from '@/components/course-card'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
+import { Card, CardContent } from '@repo/ui/components/ui/card'
 import { Link, createFileRoute, useRouterState } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/khoa-hoc/$categoryIdnumber/')({
 	component: RouteComponent
 })
 
-const colors = [
-	'bg-teal-500',
-	'bg-orange-500',
-	'bg-pink-500',
-	'bg-purple-500',
-	'bg-green-500',
-	'bg-blue-500',
-	'bg-sky-500'
-]
-
-function hashStringToIndex(s: string | number, len: number): number {
-	const str = String(s)
-	let h = 0
-	for (let i = 0; i < str.length; i++) {
-		h = (h << 5) - h + str.charCodeAt(i)
-		h |= 0 // convert to 32bit int
-	}
-	return Math.abs(h) % len
-}
-
-function colorForCourseDeterministic(course: { id?: number; name?: string }) {
-	const key = course.id ?? course.name ?? JSON.stringify(course)
-	return colors[hashStringToIndex(key, colors.length)]
-}
-
 function RouteComponent() {
+	const { t } = useTranslation()
 	const { categoryIdnumber } = Route.useParams()
 	const category = useRouterState({
 		select: (s) => s.location.state.category
@@ -49,10 +27,6 @@ function RouteComponent() {
 				description: c.summary,
 				title: c.fullname,
 				code: c.shortname,
-				color: colorForCourseDeterministic({
-					id: c.id,
-					name: c.fullname
-				}),
 				status: c.visible === 1 ? 'Đang dạy' : 'Kết thúc',
 				students: 0,
 				credits: 1,
@@ -64,20 +38,41 @@ function RouteComponent() {
 
 	return (
 		<ProtectedRoute>
-			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6'>
-				{courses.map((course) => (
-					<Link
-						to='/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
-						params={{
-							categoryIdnumber,
-							courseShortname: course.code
-						}}
-						state={{ course: { id: course.id } }}
-					>
-						<CourseCard key={course.id} course={course} />
-					</Link>
-				))}
-			</div>
+			{isCoursesLoading ? (
+				<div className='grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3'>
+					{Array.from({ length: 6 }).map((_, i) => (
+						<Card
+							key={i}
+							className='border-l-muted h-32 animate-pulse border-l-[6px]'
+						/>
+					))}
+				</div>
+			) : courses.length === 0 ? (
+				<div className='p-6'>
+					<Card className='border-dashed'>
+						<CardContent className='text-muted-foreground text-center'>
+							{t('course.noCourses')}
+						</CardContent>
+					</Card>
+				</div>
+			) : (
+				<div className='grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3'>
+					{courses.map((course) => (
+						<Link
+							key={course.id}
+							className='focus-visible:ring-ring/60 block rounded-lg outline-none focus-visible:ring-[3px]'
+							to='/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
+							params={{
+								categoryIdnumber,
+								courseShortname: course.code
+							}}
+							state={{ course: { id: course.id } }}
+						>
+							<CourseCard course={course} />
+						</Link>
+					))}
+				</div>
+			)}
 		</ProtectedRoute>
 	)
 }
