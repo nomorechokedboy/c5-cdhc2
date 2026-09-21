@@ -9,11 +9,9 @@ import {
 	CardDescription
 } from '@repo/ui/components/ui/card'
 import { Avatar, AvatarFallback } from '@repo/ui/components/ui/avatar'
-import { Badge } from '@repo/ui/components/ui/badge'
 import { Mail, Phone, Hash, BookUser, IdCard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { LangPackManager } from '@/components/langpack-manager'
-import { ExportTemplateManager } from '@/components/admin/export-template-manager'
+import { DashboardHeader } from '@/components/dashboard'
 
 export const Route = createFileRoute('/profile')({
 	component: ProfilePage
@@ -42,19 +40,6 @@ function ProfilePage() {
 	const { t } = useTranslation()
 	const { user, role } = useAuth()
 
-	const roleLabelMap: Record<
-		string,
-		{
-			label: string
-			variant: 'default' | 'secondary' | 'outline' | 'destructive'
-		}
-	> = {
-		admin: { label: t('roles.admin'), variant: 'destructive' },
-		manager: { label: t('roles.manager'), variant: 'default' },
-		teacher: { label: t('roles.teacher'), variant: 'secondary' },
-		student: { label: t('roles.student'), variant: 'outline' }
-	}
-
 	const displayName = user
 		? `${user.firstname} ${user.lastname}`.trim()
 		: t('profile.loading')
@@ -63,42 +48,35 @@ function ProfilePage() {
 		? `${user.firstname?.[0] ?? ''}${user.lastname?.[0] ?? ''}`.toUpperCase()
 		: 'U'
 
-	const roleInfo = roleLabelMap[role] ?? {
-		label: role,
-		variant: 'outline' as const
-	}
-
 	return (
 		<ProtectedRoute>
-			<div className='container max-w-2xl mx-auto p-6 space-y-6'>
-				<div>
-					<h1 className='text-2xl font-bold tracking-tight'>
-						{t('profile.title')}
-					</h1>
-					<p className='text-muted-foreground'>
-						{t('profile.subtitle')}
-					</p>
-				</div>
+			<div className='container mx-auto max-w-2xl space-y-6 p-6'>
+				<DashboardHeader
+					title={t('profile.title')}
+					subtitle={t('profile.subtitle')}
+				/>
 
-				{/* Avatar + name */}
-				<Card>
-					<CardContent className='pt-6'>
+				{/* Thẻ tên: gáy xanh mực, tên viết to, vai trò đóng dấu */}
+				<Card className='border-l-primary border-l-[6px]'>
+					<CardContent>
 						<div className='flex items-center gap-4'>
 							<Avatar className='h-16 w-16 text-lg'>
-								<AvatarFallback className='bg-primary/10 text-primary font-semibold'>
+								<AvatarFallback className='bg-primary text-primary-foreground font-serif font-semibold'>
 									{initials}
 								</AvatarFallback>
 							</Avatar>
-							<div className='space-y-1'>
-								<h2 className='text-xl font-semibold'>
+							<div className='min-w-0 space-y-1.5'>
+								<h2 className='font-serif text-2xl font-semibold'>
 									{displayName}
 								</h2>
-								<div className='flex items-center gap-2'>
-									<Badge variant={roleInfo.variant}>
-										{roleInfo.label}
-									</Badge>
+								<div className='flex flex-wrap items-center gap-3'>
+									<span className='border-brass -rotate-1 rounded-sm border-2 px-2 py-0.5 text-sm font-semibold'>
+										{t(`roles.${role}`, {
+											defaultValue: role
+										})}
+									</span>
 									{user?.username && (
-										<span className='text-sm text-muted-foreground'>
+										<span className='text-muted-foreground text-sm'>
 											@{user.username}
 										</span>
 									)}
@@ -111,36 +89,36 @@ function ProfilePage() {
 				{/* Contact info */}
 				<Card>
 					<CardHeader>
-						<CardTitle className='text-base'>
+						<CardTitle className='text-lg'>
 							{t('profile.contactInfo')}
 						</CardTitle>
 						<CardDescription>
 							{t('profile.syncNote')}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className='divide-y divide-border'>
+					<CardContent className='divide-rule divide-y'>
 						<InfoRow
-							icon={<Mail className='w-4 h-4' />}
+							icon={<Mail className='h-4 w-4' />}
 							label={t('profile.email')}
 							value={user?.email}
 						/>
 						<InfoRow
-							icon={<Phone className='w-4 h-4' />}
+							icon={<Phone className='h-4 w-4' />}
 							label={t('profile.phone')}
 							value={user?.phone1}
 						/>
 						<InfoRow
-							icon={<Hash className='w-4 h-4' />}
+							icon={<Hash className='h-4 w-4' />}
 							label={t('profile.idNumber')}
 							value={user?.idnumber}
 						/>
 						<InfoRow
-							icon={<BookUser className='w-4 h-4' />}
+							icon={<BookUser className='h-4 w-4' />}
 							label={t('profile.username')}
 							value={user?.username}
 						/>
 						<InfoRow
-							icon={<IdCard className='w-4 h-4' />}
+							icon={<IdCard className='h-4 w-4' />}
 							label={t('profile.userCode')}
 							value={user?.id ? String(user.id) : undefined}
 						/>
@@ -151,12 +129,12 @@ function ProfilePage() {
 				{user?.description && (
 					<Card>
 						<CardHeader>
-							<CardTitle className='text-base'>
+							<CardTitle className='text-lg'>
 								{t('profile.description')}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<p className='text-sm text-muted-foreground'>
+							<p className='text-muted-foreground text-sm'>
 								{user.description}
 							</p>
 						</CardContent>

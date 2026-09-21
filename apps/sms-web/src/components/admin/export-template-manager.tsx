@@ -29,6 +29,7 @@ import {
 import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { Upload, Trash2, FileText, Loader2 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
+import { FileDropzone } from '@/components/file-dropzone'
 
 type TemplateType = 'course' | 'quiz' | 'assign'
 
@@ -147,7 +148,7 @@ function TemplatePanel({ type }: { type: TemplateType }) {
 			{/* Upload form */}
 			<Card>
 				<CardHeader>
-					<CardTitle className='text-sm'>
+					<CardTitle className='text-base'>
 						{t('export.uploadNew')}
 					</CardTitle>
 					<CardDescription>{t('export.uploadHint')}</CardDescription>
@@ -160,25 +161,26 @@ function TemplatePanel({ type }: { type: TemplateType }) {
 						className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
 					/>
 
-					<div
-						className='border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-accent/50 transition-colors'
-						onClick={() => inputRef.current?.click()}
+					<FileDropzone
+						onActivate={() => inputRef.current?.click()}
+						disabled={uploadMutation.isPending}
+						className='p-6'
 					>
 						{uploadMutation.isPending ? (
-							<Loader2 className='w-6 h-6 mx-auto animate-spin text-muted-foreground' />
+							<Loader2 className='text-muted-foreground mx-auto h-6 w-6 animate-spin' />
 						) : (
-							<Upload className='w-6 h-6 mx-auto mb-2 text-muted-foreground' />
+							<Upload className='text-muted-foreground mx-auto mb-2 h-6 w-6' />
 						)}
-						<p className='text-sm text-muted-foreground'>
+						<p className='text-muted-foreground text-sm'>
 							{uploadMutation.isPending
 								? t('export.uploading')
 								: t('export.dropzone')}
 						</p>
-						<p className='text-xs text-muted-foreground mt-1'>
+						<p className='text-muted-foreground mt-1 text-xs'>
 							{ALLOWED_EXTS.join(', ')} ·{' '}
 							{t('export.maxSize', { max: MAX_MB })}
 						</p>
-					</div>
+					</FileDropzone>
 
 					<input
 						ref={inputRef}
@@ -194,7 +196,7 @@ function TemplatePanel({ type }: { type: TemplateType }) {
 			{/* Template list */}
 			<Card>
 				<CardHeader>
-					<CardTitle className='text-sm'>
+					<CardTitle className='text-base'>
 						{t('export.existingTemplates')}
 					</CardTitle>
 				</CardHeader>
@@ -227,7 +229,7 @@ function TemplatePanel({ type }: { type: TemplateType }) {
 							<TableBody>
 								{templates.map((tpl) => (
 									<TableRow key={tpl.id}>
-										<TableCell className='font-medium flex items-center gap-2'>
+										<TableCell className='flex items-center gap-2 font-medium'>
 											<FileText className='w-4 h-4 text-muted-foreground shrink-0' />
 											{tpl.name}
 										</TableCell>
@@ -284,7 +286,7 @@ export function ExportTemplateManager() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className='text-base'>
+				<CardTitle className='text-lg'>
 					{t('export.templateManagerTitle')}
 				</CardTitle>
 				<CardDescription>
@@ -293,7 +295,7 @@ export function ExportTemplateManager() {
 			</CardHeader>
 			<CardContent>
 				<Tabs defaultValue='course'>
-					<TabsList className='mb-4'>
+					<TabsList className='mb-4 w-full'>
 						<TabsTrigger value='course'>
 							{t('export.typeCourse')}
 						</TabsTrigger>

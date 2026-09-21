@@ -35,7 +35,7 @@
 	--destructive-foreground: oklch(0.985 0 0);
 	--success: oklch(0.5 0.1 160);
 	--success-foreground: oklch(0.985 0 0);
-	--warning: oklch(0.62 0.13 75);
+	--warning: oklch(0.55 0.13 70);
 	--warning-foreground: oklch(0.2 0.03 75);
 	--brass: oklch(0.68 0.12 85); /* vàng huy hiệu */
 	--brass-foreground: oklch(0.25 0.05 85);

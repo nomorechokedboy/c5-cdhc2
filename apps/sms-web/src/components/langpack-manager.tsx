@@ -16,6 +16,7 @@ import { Badge } from '@repo/ui/components/ui/badge'
 import { Upload, RotateCcw, Download } from 'lucide-react'
 import defaultStrings from '@/i18n/vi.json'
 import useAuth from '@/hooks/useAuth'
+import { FileDropzone } from '@/components/file-dropzone'
 
 export function LangPackManager() {
 	const { t } = useTranslation()
@@ -84,7 +85,7 @@ export function LangPackManager() {
 			<CardHeader>
 				<div className='flex items-center justify-between'>
 					<div>
-						<CardTitle className='text-base'>
+						<CardTitle className='text-lg'>
 							{t('langpack.title')}
 						</CardTitle>
 						<CardDescription>
@@ -100,20 +101,19 @@ export function LangPackManager() {
 			</CardHeader>
 			<CardContent className='space-y-4'>
 				{/* Drop zone */}
-				<div
-					className='border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-accent/50 transition-colors'
-					onClick={() => inputRef.current?.click()}
+				<FileDropzone
+					onActivate={() => inputRef.current?.click()}
 					onDrop={handleDrop}
-					onDragOver={(e) => e.preventDefault()}
+					className='p-8'
 				>
-					<Upload className='w-8 h-8 mx-auto mb-2 text-muted-foreground' />
-					<p className='text-sm text-muted-foreground'>
+					<Upload className='text-muted-foreground mx-auto mb-2 h-8 w-8' />
+					<p className='text-muted-foreground text-sm'>
 						{t('langpack.dropzone')}
 					</p>
-					<p className='text-xs text-muted-foreground mt-1'>
+					<p className='text-muted-foreground mt-1 text-xs'>
 						{t('langpack.formatHint')}
 					</p>
-				</div>
+				</FileDropzone>
 				<input
 					ref={inputRef}
 					type='file'
