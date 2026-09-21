@@ -3,7 +3,7 @@ import type { StudentStepProps } from '../types'
 import { StepBody, StepGrid, StepGroup } from './layout'
 
 export function FamilyStep({ form }: StudentStepProps) {
-	const f = { form } as const
+	const f = { form, compact: true } as const
 
 	return (
 		<StepBody>

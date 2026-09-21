@@ -4,7 +4,7 @@ import type { StudentStepProps } from '../types'
 import { StepBody, StepGrid } from './layout'
 
 export function PersonalStep({ form }: StudentStepProps) {
-	const f = { form } as const
+	const f = { form, compact: true } as const
 
 	return (
 		<StepBody>
@@ -14,6 +14,7 @@ export function PersonalStep({ form }: StudentStepProps) {
 					{(field: any) => (
 						<field.UploadField
 							label='Ảnh học viên'
+							compact
 							accept='image/*'
 							maxSize={10 * 1024 * 1024}
 							dragDropSize='small'

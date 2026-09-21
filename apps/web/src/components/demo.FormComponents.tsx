@@ -406,10 +406,13 @@ export type UploadFieldProps = JSX.IntrinsicElements['input'] & {
 	dragDropText?: string
 	browseText?: string
 	dragDropSize?: 'small' | 'default'
+	/** Nhãn nhỏ, gọn như các field khác của form */
+	compact?: boolean
 }
 
 export function UploadField({
 	label,
+	compact,
 	value,
 	accept,
 	maxSize = 10 * 1024 * 1024, // 10MB default
@@ -474,9 +477,9 @@ export function UploadField({
 
 	return (
 		<div className={cn('space-y-4', className)}>
-			<Label htmlFor={label} className='mb-2 text-xl font-bold'>
+			<FieldLabel htmlFor={label} compact={compact}>
 				{label}
-			</Label>
+			</FieldLabel>
 
 			{/* Browse Button */}
 			{showBrowseButton && (

@@ -4,7 +4,7 @@ import type { StudentStepProps } from '../types'
 import { StepBody, StepGrid } from './layout'
 
 export function MilitaryStep({ form }: StudentStepProps) {
-	const f = { form } as const
+	const f = { form, compact: true } as const
 
 	return (
 		<StepBody>
