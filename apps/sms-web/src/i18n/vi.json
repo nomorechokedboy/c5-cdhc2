@@ -245,5 +245,19 @@
 		"parseError": "File JSON không hợp lệ",
 		"uploadSuccess": "Tải lên thành công!",
 		"resetSuccess": "Đã khôi phục ngôn ngữ mặc định"
+	},
+	"theme": {
+		"toDark": "Chuyển sang giao diện tối",
+		"toLight": "Chuyển sang giao diện sáng"
+	},
+	"breadcrumb": {
+		"khoa-hoc": "Khóa học",
+		"mon-hoc": "Môn học",
+		"admin": "Quản trị",
+		"profile": "Hồ sơ cá nhân",
+		"audit": "Nhật ký hoạt động",
+		"export-templates": "Mẫu xuất điểm",
+		"langpack": "Tuỳ chỉnh ngôn ngữ",
+		"asset-management": "Cơ sở vật chất"
 	}
 }
