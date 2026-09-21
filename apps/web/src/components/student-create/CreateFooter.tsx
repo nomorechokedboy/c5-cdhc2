@@ -20,7 +20,7 @@ export function CreateFooter({
 	onNext
 }: CreateFooterProps) {
 	return (
-		<div className='flex items-center justify-between gap-3 border-t pt-4'>
+		<div className='flex items-center justify-between gap-3'>
 			<Button
 				type='button'
 				variant='outline'

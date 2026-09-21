@@ -4,7 +4,8 @@ import {
 	fireEvent,
 	render,
 	screen,
-	waitFor
+	waitFor,
+	within
 } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Student } from '@/types'
@@ -65,29 +66,44 @@ function renderProfile(overrides: Partial<Student> = {}) {
 beforeEach(() => updateStudents.mockClear())
 afterEach(cleanup)
 
-// Radix Tabs đổi tab khi nhận mousedown, không phải click
 const openTab = (name: string) =>
-	fireEvent.mouseDown(screen.getByRole('tab', { name }), { button: 0 })
+	fireEvent.click(screen.getByRole('button', { name }))
 
 describe('StudentProfile', () => {
 	it('shows the header facts and the class label built from the unit', () => {
 		renderProfile()
-		expect(
-			screen.getByRole('heading', { name: 'Nguyễn Văn An' })
-		).toBeTruthy()
-		expect(screen.getAllByText('Binh nhất').length).toBeGreaterThan(0)
-		expect(screen.getByText('Lớp Y1 - Đại đội 1')).toBeTruthy()
+		const card = within(
+			screen.getByRole('complementary', { name: 'Thẻ hồ sơ' })
+		)
+		expect(card.getByText('Nguyễn Văn An')).toBeTruthy()
+		expect(card.getByText('Binh nhất')).toBeTruthy()
+		expect(card.getByText('Học viên')).toBeTruthy()
+		expect(card.getByText('Lớp Y1 - Đại đội 1')).toBeTruthy()
+		expect(card.getByText('11/02/2005')).toBeTruthy()
 	})
 
 	it('shows the personal fields, with a dash for missing values', () => {
 		renderProfile()
-		expect(screen.getByText('11/02/2005')).toBeTruthy()
 		expect(screen.getByText('Kinh')).toBeTruthy()
 		// Tôn giáo, địa chỉ, số điện thoại... chưa có → «-»
 		expect(screen.getAllByText('-').length).toBeGreaterThanOrEqual(3)
 	})
 
-	it('only shows the active tab, and switches on demand', () => {
+	it('shows the pen on the first group and draws a beat on the ones already read', () => {
+		renderProfile()
+		const tab = (name: string) => screen.getByRole('button', { name })
+		expect(tab('Thông tin cá nhân').getAttribute('aria-current')).toBe(
+			'step'
+		)
+		expect(document.querySelectorAll('[data-drawn=beat]')).toHaveLength(0)
+
+		openTab('Gia đình')
+		expect(tab('Gia đình').getAttribute('aria-current')).toBe('step')
+		expect(tab('Thông tin cá nhân').getAttribute('aria-current')).toBeNull()
+		expect(document.querySelectorAll('[data-drawn=beat]')).toHaveLength(1)
+	})
+
+	it('only shows the active group, and switches on demand', () => {
 		renderProfile()
 		expect(screen.queryByText('Trần Thị B')).toBeNull()
 		openTab('Gia đình')
@@ -115,6 +131,9 @@ describe('StudentProfile', () => {
 	it('asks in a dialog before confirming, then sends the update', async () => {
 		renderProfile()
 		expect(screen.getByText('Chờ xác nhận')).toBeTruthy()
+		expect(
+			screen.queryByRole('img', { name: 'Hồ sơ đã xác nhận' })
+		).toBeNull()
 
 		fireEvent.click(screen.getByRole('button', { name: /^Xác nhận$/ }))
 		expect(updateStudents).not.toHaveBeenCalled()

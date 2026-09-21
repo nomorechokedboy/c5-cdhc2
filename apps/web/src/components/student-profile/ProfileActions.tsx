@@ -1,11 +1,17 @@
 import { CheckCircle, FileDown, UserPen } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogTitle,
+	DialogTrigger
+} from '@/components/ui/dialog'
 import { isSuperAdmin } from '@/lib/utils'
 import type { Student } from '@/types'
 import { ExportStudentDataDialog } from '../export-student-data-dialog'
 import StudentEditForm from '../StudentEditForm'
+import { RECORD_DIALOG_CLASS, RECORD_TITLE_CLASS } from '../student-record'
 import { ConfirmStudentDialog } from './ConfirmStudentDialog'
 import { useConfirmStudent } from './useConfirmStudent'
 
@@ -22,7 +28,7 @@ export function ProfileActions({ student }: { student: Student }) {
 	}
 
 	return (
-		<div className='mt-auto flex flex-wrap gap-2'>
+		<div className='flex flex-wrap justify-end gap-2'>
 			<ExportStudentDataDialog
 				data={[student as any]}
 				defaultFilename={`Phiếu-học-viên-${student.fullName?.replace(' ', '_')}`}
@@ -33,7 +39,7 @@ export function ProfileActions({ student }: { student: Student }) {
 				templType='StudentEnrollmentFormTempl'
 				id='ExportStudentEnrollmentFormDialog'
 			>
-				<Button className='whitespace-nowrap' size='sm'>
+				<Button className='whitespace-nowrap'>
 					<FileDown /> Tải phiếu
 				</Button>
 			</ExportStudentDataDialog>
@@ -42,7 +48,6 @@ export function ProfileActions({ student }: { student: Student }) {
 				<>
 					<Button
 						variant='secondary'
-						size='sm'
 						className='whitespace-nowrap'
 						onClick={() => setConfirmOpen(true)}
 					>
@@ -61,17 +66,18 @@ export function ProfileActions({ student }: { student: Student }) {
 			{canEdit && (
 				<Dialog open={editOpen} onOpenChange={setEditOpen}>
 					<DialogTrigger asChild>
-						<Button
-							variant='outline'
-							size='sm'
-							className='whitespace-nowrap'
-						>
+						<Button variant='outline' className='whitespace-nowrap'>
 							<UserPen /> Chỉnh sửa
 						</Button>
 					</DialogTrigger>
-					<DialogContent className='h-screen w-full max-w-screen-lg overflow-y-auto p-6'>
+					<DialogContent className={RECORD_DIALOG_CLASS}>
 						<StudentEditForm
 							student={student}
+							heading={
+								<DialogTitle className={RECORD_TITLE_CLASS}>
+									Sửa thông tin học viên
+								</DialogTitle>
+							}
 							onClose={() => setEditOpen(false)}
 						/>
 					</DialogContent>

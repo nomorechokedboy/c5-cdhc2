@@ -1,11 +1,21 @@
-import * as Tabs from '@radix-ui/react-tabs'
-import type { ComponentType } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { useState, type ComponentType, type ReactNode } from 'react'
 import type { Student } from '@/types'
+import {
+	RECORD_TITLE_CLASS,
+	RecordCard,
+	RecordMain,
+	SlideIn,
+	recordFromStudent,
+	useVisitedSteps
+} from '../student-record'
 import { ProfileActions } from './ProfileActions'
-import { ProfileHeader } from './ProfileHeader'
-import { PROFILE_TABS } from './profile-tabs'
-import { ProfileTabList } from './ProfileTabList'
+import { PendingBadge, ProfileStamp } from './ProfileStamp'
+import { profileFacts } from './profile-facts'
+import {
+	PROFILE_STEPS,
+	PROFILE_TABS,
+	type ProfileTabValue
+} from './profile-tabs'
 import {
 	EducationTab,
 	FamilyTab,
@@ -14,12 +24,9 @@ import {
 	PersonalTab,
 	type ProfileTabProps
 } from './tabs'
-import { studentClassLabel } from './utils'
+import { studentAvatarSrc, studentClassLabel } from './utils'
 
-const TAB_CONTENT: Record<
-	(typeof PROFILE_TABS)[number]['value'],
-	ComponentType<ProfileTabProps>
-> = {
+const TAB_CONTENT: Record<ProfileTabValue, ComponentType<ProfileTabProps>> = {
 	personal: PersonalTab,
 	military: MilitaryTab,
 	education: EducationTab,
@@ -27,38 +34,60 @@ const TAB_CONTENT: Record<
 	history: HistoryTab
 }
 
-/** Hồ sơ học viên chỉ đọc: đầu hồ sơ + năm nhóm thông tin */
-export function StudentProfile({ student }: { student: Student }) {
+/**
+ * Hồ sơ học viên chỉ đọc, cùng khung với form thêm/sửa: thẻ hồ sơ bên trái
+ * (có dấu «Đã xác nhận» khi đã xác nhận), năm nhóm thông tin trên giấy điện tim
+ * bên phải, thao tác ở đáy. `heading` là tiêu đề của hộp thoại chứa nó.
+ */
+export function StudentProfile({
+	student,
+	heading
+}: {
+	student: Student
+	heading?: ReactNode
+}) {
+	const [step, setStep] = useState(0)
+	const visited = useVisitedSteps(step)
 	const classLabel = studentClassLabel(student)
+	const Content = TAB_CONTENT[PROFILE_TABS[step].value]
 
 	return (
 		<>
-			<Card className='mb-4 gap-0 overflow-hidden py-0'>
-				<ProfileHeader
-					student={student}
-					classLabel={classLabel}
-					actions={<ProfileActions student={student} />}
-				/>
-			</Card>
-
-			<Tabs.Root defaultValue={PROFILE_TABS[0].value} className='w-full'>
-				<ProfileTabList />
-				{PROFILE_TABS.map(({ value }) => {
-					const Content = TAB_CONTENT[value]
-					return (
-						<Tabs.Content key={value} value={value}>
-							<Card>
-								<CardContent className='space-y-6 pt-6'>
-									<Content
-										student={student}
-										classLabel={classLabel}
-									/>
-								</CardContent>
-							</Card>
-						</Tabs.Content>
+			<RecordCard
+				record={recordFromStudent(student)}
+				unitLabel={classLabel}
+				photoUrl={studentAvatarSrc(student)}
+				facts={profileFacts(student)}
+				empty='dash'
+				mobile='compact'
+				badge={<PendingBadge status={student.status} />}
+				footer={<ProfileStamp status={student.status} />}
+			/>
+			<RecordMain
+				title={
+					heading ?? (
+						<h2 className={RECORD_TITLE_CLASS}>
+							Thông tin học viên
+						</h2>
 					)
-				})}
-			</Tabs.Root>
+				}
+				steps={PROFILE_STEPS}
+				currentStep={step}
+				completedSteps={visited}
+				onStepClick={setStep}
+				footer={<ProfileActions student={student} />}
+			>
+				{(direction) => (
+					<SlideIn step={step} direction={direction}>
+						<div className='space-y-6'>
+							<Content
+								student={student}
+								classLabel={classLabel}
+							/>
+						</div>
+					</SlideIn>
+				)}
+			</RecordMain>
 		</>
 	)
 }

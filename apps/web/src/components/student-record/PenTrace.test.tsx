@@ -69,4 +69,22 @@ describe('PenTrace', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Một' }))
 		expect(onStepClick).toHaveBeenCalledWith(0)
 	})
+
+	it('draws a red noisy trace and a screen-reader note on steps with errors', () => {
+		render(
+			<PenTrace
+				steps={steps}
+				currentStep={0}
+				completedSteps={[0, 1]}
+				errorSteps={[1]}
+				onStepClick={vi.fn()}
+			/>
+		)
+		expect(document.querySelectorAll('[data-drawn=error]')).toHaveLength(1)
+		// bước lỗi không còn tính là đã xong
+		expect(beats()).toBe(1)
+		expect(
+			screen.getByRole('button', { name: /Hai/ }).textContent
+		).toContain('(có lỗi)')
+	})
 })
