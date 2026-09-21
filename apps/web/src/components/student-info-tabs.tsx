@@ -23,6 +23,13 @@ import { ExportStudentDataDialog } from './export-student-data-dialog'
 import useUpdateStudent from '@/hooks/useUpdateStudent'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
+import { ApprovedStamp } from './student-profile/approved-stamp'
+import { DogTag } from './student-profile/dog-tag'
+
+/** Mỗi mục hồ sơ: một trang biểu đồ, tiêu đề kẻ chân, không tô màu riêng từng mục */
+const SECTION_CLASS = 'border-l-2 border-primary/40 pl-4 py-1'
+const SECTION_TITLE_CLASS =
+	'mb-3 flex items-center gap-2 border-b pb-1.5 font-display text-lg font-semibold tracking-wide [&>svg]:text-primary'
 
 interface StudentInfoTabsProps {
 	student: Student
@@ -88,7 +95,9 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 		return (
 			<div>
-				<p className='text-xs font-medium text-gray-500'>{label}</p>
+				<p className='text-xs font-medium text-muted-foreground'>
+					{label}
+				</p>
 				<p>{displayValue}</p>
 			</div>
 		)
@@ -100,163 +109,123 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 	return (
 		<>
-			{/* HEADER + NÚT SỬA */}
-			<Card className='mb-4 border-l-4 '>
-				<CardHeader className='flex flex-col lg:flex-row items-start gap-6 p-6 bg-gradient-to-r from-blue-50/50 to-transparent'>
-					{/* Avatar Section */}
-					<div className='relative group'>
-						<div className='w-40 h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden shrink-0 ring-4 ring-white shadow-lg'>
+			{/* HEADER: thẻ bài bên trái, thông tin và thao tác bên phải */}
+			<Card className='relative mb-4 gap-0 overflow-hidden py-0'>
+				<div className='grid lg:grid-cols-[15rem_1fr]'>
+					<aside className='flex flex-col items-center gap-5 bg-sidebar p-6'>
+						<div className='size-36 shrink-0 overflow-hidden rounded-lg bg-sidebar-accent ring-2 ring-gold'>
 							<img
 								src={getMediaUri(avatarUri)}
 								alt={student.fullName}
-								className='object-cover w-full h-full transition-transform group-hover:scale-105'
+								className='size-full object-cover'
 							/>
 						</div>
-						{student.status === 'pending' && (
-							<div className='absolute -top-2 -right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md'>
-								Chờ xác nhận
-							</div>
-						)}
+						<DogTag
+							studentId={student.studentId}
+							rank={student.rank}
+						/>
+					</aside>
+
+					<div className='relative flex min-w-0 flex-col gap-5 p-6'>
 						{student.status === 'confirmed' && (
-							<div className='absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1'>
-								<CheckCircle className='h-3 w-3' />
-								Đã xác nhận
-							</div>
+							<ApprovedStamp className='absolute top-3 right-4 hidden sm:grid' />
 						)}
-					</div>
-
-					{/* Info Section */}
-					<div className='flex-1 min-w-0'>
-						<div className='flex items-start justify-between gap-4 mb-4'>
-							<div>
-								<CardTitle className='text-2xl font-bold text-gray-900 mb-1'>
-									{student.fullName}
-								</CardTitle>
-								<p className='text-sm text-gray-500'>
-									Mã học viên:{' '}
-									<span className='font-semibold text-gray-700'>
-										{student.studentId || 'Chưa có'}
-									</span>
+						<div className='sm:pr-36'>
+							<CardTitle className='font-display text-3xl font-semibold tracking-wide'>
+								{student.fullName}
+							</CardTitle>
+							{student.status === 'pending' && (
+								<p className='mt-1 inline-flex items-center gap-1.5 rounded-full border border-gold bg-gold/15 px-3 py-0.5 text-sm font-medium'>
+									Chờ xác nhận
 								</p>
-							</div>
+							)}
 						</div>
 
-						<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
-							<div className='flex items-center gap-2 text-sm'>
-								<Shield className='h-4 w-4 text-green-600 shrink-0' />
-								<div>
-									<p className='text-xs text-gray-500'>
-										Cấp bậc
-									</p>
-									<p className='font-semibold text-gray-900'>
-										{student.rank || '-'}
-									</p>
-								</div>
+						<dl className='grid grid-cols-2 gap-x-6 gap-y-3 border-y py-4 lg:grid-cols-4'>
+							<div>
+								<dt className='text-xs text-muted-foreground'>
+									Cấp bậc
+								</dt>
+								<dd className='font-semibold'>
+									{student.rank || '-'}
+								</dd>
 							</div>
-
-							<div className='flex items-center gap-2 text-sm'>
-								<User className='h-4 w-4 text-blue-600 shrink-0' />
-								<div>
-									<p className='text-xs text-gray-500'>
-										Chức vụ
-									</p>
-									<p className='font-semibold text-gray-900'>
-										{student.position || '-'}
-									</p>
-								</div>
+							<div>
+								<dt className='text-xs text-muted-foreground'>
+									Chức vụ
+								</dt>
+								<dd className='font-semibold'>
+									{student.position || '-'}
+								</dd>
 							</div>
-
-							<div className='flex items-center gap-2 text-sm'>
-								<Users className='h-4 w-4 text-purple-600 shrink-0' />
-								<div>
-									<p className='text-xs text-gray-500'>Lớp</p>
-									<p className='font-semibold text-gray-900'>
-										{classLabel || 'Chưa có lớp'}
-									</p>
-								</div>
+							<div>
+								<dt className='text-xs text-muted-foreground'>
+									Lớp
+								</dt>
+								<dd className='font-semibold'>
+									{classLabel || 'Chưa có lớp'}
+								</dd>
 							</div>
+							<div>
+								<dt className='text-xs text-muted-foreground'>
+									Nhập ngũ
+								</dt>
+								<dd className='tabular font-semibold'>
+									{student.enlistmentPeriod || '-'}
+								</dd>
+							</div>
+						</dl>
 
-							<div className='flex items-center gap-2 text-sm'>
-								<svg
-									className='h-4 w-4 text-amber-600 shrink-0'
-									fill='none'
-									stroke='currentColor'
-									viewBox='0 0 24 24'
+						<div className='mt-auto flex flex-wrap gap-2'>
+							<ExportStudentDataDialog
+								data={[student as any]}
+								defaultFilename={`Phiếu-học-viên-${student.fullName?.replace(' ', '_')}`}
+								defaultValues={{
+									underUnitName: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2',
+									unitName: '	TỔNG CỤC HẬU CẦN – KỸ THUẬT'
+								}}
+								templType='StudentEnrollmentFormTempl'
+								id='ExportStudentEnrollmentFormDialog'
+							>
+								<Button className='whitespace-nowrap' size='sm'>
+									<FileDown /> Tải phiếu
+								</Button>
+							</ExportStudentDataDialog>
+
+							{student.status === 'pending' && (
+								<Button
+									onClick={handleConfirmStudent}
+									disabled={isUpdating}
+									variant='secondary'
+									size='sm'
+									className='whitespace-nowrap'
 								>
-									<path
-										strokeLinecap='round'
-										strokeLinejoin='round'
-										strokeWidth={2}
-										d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-									/>
-								</svg>
-								<div>
-									<p className='text-xs text-gray-500'>
-										Nhập ngũ
-									</p>
-									<p className='font-semibold text-gray-900'>
-										{student.enlistmentPeriod || '-'}
-									</p>
-								</div>
-							</div>
+									<CheckCircle /> Xác nhận
+								</Button>
+							)}
+
+							{canEdit && (
+								<Dialog open={open} onOpenChange={setOpen}>
+									<DialogTrigger asChild>
+										<Button
+											variant='outline'
+											size='sm'
+											className='whitespace-nowrap'
+										>
+											<UserPen /> Chỉnh sửa
+										</Button>
+									</DialogTrigger>
+									<DialogContent className='max-w-screen-lg w-full h-screen overflow-y-auto p-6'>
+										<StudentEditForm
+											student={student}
+											onClose={() => setOpen(false)}
+										/>
+									</DialogContent>
+								</Dialog>
+							)}
 						</div>
 					</div>
-
-					{/* Action Buttons */}
-					<div className='flex flex-row lg:flex-col gap-2 w-full lg:w-auto'>
-						<ExportStudentDataDialog
-							data={[student as any]}
-							defaultFilename={`Phiếu-học-viên-${student.fullName?.replace(' ', '_')}`}
-							defaultValues={{
-								underUnitName: 'TRƯỜNG CAO ĐẲNG HẬU CẦN 2',
-								unitName: '	TỔNG CỤC HẬU CẦN – KỸ THUẬT'
-							}}
-							templType='StudentEnrollmentFormTempl'
-							id='ExportStudentEnrollmentFormDialog'
-						>
-							<Button
-								className='flex-1 lg:w-full whitespace-nowrap'
-								size='sm'
-							>
-								<FileDown className='mr-2 h-4 w-4' /> Tải phiếu
-							</Button>
-						</ExportStudentDataDialog>
-
-						{student.status === 'pending' && (
-							<Button
-								onClick={handleConfirmStudent}
-								disabled={isUpdating}
-								variant='default'
-								size='sm'
-								className='bg-green-600 hover:bg-green-700 flex-1 lg:w-full whitespace-nowrap'
-							>
-								<CheckCircle className='mr-2 h-4 w-4' /> Xác
-								nhận
-							</Button>
-						)}
-
-						{canEdit && (
-							<Dialog open={open} onOpenChange={setOpen}>
-								<DialogTrigger asChild>
-									<Button
-										variant='outline'
-										size='sm'
-										className='flex-1 lg:w-full whitespace-nowrap'
-									>
-										<UserPen className='mr-2 h-4 w-4' />{' '}
-										Chỉnh sửa
-									</Button>
-								</DialogTrigger>
-								<DialogContent className='max-w-screen-lg w-full h-screen overflow-y-auto p-6'>
-									<StudentEditForm
-										student={student}
-										onClose={() => setOpen(false)}
-									/>
-								</DialogContent>
-							</Dialog>
-						)}
-					</div>
-				</CardHeader>
+				</div>
 			</Card>
 
 			{/* TABS */}
@@ -264,7 +233,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<Tabs.List className='flex border-b mb-4 space-x-4 px-2 overflow-x-auto'>
 					<Tabs.Trigger
 						value='personal'
-						className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+						className='cursor-pointer pb-2 font-display text-base font-semibold tracking-wide border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 					>
 						<User className='h-4 w-4 inline mr-1' />
 						Thông tin cá nhân
@@ -272,7 +241,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 					<Tabs.Trigger
 						value='military'
-						className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+						className='cursor-pointer pb-2 font-display text-base font-semibold tracking-wide border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 					>
 						<Shield className='h-4 w-4 inline mr-1' />
 						Quân sự & Chính trị
@@ -280,7 +249,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 					<Tabs.Trigger
 						value='education'
-						className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+						className='cursor-pointer pb-2 font-display text-base font-semibold tracking-wide border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 					>
 						<GraduationCap className='h-4 w-4 inline mr-1' />
 						Học vấn & Kỹ năng
@@ -288,7 +257,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 					<Tabs.Trigger
 						value='family'
-						className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+						className='cursor-pointer pb-2 font-display text-base font-semibold tracking-wide border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 					>
 						<Users className='h-4 w-4 inline mr-1' />
 						Gia đình
@@ -296,7 +265,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 
 					<Tabs.Trigger
 						value='history'
-						className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+						className='cursor-pointer pb-2 font-display text-base font-semibold tracking-wide border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 					>
 						<Award className='h-4 w-4 inline mr-1' />
 						Lịch sử & Khác
@@ -307,8 +276,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<Tabs.Content value='personal'>
 					<Card>
 						<CardContent className='space-y-6 pt-6'>
-							<div className='border-l-4 border-blue-500 pl-4 py-2 bg-blue-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<User className='h-4 w-4' />
 									Thông tin cá nhân
 								</h3>
@@ -355,8 +324,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<Tabs.Content value='military'>
 					<Card>
 						<CardContent className='space-y-6 pt-6'>
-							<div className='border-l-4 border-green-500 pl-4 py-2 bg-green-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Shield className='h-4 w-4' />
 									Quân sự
 								</h3>
@@ -388,8 +357,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-yellow-500 pl-4 py-2 bg-yellow-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<svg
 										className='h-4 w-4'
 										fill='currentColor'
@@ -428,8 +397,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 					<Card>
 						<CardContent className='space-y-6 pt-6'>
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-								<div className='border-l-4 border-purple-500 pl-4 py-2 bg-purple-50/30 rounded-r'>
-									<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+								<div className={SECTION_CLASS}>
+									<h3 className={SECTION_TITLE_CLASS}>
 										<Users className='h-4 w-4' />
 										Cha
 									</h3>
@@ -452,8 +421,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 										/>
 									</div>
 								</div>
-								<div className='border-l-4 border-pink-500 pl-4 py-2 bg-pink-50/30 rounded-r'>
-									<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+								<div className={SECTION_CLASS}>
+									<h3 className={SECTION_TITLE_CLASS}>
 										<Users className='h-4 w-4' />
 										Mẹ
 									</h3>
@@ -478,8 +447,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-orange-500 pl-4 py-2 bg-orange-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<svg
 										className='h-4 w-4'
 										fill='none'
@@ -529,8 +498,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-cyan-500 pl-4 py-2 bg-cyan-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Users className='h-4 w-4' />
 									Con ({student.childrenInfos?.length || 0})
 								</h3>
@@ -541,7 +510,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 											(child, idx) => (
 												<div
 													key={idx}
-													className='border p-3 rounded bg-white'
+													className='border p-3 rounded bg-card'
 												>
 													<p className='font-medium'>
 														Con {idx + 1}
@@ -557,7 +526,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 										)}
 									</div>
 								) : (
-									<div className='text-center py-6 text-gray-500 border-2 border-dashed rounded-md'>
+									<div className='text-center py-6 text-muted-foreground border-2 border-dashed rounded-md'>
 										<Users className='h-8 w-8 mx-auto mb-2 opacity-50' />
 										<p className='text-sm'>
 											Chưa có thông tin con cái
@@ -566,8 +535,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								)}
 							</div>
 
-							<div className='border-l-4 border-teal-500 pl-4 py-2 bg-teal-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Users className='h-4 w-4' />
 									Anh chị em ruột (
 									{student.siblings?.length || 0})
@@ -579,7 +548,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 											(sibling, idx) => (
 												<div
 													key={idx}
-													className='border p-3 rounded bg-white'
+													className='border p-3 rounded bg-card'
 												>
 													<p className='font-medium'>
 														Người {idx + 1}
@@ -596,7 +565,7 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 										)}
 									</div>
 								) : (
-									<div className='text-center py-6 text-gray-500 border-2 border-dashed rounded-md'>
+									<div className='text-center py-6 text-muted-foreground border-2 border-dashed rounded-md'>
 										<Users className='h-8 w-8 mx-auto mb-2 opacity-50' />
 										<p className='text-sm'>
 											Chưa có thông tin anh chị em
@@ -605,8 +574,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								)}
 							</div>
 
-							<div className='border-l-4 border-indigo-500 pl-4 py-2 bg-indigo-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Users className='h-4 w-4' />
 									Hoàn cảnh gia đình
 								</h3>
@@ -633,8 +602,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<Tabs.Content value='education'>
 					<Card>
 						<CardContent className='space-y-6 pt-6'>
-							<div className='border-l-4 border-yellow-500 pl-4 py-2 bg-yellow-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<GraduationCap className='h-4 w-4' />
 									Học vấn
 								</h3>
@@ -660,8 +629,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-emerald-500 pl-4 py-2 bg-emerald-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Award className='h-4 w-4' />
 									Kỹ năng & Chính sách
 								</h3>
@@ -688,8 +657,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 				<Tabs.Content value='history'>
 					<Card>
 						<CardContent className='space-y-6 pt-6'>
-							<div className='border-l-4 border-amber-500 pl-4 py-2 bg-amber-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Award className='h-4 w-4' />
 									Lịch sử
 								</h3>
@@ -705,8 +674,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-rose-500 pl-4 py-2 bg-rose-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<Phone className='h-4 w-4' />
 									Người báo tin
 								</h3>
@@ -728,8 +697,8 @@ export default function StudentInfoTabs({ student }: StudentInfoTabsProps) {
 								</div>
 							</div>
 
-							<div className='border-l-4 border-slate-500 pl-4 py-2 bg-slate-50/30 rounded-r'>
-								<h3 className='font-semibold mb-3 text-base flex items-center gap-2'>
+							<div className={SECTION_CLASS}>
+								<h3 className={SECTION_TITLE_CLASS}>
 									<FileText className='h-4 w-4' />
 									Tài liệu
 								</h3>

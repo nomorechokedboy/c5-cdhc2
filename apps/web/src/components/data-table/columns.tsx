@@ -1,207 +1,177 @@
-import type { ColumnDef } from '@tanstack/react-table';
-import type { StudentProto } from '@/types';
-import { EllipsisText } from './ellipsis-text';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableRowActions } from './data-table-row-actions';
-import { DataTableColumnHeader } from './data-table-column-header';
-import { Badge } from '@/components/ui/badge';
+import type { ColumnDef } from '@tanstack/react-table'
+import type { StudentProto } from '@/types'
+import { EllipsisText } from './ellipsis-text'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DataTableRowActions } from './data-table-row-actions'
+import { DataTableColumnHeader } from './data-table-column-header'
+import { Badge } from '@/components/ui/badge'
 
 export const columns: ColumnDef<StudentProto>[] = [
-        {
-                id: 'select',
-                header: ({ table }) => (
-                        <Checkbox
-                                checked={
-                                        table.getIsAllPageRowsSelected() ||
-                                        (table.getIsSomePageRowsSelected() &&
-                                                'indeterminate')
-                                }
-                                onCheckedChange={(value) =>
-                                        table.toggleAllPageRowsSelected(!!value)
-                                }
-                                aria-label="Select all"
-                                className="translate-y-[2px]"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <Checkbox
-                                checked={row.getIsSelected()}
-                                onCheckedChange={(value) =>
-                                        row.toggleSelected(!!value)
-                                }
-                                aria-label="Select row"
-                                className="translate-y-[2px]"
-                        />
-                ),
-                enableSorting: false,
-                enableHiding: false,
-        },
-        {
-                accessorKey: 'TT',
-                header: ({ column }) => (
-                        <DataTableColumnHeader column={column} title="TT" />
-                ),
-                cell: ({ row }) => (
-                        <div className="w-12 ">{row.getValue('TT')}</div>
-                ),
-        },
-        {
-                accessorKey: 'Lớp',
-                header: 'Lớp',
-                cell: ({ row }) => (
-                        <div className="w-20">
-                                <Badge
-                                        className="bg-green-400 text-white font-bold"
-                                        variant="secondary"
-                                >
-                                        {row.getValue('Lớp')}
-                                </Badge>
-                        </div>
-                ),
-                filterFn: (row, id, value) => {
-                        return value.includes(row.getValue(id));
-                },
-        },
-        {
-                accessorKey: 'Họ và tên',
-                header: ({ column }) => (
-                        <DataTableColumnHeader
-                                column={column}
-                                title="Họ và tên"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <div className="font-medium min-w-32">
-                                {row.getValue('Họ và tên')}
-                        </div>
-                ),
-        },
-        {
-                accessorKey: 'Năm sinh',
-                header: 'Năm sinh',
-                cell: ({ row }) => (
-                        <div className="">{row.getValue('Năm sinh')}</div>
-                ),
-        },
-        {
-                accessorKey: 'Quê quán',
-                header: 'Quê quán',
-                cell: ({ row }) => (
-                        <EllipsisText>{row.getValue('Quê quán')}</EllipsisText>
-                ),
-        },
-        {
-                accessorKey: 'CB',
-                header: 'Cấp bậc',
-                cell: ({ row }) => (
-                        <div className="min-w-20">
-                                <Badge className="bg-[#3A5F0B] text-white font-bold">
-                                        {row.getValue('CB')}
-                                </Badge>
-                        </div>
-                ),
-                filterFn: (row, id, value) => {
-                        return value.includes(row.getValue(id));
-                },
-                enableHiding: true,
-        },
-        {
-                accessorKey: 'CV',
-                header: 'Chức vụ',
-                cell: ({ row }) => (
-                        <div className="min-w-20">{row.getValue('CV')}</div>
-                ),
-                enableHiding: true,
-        },
-        {
-                accessorKey: 'Đơn vị cũ',
-                header: 'Đơn vị cũ',
-                cell: ({ row }) => (
-                        <EllipsisText>{row.getValue('Đơn vị cũ')}</EllipsisText>
-                ),
-        },
-        {
-                accessorKey: 'Dân tộc',
-                header: 'Dân tộc',
-                cell: ({ row }) => (
-                        <Badge className="bg-blue-500 dark:bg-blue-600 text-white font-bold">
-                                {row.getValue('Dân tộc')}
-                        </Badge>
-                ),
-                filterFn: (row, id, value) => {
-                        return value.includes(row.getValue(id));
-                },
-        },
-        {
-                accessorKey: 'Trình độ học vấn',
-                header: 'Học vấn',
-                cell: ({ row }) => (
-                        <Badge className="bg-blue-500 dark:bg-blue-600 text-white font-bold">
-                                {row.getValue('Trình độ học vấn')}
-                        </Badge>
-                ),
-                filterFn: (row, id, value) => {
-                        return value.includes(row.getValue(id));
-                },
-        },
-        {
-                accessorKey: 'Bố',
-                header: ({ column }) => (
-                        <DataTableColumnHeader
-                                column={column}
-                                title="Họ tên bố"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">{row.getValue('Bố')}</div>
-                ),
-        },
-        {
-                accessorKey: 'Mẹ',
-                header: ({ column }) => (
-                        <DataTableColumnHeader
-                                column={column}
-                                title="Họ tên mẹ"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">{row.getValue('Mẹ')}</div>
-                ),
-        },
-        {
-                accessorKey: 'Vợ',
-                header: ({ column }) => (
-                        <DataTableColumnHeader
-                                column={column}
-                                title="Họ tên vợ"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">
-                                {row.getValue('Vợ') || <Badge>N/A</Badge>}
-                        </div>
-                ),
-                enableHiding: true,
-        },
-        {
-                accessorKey: 'Hộ khẩu thường trú',
-                header: ({ column }) => (
-                        <DataTableColumnHeader
-                                column={column}
-                                title="Hộ khẩu thường trú"
-                        />
-                ),
-                cell: ({ row }) => (
-                        <div className="min-w-32">
-                                {row.getValue('Hộ khẩu thường trú') || (
-                                        <Badge>N/A</Badge>
-                                )}
-                        </div>
-                ),
-                enableHiding: true,
-        },
-        {
-                id: 'actions',
-                cell: ({ row }) => <DataTableRowActions row={row} />,
-        },
-];
+	{
+		id: 'select',
+		header: ({ table }) => (
+			<Checkbox
+				checked={
+					table.getIsAllPageRowsSelected() ||
+					(table.getIsSomePageRowsSelected() && 'indeterminate')
+				}
+				onCheckedChange={(value) =>
+					table.toggleAllPageRowsSelected(!!value)
+				}
+				aria-label='Select all'
+				className='translate-y-[2px]'
+			/>
+		),
+		cell: ({ row }) => (
+			<Checkbox
+				checked={row.getIsSelected()}
+				onCheckedChange={(value) => row.toggleSelected(!!value)}
+				aria-label='Select row'
+				className='translate-y-[2px]'
+			/>
+		),
+		enableSorting: false,
+		enableHiding: false
+	},
+	{
+		accessorKey: 'TT',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='TT' />
+		),
+		cell: ({ row }) => <div className='w-12 '>{row.getValue('TT')}</div>
+	},
+	{
+		accessorKey: 'Lớp',
+		header: 'Lớp',
+		cell: ({ row }) => (
+			<div className='w-20'>
+				<Badge
+					className='bg-green-400 text-white font-bold'
+					variant='secondary'
+				>
+					{row.getValue('Lớp')}
+				</Badge>
+			</div>
+		),
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		}
+	},
+	{
+		accessorKey: 'Họ và tên',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Họ và tên' />
+		),
+		cell: ({ row }) => (
+			<div className='font-medium min-w-32'>
+				{row.getValue('Họ và tên')}
+			</div>
+		)
+	},
+	{
+		accessorKey: 'Năm sinh',
+		header: 'Năm sinh',
+		cell: ({ row }) => <div className=''>{row.getValue('Năm sinh')}</div>
+	},
+	{
+		accessorKey: 'Quê quán',
+		header: 'Quê quán',
+		cell: ({ row }) => (
+			<EllipsisText>{row.getValue('Quê quán')}</EllipsisText>
+		)
+	},
+	{
+		accessorKey: 'CB',
+		header: 'Cấp bậc',
+		cell: ({ row }) => (
+			<div className='min-w-20'>
+				<Badge className='bg-[#3A5F0B] text-white font-bold'>
+					{row.getValue('CB')}
+				</Badge>
+			</div>
+		),
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		},
+		enableHiding: true
+	},
+	{
+		accessorKey: 'CV',
+		header: 'Chức vụ',
+		cell: ({ row }) => <div className='min-w-20'>{row.getValue('CV')}</div>,
+		enableHiding: true
+	},
+	{
+		accessorKey: 'Đơn vị cũ',
+		header: 'Đơn vị cũ',
+		cell: ({ row }) => (
+			<EllipsisText>{row.getValue('Đơn vị cũ')}</EllipsisText>
+		)
+	},
+	{
+		accessorKey: 'Dân tộc',
+		header: 'Dân tộc',
+		cell: ({ row }) => (
+			<Badge className='bg-primary text-primary-foreground font-bold'>
+				{row.getValue('Dân tộc')}
+			</Badge>
+		),
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		}
+	},
+	{
+		accessorKey: 'Trình độ học vấn',
+		header: 'Học vấn',
+		cell: ({ row }) => (
+			<Badge className='bg-primary text-primary-foreground font-bold'>
+				{row.getValue('Trình độ học vấn')}
+			</Badge>
+		),
+		filterFn: (row, id, value) => {
+			return value.includes(row.getValue(id))
+		}
+	},
+	{
+		accessorKey: 'Bố',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Họ tên bố' />
+		),
+		cell: ({ row }) => <div className='min-w-32'>{row.getValue('Bố')}</div>
+	},
+	{
+		accessorKey: 'Mẹ',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Họ tên mẹ' />
+		),
+		cell: ({ row }) => <div className='min-w-32'>{row.getValue('Mẹ')}</div>
+	},
+	{
+		accessorKey: 'Vợ',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Họ tên vợ' />
+		),
+		cell: ({ row }) => (
+			<div className='min-w-32'>
+				{row.getValue('Vợ') || <Badge>N/A</Badge>}
+			</div>
+		),
+		enableHiding: true
+	},
+	{
+		accessorKey: 'Hộ khẩu thường trú',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Hộ khẩu thường trú' />
+		),
+		cell: ({ row }) => (
+			<div className='min-w-32'>
+				{row.getValue('Hộ khẩu thường trú') || <Badge>N/A</Badge>}
+			</div>
+		),
+		enableHiding: true
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />
+	}
+]

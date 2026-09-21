@@ -11,7 +11,7 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
 			<table
 				data-slot='table'
 				className={cn(
-					'w-full caption-bottom text-[1.05rem] leading-relaxed',
+					'tabular w-full caption-bottom text-[1.05rem] leading-relaxed',
 					className
 				)}
 				{...props}
@@ -24,7 +24,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
 	return (
 		<thead
 			data-slot='table-header'
-			className={cn('[&_tr]:border-b', className)}
+			className={cn('bg-muted/60 [&_tr]:border-b-2', className)}
 			{...props}
 		/>
 	)
@@ -34,7 +34,11 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
 	return (
 		<tbody
 			data-slot='table-body'
-			className={cn('[&_tr:last-child]:border-0', className)}
+			className={cn(
+				// Sổ kẻ dòng: cứ 5 dòng có một đường đậm hơn, như giấy kẻ ô điện tim
+				'[&_tr:last-child]:border-0 [&_tr:nth-child(5n):not(:last-child)]:border-b-2 [&_tr:nth-child(5n):not(:last-child)]:border-b-foreground/20',
+				className
+			)}
 			{...props}
 		/>
 	)
@@ -58,7 +62,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
 		<tr
 			data-slot='table-row'
 			className={cn(
-				'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+				'hover:bg-accent/50 data-[state=selected]:bg-accent border-b transition-colors',
 				className
 			)}
 			{...props}
@@ -71,7 +75,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
 		<th
 			data-slot='table-head'
 			className={cn(
-				'text-foreground h-12 px-3.5 text-left align-middle font-semibold whitespace-nowrap text-[1.05rem] [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+				'text-foreground font-display h-11 px-3.5 text-left align-middle font-semibold tracking-wide whitespace-nowrap text-[1.1rem] [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
 				className
 			)}
 			{...props}

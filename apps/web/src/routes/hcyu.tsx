@@ -92,7 +92,7 @@ function RouteComponent() {
 						<div>
 							<span className='font-medium'>Tiểu đoàn:</span>
 							<select
-								className='ml-2 border rounded px-2 py-1'
+								className='ml-2 rounded border bg-card px-2 py-1'
 								value={selectedBattalionId ?? '-'}
 								onChange={(e) => {
 									const val = e.target.value
@@ -121,7 +121,7 @@ function RouteComponent() {
 						<div>
 							<span className='font-medium'>Đại đội:</span>
 							<select
-								className='ml-2 border rounded px-2 py-1'
+								className='ml-2 rounded border bg-card px-2 py-1'
 								value={selectedCompanyId ?? '-'}
 								onChange={(e) => {
 									const val = e.target.value
@@ -148,7 +148,7 @@ function RouteComponent() {
 						<div>
 							<span className='font-medium'>Lớp:</span>
 							<select
-								className='ml-2 border rounded px-2 py-1'
+								className='ml-2 rounded border bg-card px-2 py-1'
 								value={selectedClassId ?? '-'}
 								onChange={(e) => {
 									const val = e.target.value
@@ -169,7 +169,7 @@ function RouteComponent() {
 						</div>
 						{/* Filter button */}
 						<button
-							className='ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
+							className='ml-4 cursor-pointer rounded-full bg-primary px-5 py-2 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring'
 							onClick={handleFilter}
 						>
 							Lọc

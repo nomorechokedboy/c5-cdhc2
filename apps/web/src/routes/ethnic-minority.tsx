@@ -23,7 +23,7 @@ function Select({ label, options, value, onChange, placeholder }: SelectProps) {
 		<div>
 			<span className='font-medium'>{label}:</span>
 			<select
-				className='ml-2 border rounded px-2 py-1'
+				className='ml-2 rounded border bg-card px-2 py-1'
 				value={value ?? '-'}
 				onChange={(e) => {
 					const val = e.target.value
@@ -148,7 +148,7 @@ function RouteComponent() {
 							onChange={setSelectedClassId}
 						/>
 						<button
-							className='ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
+							className='ml-4 cursor-pointer rounded-full bg-primary px-5 py-2 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring'
 							onClick={handleFilter}
 						>
 							Lọc

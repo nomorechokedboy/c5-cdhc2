@@ -22,7 +22,7 @@ export default function EditableCell({
 			initialValue={row.getValue(column.id)}
 			isLoading={isPending}
 			placeholder={
-				<Badge className='bg-blue-500 font-bold'>
+				<Badge className='bg-primary text-primary-foreground font-bold'>
 					Chưa có thông tin...
 				</Badge>
 			}
