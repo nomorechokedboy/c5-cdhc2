@@ -356,7 +356,7 @@ export const columns: ColumnDef<Student>[] = [
 		accessorKey: 'educationLevel',
 		header: 'Học vấn',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
@@ -792,7 +792,7 @@ export const battalionStudentColumns: ColumnDef<Student>[] = [
 		accessorKey: 'educationLevel',
 		header: 'Học vấn',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
@@ -1227,7 +1227,7 @@ export const battalionStudentColumnsWithoutAction: ColumnDef<Student>[] = [
 		accessorKey: 'educationLevel',
 		header: 'Học vấn',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
@@ -1620,7 +1620,7 @@ export const columnsWithoutAction: ColumnDef<Student>[] = [
 		accessorKey: 'educationLevel',
 		header: 'Học vấn',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
@@ -2045,7 +2045,7 @@ export const hcyuTableColumns: ColumnDef<Student>[] = [
 		accessorKey: 'educationLevel',
 		header: 'Học vấn',
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),
@@ -2517,7 +2517,7 @@ export const adversityTableColumns: ColumnDef<Student>[] = [
 			<DataTableColumnHeader column={column} title='Học vấn' />
 		),
 		cell: ({ row }) => (
-			<Badge className='bg-blue-500 dark:bg-blue-600 text-white font-bold'>
+			<Badge className='bg-primary text-primary-foreground font-bold'>
 				{row.getValue('educationLevel')}
 			</Badge>
 		),

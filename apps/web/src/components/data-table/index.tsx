@@ -22,6 +22,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { DataTablePagination } from './data-table-pagination'
+import { TableEmpty } from './table-empty'
 import {
 	DataTableToolbar,
 	type DataTableToolbarProps
@@ -257,10 +258,10 @@ export function DataTable<TData, TValue>({
 	const renderTableView = () => {
 		return (
 			<div
-				className={`rounded-md border overflow-x-auto overflow-y-auto max-h-[min(70vh,720px)] ${tableClassName}`}
+				className={`rounded-lg border bg-card/95 shadow-sm overflow-x-auto overflow-y-auto max-h-[min(70vh,720px)] ${tableClassName ?? ''}`}
 			>
 				<Table className='min-w-[1100px] w-full'>
-					<TableHeader className='sticky top-0 z-10 bg-background'>
+					<TableHeader className='sticky top-0 z-10 bg-muted'>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
@@ -306,9 +307,9 @@ export function DataTable<TData, TValue>({
 							<TableRow>
 								<TableCell
 									colSpan={columns.length}
-									className='h-24 text-center'
+									className='p-0'
 								>
-									{placeholder}
+									<TableEmpty message={placeholder} />
 								</TableCell>
 							</TableRow>
 						)}
@@ -330,11 +331,7 @@ export function DataTable<TData, TValue>({
 		const rows = table.getRowModel().rows
 
 		if (!rows?.length) {
-			return (
-				<div className='text-center py-8 text-muted-foreground'>
-					{placeholder}
-				</div>
-			)
+			return <TableEmpty message={placeholder} />
 		}
 
 		return (
