@@ -27,7 +27,7 @@ export default function ({
 								index === currentStep
 									? 'bg-primary text-primary-foreground'
 									: completedSteps.includes(index)
-										? 'bg-green-600 text-white'
+										? 'bg-primary text-primary-foreground'
 										: 'bg-muted text-muted-foreground'
 							}`}
 							onClick={() => handleStepClick(index)}
@@ -40,7 +40,7 @@ export default function ({
 						</div>
 						{index < STEPS.length - 1 && (
 							<div
-								className={`flex-1 h-0.5 mx-2 ${completedSteps.includes(index) ? 'bg-green-600' : 'bg-muted'}`}
+								className={`flex-1 h-0.5 mx-2 ${completedSteps.includes(index) ? 'bg-primary' : 'bg-muted'}`}
 							/>
 						)}
 					</div>

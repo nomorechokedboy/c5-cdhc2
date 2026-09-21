@@ -12,12 +12,7 @@ export function FamilyTab({ form }: StudentEditTabProps) {
 	return (
 		<div className='space-y-6'>
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-				<FormSection
-					title='Cha'
-					icon={Users}
-					accent='purple'
-					columns={1}
-				>
+				<FormSection title='Cha' icon={Users} columns={1}>
 					<StudentField {...f} name='fatherName' label='Họ tên' />
 					<StudentField
 						{...f}
@@ -32,7 +27,7 @@ export function FamilyTab({ form }: StudentEditTabProps) {
 						label='Số điện thoại'
 					/>
 				</FormSection>
-				<FormSection title='Mẹ' icon={Users} accent='pink' columns={1}>
+				<FormSection title='Mẹ' icon={Users} columns={1}>
 					<StudentField {...f} name='motherName' label='Họ tên' />
 					<StudentField
 						{...f}
@@ -49,7 +44,7 @@ export function FamilyTab({ form }: StudentEditTabProps) {
 				</FormSection>
 			</div>
 
-			<FormSection title='Hôn nhân' icon={Heart} accent='orange'>
+			<FormSection title='Hôn nhân' icon={Heart}>
 				<StudentField
 					{...f}
 					type='checkbox'
@@ -96,7 +91,6 @@ export function FamilyTab({ form }: StudentEditTabProps) {
 				title='Con'
 				addLabel='Thêm con'
 				emptyText='Chưa có thông tin con cái'
-				accent='cyan'
 			/>
 			<PersonListField
 				form={form}
@@ -104,14 +98,9 @@ export function FamilyTab({ form }: StudentEditTabProps) {
 				title='Anh chị em ruột'
 				addLabel='Thêm anh chị em'
 				emptyText='Chưa có thông tin anh chị em'
-				accent='teal'
 			/>
 
-			<FormSection
-				title='Hoàn cảnh gia đình'
-				icon={Users}
-				accent='indigo'
-			>
+			<FormSection title='Hoàn cảnh gia đình' icon={Users}>
 				<StudentField
 					{...f}
 					name='familyBackground'

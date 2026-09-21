@@ -32,16 +32,16 @@ export function ImportPreview({
 		<div className='space-y-3'>
 			<div className='flex flex-wrap items-center justify-between gap-3'>
 				<div className='flex items-center gap-4 text-sm'>
-					<span className='flex items-center gap-1 text-green-700'>
+					<span className='flex items-center gap-1 text-success'>
 						<CheckCircle2 className='h-4 w-4' />
 						{validCount} dòng hợp lệ
 					</span>
-					<span className='flex items-center gap-1 text-red-700'>
+					<span className='flex items-center gap-1 text-destructive'>
 						<AlertTriangle className='h-4 w-4' />
 						{invalidCount} dòng lỗi
 					</span>
 					{invalidCount > 0 && (
-						<label className='flex items-center gap-1 text-gray-600'>
+						<label className='flex items-center gap-1 text-muted-foreground'>
 							<input
 								type='checkbox'
 								checked={onlyInvalid}
@@ -56,7 +56,7 @@ export function ImportPreview({
 
 				{hasEmptyUnit && (
 					<div className='flex items-center gap-2 text-sm'>
-						<span className='text-gray-600 whitespace-nowrap'>
+						<span className='text-muted-foreground whitespace-nowrap'>
 							Lớp cho các dòng chưa có lớp:
 						</span>
 						<UnitSelect
@@ -72,7 +72,7 @@ export function ImportPreview({
 
 			<div className='max-h-96 overflow-auto rounded-lg border'>
 				<table className='w-full text-sm'>
-					<thead className='sticky top-0 bg-gray-50 text-left text-gray-600'>
+					<thead className='sticky top-0 bg-muted/50 text-left text-muted-foreground'>
 						<tr>
 							<th className='px-3 py-2 w-16'>Dòng</th>
 							<th className='px-3 py-2'>Họ và tên</th>
@@ -86,10 +86,12 @@ export function ImportPreview({
 							<tr
 								key={row.rowNumber}
 								className={
-									valid ? 'border-t' : 'border-t bg-red-50/60'
+									valid
+										? 'border-t'
+										: 'border-t bg-destructive/5'
 								}
 							>
-								<td className='px-3 py-2 text-gray-500'>
+								<td className='px-3 py-2 text-muted-foreground'>
 									{row.rowNumber}
 								</td>
 								<td className='px-3 py-2'>
@@ -110,7 +112,7 @@ export function ImportPreview({
 								</td>
 								<td className='px-3 py-2'>
 									{issues.length === 0 ? (
-										<span className='text-green-700'>
+										<span className='text-success'>
 											Hợp lệ
 										</span>
 									) : (
@@ -120,8 +122,8 @@ export function ImportPreview({
 													key={`${issue.field}-${issue.level}`}
 													className={
 														issue.level === 'error'
-															? 'text-red-700'
-															: 'text-amber-600'
+															? 'text-destructive'
+															: 'text-warning'
 													}
 												>
 													{issue.message}

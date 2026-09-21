@@ -7,12 +7,7 @@ export function HistoryTab({ form }: StudentEditTabProps) {
 
 	return (
 		<div className='space-y-6'>
-			<FormSection
-				title='Lịch sử'
-				icon={Award}
-				accent='amber'
-				columns={1}
-			>
+			<FormSection title='Lịch sử' icon={Award} columns={1}>
 				<StudentField {...f} name='achievement' label='Khen thưởng' />
 				<StudentField
 					{...f}
@@ -21,7 +16,7 @@ export function HistoryTab({ form }: StudentEditTabProps) {
 				/>
 			</FormSection>
 
-			<FormSection title='Người báo tin' icon={Phone} accent='rose'>
+			<FormSection title='Người báo tin' icon={Phone}>
 				<StudentField {...f} name='contactPerson.name' label='Họ tên' />
 				<StudentField
 					{...f}
@@ -35,12 +30,7 @@ export function HistoryTab({ form }: StudentEditTabProps) {
 				/>
 			</FormSection>
 
-			<FormSection
-				title='Tài liệu'
-				icon={FileText}
-				accent='slate'
-				columns={1}
-			>
+			<FormSection title='Tài liệu' icon={FileText} columns={1}>
 				<StudentField
 					{...f}
 					name='relatedDocumentations'

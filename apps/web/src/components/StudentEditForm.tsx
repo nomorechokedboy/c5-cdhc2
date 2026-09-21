@@ -77,7 +77,7 @@ export default function StudentEditForm({
 								<Tabs.Trigger
 									key={value}
 									value={value}
-									className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 whitespace-nowrap'
+									className='pb-2 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary whitespace-nowrap'
 								>
 									<Icon className='h-4 w-4 inline mr-1' />
 									{label}

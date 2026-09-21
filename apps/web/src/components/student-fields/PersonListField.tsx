@@ -1,7 +1,7 @@
 import { Plus, Trash2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StudentField } from './StudentField'
-import { FormSection, type SectionAccent } from './FormSection'
+import { FormSection } from './FormSection'
 
 /**
  * Danh sách người thân {fullName, dob} (con, anh chị em…) trên field mảng của form.
@@ -14,7 +14,6 @@ export function PersonListField({
 	title,
 	addLabel,
 	emptyText,
-	accent = 'cyan',
 	compact = true
 }: {
 	form: any
@@ -23,7 +22,6 @@ export function PersonListField({
 	title: string
 	addLabel: string
 	emptyText: string
-	accent?: SectionAccent
 	compact?: boolean
 }) {
 	return (
@@ -34,12 +32,11 @@ export function PersonListField({
 					<FormSection
 						title={`${title} (${people.length})`}
 						icon={Users}
-						accent={accent}
 						columns={1}
 					>
 						<div className='space-y-4'>
 							{people.length === 0 && (
-								<div className='text-center py-6 text-gray-500 border-2 border-dashed rounded-md'>
+								<div className='text-center py-6 text-muted-foreground border-2 border-dashed rounded-md'>
 									<Users className='h-8 w-8 mx-auto mb-2 opacity-50' />
 									<p className='text-sm'>{emptyText}</p>
 								</div>
@@ -47,7 +44,7 @@ export function PersonListField({
 							{people.map((_, index) => (
 								<div
 									key={index}
-									className='grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-end border p-3 rounded-md bg-white'
+									className='grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-end border p-3 rounded-md bg-card'
 								>
 									<StudentField
 										form={form}
