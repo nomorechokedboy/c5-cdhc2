@@ -48,6 +48,10 @@ const (
 	// ── Audit log management ──────────────────────────────────────────────────
 	// Admin manually purges old audit log entries via the REST endpoint.
 	EventAuditPurge EventType = "audit.purge"
+
+	// ── Conduct scores ────────────────────────────────────────────────────────
+	// Admin / manager saves rèn luyện scores of a class.
+	EventSaveConduct EventType = "conduct.save"
 )
 
 // Outcome describes whether an operation succeeded, failed, or was denied.
@@ -144,7 +148,8 @@ func (r *ListRequest) Validate() error {
 			EventDeleteTemplate,
 			EventSetLangPack,
 			EventDeleteLangPack,
-			EventAuditPurge:
+			EventAuditPurge,
+			EventSaveConduct:
 			// valid
 		default:
 			return fmt.Errorf("invalid event_type: %q", r.EventType)

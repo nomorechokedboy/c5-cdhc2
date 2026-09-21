@@ -49,6 +49,10 @@ var auditWhitelist = map[string]audit.EventType{
 	// Admin removes the custom pack and reverts all users to defaults.
 	"appconfig.DeleteLangPack": audit.EventDeleteLangPack,
 
+	// ── Conduct scores ────────────────────────────────────────────────────
+	// Admin / manager enters or changes rèn luyện scores of a class.
+	"usrreports.SaveConduct": audit.EventSaveConduct,
+
 	// ── Audit log management ──────────────────────────────────────────────
 	// Admin manually triggers a purge of old audit entries.
 	"auditlog.PurgeAuditLogs": audit.EventAuditPurge,

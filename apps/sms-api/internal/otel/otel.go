@@ -97,12 +97,13 @@ func newStdoutExporter(ctx context.Context) (oteltrace.SpanExporter, error) {
 
 func newTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
 	// Ensure default SDK resources and the required service name are set.
+	// The service name is schemaless on purpose: resource.Default() carries
+	// the SDK's own schema URL, and Merge fails when two non-empty schema
+	// URLs differ, which happened every time the SDK moved past our pinned
+	// semconv version.
 	r, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName("sms-api"),
-		),
+		resource.NewSchemaless(semconv.ServiceName("sms-api")),
 	)
 	if err != nil {
 		panic(err)
@@ -127,12 +128,13 @@ func newLogExporter(ctx context.Context) *otlploghttp.Exporter {
 
 func newLogProvider(exp sdklog.Exporter) *sdklog.LoggerProvider {
 	// Ensure default SDK resources and the required service name are set.
+	// The service name is schemaless on purpose: resource.Default() carries
+	// the SDK's own schema URL, and Merge fails when two non-empty schema
+	// URLs differ, which happened every time the SDK moved past our pinned
+	// semconv version.
 	r, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName("sms-api"),
-		),
+		resource.NewSchemaless(semconv.ServiceName("sms-api")),
 	)
 	if err != nil {
 		panic(err)

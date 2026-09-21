@@ -104,7 +104,10 @@ type Student struct {
 	Firstname string  `json:"firstname"`
 	Lastname  string  `json:"lastname"`
 	Email     string  `json:"email"`
-	Grades    []Grade `json:"grades"`
+	// IDNumber is the student's Moodle idnumber (Mã HV). Empty when the
+	// plugin predates the field.
+	IDNumber string  `json:"idnumber"`
+	Grades   []Grade `json:"grades"`
 }
 
 type Grade struct {
@@ -116,6 +119,18 @@ type Grade struct {
 	ItemNumber   int       `json:"itemnumber"`
 	ModuleID     int       `json:"moduleid"`
 	ModuleName   string    `json:"modulename"`
+	// Graded is 1 when a grade was entered for the item and 0 when it is
+	// blank. Nil when the plugin predates the field.
+	Graded *int `json:"graded"`
+}
+
+// IsGraded reports whether a grade was entered. Plugins that do not send
+// "graded" report a blank grade as 0, so 0 is then read as blank.
+func (g Grade) IsGraded() bool {
+	if g.Graded != nil {
+		return *g.Graded == 1
+	}
+	return g.Grade != 0
 }
 
 type LocalCourseGrades interface {
