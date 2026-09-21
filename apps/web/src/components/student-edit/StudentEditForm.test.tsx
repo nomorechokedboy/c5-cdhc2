@@ -147,6 +147,48 @@ describe('StudentEditForm', () => {
 		expect(updateStudents).not.toHaveBeenCalled()
 	})
 
+	it('shows one tab at a time even though every tab stays mounted', () => {
+		renderForm()
+		const panels = screen.getAllByRole('tabpanel', { hidden: true })
+		expect(panels).toHaveLength(5)
+		const states = panels.map((p) => p.getAttribute('data-state'))
+		expect(states.filter((s) => s === 'active')).toHaveLength(1)
+		for (const p of panels.filter(
+			(p) => p.getAttribute('data-state') === 'inactive'
+		)) {
+			expect(p.className).toContain('data-[state=inactive]:hidden')
+		}
+	})
+
+	it('marks the tab holding an invalid date and jumps to it after saving', async () => {
+		renderForm()
+		// chuyển sang tab Gia đình rồi sửa ngày sinh cha sai, quay lại tab đầu
+		const tab = (name: RegExp) => screen.getByRole('tab', { name })
+		fireEvent.mouseDown(tab(/Gia đình/), { button: 0 })
+		const father = screen.getByDisplayValue(
+			'31/12/1975'
+		) as HTMLInputElement
+		fireEvent.change(father, { target: { value: '31/02/1975' } })
+		fireEvent.mouseDown(tab(/Thông tin cá nhân/), { button: 0 })
+		expect(tab(/Gia đình/).getAttribute('data-state')).toBe('inactive')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+
+		await waitFor(() =>
+			expect(tab(/Gia đình/).getAttribute('data-state')).toBe('active')
+		)
+		expect(tab(/Gia đình/).textContent).toContain('(có lỗi)')
+		expect(tab(/Thông tin cá nhân/).textContent).not.toContain('(có lỗi)')
+		expect(screen.getByRole('status').textContent).toContain('Gia đình')
+		expect(updateStudents).not.toHaveBeenCalled()
+	})
+
+	it('cancels through the footer button', () => {
+		const onClose = renderForm()
+		fireEvent.click(screen.getByRole('button', { name: 'Hủy' }))
+		expect(onClose).toHaveBeenCalled()
+	})
+
 	describe('date mask', () => {
 		const setup = () => {
 			renderForm()
