@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Input } from '@repo/ui/components/ui/input'
 import { Edit3, Save, X, Loader2 } from 'lucide-react'
+import { Score } from '@/components/score'
+import { cn } from '@/lib/utils'
 
 interface EditableGradeCellProps {
 	studentId: number
@@ -60,7 +62,7 @@ export default function EditableGradeCell({
 					step='0.1'
 					value={editValue}
 					onChange={(e) => setEditValue(e.target.value)}
-					className='w-16 h-8 text-center'
+					className='h-8 w-20 text-center font-serif text-base font-semibold tabular-nums'
 					autoFocus
 					disabled={isLoading}
 					onKeyDown={(e) => {
@@ -97,11 +99,15 @@ export default function EditableGradeCell({
 	return (
 		<Button
 			variant='ghost'
-			className={`h-8 px-2 hover:bg-muted/50 group ${isHighlighted ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
+			className={cn(
+				'group h-8 px-3',
+				isHighlighted &&
+					'bg-brass/15 ring-brass/70 hover:bg-brass/25 ring-1'
+			)}
 			onClick={handleEditStart}
 		>
-			<span className='font-medium'>{value.toFixed(2) || 0}</span>
-			<Edit3 className='h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity' />
+			<Score value={value} className='text-lg' />
+			<Edit3 className='ml-1 h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100' />
 		</Button>
 	)
 }

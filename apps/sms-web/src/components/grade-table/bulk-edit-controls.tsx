@@ -27,7 +27,7 @@ export default function BulkEditControls({
 	}
 
 	return (
-		<div className='flex items-center gap-2'>
+		<div className='flex flex-wrap items-center gap-2'>
 			<Button variant='outline' onClick={onEditAll}>
 				<Edit2 className='h-4 w-4 mr-2' />
 				{t('grades.editAllButton')}

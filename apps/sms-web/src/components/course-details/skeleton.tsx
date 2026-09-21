@@ -17,27 +17,11 @@ export default function CourseDetailsSkeleton() {
 	return (
 		<div className='container mx-auto p-6 space-y-6 relative'>
 			{/* Course Header Skeleton */}
-			<Card className='border-border sticky top-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20'>
-				<CardHeader className='pb-4'>
-					<div className='flex items-start justify-between'>
-						<div className='space-y-2 flex-1'>
-							<div className='flex items-center gap-2'>
-								<Skeleton className='h-6 w-6 rounded' />
-								<Skeleton className='h-8 w-64' />
-							</div>
-							<Skeleton className='h-5 w-full max-w-2xl' />
-							<Skeleton className='h-5 w-3/4 max-w-xl' />
-						</div>
-						<Skeleton className='h-7 w-28 rounded-full' />
-					</div>
-				</CardHeader>
-				<CardContent>
-					<div className='flex items-center gap-6'>
-						<Skeleton className='h-4 w-48' />
-						<Skeleton className='h-4 w-48' />
-					</div>
-				</CardContent>
-			</Card>
+			<div className='border-foreground/70 space-y-3 border-b-2 pb-5'>
+				<Skeleton className='h-9 w-64' />
+				<Skeleton className='h-5 w-full max-w-2xl' />
+				<Skeleton className='h-4 w-72' />
+			</div>
 
 			{/* Grades Table Skeleton */}
 			<Card className='border-border'>
@@ -92,7 +76,7 @@ export default function CourseDetailsSkeleton() {
 											</TableCell>
 										))}
 										<TableCell className='text-center'>
-											<Skeleton className='h-6 w-12 mx-auto rounded-full' />
+											<Skeleton className='h-6 w-12 mx-auto rounded-md' />
 										</TableCell>
 									</TableRow>
 								))}

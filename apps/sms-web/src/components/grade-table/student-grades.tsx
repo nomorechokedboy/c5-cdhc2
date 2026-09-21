@@ -1,8 +1,10 @@
+import { Fragment } from 'react'
 import type { Course, Student } from '@/types'
 import { TableCell, TableRow } from '@repo/ui/components/ui/table'
 import EditableGradeCell from '@/components/grade-table/editable-grade-cell'
-import { Badge } from '@repo/ui/components/ui/badge'
-import { calculateFinalGrade, getGradeColor } from '@/lib/utils'
+import { Score } from '@/components/score'
+import { calculateFinalGrade } from '@/lib/utils'
+import { hasConditionalAfter } from './columns'
 
 export interface StudentGradesProps {
 	bulkEditCategory: Course['gradeCategories'][number] | undefined
@@ -22,8 +24,8 @@ export default function StudentGrades({
 	const { conditionalGrade, finalGrade } = calculateFinalGrade(student.grades)
 
 	return (
-		<TableRow key={student.id} className='hover:bg-muted/30'>
-			<TableCell className='font-medium text-foreground'>
+		<TableRow className='group/row'>
+			<TableCell className='text-foreground bg-card group-hover/row:bg-accent sticky left-0 z-10 font-medium whitespace-nowrap'>
 				{student.name}
 			</TableCell>
 			{gradeCategories.map((category, idx) => {
@@ -33,8 +35,8 @@ export default function StudentGrades({
 						bulkEditCategory?.value === category.value)
 
 				return (
-					<>
-						<TableCell key={category.value} className='text-center'>
+					<Fragment key={category.value}>
+						<TableCell className='text-center'>
 							<EditableGradeCell
 								studentId={student.id}
 								category={category.value}
@@ -45,27 +47,19 @@ export default function StudentGrades({
 								onSave={onGradeSave}
 							/>
 						</TableCell>
-						{gradeCategories.length > 2 &&
-							idx === gradeCategories.length - 2 && (
-								<TableCell className='text-center'>
-									<Badge
-										variant='outline'
-										className={`font-semibold ${getGradeColor(finalGrade)}`}
-									>
-										{conditionalGrade.toFixed(2)}
-									</Badge>
-								</TableCell>
-							)}
-					</>
+						{hasConditionalAfter(idx, gradeCategories.length) && (
+							<TableCell className='border-rule border-l text-center'>
+								<Score
+									value={conditionalGrade}
+									className='text-base'
+								/>
+							</TableCell>
+						)}
+					</Fragment>
 				)
 			})}
-			<TableCell className='text-center'>
-				<Badge
-					variant='outline'
-					className={`font-semibold ${getGradeColor(finalGrade)}`}
-				>
-					{finalGrade.toFixed(2)}
-				</Badge>
+			<TableCell className='border-rule border-l text-center'>
+				<Score value={finalGrade} className='text-lg' />
 			</TableCell>
 		</TableRow>
 	)

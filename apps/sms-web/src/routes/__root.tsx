@@ -30,7 +30,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 						<AppSidebar collapsible='icon' />
 					)}
 					<Toaster richColors position='top-center' />
-					<div className='paper flex min-h-svh w-full flex-col'>
+					<div className='paper flex min-h-svh w-full min-w-0 flex-col'>
 						{isAuthenticated === true && <Header />}
 						<Outlet />
 					</div>
