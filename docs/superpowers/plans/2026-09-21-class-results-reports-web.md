@@ -3052,7 +3052,8 @@ describe('SemesterReportView', () => {
 		api.semester.mockResolvedValue(semesterFixture)
 		renderView()
 		expect(screen.getByRole('status', { name: 'Đang tải kết quả' })).toBeTruthy()
-		expect(await screen.findByText('An Test')).toBeTruthy()
+		// "An Test" appears both in the table and in the summary's top-3 list.
+		expect((await screen.findAllByText('An Test')).length).toBeGreaterThan(0)
 		expect(screen.getByText('Tổng hợp lớp')).toBeTruthy()
 		expect(screen.getByText(/Học phần SL chưa có điểm thi/)).toBeTruthy()
 		expect(screen.getByRole('button', { name: /Tải Excel/ })).toBeTruthy()

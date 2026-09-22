@@ -20,6 +20,7 @@ import { Route as DemoTableRouteImport } from './routes/demo.table'
 import { Route as AdminLangpackRouteImport } from './routes/admin/langpack'
 import { Route as AdminExportTemplatesRouteImport } from './routes/admin/export-templates'
 import { Route as KhoaHocCategoryIdnumberIndexRouteImport } from './routes/khoa-hoc/$categoryIdnumber/index'
+import { Route as KhoaHocCategoryIdnumberKetQuaRouteImport } from './routes/khoa-hoc/$categoryIdnumber/ket-qua'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo.form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo.form.address'
 import { Route as KhoaHocCategoryIdnumberMonHocCourseShortnameRouteImport } from './routes/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
@@ -80,6 +81,12 @@ const KhoaHocCategoryIdnumberIndexRoute =
 		path: '/khoa-hoc/$categoryIdnumber/',
 		getParentRoute: () => rootRouteImport
 	} as any)
+const KhoaHocCategoryIdnumberKetQuaRoute =
+	KhoaHocCategoryIdnumberKetQuaRouteImport.update({
+		id: '/khoa-hoc/$categoryIdnumber/ket-qua',
+		path: '/khoa-hoc/$categoryIdnumber/ket-qua',
+		getParentRoute: () => rootRouteImport
+	} as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
 	id: '/demo/form/simple',
 	path: '/demo/form/simple',
@@ -110,6 +117,7 @@ export interface FileRoutesByFullPath {
 	'/asset-management': typeof AssetManagementIndexRoute
 	'/demo/form/address': typeof DemoFormAddressRoute
 	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber/ket-qua': typeof KhoaHocCategoryIdnumberKetQuaRoute
 	'/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
 	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
 	'/asset-management': typeof AssetManagementIndexRoute
 	'/demo/form/address': typeof DemoFormAddressRoute
 	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber/ket-qua': typeof KhoaHocCategoryIdnumberKetQuaRoute
 	'/khoa-hoc/$categoryIdnumber': typeof KhoaHocCategoryIdnumberIndexRoute
 	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
@@ -143,6 +152,7 @@ export interface FileRoutesById {
 	'/asset-management/': typeof AssetManagementIndexRoute
 	'/demo/form/address': typeof DemoFormAddressRoute
 	'/demo/form/simple': typeof DemoFormSimpleRoute
+	'/khoa-hoc/$categoryIdnumber/ket-qua': typeof KhoaHocCategoryIdnumberKetQuaRoute
 	'/khoa-hoc/$categoryIdnumber/': typeof KhoaHocCategoryIdnumberIndexRoute
 	'/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname': typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
 		| '/asset-management'
 		| '/demo/form/address'
 		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber/ket-qua'
 		| '/khoa-hoc/$categoryIdnumber'
 		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
 	fileRoutesByTo: FileRoutesByTo
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
 		| '/asset-management'
 		| '/demo/form/address'
 		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber/ket-qua'
 		| '/khoa-hoc/$categoryIdnumber'
 		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
 	id:
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
 		| '/asset-management/'
 		| '/demo/form/address'
 		| '/demo/form/simple'
+		| '/khoa-hoc/$categoryIdnumber/ket-qua'
 		| '/khoa-hoc/$categoryIdnumber/'
 		| '/khoa-hoc/$categoryIdnumber/mon-hoc/$courseShortname'
 	fileRoutesById: FileRoutesById
@@ -210,6 +223,7 @@ export interface RootRouteChildren {
 	AssetManagementIndexRoute: typeof AssetManagementIndexRoute
 	DemoFormAddressRoute: typeof DemoFormAddressRoute
 	DemoFormSimpleRoute: typeof DemoFormSimpleRoute
+	KhoaHocCategoryIdnumberKetQuaRoute: typeof KhoaHocCategoryIdnumberKetQuaRoute
 	KhoaHocCategoryIdnumberIndexRoute: typeof KhoaHocCategoryIdnumberIndexRoute
 	KhoaHocCategoryIdnumberMonHocCourseShortnameRoute: typeof KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
 }
@@ -293,6 +307,13 @@ declare module '@tanstack/react-router' {
 			preLoaderRoute: typeof KhoaHocCategoryIdnumberIndexRouteImport
 			parentRoute: typeof rootRouteImport
 		}
+		'/khoa-hoc/$categoryIdnumber/ket-qua': {
+			id: '/khoa-hoc/$categoryIdnumber/ket-qua'
+			path: '/khoa-hoc/$categoryIdnumber/ket-qua'
+			fullPath: '/khoa-hoc/$categoryIdnumber/ket-qua'
+			preLoaderRoute: typeof KhoaHocCategoryIdnumberKetQuaRouteImport
+			parentRoute: typeof rootRouteImport
+		}
 		'/demo/form/simple': {
 			id: '/demo/form/simple'
 			path: '/demo/form/simple'
@@ -330,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
 	AssetManagementIndexRoute: AssetManagementIndexRoute,
 	DemoFormAddressRoute: DemoFormAddressRoute,
 	DemoFormSimpleRoute: DemoFormSimpleRoute,
+	KhoaHocCategoryIdnumberKetQuaRoute: KhoaHocCategoryIdnumberKetQuaRoute,
 	KhoaHocCategoryIdnumberIndexRoute: KhoaHocCategoryIdnumberIndexRoute,
 	KhoaHocCategoryIdnumberMonHocCourseShortnameRoute:
 		KhoaHocCategoryIdnumberMonHocCourseShortnameRoute
