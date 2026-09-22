@@ -2733,7 +2733,8 @@ function writeMainSheet(wb: Workbook, spec: SheetSpec) {
 			if (!spec) return
 			cell.alignment = { horizontal: spec.kind === 'text' ? 'left' : 'center' }
 			if (typeof value === 'number') {
-				cell.numFmt = NUMBER_FORMAT[spec.kind]
+				const fmt = NUMBER_FORMAT[spec.kind]
+				if (fmt) cell.numFmt = fmt
 				if (spec.kind === 'score') styleScore(cell, value)
 			}
 		})
