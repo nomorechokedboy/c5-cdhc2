@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link } from '@tanstack/react-router'
+import { GraduationCap } from 'lucide-react'
 import {
 	Card,
 	CardDescription,
 	CardHeader,
 	CardTitle
 } from '@repo/ui/components/ui/card'
+import { Button } from '@repo/ui/components/ui/button'
 import {
 	Tabs,
 	TabsContent,
@@ -101,13 +104,21 @@ export function StudentDashboard() {
 
 	return (
 		<div className='container mx-auto p-6 space-y-8'>
-			<div className='space-y-2'>
-				<h2 className='text-3xl font-bold text-foreground'>
-					{t('dashboard.student.title')}
-				</h2>
-				<p className='text-muted-foreground'>
-					{t('dashboard.student.subtitle')}
-				</p>
+			<div className='flex flex-wrap items-start justify-between gap-4'>
+				<div className='space-y-2'>
+					<h2 className='text-3xl font-bold text-foreground'>
+						{t('dashboard.student.title')}
+					</h2>
+					<p className='text-muted-foreground'>
+						{t('dashboard.student.subtitle')}
+					</p>
+				</div>
+				<Button asChild variant='outline'>
+					<Link to='/ket-qua'>
+						<GraduationCap />
+						{t('report.link.myResults')}
+					</Link>
+				</Button>
 			</div>
 
 			{isLoading ? (

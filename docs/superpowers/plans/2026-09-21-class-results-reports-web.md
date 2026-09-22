@@ -3629,7 +3629,8 @@ describe('MyYearCard', () => {
 		render(<MyYearCard data={myYearFixture} />)
 		expect(screen.getByText('Tổng kết năm 1')).toBeTruthy()
 		expect(screen.getByText('7.25')).toBeTruthy()
-		expect(screen.getByText('Hạng 2/2 trong lớp')).toBeTruthy()
+		// The year card and the HK2 card (also ranked 2/2) share this text.
+		expect(screen.getAllByText('Hạng 2/2 trong lớp').length).toBeGreaterThan(0)
 		expect(screen.getByText('Học kỳ 1, Năm 1')).toBeTruthy()
 		expect(screen.getByText('Học kỳ 2, Năm 1')).toBeTruthy()
 	})

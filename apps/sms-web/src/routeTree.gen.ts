@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as KetQuaRouteImport } from './routes/ket-qua'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssetManagementIndexRouteImport } from './routes/asset-management/index'
@@ -33,6 +34,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
 	id: '/login',
 	path: '/login',
+	getParentRoute: () => rootRouteImport
+} as any)
+const KetQuaRoute = KetQuaRouteImport.update({
+	id: '/ket-qua',
+	path: '/ket-qua',
 	getParentRoute: () => rootRouteImport
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -107,6 +113,7 @@ const KhoaHocCategoryIdnumberMonHocCourseShortnameRoute =
 export interface FileRoutesByFullPath {
 	'/': typeof IndexRoute
 	'/audit': typeof AuditRoute
+	'/ket-qua': typeof KetQuaRoute
 	'/login': typeof LoginRoute
 	'/profile': typeof ProfileRoute
 	'/admin/export-templates': typeof AdminExportTemplatesRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
 	'/': typeof IndexRoute
 	'/audit': typeof AuditRoute
+	'/ket-qua': typeof KetQuaRoute
 	'/login': typeof LoginRoute
 	'/profile': typeof ProfileRoute
 	'/admin/export-templates': typeof AdminExportTemplatesRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
 	__root__: typeof rootRouteImport
 	'/': typeof IndexRoute
 	'/audit': typeof AuditRoute
+	'/ket-qua': typeof KetQuaRoute
 	'/login': typeof LoginRoute
 	'/profile': typeof ProfileRoute
 	'/admin/export-templates': typeof AdminExportTemplatesRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
 	fullPaths:
 		| '/'
 		| '/audit'
+		| '/ket-qua'
 		| '/login'
 		| '/profile'
 		| '/admin/export-templates'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
 	to:
 		| '/'
 		| '/audit'
+		| '/ket-qua'
 		| '/login'
 		| '/profile'
 		| '/admin/export-templates'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
 		| '__root__'
 		| '/'
 		| '/audit'
+		| '/ket-qua'
 		| '/login'
 		| '/profile'
 		| '/admin/export-templates'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
 	IndexRoute: typeof IndexRoute
 	AuditRoute: typeof AuditRoute
+	KetQuaRoute: typeof KetQuaRoute
 	LoginRoute: typeof LoginRoute
 	ProfileRoute: typeof ProfileRoute
 	AdminExportTemplatesRoute: typeof AdminExportTemplatesRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
 			path: '/login'
 			fullPath: '/login'
 			preLoaderRoute: typeof LoginRouteImport
+			parentRoute: typeof rootRouteImport
+		}
+		'/ket-qua': {
+			id: '/ket-qua'
+			path: '/ket-qua'
+			fullPath: '/ket-qua'
+			preLoaderRoute: typeof KetQuaRouteImport
 			parentRoute: typeof rootRouteImport
 		}
 		'/audit': {
@@ -341,6 +361,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
 	IndexRoute: IndexRoute,
 	AuditRoute: AuditRoute,
+	KetQuaRoute: KetQuaRoute,
 	LoginRoute: LoginRoute,
 	ProfileRoute: ProfileRoute,
 	AdminExportTemplatesRoute: AdminExportTemplatesRoute,
