@@ -956,7 +956,7 @@ beforeEach(() => fetcher.mockReset())
 
 describe('ReportApi', () => {
 	it('reads the class endpoints', async () => {
-		fetcher.mockResolvedValue(json({ ok: 1 }))
+		fetcher.mockImplementation(async () => json({ ok: 1 }))
 		await ReportApi.periods(72)
 		await ReportApi.semester(72, 1, 2)
 		await ReportApi.year(72, 1)
@@ -968,7 +968,7 @@ describe('ReportApi', () => {
 	})
 
 	it('reads the student endpoints', async () => {
-		fetcher.mockResolvedValue(json({ ok: 1 }))
+		fetcher.mockImplementation(async () => json({ ok: 1 }))
 		await ReportApi.myPeriods()
 		await ReportApi.mySemester(1, 2)
 		await ReportApi.myYear(1)
