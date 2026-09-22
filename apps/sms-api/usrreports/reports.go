@@ -108,6 +108,18 @@ func (s *Service) SaveConduct(ctx context.Context, categoryId int64, req *SaveCo
 
 // ── a student's own result ───────────────────────────────────────────────────
 
+// GetMyPeriods lists the periods of the caller's own class.
+//
+//encore:api auth method=GET path=/reports/me/periods
+func (s *Service) GetMyPeriods(ctx context.Context) (*classreport.MyPeriodsResponse, error) {
+	payload, err := requireStudent()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.reports.MyPeriods(ctx, payload.UserID)
+	return resp, toAPIError(ctx, err)
+}
+
 // GetMySemesterResult is the caller's own result and rank for a semester.
 //
 //encore:api auth method=GET path=/reports/me/years/:year/semesters/:semester

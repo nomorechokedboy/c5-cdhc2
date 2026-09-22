@@ -356,6 +356,26 @@ func TestMyYearHasEachSemester(t *testing.T) {
 	}
 }
 
+func TestMyPeriodsHasNoCourseNamesOrUnassigned(t *testing.T) {
+	svc, _, _ := fixture()
+	mine, err := svc.MyPeriods(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mine.Class.IDNumber != "Y53" || len(mine.Periods) != 2 {
+		t.Fatalf("periods = %+v", mine)
+	}
+	body, _ := json.Marshal(mine)
+	if strings.Contains(string(body), "OLD") || strings.Contains(string(body), "unassigned") {
+		t.Fatalf("staff-only data leaked: %s", body)
+	}
+
+	svc.classes = fakeClasses{} // student enrolled nowhere
+	if _, err := svc.MyPeriods(ctx, 1); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("no class: %v", err)
+	}
+}
+
 func TestSaveConduct(t *testing.T) {
 	svc, _, repo := fixture()
 	score := 8.0

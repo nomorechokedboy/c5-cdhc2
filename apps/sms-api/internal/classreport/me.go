@@ -24,6 +24,13 @@ type MyYear struct {
 	Periods      []MySemester      `json:"periods"`
 }
 
+// MyPeriodsResponse lists the periods of the caller's own class. Unlike the
+// staff listing it has no course names and no unassigned courses.
+type MyPeriodsResponse struct {
+	Class   reporting.Class `json:"class"`
+	Periods []Period        `json:"periods"`
+}
+
 // ProjectSemester cuts a class report down to one student.
 func ProjectSemester(r *reporting.SemesterReport, studentID int) (*MySemester, bool) {
 	ranked := 0

@@ -220,6 +220,19 @@ func (s *Service) MyYear(ctx context.Context, userID int64, year int) (*MyYear, 
 	return mine, nil
 }
 
+// MyPeriods lists the periods of the student's own class.
+func (s *Service) MyPeriods(ctx context.Context, userID int64) (*MyPeriodsResponse, error) {
+	categoryID, err := s.classes.ClassOf(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.Periods(ctx, categoryID)
+	if err != nil {
+		return nil, err
+	}
+	return &MyPeriodsResponse{Class: resp.Class, Periods: resp.Periods}, nil
+}
+
 // ── internals ────────────────────────────────────────────────────────────────
 
 func (s *Service) load(ctx context.Context, categoryID int) (reporting.Class, []courseMeta, error) {
