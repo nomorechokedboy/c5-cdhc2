@@ -1433,7 +1433,7 @@ describe('ReportTable', () => {
 	it('shows the scores the API sent, two decimals, and dashes for missing ones', () => {
 		render(<ReportTable report={semesterFixture} />)
 		const giang = within(rowOf('Giang Test'))
-		expect(giang.getByText('7.00')).toBeTruthy()
+		expect(giang.getAllByText('7.00').length).toBe(2) // GP score and ĐTB
 		expect(giang.getAllByText('—').length).toBeGreaterThanOrEqual(1)
 		const an = within(rowOf('An Test'))
 		expect(an.getByText('7.33')).toBeTruthy()
