@@ -20,7 +20,8 @@ export const EVENT_TYPE_OPTIONS = [
 		value: 'config.langpack_delete',
 		labelKey: 'audit.eventTypes.config.langpack_delete'
 	},
-	{ value: 'audit.purge', labelKey: 'audit.eventTypes.audit.purge' }
+	{ value: 'audit.purge', labelKey: 'audit.eventTypes.audit.purge' },
+	{ value: 'conduct.save', labelKey: 'audit.eventTypes.conduct.save' }
 ] as const
 
 export const OUTCOME_OPTIONS = [

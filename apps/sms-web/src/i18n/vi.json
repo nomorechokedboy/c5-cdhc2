@@ -71,7 +71,8 @@
 			"template.delete": "Xóa mẫu xuất",
 			"config.langpack_set": "Cài ngôn ngữ",
 			"config.langpack_delete": "Xóa ngôn ngữ",
-			"audit.purge": "Xóa nhật ký"
+			"audit.purge": "Xóa nhật ký",
+			"conduct.save": "Cập nhật rèn luyện"
 		}
 	},
 	"auth": {
