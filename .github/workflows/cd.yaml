@@ -95,7 +95,7 @@ jobs:
                   source_tag: lan-latest
                   local_registry: ${{ env.LOCAL_REGISTRY }}
                   local_project: ${{ env.LOCAL_PROJECT }}
-                  local_tag: ${{ github.sha }}
+                  local_tag: ${{ github.sha }}-lan
                   k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
                   k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
                   k8s_container: sms-web
@@ -145,7 +145,7 @@ jobs:
                   source_tag: wan-latest
                   local_registry: ${{ env.LOCAL_REGISTRY }}
                   local_project: ${{ env.LOCAL_PROJECT }}
-                  local_tag: ${{ github.sha }}
+                  local_tag: ${{ github.sha }}-wan
                   k8s_namespace: ${{ env.SMS_WEB_WAN_K8S_NAMESPACE }}
                   k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
                   k8s_container: sms-web

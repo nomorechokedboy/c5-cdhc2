@@ -105,10 +105,10 @@ runs:
               docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
                 ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
               docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
-                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
               echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
               docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
-              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
 
               echo "== Rolling out deployment on DEST_IPv4 (forcing pull of ${{ inputs.local_tag }}) =="
               kubectl set image deployment/${{ inputs.k8s_deployment }} ${{ inputs.k8s_container }}=${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }} -n ${{ inputs.k8s_namespace }}
@@ -132,10 +132,10 @@ runs:
               docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
                 ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
               docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
-                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
               echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
               docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
-              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
 
               echo "== Rolling out deployment on inner LAN host (forcing pull of ${{ inputs.local_tag }}) =="
               ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
