@@ -82,5 +82,14 @@ type RefreshTokenRequest struct {
 //
 //encore:api public method=POST path=/authn/refresh
 func RefreshToken(ctx context.Context, req *RefreshTokenRequest) (*entities.CallbackResponse, error) {
-	return container.GetController().HandleRefreshToken(ctx, req.Token)
+	resp, err := container.GetController().HandleRefreshToken(ctx, req.Token)
+	if err != nil {
+		logger.ErrorContext(ctx, "RefreshToken error", "error", err)
+		// An invalid/expired/malformed refresh token must come back as a
+		// clean 401 so clients can tell "log the user out" apart from a
+		// transient failure, which a bare 500 (Encore's default for an
+		// unwrapped error) would not let them do.
+		return nil, &errs.Error{Code: errs.Unauthenticated, Message: "invalid refresh token"}
+	}
+	return resp, nil
 }

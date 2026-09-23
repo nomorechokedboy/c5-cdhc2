@@ -33,6 +33,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.13",
+		"exceljs": "^4.4.0",
 		"i18next": "^26.0.3",
 		"lucide-react": "^0.476.0",
 		"react": "^19.0.0",

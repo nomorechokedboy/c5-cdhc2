@@ -3,7 +3,8 @@ import {
 	UsersRound,
 	Languages,
 	FileSpreadsheet,
-	ShieldAlert
+	ShieldAlert,
+	GraduationCap
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import Cdhc2Logo from '@/assets/cdhc2.png'
@@ -120,7 +121,7 @@ class CourseCategoryToNavTransformer
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { t } = useTranslation()
-	const { hasElevatedAccess, isAdmin, isManager, role } = useAuth()
+	const { hasElevatedAccess, isAdmin, isManager, isStudent, role } = useAuth()
 	const showAdmin = isAdmin || isManager
 
 	// The Go /categories endpoint returns role-appropriate data:
@@ -138,7 +139,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			{
 				title: t('nav.general'),
 				url: '#',
-				items: [{ title: t('nav.home'), url: '/', icon: Home }]
+				items: [
+					{ title: t('nav.home'), url: '/', icon: Home },
+					...(isStudent
+						? [
+								{
+									title: t('report.link.myResults'),
+									url: '/ket-qua',
+									icon: GraduationCap
+								}
+							]
+						: [])
+				]
 			}
 		]
 	}

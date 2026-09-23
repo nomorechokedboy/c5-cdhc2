@@ -97,7 +97,7 @@ class get_course_data extends external_api
         $customfielddata = self::get_custom_field_data(array_column((array)$modules, 'cmid'));
 
         // 3️⃣ Get enrolled students
-        $students = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.id, u.firstname, u.lastname, u.email, u.username');
+        $students = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.id, u.firstname, u.lastname, u.email, u.username, u.idnumber');
 
         // 4️⃣ Get grades with correct weightraw using Moodle's official API
         $gradesData = [];
@@ -121,6 +121,7 @@ class get_course_data extends external_api
                             'finalgrade' => (float)$item['graderaw'],
                             'itemmodule' => $item['itemmodule'],
                             'itemnumber' => $item['itemnumber'],
+                            'graded' => is_numeric($item['graderaw'] ?? null) ? 1 : 0,
                         ];
                     }
                 }
@@ -152,6 +153,7 @@ class get_course_data extends external_api
                 'firstname' => $s->firstname,
                 'lastname' => $s->lastname,
                 'email' => $s->email,
+                'idnumber' => (string)($s->idnumber ?? ''),
                 'grades' => [],
             ];
         }
@@ -163,6 +165,7 @@ class get_course_data extends external_api
                     'moduleid' => $g['itemid'],
                     'modulename' => $moduleList[$g['itemid']]['name'],
                     'grade' => (float)$g['finalgrade'],
+                    'graded' => (int)$g['graded'],
                     'examtype' => $examtype,
                     'itemmodule' => $g['itemmodule'],
                     'iteminstance' => $g['iteminstance'],
@@ -318,11 +321,13 @@ class get_course_data extends external_api
                     'lastname' => new external_value(PARAM_TEXT, 'Last name'),
                     'username' => new external_value(PARAM_TEXT, 'User name'),
                     'email' => new external_value(PARAM_TEXT, 'Email'),
+                    'idnumber' => new external_value(PARAM_TEXT, 'Student idnumber (Ma HV)', VALUE_OPTIONAL),
                     'grades' => new external_multiple_structure(
                         new external_single_structure([
                             'moduleid' => new external_value(PARAM_INT, 'Module ID'),
                             'modulename' => new external_value(PARAM_TEXT, 'Module name'),
                             'grade' => new external_value(PARAM_FLOAT, 'Final grade'),
+                            'graded' => new external_value(PARAM_INT, '1 if a grade was entered, 0 if the grade is blank', VALUE_OPTIONAL),
                             'examtype' => new external_value(PARAM_TEXT, 'Exam type from custom field', VALUE_OPTIONAL),
                             'itemmodule' => new external_value(PARAM_TEXT, 'Grade item module'),
                             'iteminstance' => new external_value(PARAM_INT, 'Grade item id'),

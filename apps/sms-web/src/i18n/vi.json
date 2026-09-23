@@ -71,7 +71,8 @@
 			"template.delete": "Xóa mẫu xuất",
 			"config.langpack_set": "Cài ngôn ngữ",
 			"config.langpack_delete": "Xóa ngôn ngữ",
-			"audit.purge": "Xóa nhật ký"
+			"audit.purge": "Xóa nhật ký",
+			"conduct.save": "Cập nhật rèn luyện"
 		}
 	},
 	"auth": {
@@ -210,6 +211,116 @@
 		"teacherColumn": "Giảng viên",
 		"gradeColumn": "Điểm"
 	},
+	"report": {
+		"title": "Kết quả học tập",
+		"classTitle": "Kết quả học tập lớp {{name}}",
+		"back": "Về danh sách môn học",
+		"tabSemester": "Học kỳ",
+		"tabYear": "Cả năm",
+		"year": "Năm {{number}}",
+		"semester": "Học kỳ {{number}}",
+		"pickYear": "Năm học",
+		"pickSemester": "Học kỳ",
+		"col": {
+			"no": "STT",
+			"idnumber": "Mã học viên",
+			"name": "Họ và tên",
+			"courses": "Điểm học phần",
+			"summary": "Tổng kết",
+			"gpa": "ĐTB",
+			"gpaYear": "ĐTB năm",
+			"classification": "Xếp loại",
+			"rank": "Hạng",
+			"conduct": "Rèn luyện",
+			"conductYear": "Rèn luyện năm",
+			"conductLabel": "Xếp loại rèn luyện",
+			"credits": "{{count}} TC"
+		},
+		"band": {
+			"xuat_sac": "Xuất sắc",
+			"gioi": "Giỏi",
+			"kha": "Khá",
+			"trung_binh_kha": "Trung bình khá",
+			"trung_binh": "Trung bình",
+			"yeu": "Yếu"
+		},
+		"conductBand": {
+			"xuat_sac": "Xuất sắc",
+			"tot": "Tốt",
+			"kha": "Khá",
+			"trung_binh": "Trung bình",
+			"yeu": "Yếu",
+			"kem": "Kém"
+		},
+		"summary": {
+			"title": "Tổng hợp lớp",
+			"headcount": "Sĩ số",
+			"classGpa": "ĐTB lớp",
+			"maxGpa": "ĐTB cao nhất",
+			"distribution": "Phân loại học tập",
+			"top": "Ba học viên đứng đầu",
+			"perCourse": "Phân loại theo học phần",
+			"course": "Học phần",
+			"mean": "Điểm trung bình"
+		},
+		"warning": {
+			"title": "Cần lưu ý",
+			"course_no_grade_items": "Học phần {{course}} chưa có cột điểm nào.",
+			"exam_not_held": "Học phần {{course}} chưa có điểm thi, kết quả có thể chỉ là tạm thời.",
+			"test_count_mismatch": "Học phần {{course}} có số bài kiểm tra chưa đúng quy chế (Điều 10.4).",
+			"course_no_credits": "Học phần {{course}} chưa có số tín chỉ nên không được tính."
+		},
+		"unassigned": "{{count}} học phần chưa được xếp vào kỳ nào (thiếu {{fields}}): {{courses}}",
+		"states": {
+			"loading": "Đang tải kết quả",
+			"empty": "Chưa có điểm để lập báo cáo.",
+			"noPeriods": "Lớp này chưa có học phần nào gắn năm học và học kỳ.",
+			"error": "Không tải được kết quả",
+			"retry": "Thử lại",
+			"classNotFound": "Không tìm thấy lớp này.",
+			"noScore": "Chưa có điểm"
+		},
+		"conduct": {
+			"invalid": "Nhập số từ 0 đến 10, tối đa một chữ số thập phân",
+			"saved": "Đã lưu điểm rèn luyện",
+			"saveError": "Lưu điểm rèn luyện thất bại",
+			"for": "Rèn luyện của {{name}}"
+		},
+		"export": {
+			"button": "Tải Excel",
+			"exporting": "Đang xuất",
+			"success": "Đã xuất file Excel",
+			"error": "Xuất file Excel thất bại",
+			"school": "TRƯỜNG CAO ĐẲNG HẬU CẦN 2",
+			"titleSemester": "KẾT QUẢ HỌC TẬP HỌC KỲ {{semester}} NĂM {{year}}",
+			"titleYear": "KẾT QUẢ HỌC TẬP NĂM {{year}}",
+			"class": "Lớp: {{name}}",
+			"sheetResults": "Kết quả",
+			"sheetSummary": "Tổng hợp",
+			"legendTitle": "Chú thích",
+			"legendGood": "Từ 9,00 trở lên",
+			"legendWarn": "Từ 5,00 đến dưới 7,00",
+			"legendFail": "Dưới 5,00 (chưa đạt)",
+			"place": "……………, ngày …… tháng …… năm ……",
+			"principal": "HIỆU TRƯỞNG",
+			"dean": "TRƯỞNG PHÒNG ĐÀO TẠO",
+			"signHint": "(Ký, ghi rõ họ tên)"
+		},
+		"mine": {
+			"title": "Kết quả học tập của tôi",
+			"subtitle": "Điểm trung bình, xếp loại và thứ hạng của bạn trong lớp.",
+			"rankOf": "Hạng {{rank}}/{{ranked}} trong lớp",
+			"notRanked": "Chưa xếp hạng",
+			"noClass": "Chưa xác định được lớp của bạn hoặc lớp chưa có kết quả.",
+			"conduct": "Rèn luyện",
+			"credits": "Tín chỉ",
+			"yearTitle": "Tổng kết năm {{number}}"
+		},
+		"link": {
+			"classResults": "Kết quả lớp",
+			"myResults": "Kết quả học tập"
+		}
+	},
 	"sidebar": {
 		"loading": "Đang tải môn học...",
 		"noSubjects": "Không có môn học"
@@ -237,6 +348,8 @@
 		"genericDesc": "Không thể tải dữ liệu. Vui lòng thử lại.",
 		"fullTitle": "Không thể tải dữ liệu",
 		"fullDesc": "Không thể tải các khóa học của bạn. Vui lòng tải lại trang.",
+		"authUnreachableTitle": "Không thể kết nối máy chủ",
+		"authUnreachableDesc": "Không thể xác thực phiên đăng nhập của bạn. Vui lòng thử lại.",
 		"loading": "Đang tải"
 	},
 	"langpack": {

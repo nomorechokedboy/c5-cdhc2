@@ -2,9 +2,12 @@ import { CategoryApi } from '@/api'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseCard, { type Course } from '@/components/course-card'
 import { useQuery } from '@tanstack/react-query'
+import { ClipboardList } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '@repo/ui/components/ui/button'
 import { Card, CardContent } from '@repo/ui/components/ui/card'
 import { Link, createFileRoute, useRouterState } from '@tanstack/react-router'
+import useAuth from '@/hooks/useAuth'
 
 export const Route = createFileRoute('/khoa-hoc/$categoryIdnumber/')({
 	component: RouteComponent
@@ -13,6 +16,7 @@ export const Route = createFileRoute('/khoa-hoc/$categoryIdnumber/')({
 function RouteComponent() {
 	const { t } = useTranslation()
 	const { categoryIdnumber } = Route.useParams()
+	const { isAdmin, isManager } = useAuth()
 	const category = useRouterState({
 		select: (s) => s.location.state.category
 	})
@@ -38,6 +42,19 @@ function RouteComponent() {
 
 	return (
 		<ProtectedRoute>
+			{(isAdmin || isManager) && (
+				<div className='flex justify-end px-6 pt-6'>
+					<Button asChild variant='outline'>
+						<Link
+							to='/khoa-hoc/$categoryIdnumber/ket-qua'
+							params={{ categoryIdnumber }}
+						>
+							<ClipboardList />
+							{t('report.link.classResults')}
+						</Link>
+					</Button>
+				</div>
+			)}
 			{isCoursesLoading ? (
 				<div className='grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3'>
 					{Array.from({ length: 6 }).map((_, i) => (
