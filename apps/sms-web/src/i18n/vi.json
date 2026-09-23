@@ -348,6 +348,8 @@
 		"genericDesc": "Không thể tải dữ liệu. Vui lòng thử lại.",
 		"fullTitle": "Không thể tải dữ liệu",
 		"fullDesc": "Không thể tải các khóa học của bạn. Vui lòng tải lại trang.",
+		"authUnreachableTitle": "Không thể kết nối máy chủ",
+		"authUnreachableDesc": "Không thể xác thực phiên đăng nhập của bạn. Vui lòng thử lại.",
 		"loading": "Đang tải"
 	},
 	"langpack": {
