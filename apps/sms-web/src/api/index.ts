@@ -1,5 +1,5 @@
 import { ApiUrl } from '@/const'
-import Client, { type mdlapi } from './client'
+import Client, { APIError, type mdlapi } from './client'
 import { AuthController } from '@/biz'
 import { CourseCategory } from '@/types'
 
@@ -55,8 +55,16 @@ export async function appFetcher(url: RequestInfo | URL, init?: RequestInit) {
 		})
 	} catch (err) {
 		console.error('Token refresh failed:', err)
-		AuthController.clearTokens()
 		refreshPromise = null
+		// Only a definitive "this refresh token is invalid" response should log
+		// the user out. A transient failure (network blip, the refresh
+		// endpoint's own 5xx) must leave the stored tokens alone — clearing
+		// them here would strand any other in-flight request with no
+		// Authorization header at all, surfacing as a confusing framework-level
+		// "invalid auth param" rather than the real, retryable failure.
+		if (err instanceof APIError && err.status === 401) {
+			AuthController.clearTokens()
+		}
 		return resp
 	}
 }

@@ -3,7 +3,7 @@ module encore.app
 go 1.24.2
 
 require (
-	encore.dev v1.48.13
+	encore.dev v1.57.13
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
