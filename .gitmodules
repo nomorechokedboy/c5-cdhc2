@@ -1,0 +1,6 @@
+[submodule "packages/customgradeexport/vendor/phpoffice/phpword"]
+	path = packages/customgradeexport/vendor/phpoffice/phpword
+	url = https://github.com/PHPOffice/PHPWord.git
+[submodule "packages/customgradeexport/vendor/laminas/laminas-escaper"]
+	path = packages/customgradeexport/vendor/laminas/laminas-escaper
+	url = https://github.com/laminas/laminas-escaper.git
