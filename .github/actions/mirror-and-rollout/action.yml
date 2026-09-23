@@ -1,140 +1,149 @@
 name: 'Mirror image and roll out'
 description: >
-  Pulls an image from GHCR on the DEST host, pushes it to the local
-  air-gapped registry, then either rolls out directly on DEST_IPv4
-  (use_inner_hop: false) or hops via agent-forwarded SSH to an inner
-  LAN host to trigger the rollout there (use_inner_hop: true, default).
-  Key material is never written to disk on any remote host.
+    Pulls an image from GHCR on the DEST host, pushes it to the local
+    air-gapped registry, then either rolls out directly on DEST_IPv4
+    (use_inner_hop: false) or hops via agent-forwarded SSH to an inner
+    LAN host to trigger the rollout there (use_inner_hop: true, default).
+    Key material is never written to disk on any remote host.
 
 inputs:
-  tailscale_authkey:
-    required: true
-  dest_ssh_private_key:
-    required: true
-  dest_ipv4:
-    required: true
-  dest_user:
-    required: false
-    default: cdhc2-itn
-  use_inner_hop:
-    required: false
-    default: 'true'
-    description: "'true' to roll out via a second SSH hop, 'false' to roll out directly on DEST_IPv4"
-  inner_ssh_private_key:
-    required: false
-    default: ''
-  inner_host:
-    required: false
-    default: ''
-  inner_user:
-    required: false
-    default: ''
-  registry:
-    required: true
-  image_prefix:
-    required: true
-  image_name:
-    required: true
-  source_tag:
-    required: true
-    description: 'Tag to pull from GHCR, e.g. lan-latest, wan-latest, or latest'
-  local_registry:
-    required: true
-  local_project:
-    required: true
-  local_tag:
-    required: false
-    default: latest
-  k8s_namespace:
-    required: true
-  k8s_deployment:
-    required: true
+    tailscale_authkey:
+        required: true
+    dest_ssh_private_key:
+        required: true
+    dest_ipv4:
+        required: true
+    dest_user:
+        required: false
+        default: cdhc2-itn
+    use_inner_hop:
+        required: false
+        default: 'true'
+        description: "'true' to roll out via a second SSH hop, 'false' to roll out directly on DEST_IPv4"
+    inner_ssh_private_key:
+        required: false
+        default: ''
+    inner_host:
+        required: false
+        default: ''
+    inner_user:
+        required: false
+        default: ''
+    registry:
+        required: true
+    image_prefix:
+        required: true
+    image_name:
+        required: true
+    source_tag:
+        required: true
+        description: 'Tag to pull from GHCR, e.g. lan-latest, wan-latest, or latest'
+    local_registry:
+        required: true
+    local_project:
+        required: true
+    local_tag:
+        required: true
+        description: 'Immutable tag to push to the local registry and deploy (e.g. the commit SHA). Must be unique per rollout so the kubelet is always forced to pull, regardless of imagePullPolicy.'
+    k8s_namespace:
+        required: true
+    k8s_deployment:
+        required: true
+    k8s_container:
+        required: true
+        description: 'Container name inside the deployment pod spec to update'
 
 runs:
-  using: composite
-  steps:
-    - name: Connect to Tailscale
-      uses: tailscale/github-action@v4
-      with:
-        authkey: ${{ inputs.tailscale_authkey }}
-        tags: tag:ci
-        version: 1.90.6
+    using: composite
+    steps:
+        - name: Connect to Tailscale
+          uses: tailscale/github-action@v4
+          with:
+              authkey: ${{ inputs.tailscale_authkey }}
+              tags: tag:ci
+              version: 1.90.6
 
-    - name: Load SSH key into agent (single-hop)
-      if: inputs.use_inner_hop != 'true'
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ inputs.dest_ssh_private_key }}
+        - name: Load SSH key into agent (single-hop)
+          if: inputs.use_inner_hop != 'true'
+          uses: webfactory/ssh-agent@v0.9.0
+          with:
+              ssh-private-key: ${{ inputs.dest_ssh_private_key }}
 
-    - name: Load SSH keys into agent (two-hop)
-      if: inputs.use_inner_hop == 'true'
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: |
-          ${{ inputs.dest_ssh_private_key }}
-          ${{ inputs.inner_ssh_private_key }}
+        - name: Load SSH keys into agent (two-hop)
+          if: inputs.use_inner_hop == 'true'
+          uses: webfactory/ssh-agent@v0.9.0
+          with:
+              ssh-private-key: |
+                  ${{ inputs.dest_ssh_private_key }}
+                  ${{ inputs.inner_ssh_private_key }}
 
-    - name: Trust DEST host key
-      shell: bash
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H ${{ inputs.dest_ipv4 }} >> ~/.ssh/known_hosts
+        - name: Trust DEST host key
+          shell: bash
+          run: |
+              mkdir -p ~/.ssh
+              ssh-keyscan -H ${{ inputs.dest_ipv4 }} >> ~/.ssh/known_hosts
 
-    - name: Test SSH to DEST
-      shell: bash
-      run: |
-        ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-          ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} \
-          "echo 'SSH OK'; hostname"
+        - name: Test SSH to DEST
+          shell: bash
+          run: |
+              ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+                ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} \
+                "echo 'SSH OK'; hostname"
 
-    - name: Mirror image and roll out directly on DEST_IPv4
-      if: inputs.use_inner_hop != 'true'
-      shell: bash
-      run: |
-        ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-          ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} << 'EOF'
-        set -e
-        echo "== Logging out of GHCR to ensure a clean pull =="
-        docker logout ${{ inputs.registry }}
-        echo "== Pulling ${{ inputs.source_tag }} image from GHCR =="
-        docker pull ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
-        echo "== Tagging for local registry =="
-        docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
-          ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
-        echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
-        docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+        - name: Mirror image and roll out directly on DEST_IPv4
+          if: inputs.use_inner_hop != 'true'
+          shell: bash
+          run: |
+              ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+                ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} << 'EOF'
+              set -e
+              echo "== Logging out of GHCR to ensure a clean pull =="
+              docker logout ${{ inputs.registry }}
+              echo "== Pulling ${{ inputs.source_tag }} image from GHCR =="
+              docker pull ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
+              echo "== Tagging for local registry =="
+              docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+              docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+              echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
 
-        echo "== Rolling out deployment on DEST_IPv4 =="
-        kubectl rollout restart deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }}
-        kubectl rollout status deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} --timeout=180s
+              echo "== Rolling out deployment on DEST_IPv4 (forcing pull of ${{ inputs.local_tag }}) =="
+              kubectl set image deployment/${{ inputs.k8s_deployment }} ${{ inputs.k8s_container }}=${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }} -n ${{ inputs.k8s_namespace }}
+              kubectl rollout status deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} --timeout=180s
 
-        echo "✅ Deploy completed successfully!"
-        EOF
+              echo "✅ Deploy completed successfully!"
+              EOF
 
-    - name: Mirror image and roll out on inner host
-      if: inputs.use_inner_hop == 'true'
-      shell: bash
-      run: |
-        ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-          ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} << 'EOF'
-        set -e
-        echo "== Logging out of GHCR to ensure a clean pull =="
-        docker logout ${{ inputs.registry }}
-        echo "== Pulling ${{ inputs.source_tag }} image from GHCR =="
-        docker pull ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
-        echo "== Tagging for local registry =="
-        docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
-          ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
-        echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
-        docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+        - name: Mirror image and roll out on inner host
+          if: inputs.use_inner_hop == 'true'
+          shell: bash
+          run: |
+              ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+                ${{ inputs.dest_user }}@${{ inputs.dest_ipv4 }} << 'EOF'
+              set -e
+              echo "== Logging out of GHCR to ensure a clean pull =="
+              docker logout ${{ inputs.registry }}
+              echo "== Pulling ${{ inputs.source_tag }} image from GHCR =="
+              docker pull ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }}
+              echo "== Tagging for local registry =="
+              docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+              docker tag ${{ inputs.registry }}/${{ inputs.image_prefix }}/${{ inputs.image_name }}:${{ inputs.source_tag }} \
+                ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
+              echo "== Pushing to local registry (${{ inputs.local_registry }}) =="
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }}
+              docker push ${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:latest
 
-        echo "== Rolling out deployment on inner LAN host =="
-        ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-          ${{ inputs.inner_user }}@${{ inputs.inner_host }} << 'INNER_EOF'
-        set -e
-        kubectl rollout restart deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }}
-        kubectl rollout status deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} --timeout=180s
-        INNER_EOF
+              echo "== Rolling out deployment on inner LAN host (forcing pull of ${{ inputs.local_tag }}) =="
+              ssh -A -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+                ${{ inputs.inner_user }}@${{ inputs.inner_host }} << 'INNER_EOF'
+              set -e
+              kubectl set image deployment/${{ inputs.k8s_deployment }} ${{ inputs.k8s_container }}=${{ inputs.local_registry }}/${{ inputs.local_project }}/${{ inputs.image_name }}:${{ inputs.local_tag }} -n ${{ inputs.k8s_namespace }}
+              kubectl rollout status deployment/${{ inputs.k8s_deployment }} -n ${{ inputs.k8s_namespace }} --timeout=180s
+              INNER_EOF
 
-        echo "✅ Deploy completed successfully!"
-        EOF
+              echo "✅ Deploy completed successfully!"
+              EOF

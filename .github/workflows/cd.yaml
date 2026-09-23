@@ -1,0 +1,207 @@
+name: Continuous Deployment
+
+on:
+    workflow_call:
+        inputs:
+            build_api:
+                type: boolean
+                default: false
+            build_web:
+                type: boolean
+                default: false
+            build_sms_api:
+                type: boolean
+                default: false
+            build_sms_web:
+                type: boolean
+                default: false
+        secrets:
+            TAILSCALE_AUTHKEY:
+                required: true
+            SSH_PRIVATE_KEY:
+                required: true
+            DEST_IPv4:
+                required: true
+            INNER_LAN_SSH_PRIVATE_KEY:
+                required: true
+            INNER_LAN_HOST:
+                required: true
+            INNER_LAN_USER:
+                required: true
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE_PREFIX: ${{ github.repository_owner }}
+    LOCAL_REGISTRY: registry.hc2
+    LOCAL_PROJECT: cdhc2
+    SMS_WEB_K8S_NAMESPACE: sms
+    SMS_API_K8S_DEPLOYMENT: sms-api
+    SMS_WEB_K8S_DEPLOYMENT: sms-web
+    SMS_API_WAN_K8S_NAMESPACE: sms # TODO: confirm namespace for WAN sms-api on DEST_IPv4
+    SMS_WEB_WAN_K8S_NAMESPACE: sms # TODO: confirm namespace for WAN sms-web on DEST_IPv4
+    QLHV_WEB_K8S_NAMESPACE: qlhv
+    QLHV_API_K8S_DEPLOYMENT: qlhv-api
+    QLHV_WEB_K8S_DEPLOYMENT: qlhv-web
+
+jobs:
+    # --- LAN rollouts (via inner-host hop) ---
+
+    mirror-sms-api-lan:
+        if: inputs.build_sms_api
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-api and roll out (LAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-api
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_API_K8S_DEPLOYMENT }}
+                  k8s_container: sms-api
+
+    mirror-sms-web-lan:
+        if: inputs.build_sms_web
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-web and roll out (LAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-web
+                  source_tag: lan-latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.SMS_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
+                  k8s_container: sms-web
+
+    # --- WAN rollouts (direct on DEST_IPv4, no inner hop) ---
+
+    rollout-sms-api-wan:
+        if: inputs.build_sms_api
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-api and roll out (WAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'false'
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-api
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.SMS_API_WAN_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_API_K8S_DEPLOYMENT }}
+                  k8s_container: sms-api
+
+    rollout-sms-web-wan:
+        if: inputs.build_sms_web
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror sms-web and roll out (WAN)
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'false'
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: sms-web
+                  source_tag: wan-latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.SMS_WEB_WAN_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.SMS_WEB_K8S_DEPLOYMENT }}
+                  k8s_container: sms-web
+
+    # --- QLHV rollouts (LAN via inner hop) ---
+
+    mirror-qlhv-api:
+        if: inputs.build_api
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror qlhv-api and roll out
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: qlhv-api
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.QLHV_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.QLHV_API_K8S_DEPLOYMENT }}
+                  k8s_container: qlhv
+
+    mirror-qlhv-web:
+        if: inputs.build_web
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Mirror qlhv-web and roll out
+              uses: ./.github/actions/mirror-and-rollout
+              with:
+                  tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+                  dest_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  dest_ipv4: ${{ secrets.DEST_IPv4 }}
+                  use_inner_hop: 'true'
+                  inner_ssh_private_key: ${{ secrets.INNER_LAN_SSH_PRIVATE_KEY }}
+                  inner_host: ${{ secrets.INNER_LAN_HOST }}
+                  inner_user: ${{ secrets.INNER_LAN_USER }}
+                  registry: ${{ env.REGISTRY }}
+                  image_prefix: ${{ env.IMAGE_PREFIX }}
+                  image_name: qlhv-web
+                  source_tag: latest
+                  local_registry: ${{ env.LOCAL_REGISTRY }}
+                  local_project: ${{ env.LOCAL_PROJECT }}
+                  local_tag: ${{ github.sha }}
+                  k8s_namespace: ${{ env.QLHV_WEB_K8S_NAMESPACE }}
+                  k8s_deployment: ${{ env.QLHV_WEB_K8S_DEPLOYMENT }}
+                  k8s_container: qlhv
