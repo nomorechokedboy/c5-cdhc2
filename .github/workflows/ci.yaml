@@ -1,5 +1,4 @@
 name: Continuous Integration
-
 on:
     workflow_dispatch:
         inputs:
@@ -19,11 +18,10 @@ on:
                 description: 'Build & deploy sms-web (wan + lan)'
                 type: boolean
                 default: false
-
 env:
     REGISTRY: ghcr.io
     IMAGE_PREFIX: ${{ github.repository_owner }}
-
+    ENCORE_VERSION: 1.58.4
 jobs:
     build-api:
         if: github.event.inputs.build_api == 'true'
@@ -44,7 +42,7 @@ jobs:
               uses: docker/setup-buildx-action@v3
             - name: Install Encore
               run: |
-                  curl -L https://encore.dev/install.sh | bash
+                  curl -L https://encore.dev/install.sh | bash -s -- "$ENCORE_VERSION"
                   echo "$HOME/.encore/bin" >> $GITHUB_PATH
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -89,7 +87,6 @@ jobs:
                   done
             - name: Image digest
               run: echo "API image pushed successfully"
-
     build-web:
         if: github.event.inputs.build_web == 'true'
         runs-on: ubuntu-latest
@@ -127,7 +124,6 @@ jobs:
                   labels: ${{ steps.meta.outputs.labels }}
                   build-args: |
                       VITE_API_URL=${{ secrets.WEB_VITE_API_URL }}
-
     build-sms-api:
         if: github.event.inputs.build_sms_api == 'true'
         runs-on: ubuntu-latest
@@ -169,7 +165,6 @@ jobs:
                   done
             - name: Image digest
               run: echo "SMS API image pushed successfully"
-
     build-sms-web:
         if: github.event.inputs.build_sms_web == 'true'
         runs-on: ubuntu-latest
@@ -215,7 +210,6 @@ jobs:
                       VITE_API_URL=${{ vars.VITE_API_URL }}
                       VITE_TOKEN_URI=${{ secrets.VITE_TOKEN_URI }}
                       VITE_REDIRECT_URI=${{ secrets.VITE_REDIRECT_URI }}
-
     deploy:
         needs: [build-api, build-web, build-sms-api, build-sms-web]
         if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
