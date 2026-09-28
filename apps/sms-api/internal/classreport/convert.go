@@ -1,18 +1,22 @@
 package classreport
 
 import (
+	"time"
+
 	"encore.app/internal/mdlapi"
 	"encore.app/internal/reporting"
 )
 
-// Names of the Moodle course custom fields the reports read.
+// Names of the Moodle course custom fields the reports read. Year is no
+// longer one of them: it is derived from the course's Moodle start date
+// instead of a separate customfield.
 const (
 	fieldCredit   = "credit"
 	fieldSemester = "semester"
-	fieldYear     = "year"
 )
 
-// courseMeta is a category course with its custom fields read out.
+// courseMeta is a category course with its custom fields (and derived year)
+// read out.
 type courseMeta struct {
 	course   mdlapi.CategoryCourse
 	credits  int
@@ -22,26 +26,28 @@ type courseMeta struct {
 
 func readMeta(c mdlapi.CategoryCourse) courseMeta {
 	m := courseMeta{course: c}
+	if c.Startdate > 0 {
+		m.year = time.Unix(int64(c.Startdate), 0).Year()
+	}
 	for _, f := range c.Metadata {
 		switch f.Name {
 		case fieldCredit:
 			m.credits = f.Value
 		case fieldSemester:
 			m.semester = f.Value
-		case fieldYear:
-			m.year = f.Value
 		}
 	}
 	return m
 }
 
-// assigned reports whether the course belongs to a period.
+// assigned reports whether the course belongs to a period: a usable start
+// date (to derive the year) and a semester customfield.
 func (m courseMeta) assigned() bool { return m.year > 0 && m.semester > 0 }
 
 func (m courseMeta) missing() []string {
 	var out []string
 	if m.year <= 0 {
-		out = append(out, fieldYear)
+		out = append(out, "year")
 	}
 	if m.semester <= 0 {
 		out = append(out, fieldSemester)
@@ -98,7 +104,10 @@ func courseInput(meta courseMeta, resp *mdlapi.GetCourseGradesResponse) reportin
 		list := make([]reporting.Item, 0, len(modules))
 		for _, m := range modules {
 			g, found := byModule[m.id]
-			list = append(list, reporting.Item{Type: m.typ, Grade: g.Grade, Graded: found && g.IsGraded()})
+			list = append(
+				list,
+				reporting.Item{Type: m.typ, Grade: g.Grade, Graded: found && g.IsGraded()},
+			)
 		}
 		items[st.ID] = list
 	}
@@ -127,7 +136,10 @@ func studentsOf(responses []*mdlapi.GetCourseGradesResponse) []reporting.Student
 				continue
 			}
 			seen[st.ID] = true
-			students = append(students, reporting.Student{ID: st.ID, IDNumber: studentNumber(st), FullName: st.Fullname})
+			students = append(
+				students,
+				reporting.Student{ID: st.ID, IDNumber: studentNumber(st), FullName: st.Fullname},
+			)
 		}
 	}
 	return students
