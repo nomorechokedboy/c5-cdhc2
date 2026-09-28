@@ -23,11 +23,17 @@ type fakeTeacher struct {
 	courses                     []mdlapi.CategoryCourse
 }
 
-func (f fakeTeacher) GetAllCategories(context.Context, *mdlapi.GetAllCategoriesRequest) (*mdlapi.GetCategoriesResponse, error) {
+func (f fakeTeacher) GetAllCategories(
+	context.Context,
+	*mdlapi.GetAllCategoriesRequest,
+) (*mdlapi.GetCategoriesResponse, error) {
 	return &mdlapi.GetCategoriesResponse{Categories: f.categories}, nil
 }
 
-func (f fakeTeacher) GetAllCategoryCoursesForAdmin(context.Context, *mdlapi.GetCategoryCoursesRequest) (*mdlapi.GetCategoryCoursesResponse, error) {
+func (f fakeTeacher) GetAllCategoryCoursesForAdmin(
+	context.Context,
+	*mdlapi.GetCategoryCoursesRequest,
+) (*mdlapi.GetCategoryCoursesResponse, error) {
 	return &mdlapi.GetCategoryCoursesResponse{Courses: f.courses}, nil
 }
 
@@ -39,7 +45,10 @@ type fakeGrades struct {
 	peak      atomic.Int32
 }
 
-func (f *fakeGrades) GetCourseDetails(_ context.Context, req *mdlapi.GetCourseGradesRequest) (*mdlapi.GetCourseGradesResponse, error) {
+func (f *fakeGrades) GetCourseDetails(
+	_ context.Context,
+	req *mdlapi.GetCourseGradesRequest,
+) (*mdlapi.GetCourseGradesResponse, error) {
 	n := f.inflight.Add(1)
 	defer f.inflight.Add(-1)
 	for {
@@ -90,6 +99,12 @@ func meta(fields map[string]int) []mdlapi.CourseMetadata {
 	return out
 }
 
+// startOfYear is a Moodle course startdate (unix seconds) that falls in the
+// given calendar year regardless of the machine's time zone.
+func startOfYear(year int) int {
+	return int(time.Date(year, time.July, 1, 0, 0, 0, 0, time.UTC).Unix())
+}
+
 // modules lists nTests 15P items, nTests 1T items and one Thi, ids from base.
 func modules(base, nTests int) []mdlapi.Module {
 	var out []mdlapi.Module
@@ -116,28 +131,63 @@ func course(mods []mdlapi.Module, students ...mdlapi.Student) *mdlapi.GetCourseG
 	return &mdlapi.GetCourseGradesResponse{Modules: mods, Students: students}
 }
 
-// fixture: class 12 with GP (4 cr) and SL (2 cr) in year 1 semester 1, KT
-// (2 cr) in year 1 semester 2, and OLD, which has no year.
+// fixture: class 12 with GP (4 cr) and SL (2 cr) starting in 2024 semester 1,
+// KT (2 cr) in 2024 semester 2, and OLD, which has no startdate.
 func fixture() (*Service, *fakeGrades, *fakeConduct) {
 	gpMods, slMods, ktMods := modules(100, 2), modules(200, 1), modules(300, 1)
 	teacher := fakeTeacher{
 		categories: []mdlapi.Category{{ID: 12, Name: "Y sĩ K12", IdNumber: "Y53"}},
 		courses: []mdlapi.CategoryCourse{
-			{ID: 5, Shortname: "GP", Fullname: "Giải phẫu", Metadata: meta(map[string]int{"credit": 4, "year": 1, "semester": 1})},
-			{ID: 6, Shortname: "SL", Fullname: "Sinh lý", Metadata: meta(map[string]int{"credit": 2, "year": 1, "semester": 1})},
-			{ID: 7, Shortname: "KT", Fullname: "Kiểm tra", Metadata: meta(map[string]int{"credit": 2, "year": 1, "semester": 2})},
-			{ID: 8, Shortname: "OLD", Fullname: "Cũ", Metadata: meta(map[string]int{"credit": 2, "semester": 1})},
+			{
+				ID:        5,
+				Shortname: "GP",
+				Fullname:  "Giải phẫu",
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"credit": 4, "semester": 1}),
+			},
+			{
+				ID:        6,
+				Shortname: "SL",
+				Fullname:  "Sinh lý",
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"credit": 2, "semester": 1}),
+			},
+			{
+				ID:        7,
+				Shortname: "KT",
+				Fullname:  "Kiểm tra",
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"credit": 2, "semester": 2}),
+			},
+			{
+				ID:        8,
+				Shortname: "OLD",
+				Fullname:  "Cũ",
+				Metadata:  meta(map[string]int{"credit": 2, "semester": 1}),
+			},
 		},
 	}
 	grades := &fakeGrades{responses: map[int64]*mdlapi.GetCourseGradesResponse{
-		5: course(gpMods, student(1, "2301010001", "An", gpMods, 8), student(2, "2301010002", "Bình", gpMods, 9)),
-		6: course(slMods, student(1, "2301010001", "An", slMods, 6), student(2, "2301010002", "Bình", slMods, 9)),
-		7: course(ktMods, student(1, "2301010001", "An", ktMods, 7), student(2, "2301010002", "Bình", ktMods, 9)),
+		5: course(
+			gpMods,
+			student(1, "2301010001", "An", gpMods, 8),
+			student(2, "2301010002", "Bình", gpMods, 9),
+		),
+		6: course(
+			slMods,
+			student(1, "2301010001", "An", slMods, 6),
+			student(2, "2301010002", "Bình", slMods, 9),
+		),
+		7: course(
+			ktMods,
+			student(1, "2301010001", "An", ktMods, 7),
+			student(2, "2301010002", "Bình", ktMods, 9),
+		),
 	}}
 	repo := &fakeConduct{scores: []conduct.Score{
-		{StudentID: 1, Year: 1, Semester: 1, Score: 8.5},
-		{StudentID: 1, Year: 1, Semester: 2, Score: 7.5},
-		{StudentID: 2, Year: 1, Semester: 1, Score: 9},
+		{StudentID: 1, Year: 2024, Semester: 1, Score: 8.5},
+		{StudentID: 1, Year: 2024, Semester: 2, Score: 7.5},
+		{StudentID: 2, Year: 2024, Semester: 1, Score: 9},
 	}}
 	svc := New(teacher, grades, repo, fakeClasses{id: 12})
 	return svc, grades, repo
@@ -156,7 +206,7 @@ func TestPeriodsGroupsCoursesAndListsUnassigned(t *testing.T) {
 	if resp.Class.IDNumber != "Y53" {
 		t.Fatalf("class = %+v", resp.Class)
 	}
-	want := []Period{{Year: 1, Semester: 1, Courses: 2}, {Year: 1, Semester: 2, Courses: 1}}
+	want := []Period{{Year: 2024, Semester: 1, Courses: 2}, {Year: 2024, Semester: 2, Courses: 1}}
 	if len(resp.Periods) != 2 || resp.Periods[0] != want[0] || resp.Periods[1] != want[1] {
 		t.Fatalf("periods = %+v, want %+v", resp.Periods, want)
 	}
@@ -168,12 +218,17 @@ func TestPeriodsGroupsCoursesAndListsUnassigned(t *testing.T) {
 
 func TestSemesterReport(t *testing.T) {
 	svc, _, _ := fixture()
-	r, err := svc.Semester(ctx, 12, 1, 1)
+	r, err := svc.Semester(ctx, 12, 2024, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if r.TotalCredits != 6 || len(r.Courses) != 2 || len(r.Warnings) != 0 {
-		t.Fatalf("credits = %d, courses = %d, warnings = %+v", r.TotalCredits, len(r.Courses), r.Warnings)
+		t.Fatalf(
+			"credits = %d, courses = %d, warnings = %+v",
+			r.TotalCredits,
+			len(r.Courses),
+			r.Warnings,
+		)
 	}
 	an, binh := r.Students[0], r.Students[1]
 	if an.FullName != "An" || an.IDNumber != "2301010001" {
@@ -190,7 +245,7 @@ func TestSemesterReport(t *testing.T) {
 
 func TestYearReportUsesEverySemesterOfTheYear(t *testing.T) {
 	svc, _, _ := fixture()
-	r, err := svc.Year(ctx, 12, 1)
+	r, err := svc.Year(ctx, 12, 2024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,9 +278,15 @@ func TestMissingItemsBecomeBlank(t *testing.T) {
 		t.Fatalf("items = %+v", items)
 	}
 	if !items[0].Graded || items[1].Graded || items[2].Graded {
-		t.Fatalf("graded = %v %v %v, want true false false", items[0].Graded, items[1].Graded, items[2].Graded)
+		t.Fatalf(
+			"graded = %v %v %v, want true false false",
+			items[0].Graded,
+			items[1].Graded,
+			items[2].Graded,
+		)
 	}
-	if items[0].Type != reporting.ExamRegular || items[1].Type != reporting.ExamPeriodic || items[2].Type != reporting.ExamFinal {
+	if items[0].Type != reporting.ExamRegular || items[1].Type != reporting.ExamPeriodic ||
+		items[2].Type != reporting.ExamFinal {
 		t.Fatalf("types = %v %v %v", items[0].Type, items[1].Type, items[2].Type)
 	}
 }
@@ -256,11 +317,19 @@ func TestCourseWithoutCreditsIsFlagged(t *testing.T) {
 	svc.teacher = fakeTeacher{
 		categories: []mdlapi.Category{{ID: 12}},
 		courses: []mdlapi.CategoryCourse{
-			{ID: 5, Metadata: meta(map[string]int{"credit": 4, "year": 1, "semester": 1})},
-			{ID: 6, Metadata: meta(map[string]int{"year": 1, "semester": 1})}, // no credit
+			{
+				ID:        5,
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"credit": 4, "semester": 1}),
+			},
+			{
+				ID:        6,
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"semester": 1}),
+			}, // no credit
 		},
 	}
-	r, err := svc.Semester(ctx, 12, 1, 1)
+	r, err := svc.Semester(ctx, 12, 2024, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,13 +348,13 @@ func TestCourseWithoutCreditsIsFlagged(t *testing.T) {
 
 func TestNotFound(t *testing.T) {
 	svc, _, _ := fixture()
-	if _, err := svc.Semester(ctx, 99, 1, 1); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.Semester(ctx, 99, 2024, 1); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("unknown class: %v", err)
 	}
-	if _, err := svc.Semester(ctx, 12, 1, 5); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.Semester(ctx, 12, 2024, 5); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("unknown semester: %v", err)
 	}
-	if _, err := svc.Year(ctx, 12, 9); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.Year(ctx, 12, 1999); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("unknown year: %v", err)
 	}
 }
@@ -293,7 +362,8 @@ func TestNotFound(t *testing.T) {
 func TestMoodleFailureFailsTheReport(t *testing.T) {
 	svc, grades, _ := fixture()
 	grades.failOn = 6
-	if _, err := svc.Semester(ctx, 12, 1, 1); err == nil || !strings.Contains(err.Error(), "moodle is down") {
+	if _, err := svc.Semester(ctx, 12, 2024, 1); err == nil ||
+		!strings.Contains(err.Error(), "moodle is down") {
 		t.Fatalf("err = %v", err)
 	}
 }
@@ -303,14 +373,21 @@ func TestCourseFetchesAreBounded(t *testing.T) {
 	var courses []mdlapi.CategoryCourse
 	grades.responses = map[int64]*mdlapi.GetCourseGradesResponse{}
 	for id := 1; id <= 12; id++ {
-		courses = append(courses, mdlapi.CategoryCourse{ID: id, Metadata: meta(map[string]int{"credit": 2, "year": 1, "semester": 1})})
+		courses = append(
+			courses,
+			mdlapi.CategoryCourse{
+				ID:        id,
+				Startdate: startOfYear(2024),
+				Metadata:  meta(map[string]int{"credit": 2, "semester": 1}),
+			},
+		)
 		grades.responses[int64(id)] = course(nil)
 	}
 	svc.teacher = fakeTeacher{categories: []mdlapi.Category{{ID: 12}}, courses: courses}
 	grades.delay = 15 * time.Millisecond
 	svc.concurrency = 3
 
-	if _, err := svc.Semester(ctx, 12, 1, 1); err != nil {
+	if _, err := svc.Semester(ctx, 12, 2024, 1); err != nil {
 		t.Fatal(err)
 	}
 	if peak := grades.peak.Load(); peak > 3 || peak < 2 {
@@ -320,7 +397,7 @@ func TestCourseFetchesAreBounded(t *testing.T) {
 
 func TestMySemesterShowsOnlyTheStudentsOwnRow(t *testing.T) {
 	svc, _, _ := fixture()
-	mine, err := svc.MySemester(ctx, 1, 1, 1)
+	mine, err := svc.MySemester(ctx, 1, 2024, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,18 +409,18 @@ func TestMySemesterShowsOnlyTheStudentsOwnRow(t *testing.T) {
 		t.Fatalf("another student leaked into the response: %s", body)
 	}
 
-	if _, err := svc.MySemester(ctx, 77, 1, 1); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.MySemester(ctx, 77, 2024, 1); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("a user who is not in the class: %v", err)
 	}
 	svc.classes = fakeClasses{} // student enrolled nowhere
-	if _, err := svc.MySemester(ctx, 1, 1, 1); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.MySemester(ctx, 1, 2024, 1); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("no class: %v", err)
 	}
 }
 
 func TestMyYearHasEachSemester(t *testing.T) {
 	svc, _, _ := fixture()
-	mine, err := svc.MyYear(ctx, 2, 1)
+	mine, err := svc.MyYear(ctx, 2, 2024)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -388,11 +465,21 @@ func TestSaveConduct(t *testing.T) {
 	}
 
 	bad := 11.0
-	err := svc.SaveConduct(ctx, 12, 3, []conduct.Entry{{StudentID: 1, Year: 1, Semester: 1, Score: &bad}})
+	err := svc.SaveConduct(
+		ctx,
+		12,
+		3,
+		[]conduct.Entry{{StudentID: 1, Year: 1, Semester: 1, Score: &bad}},
+	)
 	if !errors.Is(err, conduct.ErrInvalid) || len(repo.saved) != 1 {
 		t.Fatalf("invalid score: err = %v, saved = %d", err, len(repo.saved))
 	}
-	err = svc.SaveConduct(ctx, 99, 3, []conduct.Entry{{StudentID: 1, Year: 1, Semester: 1, Score: &score}})
+	err = svc.SaveConduct(
+		ctx,
+		99,
+		3,
+		[]conduct.Entry{{StudentID: 1, Year: 1, Semester: 1, Score: &score}},
+	)
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("unknown class: %v", err)
 	}
